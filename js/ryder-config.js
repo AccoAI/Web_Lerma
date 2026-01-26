@@ -113,6 +113,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             resumenHTML += '<p style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.2);"><strong>Live Scoring:</strong> Web de puntuaciones en vivo durante todo el fin de semana</p>';
             
+            // Agregar información de usuarios
+            const usuarios = form.querySelectorAll('.usuario-form');
+            if (usuarios.length > 0) {
+                resumenHTML += `<p><strong>Número de participantes:</strong> ${usuarios.length}</p>`;
+            }
+            
             resumenHTML += '</div>';
             resumenDiv.innerHTML = resumenHTML;
         } else {

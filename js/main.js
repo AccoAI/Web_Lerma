@@ -284,6 +284,12 @@ function initConfiguradorPaquete() {
                 resumenHTML += '<p><strong>Comida:</strong> Restaurantes en Burgos</p>';
             }
             
+            // Agregar información de usuarios
+            const usuarios = form.querySelectorAll('.usuario-form');
+            if (usuarios.length > 0) {
+                resumenHTML += `<p><strong>Número de participantes:</strong> ${usuarios.length}</p>`;
+            }
+            
             resumenHTML += '</div>';
             resumenDiv.innerHTML = resumenHTML;
         } else {
