@@ -292,7 +292,8 @@ body {
 }
 
 .btn-reservar-flotante,
-.btn-calendario-flotante {
+.btn-calendario-flotante,
+.btn-paquetes-flotante {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -313,7 +314,8 @@ body {
 }
 
 .btn-reservar-flotante:hover,
-.btn-calendario-flotante:hover {
+.btn-calendario-flotante:hover,
+.btn-paquetes-flotante:hover {
     transform: translateY(-5px) scale(1.02);
     box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
     background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
@@ -321,7 +323,8 @@ body {
 }
 
 .btn-reservar-icono,
-.btn-calendario-icono {
+.btn-calendario-icono,
+.btn-paquetes-icono {
     font-size: 1.5rem;
     transition: transform 0.3s ease;
 }
@@ -331,6 +334,10 @@ body {
 }
 
 .btn-calendario-flotante:hover .btn-calendario-icono {
+    transform: scale(1.1);
+}
+
+.btn-paquetes-flotante:hover .btn-paquetes-icono {
     transform: scale(1.1);
 }
 
@@ -1071,6 +1078,84 @@ body {
     text-decoration: underline;
 }
 
+/* El Campo */
+.el-campo {
+    padding: 4rem 0;
+    background: var(--color-white);
+    scroll-margin-top: 80px;
+}
+
+.campo-seccion {
+    margin-bottom: 4rem;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.campo-seccion:last-child {
+    margin-bottom: 0;
+}
+
+.campo-titulo {
+    font-family: var(--font-primary);
+    font-size: 2rem;
+    color: var(--color-primary);
+    margin-bottom: 1.5rem;
+    text-align: center;
+    padding-bottom: 1rem;
+    border-bottom: 3px solid var(--color-accent);
+}
+
+.campo-contenido {
+    line-height: 1.8;
+    font-size: 1.1rem;
+    color: var(--color-text);
+}
+
+.campo-contenido p {
+    margin-bottom: 1.5rem;
+}
+
+.campo-contenido p:last-child {
+    margin-bottom: 0;
+}
+
+.cita {
+    font-style: italic;
+    font-size: 1.2rem;
+    color: var(--color-primary);
+    padding: 1.5rem;
+    background: var(--color-bg-light);
+    border-left: 4px solid var(--color-accent);
+    margin: 2rem 0;
+    text-align: center;
+    font-family: var(--font-primary);
+}
+
+.contacto-destacado {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    color: var(--color-white);
+    padding: 1.5rem 2rem;
+    border-radius: 8px;
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+.contacto-destacado p {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.contacto-destacado a {
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.contacto-destacado a:hover {
+    text-decoration: underline;
+}
+
 .paquete-intro {
     text-align: center;
     font-size: 1.1rem;
@@ -1730,7 +1815,8 @@ body {
     }
 
     .btn-reservar-flotante,
-    .btn-calendario-flotante {
+    .btn-calendario-flotante,
+    .btn-paquetes-flotante {
         padding: 1.2rem 2.5rem;
         font-size: 1rem;
         min-width: 240px;
@@ -1738,7 +1824,8 @@ body {
     }
 
     .btn-reservar-flotante:hover,
-    .btn-calendario-flotante:hover {
+    .btn-calendario-flotante:hover,
+    .btn-paquetes-flotante:hover {
         transform: translateY(-5px) scale(1.02);
     }
 
