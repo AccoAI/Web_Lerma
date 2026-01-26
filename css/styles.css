@@ -467,6 +467,10 @@ body {
 .paquete-card-fondo h3 {
     color: var(--color-white);
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 .paquete-card-fondo .paquete-descripcion {
@@ -474,7 +478,11 @@ body {
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
-.paquete-card-fondo .paquete-icon {
+.paquete-icon-inline {
+    font-size: 1em;
+    line-height: 1;
+    display: inline-block;
+    vertical-align: middle;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
@@ -549,6 +557,271 @@ body {
     padding: 4rem 0;
     background: var(--color-bg-light);
     scroll-margin-top: 80px;
+}
+
+/* Configurador de Paquete */
+.configurador-paquete {
+    max-width: 1000px;
+    margin: 3rem auto 0;
+}
+
+.configurador-form {
+    background: var(--color-white);
+    padding: 3rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+}
+
+.configurador-seccion {
+    margin-bottom: 3rem;
+    padding-bottom: 3rem;
+    border-bottom: 2px solid var(--color-bg-light);
+}
+
+.configurador-seccion:last-of-type {
+    border-bottom: none;
+    margin-bottom: 2rem;
+}
+
+.configurador-titulo {
+    font-family: var(--font-primary);
+    font-size: 1.5rem;
+    color: var(--color-primary);
+    margin-bottom: 1.5rem;
+}
+
+.opciones-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.opcion-card {
+    display: block;
+    cursor: pointer;
+    position: relative;
+}
+
+.opcion-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.opcion-content {
+    background: var(--color-bg-light);
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
+    border: 2px solid transparent;
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.opcion-card:hover .opcion-content {
+    border-color: var(--color-primary);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+}
+
+.opcion-card input[type="radio"]:checked + .opcion-content {
+    background: var(--color-primary);
+    color: var(--color-white);
+    border-color: var(--color-primary-dark);
+    box-shadow: var(--shadow-lg);
+}
+
+.opcion-numero {
+    font-size: 3rem;
+    font-weight: 700;
+    font-family: var(--font-primary);
+    color: var(--color-primary);
+    display: block;
+}
+
+.opcion-card input[type="radio"]:checked + .opcion-content .opcion-numero {
+    color: var(--color-white);
+}
+
+.opcion-texto {
+    font-size: 1.1rem;
+    font-weight: 500;
+    display: block;
+}
+
+.opcion-icon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.incluidos-info {
+    background: var(--color-bg-light);
+    padding: 2rem;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.incluido-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.1rem;
+    color: var(--color-text);
+}
+
+.incluido-icon {
+    background: var(--color-primary);
+    color: var(--color-white);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.hoteles-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.hotel-option {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.hotel-radio {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    cursor: pointer;
+}
+
+.hotel-radio input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--color-primary);
+}
+
+.hoteles-lerma,
+.hoteles-burgos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.hotel-card-selectable {
+    background: var(--color-white);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    border: 2px solid transparent;
+    cursor: pointer;
+}
+
+.hotel-card-selectable:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-primary);
+}
+
+.hotel-card-selectable .hotel-image {
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+}
+
+.hotel-card-selectable .hotel-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hotel-card-selectable .hotel-content {
+    padding: 1.5rem;
+}
+
+.hotel-card-selectable h4 {
+    font-family: var(--font-primary);
+    font-size: 1.3rem;
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+}
+
+.info-text {
+    background: var(--color-bg-light);
+    padding: 2rem;
+    border-radius: 8px;
+    color: var(--color-text-light);
+    text-align: center;
+    font-style: italic;
+}
+
+.configurador-resumen {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    padding: 2.5rem;
+    border-radius: 12px;
+    color: var(--color-white);
+    margin-top: 2rem;
+}
+
+.resumen-content h3 {
+    font-family: var(--font-primary);
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: var(--color-white);
+}
+
+.resumen-detalle {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+}
+
+.resumen-detalle p {
+    margin: 0.5rem 0;
+}
+
+.btn-reservar-paquete {
+    width: 100%;
+    background: var(--color-white);
+    color: var(--color-primary-dark);
+    padding: 1.25rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: var(--font-secondary);
+}
+
+.btn-reservar-paquete:hover {
+    background: var(--color-accent);
+    color: var(--color-white);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
 .paquete-intro {
@@ -1232,6 +1505,23 @@ body {
 
     .paquete-card h3 {
         font-size: 1.1rem;
+    }
+
+    .configurador-form {
+        padding: 2rem 1.5rem;
+    }
+
+    .opciones-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hoteles-lerma,
+    .hoteles-burgos {
+        grid-template-columns: 1fr;
+    }
+
+    .configurador-resumen {
+        padding: 2rem 1.5rem;
     }
 
     .correspondencias-grid {

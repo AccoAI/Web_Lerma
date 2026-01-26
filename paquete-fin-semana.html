@@ -57,48 +57,139 @@
     <section class="paquete-detalle" style="margin-top: 70px; padding-top: 4rem;">
         <div class="container">
             <h2 class="section-title">Paquete Fin de Semana Golf en Burgos</h2>
-            <p class="paquete-intro">Disfruta de un fin de semana completo de golf en Burgos con nuestros acuerdos especiales con los mejores hoteles de la zona.</p>
+            <p class="paquete-intro">Configura tu paquete personalizado: elige las noches, el hotel y las opciones de comida. Incluye 1 green-fee en Golf Lerma y 1 green-fee en Saldaña Golf.</p>
             
-            <div class="hoteles-grid">
-                <div class="hotel-card">
-                    <div class="hotel-image">
-                        <img src="FOTOS/hotel_alisa.jpg" alt="Hotel Alisa">
-                    </div>
-                    <div class="hotel-content">
-                        <h3>Hotel Alisa</h3>
-                        <p class="hotel-descuento">% DESCUENTO EN GF</p>
-                        <div class="hotel-info">
-                            <p><strong>Teléfono de reservas:</strong> 947 17 02 50</p>
-                            <p><strong>Website:</strong> <a href="http://www.hotelalisa.com" target="_blank">www.hotelalisa.com</a></p>
-                            <p><strong>Email:</strong> <a href="mailto:hotelalisa@yahoo.es">hotelalisa@yahoo.es</a></p>
+            <!-- Configurador de Paquete -->
+            <div class="configurador-paquete">
+                <form id="configuradorForm" class="configurador-form">
+                    <!-- Número de Noches -->
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo">1. Selecciona el número de noches</h3>
+                        <div class="opciones-grid">
+                            <label class="opcion-card">
+                                <input type="radio" name="noches" value="1" required>
+                                <div class="opcion-content">
+                                    <span class="opcion-numero">1</span>
+                                    <span class="opcion-texto">Noche</span>
+                                </div>
+                            </label>
+                            <label class="opcion-card">
+                                <input type="radio" name="noches" value="2" required>
+                                <div class="opcion-content">
+                                    <span class="opcion-numero">2</span>
+                                    <span class="opcion-texto">Noches</span>
+                                </div>
+                            </label>
                         </div>
                     </div>
-                </div>
-                <div class="hotel-card">
-                    <div class="hotel-image">
-                        <img src="FOTOS/hotel_ceres.jpg" alt="Hotel CERES">
-                    </div>
-                    <div class="hotel-content">
-                        <h3>Hotel CERES</h3>
-                        <p class="hotel-descuento">Desde 70 € p.p.</p>
-                        <p class="hotel-descripcion">Hotel ubicado en el centro de la Villa de Lerma, en un antiguo edificio, que fuera fábrica de harinas.</p>
-                    </div>
-                </div>
-                <div class="hotel-card">
-                    <div class="hotel-image">
-                        <img src="FOTOS/hotel_parador_lerma.jpg" alt="Parador de Lerma">
-                    </div>
-                    <div class="hotel-content">
-                        <h3>Parador de Lerma</h3>
-                        <p class="hotel-descuento">Para clientes del Parador</p>
-                        <p class="hotel-descuento">Descuento del –% sobre la tarifa oficial</p>
-                        <div class="hotel-info">
-                            <p><strong>Teléfono de reservas:</strong> 947 17 71 10</p>
-                            <p><strong>Website:</strong> <a href="http://www.parador.es" target="_blank">www.parador.es</a></p>
-                            <p><strong>Email:</strong> <a href="mailto:lerma@parador.es">lerma@parador.es</a></p>
+
+                    <!-- Green Fees Incluidos -->
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo">2. Green Fees Incluidos</h3>
+                        <div class="incluidos-info">
+                            <div class="incluido-item">
+                                <span class="incluido-icon">✓</span>
+                                <span>1 Green-fee en Golf Lerma</span>
+                            </div>
+                            <div class="incluido-item">
+                                <span class="incluido-icon">✓</span>
+                                <span>1 Green-fee en Saldaña Golf</span>
+                            </div>
                         </div>
                     </div>
-                </div>
+
+                    <!-- Selección de Hotel -->
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo">3. Selecciona tu hotel</h3>
+                        <div class="hoteles-selector">
+                            <div class="hotel-option">
+                                <label class="hotel-radio">
+                                    <input type="radio" name="hotel" value="lerma" id="hotel-lerma" required>
+                                    <span>Hoteles en Lerma</span>
+                                </label>
+                                <div class="hoteles-lerma" id="hoteles-lerma-list">
+                                    <div class="hotel-card-selectable">
+                                        <div class="hotel-image">
+                                            <img src="FOTOS/hotel_alisa.jpg" alt="Hotel Alisa">
+                                        </div>
+                                        <div class="hotel-content">
+                                            <h4>Hotel Alisa</h4>
+                                            <p class="hotel-descuento">% DESCUENTO EN GF</p>
+                                            <div class="hotel-info">
+                                                <p><strong>Teléfono:</strong> 947 17 02 50</p>
+                                                <p><strong>Website:</strong> <a href="http://www.hotelalisa.com" target="_blank">www.hotelalisa.com</a></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="hotel-card-selectable">
+                                        <div class="hotel-image">
+                                            <img src="FOTOS/hotel_ceres.jpg" alt="Hotel CERES">
+                                        </div>
+                                        <div class="hotel-content">
+                                            <h4>Hotel CERES</h4>
+                                            <p class="hotel-descuento">Desde 70 € p.p.</p>
+                                            <p class="hotel-descripcion">Hotel ubicado en el centro de la Villa de Lerma</p>
+                                        </div>
+                                    </div>
+                                    <div class="hotel-card-selectable">
+                                        <div class="hotel-image">
+                                            <img src="FOTOS/hotel_parador_lerma.jpg" alt="Parador de Lerma">
+                                        </div>
+                                        <div class="hotel-content">
+                                            <h4>Parador de Lerma</h4>
+                                            <p class="hotel-descuento">Descuento sobre tarifa oficial</p>
+                                            <div class="hotel-info">
+                                                <p><strong>Teléfono:</strong> 947 17 71 10</p>
+                                                <p><strong>Website:</strong> <a href="http://www.parador.es" target="_blank">www.parador.es</a></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="hotel-option">
+                                <label class="hotel-radio">
+                                    <input type="radio" name="hotel" value="burgos" id="hotel-burgos" required>
+                                    <span>Hoteles en Burgos</span>
+                                </label>
+                                <div class="hoteles-burgos" id="hoteles-burgos-list" style="display: none;">
+                                    <p class="info-text">Puedes elegir cualquier hotel en Burgos. Contacta con nosotros para más información sobre hoteles disponibles.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Opciones de Comida -->
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo">4. Opciones para comer</h3>
+                        <div class="opciones-grid">
+                            <label class="opcion-card">
+                                <input type="radio" name="comida" value="lerma" required>
+                                <div class="opcion-content">
+                                    <span class="opcion-icon">🍽️</span>
+                                    <span class="opcion-texto">Club Social<br>Golf Lerma</span>
+                                </div>
+                            </label>
+                            <label class="opcion-card">
+                                <input type="radio" name="comida" value="burgos" required>
+                                <div class="opcion-content">
+                                    <span class="opcion-icon">🍽️</span>
+                                    <span class="opcion-texto">Restaurantes<br>en Burgos</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Resumen y Botón -->
+                    <div class="configurador-resumen">
+                        <div class="resumen-content">
+                            <h3>Resumen de tu paquete</h3>
+                            <div id="resumen-paquete" class="resumen-detalle">
+                                <p>Completa las opciones para ver el resumen</p>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-reservar-paquete">Reservar Paquete</button>
+                    </div>
+                </form>
             </div>
         </div>
     </section>

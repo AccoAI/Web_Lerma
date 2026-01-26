@@ -226,12 +226,98 @@ function loadCamaraLive() {
     }
 }
 
+// Configurador de Paquete Fin de Semana
+function initConfiguradorPaquete() {
+    const form = document.getElementById('configuradorForm');
+    const resumenDiv = document.getElementById('resumen-paquete');
+    const hotelLermaRadio = document.getElementById('hotel-lerma');
+    const hotelBurgosRadio = document.getElementById('hotel-burgos');
+    const hotelesLermaList = document.getElementById('hoteles-lerma-list');
+    const hotelesBurgosList = document.getElementById('hoteles-burgos-list');
+
+    // Mostrar/ocultar hoteles según selección
+    if (hotelLermaRadio && hotelBurgosRadio) {
+        hotelLermaRadio.addEventListener('change', () => {
+            if (hotelLermaRadio.checked) {
+                hotelesLermaList.style.display = 'grid';
+                hotelesBurgosList.style.display = 'none';
+            }
+        });
+
+        hotelBurgosRadio.addEventListener('change', () => {
+            if (hotelBurgosRadio.checked) {
+                hotelesLermaList.style.display = 'none';
+                hotelesBurgosList.style.display = 'block';
+            }
+        });
+    }
+
+    // Actualizar resumen cuando cambian las opciones
+    if (form) {
+        const inputs = form.querySelectorAll('input[type="radio"]');
+        inputs.forEach(input => {
+            input.addEventListener('change', actualizarResumen);
+        });
+    }
+
+    function actualizarResumen() {
+        const formData = new FormData(form);
+        const noches = formData.get('noches');
+        const hotel = formData.get('hotel');
+        const comida = formData.get('comida');
+
+        if (noches && hotel && comida) {
+            let resumenHTML = '<div class="resumen-items">';
+            
+            resumenHTML += `<p><strong>Noches:</strong> ${noches} ${noches === '1' ? 'noche' : 'noches'}</p>`;
+            resumenHTML += '<p><strong>Green Fees incluidos:</strong> 1 en Golf Lerma + 1 en Saldaña Golf</p>';
+            
+            if (hotel === 'lerma') {
+                resumenHTML += '<p><strong>Hotel:</strong> En Lerma (Hotel Alisa, CERES o Parador)</p>';
+            } else {
+                resumenHTML += '<p><strong>Hotel:</strong> En Burgos (a elegir)</p>';
+            }
+            
+            if (comida === 'lerma') {
+                resumenHTML += '<p><strong>Comida:</strong> Club Social Golf Lerma</p>';
+            } else {
+                resumenHTML += '<p><strong>Comida:</strong> Restaurantes en Burgos</p>';
+            }
+            
+            resumenHTML += '</div>';
+            resumenDiv.innerHTML = resumenHTML;
+        } else {
+            resumenDiv.innerHTML = '<p>Completa las opciones para ver el resumen</p>';
+        }
+    }
+
+    // Manejar envío del formulario
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const datos = {
+                noches: formData.get('noches'),
+                hotel: formData.get('hotel'),
+                comida: formData.get('comida')
+            };
+            
+            // Aquí puedes enviar los datos a tu backend o mostrar un mensaje
+            alert('¡Paquete configurado! Te contactaremos pronto para confirmar tu reserva.\n\n' +
+                  `Noches: ${datos.noches}\n` +
+                  `Hotel: ${datos.hotel === 'lerma' ? 'Lerma' : 'Burgos'}\n` +
+                  `Comida: ${datos.comida === 'lerma' ? 'Club Social Lerma' : 'Burgos'}`);
+        });
+    }
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     highlightNavigation();
     initHeroSlider();
     updateTiempoData();
     loadCamaraLive();
+    initConfiguradorPaquete();
     
     // Actualizar datos del tiempo cada 5 minutos
     setInterval(updateTiempoData, 300000);
