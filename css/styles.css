@@ -87,6 +87,24 @@ body {
     opacity: 0.9;
 }
 
+.header-logo-saldaña {
+    display: flex;
+    align-items: center;
+}
+
+.header-logo-saldaña-image {
+    height: 50px;
+    width: auto;
+    max-width: 200px;
+    object-fit: contain;
+    transition: var(--transition);
+}
+
+.header-logo-saldaña-image:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+}
+
 .menu-toggle {
     display: none;
     flex-direction: column;
@@ -1476,13 +1494,13 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(to bottom, rgba(15, 51, 36, 0.4), rgba(26, 77, 58, 0.5));
+    background: linear-gradient(to bottom, rgba(15, 51, 36, 0.2), rgba(26, 77, 58, 0.3));
     transition: var(--transition);
     z-index: 1;
 }
 
 .boda-imagen-card:hover .boda-overlay {
-    background: linear-gradient(to bottom, rgba(15, 51, 36, 0.5), rgba(26, 77, 58, 0.6));
+    background: linear-gradient(to bottom, rgba(15, 51, 36, 0.15), rgba(26, 77, 58, 0.25));
 }
 
 .btn-bodas {
@@ -1490,30 +1508,31 @@ body {
     z-index: 2;
     background: var(--color-white);
     color: var(--color-primary-dark);
-    padding: 2.5rem 3rem;
-    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
     text-decoration: none;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 1rem;
+    gap: 0.5rem;
     transition: var(--transition);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-    border: 3px solid transparent;
-    width: 100%;
-    max-width: 350px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    border: 2px solid transparent;
+    width: auto;
+    max-width: none;
 }
 
 .btn-bodas:hover {
-    transform: translateY(-8px) scale(1.05);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
     border-color: var(--color-accent);
     background: var(--color-accent);
     color: var(--color-white);
 }
 
 .btn-bodas-icono {
-    font-size: 4rem;
+    font-size: 1em;
+    line-height: 1;
     transition: var(--transition);
 }
 
@@ -1523,10 +1542,10 @@ body {
 
 .btn-bodas-texto {
     font-family: var(--font-primary);
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 1rem;
+    font-weight: 600;
     text-align: center;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     white-space: nowrap;
 }
 
@@ -1667,9 +1686,11 @@ body {
 }
 
 .colaboracion-logos img {
-    height: 60px;
-    opacity: 0.8;
-    filter: brightness(0) invert(1);
+    height: 80px;
+    max-width: 200px;
+    object-fit: contain;
+    opacity: 1;
+    filter: none;
 }
 
 /* Correspondencias */
@@ -2083,6 +2104,11 @@ body {
         max-width: 150px;
     }
 
+    .header-logo-saldaña-image {
+        height: 40px;
+        max-width: 150px;
+    }
+
     .nav {
         position: fixed;
         top: 70px;
@@ -2152,6 +2178,11 @@ body {
     }
 
     .header-logo-image {
+        height: 35px;
+        max-width: 120px;
+    }
+
+    .header-logo-saldaña-image {
         height: 35px;
         max-width: 120px;
     }

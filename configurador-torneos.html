@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Configurador de Torneos - Organiza tu propio torneo de golf">
+    <title>Configurador de Torneos - Golf Lerma</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="header-logo">
+                <a href="index.html#inicio">
+                    <img src="FOTOS/Logo-Golf-Lerma-Footer-1.png" alt="Golf Lerma" class="header-logo-image">
+                </a>
+            </div>
+            <button class="menu-toggle" aria-label="Abrir menú">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav class="nav" id="mainNav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="index.html#campo" class="nav-link">EL CAMPO</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="index.html#bodas-eventos" class="nav-link">BODAS, EVENTOS, EMPRESA</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="index.html#simulador" class="nav-link">SIMULADOR</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="index.html#correspondencias" class="nav-link">CORRESPONDENCIAS</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="index.html#camara-tiempo" class="nav-link">CÁMARA DEL TIEMPO</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <div class="header-logo-saldaña">
+                    <img src="FOTOS/Logo-Saldaña-Golf-Footer.png" alt="Saldaña Golf" class="header-logo-saldaña-image">
+                </div>
+                <a href="index.html#hazte-socio" class="btn-hazte-socio">Hazte Socio</a>
+                <a href="index.html#login" class="btn-login">Area Socio</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Configurador de Torneos -->
+    <section class="paquete-detalle" style="margin-top: 70px; padding-top: 4rem;">
+        <div class="container">
+            <h2 class="section-title">Configurador de Torneos</h2>
+            <p class="paquete-intro">Organiza tu propio torneo personalizado. Configura todos los detalles de tu evento deportivo.</p>
+            
+            <!-- Configurador de Torneo -->
+            <div class="configurador-paquete">
+                <form id="configuradorTorneosForm" class="configurador-form">
+                    <!-- Número de Jugadores -->
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo">1. Número de jugadores</h3>
+                        <div class="opciones-grid">
+                            <label class="opcion-card">
+                                <input type="radio" name="jugadores" value="2-4" required>
+                                <div class="opcion-content">
+                                    <span class="opcion-numero">2-4</span>
+                                    <span class="opcion-texto">Jugadores</span>
+                                </div>
+                            </label>
+                            <label class="opcion-card">
+                                <input type="radio" name="jugadores" value="5-8" required>
+                                <div class="opcion-content">
+                                    <span class="opcion-numero">5-8</span>
+                                    <span class="opcion-texto">Jugadores</span>
+                                </div>
+                            </label>
+                            <label class="opcion-card">
+                                <input type="radio" name="jugadores" value="9-16" required>
+                                <div class="opcion-content">
+                                    <span class="opcion-numero">9-16</span>
+                                    <span class="opcion-texto">Jugadores</span>
+                                </div>
+                            </label>
+                            <label class="opcion-card">
+                                <input type="radio" name="jugadores" value="17-32" required>
+                                <div class="opcion-content">
+                                    <span class="opcion-numero">17-32</span>
+                                    <span class="opcion-texto">Jugadores</span>
+                                </div>
+                            </label>
+                            <label class="opcion-card">
+                                <input type="radio" name="jugadores" value="33+" required>
+                                <div class="opcion-content">
+                                    <span class="opcion-numero">33+</span>
+                                    <span class="opcion-texto">Jugadores</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Fecha -->
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo">2. Fecha del torneo</h3>
+                        <div class="form-group">
+                            <label for="fecha-torneo">Selecciona la fecha *</label>
+                            <input type="date" id="fecha-torneo" name="fecha" required min="">
+                        </div>
+                    </div>
+
+                    <!-- Modalidad -->
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo">3. Modalidad</h3>
+                        <div class="opciones-grid">
+                            <label class="opcion-card">
+                                <input type="radio" name="modalidad" value="golf" required>
+                                <div class="opcion-content">
+                                    <span class="opcion-icon">⛳</span>
+                                    <span class="opcion-texto">Golf</span>
+                                </div>
+                            </label>
+                            <label class="opcion-card">
+                                <input type="radio" name="modalidad" value="frisbee-golf" required>
+                                <div class="opcion-content">
+                                    <span class="opcion-icon">🥏</span>
+                                    <span class="opcion-texto">Frisbee Golf</span>
+                                </div>
+                            </label>
+                            <label class="opcion-card">
+                                <input type="radio" name="modalidad" value="foot-golf" required>
+                                <div class="opcion-content">
+                                    <span class="opcion-icon">⚽</span>
+                                    <span class="opcion-texto">Foot Golf</span>
+                                </div>
+                            </label>
+                            <label class="opcion-card">
+                                <input type="radio" name="modalidad" value="disc-golf" required>
+                                <div class="opcion-content">
+                                    <span class="opcion-icon">🎯</span>
+                                    <span class="opcion-texto">Disc Golf</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Datos de Usuarios -->
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo">4. Datos de los participantes</h3>
+                        <div id="usuarios-container">
+                            <div class="usuario-form" data-usuario="1">
+                                <h4 class="usuario-numero">Participante 1</h4>
+                                <div class="usuario-campos">
+                                    <div class="form-group-usuario">
+                                        <label>Nombre *</label>
+                                        <input type="text" name="usuario[1][nombre]" required>
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label>Correo *</label>
+                                        <input type="email" name="usuario[1][correo]" required>
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label>Móvil *</label>
+                                        <input type="tel" name="usuario[1][movil]" required>
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label>Club</label>
+                                        <input type="text" name="usuario[1][club]">
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label>Handicap</label>
+                                        <input type="number" name="usuario[1][handicap]" min="0" max="54" step="0.1">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-agregar-usuario" id="agregar-usuario">
+                            <span>+</span> Agregar Participante
+                        </button>
+                    </div>
+
+                    <!-- Resumen -->
+                    <div class="configurador-resumen" id="resumen-torneo">
+                        <div class="resumen-content">
+                            <h3>Resumen del Torneo</h3>
+                            <div class="resumen-detalle" id="resumen-detalle">
+                                <p>Completa el formulario para ver el resumen</p>
+                            </div>
+                            <button type="submit" class="btn-reservar-paquete">Enviar Solicitud</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Contacto</h3>
+                    <div class="contact-info">
+                        <p><strong>Golf Lerma:</strong><br>
+                        Autovía Madrid-Burgos, km. 195,5<br>
+                        Lerma · Burgos</p>
+                        <p><strong>Saldaña Golf:</strong><br>
+                        Urbanización Golf Saldaña<br>
+                        Saldaña de Burgos · Burgos</p>
+                        <p><strong>Teléfono:</strong> (+34) 947 56 46 30</p>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Enlaces</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html#campo">El Campo</a></li>
+                        <li><a href="index.html#paquetes">Paquetes de Golf</a></li>
+                        <li><a href="index.html#bodas-eventos">Bodas, Eventos, Empresa</a></li>
+                        <li><a href="index.html#simulador">Simulador</a></li>
+                        <li><a href="index.html#correspondencias">Correspondencias</a></li>
+                        <li><a href="index.html#camara-tiempo">Cámara del Tiempo</a></li>
+                        <li><a href="index.html#contacto">Contacto</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Legal</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html#politica-privacidad">Política de privacidad</a></li>
+                        <li><a href="index.html#advertencia-legal">Advertencia legal</a></li>
+                        <li><a href="index.html#proteccion-datos">Protección de Datos</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>Copyright © Golf Lerma 2024 · Política de privacidad · Advertencia legal · Protección de Datos</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/usuarios-form.js"></script>
+    <script src="js/torneos-config.js"></script>
+</body>
+</html>
