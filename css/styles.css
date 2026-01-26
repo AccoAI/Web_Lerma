@@ -525,6 +525,13 @@ body {
     background-repeat: no-repeat !important;
 }
 
+.paquete-torneos {
+    background-image: url('../FOTOS/golfclub.jpg') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
 .paquete-card::before {
     content: '';
     position: absolute;
@@ -1274,6 +1281,52 @@ body {
     text-decoration: underline;
 }
 
+/* Layout Restaurante y Tienda - Imagen y Texto lado a lado */
+.campo-restaurante-layout {
+    display: flex;
+    gap: 2.5rem;
+    align-items: flex-start;
+    margin-top: 2rem;
+}
+
+.campo-imagen-lateral {
+    flex: 0 0 45%;
+    max-width: 45%;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    transition: var(--transition);
+}
+
+.campo-imagen-lateral:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+}
+
+.campo-imagen-lateral img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+}
+
+.campo-contenido-lateral {
+    flex: 1;
+    line-height: 1.9;
+    font-size: 1.1rem;
+    color: var(--color-text);
+}
+
+.campo-contenido-lateral p {
+    margin-bottom: 1.5rem;
+    text-align: justify;
+    text-justify: inter-word;
+}
+
+.campo-contenido-lateral p:last-child {
+    margin-bottom: 0;
+}
+
 /* Imágenes en El Campo */
 .campo-imagenes {
     display: grid;
@@ -1408,9 +1461,9 @@ body {
     position: relative;
     width: 100%;
     min-height: 500px;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1423,8 +1476,9 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(to bottom, rgba(15, 51, 36, 0.6), rgba(26, 77, 58, 0.7));
+    background: linear-gradient(to bottom, rgba(15, 51, 36, 0.4), rgba(26, 77, 58, 0.5));
     transition: var(--transition);
+    z-index: 1;
 }
 
 .boda-imagen-card:hover .boda-overlay {
@@ -2205,6 +2259,16 @@ body {
 
     .campo-imagenes {
         grid-template-columns: 1fr;
+    }
+
+    .campo-restaurante-layout {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .campo-imagen-lateral {
+        flex: 1;
+        max-width: 100%;
     }
 
     .campo-imagen-principal,
