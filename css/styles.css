@@ -504,6 +504,13 @@ body {
     background-repeat: no-repeat !important;
 }
 
+.paquete-ryder {
+    background-image: url('../FOTOS/ryderLermaAmigos.png') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
 .paquete-card::before {
     content: '';
     position: absolute;
