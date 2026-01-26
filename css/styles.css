@@ -1274,6 +1274,208 @@ body {
     text-decoration: underline;
 }
 
+/* Imágenes en El Campo */
+.campo-imagenes {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.campo-imagen-principal,
+.campo-imagen-secundaria {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    transition: var(--transition);
+}
+
+.campo-imagen-principal:hover,
+.campo-imagen-secundaria:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+}
+
+.campo-imagen-principal img,
+.campo-imagen-secundaria img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.campo-imagen-principal {
+    min-height: 400px;
+}
+
+.campo-imagen-secundaria {
+    min-height: 500px;
+}
+
+/* Instalaciones Grid */
+.instalaciones-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.instalacion-item {
+    background: var(--color-bg-light);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.instalacion-item:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+}
+
+.instalacion-imagen {
+    width: 100%;
+    height: 250px;
+    overflow: hidden;
+}
+
+.instalacion-imagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.instalacion-item:hover .instalacion-imagen img {
+    transform: scale(1.1);
+}
+
+.instalacion-item h4 {
+    font-family: var(--font-primary);
+    font-size: 1.5rem;
+    color: var(--color-primary);
+    margin: 1.5rem 1.5rem 0.5rem;
+}
+
+.instalacion-item p {
+    padding: 0 1.5rem 1.5rem;
+    color: var(--color-text-light);
+    margin: 0;
+}
+
+/* Bodas y Eventos */
+.bodas-eventos {
+    padding: 4rem 0;
+    background: var(--color-white);
+    scroll-margin-top: 80px;
+}
+
+.bodas-eventos .section-title {
+    color: var(--color-primary);
+}
+
+.bodas-intro {
+    text-align: center;
+    font-size: 1.2rem;
+    max-width: 800px;
+    margin: 0 auto 3rem;
+    line-height: 1.8;
+    color: var(--color-text);
+}
+
+.bodas-imagenes-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.boda-imagen-card {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    transition: var(--transition);
+}
+
+.boda-imagen-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+.boda-imagen-fondo {
+    position: relative;
+    width: 100%;
+    min-height: 500px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.boda-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(15, 51, 36, 0.6), rgba(26, 77, 58, 0.7));
+    transition: var(--transition);
+}
+
+.boda-imagen-card:hover .boda-overlay {
+    background: linear-gradient(to bottom, rgba(15, 51, 36, 0.5), rgba(26, 77, 58, 0.6));
+}
+
+.btn-bodas {
+    position: relative;
+    z-index: 2;
+    background: var(--color-white);
+    color: var(--color-primary-dark);
+    padding: 2.5rem 3rem;
+    border-radius: 12px;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    transition: var(--transition);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    border: 3px solid transparent;
+    width: 100%;
+    max-width: 350px;
+}
+
+.btn-bodas:hover {
+    transform: translateY(-8px) scale(1.05);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+    color: var(--color-white);
+}
+
+.btn-bodas-icono {
+    font-size: 4rem;
+    transition: var(--transition);
+}
+
+.btn-bodas:hover .btn-bodas-icono {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.btn-bodas-texto {
+    font-family: var(--font-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
 .paquete-intro {
     text-align: center;
     font-size: 1.1rem;
@@ -1999,6 +2201,38 @@ body {
     .btn-agregar-usuario {
         width: 100%;
         justify-content: center;
+    }
+
+    .campo-imagenes {
+        grid-template-columns: 1fr;
+    }
+
+    .campo-imagen-principal,
+    .campo-imagen-secundaria {
+        min-height: 300px;
+    }
+
+    .instalaciones-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .bodas-imagenes-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .boda-imagen-fondo {
+        min-height: 400px;
+        padding: 1.5rem;
+    }
+
+    .btn-bodas {
+        padding: 2rem 2rem;
+        max-width: 100%;
+    }
+
+    .btn-bodas-texto {
+        font-size: 1.3rem;
     }
 
     .correspondencias-grid {
