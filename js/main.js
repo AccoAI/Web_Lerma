@@ -38,11 +38,6 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             e.preventDefault();
             const target = document.querySelector(href);
             if (target) {
-                // Si es la sección de paquete fin de semana, mostrarla primero
-                if (href === '#paquete-fin-semana') {
-                    target.classList.add('active');
-                }
-                
                 const headerHeight = document.querySelector('.header').offsetHeight;
                 const targetPosition = target.offsetTop - headerHeight - 20; // Extra offset for better visibility
                 window.scrollTo({

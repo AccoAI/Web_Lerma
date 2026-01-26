@@ -47,19 +47,21 @@ body {
     top: 0;
     left: 0;
     right: 0;
+    width: 100%;
     background: var(--color-primary-dark);
     z-index: 1000;
     box-shadow: var(--shadow);
 }
 
 .header-container {
-    max-width: 1400px;
-    margin: 0 auto;
+    width: 100%;
+    max-width: 100%;
     padding: 1.25rem 2rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     min-height: 70px;
+    box-sizing: border-box;
 }
 
 .header-logo {
@@ -392,6 +394,13 @@ body {
 .paquetes-configuradores {
     padding: 4rem 0;
     background: var(--color-white);
+    width: 100%;
+}
+
+.paquetes-configuradores .container {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 2rem;
 }
 
 .paquetes-grid {
@@ -416,6 +425,71 @@ body {
     border: 2px solid transparent;
     position: relative;
     overflow: hidden;
+}
+
+.paquete-card-fondo {
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    min-height: 300px;
+    padding: 0;
+    color: var(--color-white);
+}
+
+.paquete-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(15, 51, 36, 0.5), rgba(26, 77, 58, 0.6));
+    transition: var(--transition);
+    z-index: 1;
+}
+
+.paquete-card-fondo:hover .paquete-overlay {
+    background: linear-gradient(to bottom, rgba(15, 51, 36, 0.4), rgba(26, 77, 58, 0.5));
+}
+
+.paquete-content {
+    position: relative;
+    z-index: 2;
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+}
+
+.paquete-card-fondo h3 {
+    color: var(--color-white);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.paquete-card-fondo .paquete-descripcion {
+    color: var(--color-white);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.paquete-card-fondo .paquete-icon {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+.paquete-fin-semana {
+    background-image: url('../FOTOS/FinSemanaGolf.jpg') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+.paquete-cochinillo {
+    background-image: url('../FOTOS/golfCordero.jpg') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
 }
 
 .paquete-card::before {
@@ -475,11 +549,6 @@ body {
     padding: 4rem 0;
     background: var(--color-bg-light);
     scroll-margin-top: 80px;
-    display: none;
-}
-
-.paquete-detalle.active {
-    display: block;
 }
 
 .paquete-intro {
