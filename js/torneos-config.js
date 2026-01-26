@@ -68,7 +68,8 @@ function actualizarResumenTorneo() {
             'golf': 'Golf',
             'frisbee-golf': 'Frisbee Golf',
             'foot-golf': 'Foot Golf',
-            'disc-golf': 'Disc Golf'
+            'disc-golf': 'Disc Golf',
+            'pitch-putt': 'Pitch and Putt'
         };
         resumenHTML += `<p><strong>Modalidad:</strong> ${modalidades[modalidad] || modalidad}</p>`;
     }
