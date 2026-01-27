@@ -163,6 +163,7 @@ body {
     list-style: none;
     gap: 2rem;
     align-items: center;
+    flex-wrap: nowrap;
 }
 
 .nav-item {
@@ -179,6 +180,7 @@ body {
     transition: var(--transition);
     padding: 0.5rem 0;
     display: block;
+    white-space: nowrap;
 }
 
 .nav-link:hover {
@@ -2822,7 +2824,37 @@ body {
 }
 
 /* Responsive */
-@media (max-width: 968px) {
+@media (max-width: 1200px) {
+    .header-container {
+        padding: 1rem 1.25rem;
+    }
+
+    .header-logo-image,
+    .header-logo-saldaña-image {
+        height: 45px;
+        max-width: 170px;
+    }
+
+    .nav {
+        margin: 0 0.75rem;
+    }
+
+    .nav-list {
+        gap: 1rem;
+    }
+
+    .nav-link {
+        font-size: 0.8rem;
+    }
+
+    .header-actions .btn-hazte-socio,
+    .header-actions .btn-login {
+        padding: 0.4rem 1rem;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 1100px) {
     .menu-toggle {
         display: flex;
     }
@@ -2865,6 +2897,7 @@ body {
 
     .nav-link {
         padding: 1rem 0;
+        white-space: normal;
     }
 
 
