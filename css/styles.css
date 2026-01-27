@@ -2008,6 +2008,73 @@ body {
     text-align: center;
 }
 
+.empresa-contacto-directo {
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e5e5e5;
+    text-align: center;
+}
+
+.empresa-contacto-directo p {
+    margin-bottom: 0.35rem;
+}
+
+.empresa-contacto-directo a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.empresa-contacto-directo a:hover {
+    text-decoration: underline;
+}
+
+/* Bodas: redirección a Finca Andaya */
+.bodas-andaya-section {
+    padding: 2.5rem 0;
+    background: linear-gradient(180deg, rgba(26, 77, 58, 0.06) 0%, transparent 100%);
+}
+
+.boda-andaya-redirect {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 2rem 2.5rem;
+    background: var(--color-white);
+    border: 2px solid var(--color-primary);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    text-align: center;
+}
+
+.boda-andaya-titulo {
+    font-family: var(--font-primary);
+    font-size: 1.5rem;
+    color: var(--color-primary);
+    margin-bottom: 0.75rem;
+}
+
+.boda-andaya-texto {
+    color: var(--color-text);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.btn-boda-andaya {
+    display: inline-block;
+    padding: 0.85rem 2rem;
+    background: var(--color-primary);
+    color: var(--color-white) !important;
+    text-decoration: none !important;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.btn-boda-andaya:hover {
+    background: var(--color-primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
 /* Página Área Socio - Login */
 .area-socio-login {
     min-height: 60vh;
@@ -2348,6 +2415,13 @@ body {
     font-weight: 700;
     color: var(--color-primary);
     font-family: var(--font-primary);
+}
+
+.tiempo-origen {
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+    margin: 0;
+    margin-top: 0.25rem;
 }
 
 .camara-live {

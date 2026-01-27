@@ -198,21 +198,42 @@ function initHeroSlider() {
     setInterval(showNextSlide, 3000);
 }
 
-// Cámara del Tiempo - Actualizar datos
-function updateTiempoData() {
-    // Aquí puedes integrar con una API de tiempo real
-    // Por ahora, valores de ejemplo
+// Cámara del Tiempo - Temperatura y viento desde Open-Meteo (Quintanilla de la Mata o Lerma)
+async function updateTiempoData() {
     const temperatura = document.getElementById('temperatura');
     const viento = document.getElementById('viento');
-    
-    if (temperatura) {
-        // Simular datos - reemplazar con API real
-        temperatura.textContent = '18°C';
+    const origen = document.getElementById('tiempo-origen');
+    if (!temperatura || !viento) return;
+
+    var lat, lon, placeName;
+    try {
+        var geo = await fetch('https://geocoding-api.open-meteo.com/v1/search?name=Quintanilla+de+la+Mata&count=5&countryCode=ES');
+        var geoData = await geo.json();
+        if (geoData.results && geoData.results.length > 0) {
+            lat = geoData.results[0].latitude;
+            lon = geoData.results[0].longitude;
+            placeName = 'Quintanilla de la Mata';
+        } else {
+            lat = 42.0263;
+            lon = -3.755;
+            placeName = 'Lerma';
+        }
+    } catch (e) {
+        lat = 42.0263;
+        lon = -3.755;
+        placeName = 'Lerma';
     }
-    
-    if (viento) {
-        // Simular datos - reemplazar con API real
-        viento.textContent = '12 km/h';
+
+    try {
+        var w = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&current=temperature_2m,wind_speed_10m&timezone=Europe%2FMadrid');
+        var wData = await w.json();
+        if (wData.current) {
+            temperatura.textContent = Math.round(wData.current.temperature_2m) + '°C';
+            viento.textContent = Math.round(wData.current.wind_speed_10m) + ' km/h';
+        }
+        if (origen) origen.textContent = 'Datos: ' + placeName;
+    } catch (e) {
+        if (origen) origen.textContent = 'Datos: no disponibles';
     }
 }
 
