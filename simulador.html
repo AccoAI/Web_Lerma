@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Simulador de golf en Burgos - Calle Lain Calvo 12. Reserve su horario o clase desde la web. Acceso por smartlock.">
+    <title>Simulador de Golf - Burgos | Golf Lerma</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="header-logo">
+                <a href="index.html#inicio">
+                    <img src="FOTOS/Logo-Golf-Lerma-Footer-1.png" alt="Golf Lerma" class="header-logo-image">
+                </a>
+            </div>
+            <button class="menu-toggle" aria-label="Abrir menú">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav class="nav" id="mainNav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="el-campo.html" class="nav-link">EL CAMPO</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="index.html#bodas-eventos" class="nav-link">BODAS, EVENTOS, EMPRESA</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="simulador.html" class="nav-link">SIMULADOR</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="index.html#correspondencias" class="nav-link">CORRESPONDENCIAS</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="index.html#camara-tiempo" class="nav-link">CÁMARA DEL TIEMPO</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <div class="header-logo-saldaña">
+                    <img src="FOTOS/Logo-Saldaña-Golf-Footer.png" alt="Saldaña Golf" class="header-logo-saldaña-image">
+                </div>
+                <a href="hazte-socio.html" class="btn-hazte-socio">Hazte Socio</a>
+                <a href="area-socio.html" class="btn-login">Area Socio</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Simulador - Hero con imagen -->
+    <section class="simulador-hero" style="margin-top: 70px;">
+        <div class="simulador-hero-imagen">
+            <img src="FOTOS/simulator.jpg" alt="Simulador de golf en Burgos">
+            <div class="simulador-hero-overlay"></div>
+        </div>
+        <div class="simulador-hero-content">
+            <h1 class="section-title">Simulador de Golf en Burgos</h1>
+            <p class="simulador-hero-intro">En el corazón de Burgos, nuestro simulador le permite practicar y jugar en los mejores campos del mundo sin salir de la ciudad.</p>
+        </div>
+    </section>
+
+    <!-- Ubicación y acceso -->
+    <section class="simulador-info">
+        <div class="container">
+            <div class="simulador-ubicacion">
+                <h2 class="campo-titulo">Ubicación y acceso</h2>
+                <p><strong>Calle Lain Calvo 12, Burgos.</strong></p>
+                <p>El acceso al local se realiza a través de un <strong>smartlock en la puerta</strong>. Una vez haya reservado su horario desde esta web, recibirá las instrucciones para acceder de forma autónoma y disfrutar del simulador.</p>
+            </div>
+
+            <div class="simulador-opciones">
+                <h2 class="campo-titulo">Reserve desde la web</h2>
+                <div class="simulador-cards">
+                    <div class="simulador-card">
+                        <div class="simulador-card-icono">⛳</div>
+                        <h3>Reservar horario para jugar</h3>
+                        <p>Elija su franja, acceda con el smartlock y juegue en el simulador cuando mejor le venga.</p>
+                        <a href="#reservar-horario" class="btn-reservar-simulador">Reservar horario</a>
+                    </div>
+                    <div class="simulador-card">
+                        <div class="simulador-card-icono">📋</div>
+                        <h3>Reservar clase</h3>
+                        <p>Si lo prefiere, reserve una clase con nuestro equipo para mejorar su juego.</p>
+                        <a href="#reservar-clase" class="btn-reservar-simulador">Reservar clase</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formularios de reserva -->
+            <div id="reservar-horario" class="configurador-paquete" style="scroll-margin-top: 90px;">
+                <h3 class="configurador-titulo">Reservar horario para jugar</h3>
+                <form class="configurador-form simulador-form">
+                    <div class="form-group">
+                        <label>Nombre *</label>
+                        <input type="text" name="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Correo *</label>
+                        <input type="email" name="correo" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono *</label>
+                        <input type="tel" name="telefono" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha deseada *</label>
+                        <input type="date" name="fecha" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Hora preferida *</label>
+                        <input type="time" name="hora" required>
+                    </div>
+                    <button type="submit" class="btn-reservar-paquete">Enviar solicitud de reserva</button>
+                </form>
+            </div>
+
+            <div id="reservar-clase" class="configurador-paquete" style="scroll-margin-top: 90px;">
+                <h3 class="configurador-titulo">Reservar clase</h3>
+                <form class="configurador-form simulador-form">
+                    <div class="form-group">
+                        <label>Nombre *</label>
+                        <input type="text" name="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Correo *</label>
+                        <input type="email" name="correo" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono *</label>
+                        <input type="tel" name="telefono" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha deseada *</label>
+                        <input type="date" name="fecha" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Hora preferida *</label>
+                        <input type="time" name="hora" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Comentarios</label>
+                        <textarea name="comentarios" rows="3" placeholder="Nivel, objetivos, etc."></textarea>
+                    </div>
+                    <button type="submit" class="btn-reservar-paquete">Enviar solicitud de clase</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Contacto</h3>
+                    <div class="contact-info">
+                        <p><strong>Golf Lerma:</strong><br>
+                        Autovía Madrid-Burgos, km. 195,5<br>
+                        Lerma · Burgos</p>
+                        <p><strong>Saldaña Golf:</strong><br>
+                        Urbanización Golf Saldaña<br>
+                        Saldaña de Burgos · Burgos</p>
+                        <p><strong>Simulador Burgos:</strong><br>
+                        Calle Lain Calvo 12, Burgos</p>
+                        <p><strong>Teléfono:</strong> (+34) 947 56 46 30</p>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Enlaces</h3>
+                    <ul class="footer-links">
+                        <li><a href="el-campo.html">El Campo</a></li>
+                        <li><a href="index.html#paquetes">Paquetes de Golf</a></li>
+                        <li><a href="index.html#bodas-eventos">Bodas, Eventos, Empresa</a></li>
+                        <li><a href="simulador.html">Simulador</a></li>
+                        <li><a href="hazte-socio.html">Hazte Socio</a></li>
+                        <li><a href="area-socio.html">Área Socio</a></li>
+                        <li><a href="index.html#correspondencias">Correspondencias</a></li>
+                        <li><a href="index.html#camara-tiempo">Cámara del Tiempo</a></li>
+                        <li><a href="index.html#contacto">Contacto</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Legal</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html#politica-privacidad">Política de privacidad</a></li>
+                        <li><a href="index.html#advertencia-legal">Advertencia legal</a></li>
+                        <li><a href="index.html#proteccion-datos">Protección de Datos</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>Copyright © Golf Lerma 2024 · Política de privacidad · Advertencia legal · Protección de Datos</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.simulador-form').forEach(function(form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    alert('Solicitud enviada. Nos pondremos en contacto con usted para confirmar la reserva.');
+                    form.reset();
+                });
+            });
+        });
+    </script>
+</body>
+</html>
