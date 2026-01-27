@@ -822,6 +822,123 @@ body {
     margin-bottom: 0.5rem;
 }
 
+/* Calendario multiselección / arrastre (días de juego) */
+.calendario-dias-container {
+    max-width: 380px;
+    padding: 1rem 0;
+}
+.calendario-hint {
+    font-size: 0.95rem;
+    color: var(--color-text-light);
+    margin-bottom: 1rem;
+}
+.calendario-hint .calendario-count {
+    color: var(--color-primary);
+}
+.calendario-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+.calendario-mes-titulo {
+    font-family: var(--font-primary);
+    font-size: 1.2rem;
+    color: var(--color-primary);
+    text-transform: capitalize;
+}
+.calendario-btn-prev,
+.calendario-btn-next {
+    width: 36px;
+    height: 36px;
+    border: 2px solid var(--color-primary);
+    background: var(--color-white);
+    color: var(--color-primary);
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+.calendario-btn-prev:hover,
+.calendario-btn-next:hover {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+.calendario-mes {
+    border: 2px solid var(--color-bg-light);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--color-bg-light);
+}
+.calendario-semana-headers {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    padding: 0.5rem;
+    background: var(--color-primary-light);
+    color: var(--color-white);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+}
+.calendario-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    padding: 0.5rem;
+}
+.calendario-dia {
+    aspect-ratio: 1;
+    max-width: 44px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 500;
+    background: var(--color-white);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--transition);
+    border: 2px solid transparent;
+}
+.calendario-dia:hover:not(.disabled):not(.calendario-dia-empty) {
+    border-color: var(--color-primary);
+    background: rgba(26, 77, 58, 0.08);
+}
+.calendario-dia.selected {
+    background: var(--color-primary);
+    color: var(--color-white);
+    border-color: var(--color-primary-dark);
+}
+.calendario-dia.today {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 1px var(--color-accent);
+}
+.calendario-dia.today.selected {
+    border-color: var(--color-primary-dark);
+    box-shadow: none;
+}
+.calendario-dia.disabled {
+    color: #bbb;
+    cursor: not-allowed;
+    background: #f9f9f9;
+}
+.calendario-dia-empty {
+    cursor: default;
+    background: transparent;
+    border: none;
+}
+.calendario-dia:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+}
+
 .incluidos-info {
     background: var(--color-bg-light);
     padding: 2rem;

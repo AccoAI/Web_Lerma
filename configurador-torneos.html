@@ -107,13 +107,11 @@
                         </div>
                     </div>
 
-                    <!-- Fecha -->
+                    <!-- Fecha(s) del torneo -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">2. Fecha del torneo</h3>
-                        <div class="form-group">
-                            <label for="fecha-torneo">Selecciona la fecha *</label>
-                            <input type="date" id="fecha-torneo" name="fecha" required min="">
-                        </div>
+                        <h3 class="configurador-titulo">2. Fecha(s) del torneo</h3>
+                        <p class="info-text" style="margin-bottom: 1rem;">Elige una o varias fechas en el calendario (clic o arrastra un rango).</p>
+                        <div id="calendario-dias-torneos" class="calendario-dias-container"></div>
                     </div>
 
                     <!-- Modalidad -->
@@ -261,6 +259,7 @@
     <script src="js/correspondencias-data.js"></script>
     <script src="js/correspondencias.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/calendario-dias.js"></script>
     <script src="js/usuarios-form.js"></script>
     <script src="js/torneos-config.js"></script>
 </body>

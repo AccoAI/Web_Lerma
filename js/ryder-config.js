@@ -2,23 +2,28 @@
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('configuradorRyderForm');
     const resumenDiv = document.getElementById('resumen-ryder');
-    const diasJuegoInputs = document.querySelectorAll('input[name="dias-juego"]');
     const camposDiasContainer = document.getElementById('campos-dias');
     const diasCamposContainer = document.getElementById('dias-campos-container');
+    const calendarioContainer = document.getElementById('calendario-dias-ryder');
 
-    // Mostrar/ocultar selección de campos según días de juego
-    diasJuegoInputs.forEach(input => {
-        input.addEventListener('change', () => {
-            const numDias = parseInt(input.value);
-            if (numDias > 0) {
-                camposDiasContainer.style.display = 'block';
-                generarCamposPorDia(numDias);
-            } else {
-                camposDiasContainer.style.display = 'none';
+    if (calendarioContainer && form && typeof CalendarioDias !== 'undefined') {
+        CalendarioDias.init({
+            container: calendarioContainer,
+            form: form,
+            nameDias: 'dias-juego',
+            nameFechas: 'fechas[]',
+            maxSeleccion: 10,
+            onChange: function (count, fechas) {
+                if (count > 0) {
+                    camposDiasContainer.style.display = 'block';
+                    generarCamposPorDia(count);
+                } else {
+                    camposDiasContainer.style.display = 'none';
+                }
+                actualizarResumenRyder();
             }
-            actualizarResumenRyder();
         });
-    });
+    }
 
     function generarCamposPorDia(numDias) {
         diasCamposContainer.innerHTML = '';
@@ -131,8 +136,14 @@ document.addEventListener('DOMContentLoaded', () => {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(form);
+            const diasJuego = formData.get('dias-juego');
+            if (!diasJuego || diasJuego === '0') {
+                alert('Selecciona al menos un día de juego en el calendario.');
+                return;
+            }
             const datos = {
-                diasJuego: formData.get('dias-juego'),
+                diasJuego: diasJuego,
+                fechas: formData.getAll('fechas[]'),
                 noches: formData.get('noches'),
                 hotelUbicacion: formData.get('hotel-ubicacion'),
                 equipacion: formData.get('equipacion'),

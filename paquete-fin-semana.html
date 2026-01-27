@@ -65,25 +65,11 @@
             <!-- Configurador de Paquete -->
             <div class="configurador-paquete">
                 <form id="configuradorForm" class="configurador-form">
-                    <!-- Número de Noches -->
+                    <!-- Fechas / noches (calendario) -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">1. Selecciona el número de noches</h3>
-                        <div class="opciones-grid">
-                            <label class="opcion-card">
-                                <input type="radio" name="noches" value="1" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-numero">1</span>
-                                    <span class="opcion-texto">Noche</span>
-                                </div>
-                            </label>
-                            <label class="opcion-card">
-                                <input type="radio" name="noches" value="2" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-numero">2</span>
-                                    <span class="opcion-texto">Noches</span>
-                                </div>
-                            </label>
-                        </div>
+                        <h3 class="configurador-titulo">1. Selecciona tus fechas</h3>
+                        <p class="info-text" style="margin-bottom: 1rem;">Elige las fechas en el calendario (clic o arrastra un rango). El número de noches se calculará automáticamente según el rango.</p>
+                        <div id="calendario-dias-finsemana" class="calendario-dias-container"></div>
                     </div>
 
                     <!-- Green Fees Incluidos -->
@@ -285,6 +271,7 @@
     <script src="js/correspondencias-data.js"></script>
     <script src="js/correspondencias.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/calendario-dias.js"></script>
     <script src="js/usuarios-form.js"></script>
 </body>
 </html>

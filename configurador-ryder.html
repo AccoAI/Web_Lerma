@@ -65,32 +65,11 @@
             <!-- Configurador de Ryder Cup -->
             <div class="configurador-paquete">
                 <form id="configuradorRyderForm" class="configurador-form">
-                    <!-- Número de Días de Juego -->
+                    <!-- Días de Juego (calendario) -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">1. Número de días de juego</h3>
-                        <div class="opciones-grid">
-                            <label class="opcion-card">
-                                <input type="radio" name="dias-juego" value="1" id="dias-1" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-numero">1</span>
-                                    <span class="opcion-texto">Día</span>
-                                </div>
-                            </label>
-                            <label class="opcion-card">
-                                <input type="radio" name="dias-juego" value="2" id="dias-2" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-numero">2</span>
-                                    <span class="opcion-texto">Días</span>
-                                </div>
-                            </label>
-                            <label class="opcion-card">
-                                <input type="radio" name="dias-juego" value="3" id="dias-3" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-numero">3</span>
-                                    <span class="opcion-texto">Días</span>
-                                </div>
-                            </label>
-                        </div>
+                        <h3 class="configurador-titulo">1. Días de juego</h3>
+                        <p class="info-text" style="margin-bottom: 1rem;">Elige las fechas en el calendario (clic o arrastra un rango). El número de días de juego se calculará automáticamente.</p>
+                        <div id="calendario-dias-ryder" class="calendario-dias-container"></div>
                         
                         <!-- Selección de Campo por Día -->
                         <div id="campos-dias" class="campos-dias-selector" style="display: none; margin-top: 2rem;">
@@ -344,6 +323,7 @@
     <script src="js/correspondencias-data.js"></script>
     <script src="js/correspondencias.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/calendario-dias.js"></script>
     <script src="js/ryder-config.js"></script>
     <script src="js/usuarios-form.js"></script>
 </body>

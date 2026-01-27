@@ -279,6 +279,20 @@ function initConfiguradorPaquete() {
     const hotelBurgosRadio = document.getElementById('hotel-burgos');
     const hotelesLermaList = document.getElementById('hoteles-lerma-list');
     const hotelesBurgosList = document.getElementById('hoteles-burgos-list');
+    const calendarioContainer = document.getElementById('calendario-dias-finsemana');
+
+    if (calendarioContainer && form && typeof CalendarioDias !== 'undefined') {
+        CalendarioDias.init({
+            container: calendarioContainer,
+            form: form,
+            nameFechas: 'fechas[]',
+            nameNoches: 'noches',
+            maxSeleccion: 7,
+            onChange: function () {
+                if (typeof actualizarResumen === 'function') actualizarResumen();
+            }
+        });
+    }
 
     // Mostrar/ocultar hoteles según selección
     if (hotelLermaRadio && hotelBurgosRadio) {
@@ -311,7 +325,7 @@ function initConfiguradorPaquete() {
         const hotel = formData.get('hotel');
         const comida = formData.get('comida');
 
-        if (noches && hotel && comida) {
+        if (noches && parseInt(noches, 10) >= 1 && hotel && comida) {
             let resumenHTML = '<div class="resumen-items">';
             
             resumenHTML += `<p><strong>Noches:</strong> ${noches} ${noches === '1' ? 'noche' : 'noches'}</p>`;
@@ -347,8 +361,14 @@ function initConfiguradorPaquete() {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(form);
+            const noches = formData.get('noches');
+            if (!noches || parseInt(noches, 10) < 1) {
+                alert('Selecciona al menos una noche en el calendario (elige las fechas de tu estancia).');
+                return;
+            }
             const datos = {
-                noches: formData.get('noches'),
+                noches: noches,
+                fechas: formData.getAll('fechas[]'),
                 hotel: formData.get('hotel'),
                 comida: formData.get('comida')
             };

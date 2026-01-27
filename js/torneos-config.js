@@ -3,11 +3,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('configuradorTorneosForm');
     if (!form) return;
 
-    // Establecer fecha mínima como hoy
-    const fechaInput = document.getElementById('fecha-torneo');
-    if (fechaInput) {
-        const today = new Date().toISOString().split('T')[0];
-        fechaInput.setAttribute('min', today);
+    var calendarioContainer = document.getElementById('calendario-dias-torneos');
+    if (calendarioContainer && typeof CalendarioDias !== 'undefined') {
+        CalendarioDias.init({
+            container: calendarioContainer,
+            form: form,
+            nameDias: 'dias-torneo',
+            nameFechas: 'fechas[]',
+            nameFechaPrimera: 'fecha',
+            maxSeleccion: 14,
+            onChange: function () { actualizarResumenTorneo(); }
+        });
     }
 
     // Inicializar formulario de usuarios
@@ -23,11 +29,15 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         const formData = new FormData(form);
-        const data = Object.fromEntries(formData);
+        var fechas = formData.getAll('fechas[]');
+        var fechaPrimera = formData.get('fecha');
+        if ((!fechas || fechas.length === 0) && !fechaPrimera) {
+            alert('Selecciona al menos una fecha en el calendario.');
+            return;
+        }
         
         // Aquí puedes agregar la lógica para enviar los datos
         alert('¡Solicitud de torneo enviada correctamente! Nos pondremos en contacto contigo pronto.');
-        form.reset();
         actualizarResumenTorneo();
     });
 
@@ -53,14 +63,24 @@ function actualizarResumenTorneo() {
         resumenHTML += `<p><strong>Número de jugadores:</strong> ${jugadores}</p>`;
     }
 
-    if (fecha) {
-        const fechaFormateada = new Date(fecha + 'T00:00:00').toLocaleDateString('es-ES', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-        resumenHTML += `<p><strong>Fecha:</strong> ${fechaFormateada}</p>`;
+    var fechas = formData.getAll('fechas[]');
+    var fecha = formData.get('fecha');
+    if (fechas && fechas.length > 0) {
+        if (fechas.length === 1) {
+            var d = new Date(fechas[0] + 'T00:00:00');
+            resumenHTML += '<p><strong>Fecha:</strong> ' + d.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + '</p>';
+        } else {
+            resumenHTML += '<p><strong>Fechas:</strong> ' + fechas.length + ' días</p>';
+            resumenHTML += '<ul>';
+            fechas.forEach(function (f) {
+                var d = new Date(f + 'T00:00:00');
+                resumenHTML += '<li>' + d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) + '</li>';
+            });
+            resumenHTML += '</ul>';
+        }
+    } else if (fecha) {
+        var d = new Date(fecha + 'T00:00:00');
+        resumenHTML += '<p><strong>Fecha:</strong> ' + d.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + '</p>';
     }
 
     if (modalidad) {
