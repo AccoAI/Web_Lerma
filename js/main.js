@@ -198,10 +198,29 @@ function initHeroSlider() {
     setInterval(showNextSlide, 3000);
 }
 
-// Cámara del Tiempo - Temperatura y viento desde Open-Meteo (Quintanilla de la Mata o Lerma)
+// Cámara del Tiempo - Temperatura, viento e icono desde Open-Meteo (Quintanilla de la Mata o Lerma)
+function weatherCodeToIcon(code) {
+    if (code == null) return { emoji: '—', label: '—' };
+    var c = parseInt(code, 10);
+    if (c === 0) return { emoji: '☀️', label: 'Despejado' };
+    if (c === 1) return { emoji: '🌤️', label: 'Poco nuboso' };
+    if (c === 2) return { emoji: '⛅', label: 'Parcialmente nublado' };
+    if (c === 3) return { emoji: '☁️', label: 'Nublado' };
+    if (c === 45 || c === 48) return { emoji: '🌫️', label: 'Niebla' };
+    if (c >= 51 && c <= 57) return { emoji: '🌧️', label: 'Llovizna' };
+    if (c >= 61 && c <= 67) return { emoji: '🌧️', label: 'Lluvia' };
+    if (c >= 71 && c <= 77) return { emoji: '🌨️', label: 'Nieve' };
+    if (c >= 80 && c <= 82) return { emoji: '🌦️', label: 'Chubascos' };
+    if (c >= 85 && c <= 86) return { emoji: '🌨️', label: 'Nieve' };
+    if (c >= 95 && c <= 99) return { emoji: '⛈️', label: 'Tormenta' };
+    return { emoji: '🌡️', label: '—' };
+}
+
 async function updateTiempoData() {
     const temperatura = document.getElementById('temperatura');
     const viento = document.getElementById('viento');
+    const icono = document.getElementById('tiempo-icono');
+    const estado = document.getElementById('tiempo-estado');
     const origen = document.getElementById('tiempo-origen');
     if (!temperatura || !viento) return;
 
@@ -225,15 +244,20 @@ async function updateTiempoData() {
     }
 
     try {
-        var w = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&current=temperature_2m,wind_speed_10m&timezone=Europe%2FMadrid');
+        var w = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&current=temperature_2m,wind_speed_10m,weather_code&timezone=Europe%2FMadrid');
         var wData = await w.json();
         if (wData.current) {
             temperatura.textContent = Math.round(wData.current.temperature_2m) + '°C';
             viento.textContent = Math.round(wData.current.wind_speed_10m) + ' km/h';
+            var wIcon = weatherCodeToIcon(wData.current.weather_code);
+            if (icono) icono.textContent = wIcon.emoji;
+            if (estado) estado.textContent = wIcon.label;
         }
         if (origen) origen.textContent = 'Datos: ' + placeName;
     } catch (e) {
         if (origen) origen.textContent = 'Datos: no disponibles';
+        if (icono) icono.textContent = '—';
+        if (estado) estado.textContent = '—';
     }
 }
 

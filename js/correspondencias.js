@@ -91,7 +91,7 @@
     function filas(str, key) {
       return clubs.map(function (c) {
         var p = c[key];
-        return '<tr><td>' + (c.nombre || '') + '</td><td>' + (p != null ? p + ' €' : '—') + '</td></tr>';
+        return '<tr><td>' + (c.nombre || '') + '</td><td>' + (p != null ? p + ' €' : 'Consulte') + '</td></tr>';
       }).join('');
     }
 
