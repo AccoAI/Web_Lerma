@@ -100,11 +100,6 @@
             <!-- Formulario de Reserva -->
             <div class="configurador-paquete" style="margin-top: 3rem;">
                 <form id="formCochinillo" class="configurador-form">
-                    <div class="form-group form-group-correspondencia" data-campo="paquete">
-                        <label for="club-correspondencia">Club / Campo de procedencia (para tarifa correspondencia)</label>
-                        <select id="club-correspondencia" name="club_correspondencia" class="select-club-correspondencia"></select>
-                        <div class="correspondencia-precio-info"></div>
-                    </div>
                     <h3 class="configurador-titulo">Datos de los participantes</h3>
                     <div id="usuarios-container">
                         <div class="usuario-form" data-usuario="1">
@@ -121,6 +116,11 @@
                                 <div class="form-group-usuario">
                                     <label>Móvil *</label>
                                     <input type="tel" name="usuario[1][movil]" required>
+                                </div>
+                                <div class="form-group form-group-correspondencia" data-campo="paquete">
+                                    <label>Club / Campo de procedencia (para tarifa correspondencia)</label>
+                                    <select name="usuario[1][club_correspondencia]" class="select-club-correspondencia"></select>
+                                    <div class="correspondencia-precio-info"></div>
                                 </div>
                                 <div class="form-group-usuario">
                                     <label>Club</label>

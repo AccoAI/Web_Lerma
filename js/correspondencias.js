@@ -82,6 +82,16 @@
     });
   }
 
+  window.inicializarSelectCorrespondencia = function (sel) {
+    if (!sel || !sel.classList.contains(SELECT_CLASS)) return;
+    rellenarSelect(sel);
+    var block = sel.closest('.form-group-correspondencia');
+    var info = block ? block.querySelector('.' + INFO_CLASS) : null;
+    var campo = (block && block.getAttribute) ? block.getAttribute(DATA_CAMPO) : 'paquete';
+    sel.addEventListener('change', function () { actualizarPrecioInfo(sel, info, campo); });
+    actualizarPrecioInfo(sel, info, campo);
+  };
+
   function renderTablasCorrespondencias() {
     var contLerma = document.getElementById('tabla-correspondencias-lerma');
     var contSaldana = document.getElementById('tabla-correspondencias-saldana');

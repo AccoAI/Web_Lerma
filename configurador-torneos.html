@@ -65,11 +65,6 @@
             <!-- Configurador de Torneo -->
             <div class="configurador-paquete">
                 <form id="configuradorTorneosForm" class="configurador-form">
-                    <div class="form-group form-group-correspondencia" data-campo="paquete">
-                        <label for="club-correspondencia">Club / Campo de procedencia (para tarifa correspondencia)</label>
-                        <select id="club-correspondencia" name="club_correspondencia" class="select-club-correspondencia"></select>
-                        <div class="correspondencia-precio-info"></div>
-                    </div>
                     <!-- Número de Jugadores -->
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo">1. Número de jugadores</h3>
@@ -181,6 +176,11 @@
                                     <div class="form-group-usuario">
                                         <label>Móvil *</label>
                                         <input type="tel" name="usuario[1][movil]" required>
+                                    </div>
+                                    <div class="form-group form-group-correspondencia" data-campo="paquete">
+                                        <label>Club / Campo de procedencia (para tarifa correspondencia)</label>
+                                        <select name="usuario[1][club_correspondencia]" class="select-club-correspondencia"></select>
+                                        <div class="correspondencia-precio-info"></div>
                                     </div>
                                     <div class="form-group-usuario">
                                         <label>Club</label>

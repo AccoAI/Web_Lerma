@@ -98,40 +98,40 @@
             <!-- Formulario de Reserva -->
             <div class="configurador-paquete" style="margin-top: 3rem;">
                 <form id="form36Hoyos" class="configurador-form">
-                    <div class="form-group form-group-correspondencia" data-campo="paquete">
-                        <label for="club-correspondencia">Club / Campo de procedencia (para tarifa correspondencia)</label>
-                        <select id="club-correspondencia" name="club_correspondencia" class="select-club-correspondencia"></select>
-                        <div class="correspondencia-precio-info"></div>
-                    </div>
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo">Datos de los participantes</h3>
                         <div id="usuarios-container">
                             <div class="usuario-form" data-usuario="1">
                                 <h4 class="usuario-numero">Participante 1</h4>
-                            <div class="usuario-campos">
-                                <div class="form-group-usuario">
-                                    <label>Nombre *</label>
-                                    <input type="text" name="usuario[1][nombre]" required>
-                                </div>
-                                <div class="form-group-usuario">
-                                    <label>Correo *</label>
-                                    <input type="email" name="usuario[1][correo]" required>
-                                </div>
-                                <div class="form-group-usuario">
-                                    <label>Móvil *</label>
-                                    <input type="tel" name="usuario[1][movil]" required>
-                                </div>
-                                <div class="form-group-usuario">
-                                    <label>Club</label>
-                                    <input type="text" name="usuario[1][club]">
-                                </div>
-                                <div class="form-group-usuario">
-                                    <label>Handicap</label>
-                                    <input type="number" name="usuario[1][handicap]" min="0" max="54" step="0.1">
+                                <div class="usuario-campos">
+                                    <div class="form-group-usuario">
+                                        <label>Nombre *</label>
+                                        <input type="text" name="usuario[1][nombre]" required>
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label>Correo *</label>
+                                        <input type="email" name="usuario[1][correo]" required>
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label>Móvil *</label>
+                                        <input type="tel" name="usuario[1][movil]" required>
+                                    </div>
+                                    <div class="form-group form-group-correspondencia" data-campo="paquete">
+                                        <label>Club / Campo de procedencia (para tarifa correspondencia)</label>
+                                        <select name="usuario[1][club_correspondencia]" class="select-club-correspondencia"></select>
+                                        <div class="correspondencia-precio-info"></div>
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label>Club</label>
+                                        <input type="text" name="usuario[1][club]">
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label>Handicap</label>
+                                        <input type="number" name="usuario[1][handicap]" min="0" max="54" step="0.1">
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
                         <button type="button" class="btn-agregar-usuario" id="agregar-usuario">
                             <span>+</span> Agregar Participante
                         </button>

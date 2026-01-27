@@ -12,7 +12,8 @@ function initUsuariosForm() {
         contadorUsuarios++;
         const nuevoUsuario = crearFormularioUsuario(contadorUsuarios);
         usuariosContainer.appendChild(nuevoUsuario);
-        
+        var sel = nuevoUsuario.querySelector('.select-club-correspondencia');
+        if (sel && typeof window.inicializarSelectCorrespondencia === 'function') window.inicializarSelectCorrespondencia(sel);
         // Scroll suave al nuevo formulario
         nuevoUsuario.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
@@ -41,6 +42,11 @@ function initUsuariosForm() {
                 <div class="form-group-usuario">
                     <label>Móvil *</label>
                     <input type="tel" name="usuario[${numero}][movil]" required>
+                </div>
+                <div class="form-group form-group-correspondencia" data-campo="paquete">
+                    <label>Club / Campo de procedencia (para tarifa correspondencia)</label>
+                    <select name="usuario[${numero}][club_correspondencia]" class="select-club-correspondencia"></select>
+                    <div class="correspondencia-precio-info"></div>
                 </div>
                 <div class="form-group-usuario">
                     <label>Club</label>
@@ -86,13 +92,11 @@ function initUsuariosForm() {
             if (titulo) {
                 titulo.textContent = `Participante ${nuevoNumero}`;
             }
-            // Renumerar los inputs
-            const inputs = usuario.querySelectorAll('input');
-            inputs.forEach(input => {
-                const name = input.getAttribute('name');
-                if (name) {
-                    const newName = name.replace(/usuario\[\d+\]/, `usuario[${nuevoNumero}]`);
-                    input.setAttribute('name', newName);
+            // Renumerar inputs y selects
+            usuario.querySelectorAll('input, select').forEach(el => {
+                const name = el.getAttribute('name');
+                if (name && /usuario\[\d+\]/.test(name)) {
+                    el.setAttribute('name', name.replace(/usuario\[\d+\]/, `usuario[${nuevoNumero}]`));
                 }
             });
         });
