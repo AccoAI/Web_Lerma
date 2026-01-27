@@ -280,6 +280,37 @@ function initConfiguradorPaquete() {
     const hotelesLermaList = document.getElementById('hoteles-lerma-list');
     const hotelesBurgosList = document.getElementById('hoteles-burgos-list');
     const calendarioContainer = document.getElementById('calendario-dias-finsemana');
+    const camposDiasFinSemana = document.getElementById('campos-dias-finsemana');
+    const diasCamposContainerFinSemana = document.getElementById('dias-campos-container-finsemana');
+
+    function generarCamposPorDiaFinSemana(numDias) {
+        if (!diasCamposContainerFinSemana) return;
+        diasCamposContainerFinSemana.innerHTML = '';
+        for (let i = 1; i <= numDias; i++) {
+            const diaDiv = document.createElement('div');
+            diaDiv.className = 'dia-campo-selector';
+            diaDiv.innerHTML = `
+                <h5 class="dia-titulo">Día ${i}:</h5>
+                <div class="opciones-grid">
+                    <label class="opcion-card">
+                        <input type="radio" name="campo-dia-${i}" value="lerma" required>
+                        <div class="opcion-content">
+                            <span class="opcion-icon">⛳</span>
+                            <span class="opcion-texto">Golf Lerma</span>
+                        </div>
+                    </label>
+                    <label class="opcion-card">
+                        <input type="radio" name="campo-dia-${i}" value="saldana" required>
+                        <div class="opcion-content">
+                            <span class="opcion-icon">⛳</span>
+                            <span class="opcion-texto">Saldaña Golf</span>
+                        </div>
+                    </label>
+                </div>
+            `;
+            diasCamposContainerFinSemana.appendChild(diaDiv);
+        }
+    }
 
     if (calendarioContainer && form && typeof CalendarioDias !== 'undefined') {
         CalendarioDias.init({
@@ -288,7 +319,15 @@ function initConfiguradorPaquete() {
             nameFechas: 'fechas[]',
             nameNoches: 'noches',
             maxSeleccion: 7,
-            onChange: function () {
+            onChange: function (count) {
+                if (camposDiasFinSemana) {
+                    if (count >= 1) {
+                        camposDiasFinSemana.style.display = 'block';
+                        generarCamposPorDiaFinSemana(count);
+                    } else {
+                        camposDiasFinSemana.style.display = 'none';
+                    }
+                }
                 if (typeof actualizarResumen === 'function') actualizarResumen();
             }
         });
@@ -311,12 +350,9 @@ function initConfiguradorPaquete() {
         });
     }
 
-    // Actualizar resumen cuando cambian las opciones
+    // Actualizar resumen cuando cambian las opciones (incluye radios dinámicos campo-dia-X)
     if (form) {
-        const inputs = form.querySelectorAll('input[type="radio"]');
-        inputs.forEach(input => {
-            input.addEventListener('change', actualizarResumen);
-        });
+        form.addEventListener('change', actualizarResumen);
     }
 
     function actualizarResumen() {
@@ -330,6 +366,14 @@ function initConfiguradorPaquete() {
             
             resumenHTML += `<p><strong>Noches:</strong> ${noches} ${noches === '1' ? 'noche' : 'noches'}</p>`;
             resumenHTML += '<p><strong>Green Fees incluidos:</strong> 1 en Golf Lerma + 1 en Saldaña Golf</p>';
+            
+            const fechas = formData.getAll('fechas[]');
+            if (fechas && fechas.length > 0) {
+                for (let i = 1; i <= fechas.length; i++) {
+                    const c = formData.get('campo-dia-' + i);
+                    if (c) resumenHTML += `<p><strong>Día ${i}:</strong> ${c === 'lerma' ? 'Golf Lerma' : 'Saldaña Golf'}</p>`;
+                }
+            }
             
             if (hotel === 'lerma') {
                 resumenHTML += '<p><strong>Hotel:</strong> En Lerma (Hotel Alisa, CERES o Parador)</p>';
@@ -366,9 +410,16 @@ function initConfiguradorPaquete() {
                 alert('Selecciona al menos una noche en el calendario (elige las fechas de tu estancia).');
                 return;
             }
+            const fechas = formData.getAll('fechas[]');
+            const camposPorDia = {};
+            if (fechas) for (let i = 1; i <= fechas.length; i++) {
+                const c = formData.get('campo-dia-' + i);
+                if (c) camposPorDia[i] = c;
+            }
             const datos = {
                 noches: noches,
-                fechas: formData.getAll('fechas[]'),
+                fechas: fechas,
+                camposPorDia: camposPorDia,
                 hotel: formData.get('hotel'),
                 comida: formData.get('comida')
             };
