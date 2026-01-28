@@ -79,101 +79,63 @@
 
             <div class="simulador-opciones">
                 <h2 class="campo-titulo">Reserve desde la web</h2>
-                <div class="simulador-cards">
-                    <div class="simulador-card">
-                        <div class="simulador-card-icono">⛳</div>
-                        <h3>Reservar horario o clase</h3>
-                        <p>Puede elegir una franja para jugar por su cuenta (acceso con smartlock) o bien reservar una clase con nuestro equipo. Rellene el formulario que prefiera más abajo.</p>
-                        <a href="#reservar-horario" class="btn-reservar-simulador">Reservar</a>
+                <div class="simulador-reserva-layout">
+                    <div class="simulador-cards">
+                        <div class="simulador-card activa" data-form="horario">
+                            <div class="simulador-card-icono">⛳</div>
+                            <h3>Reservar horario para jugar</h3>
+                            <p>Elija su franja, acceda con el smartlock y juegue en el simulador cuando mejor le venga.</p>
+                            <button type="button" class="btn-reservar-simulador" data-form="horario">Reservar horario</button>
+                        </div>
+                        <div class="simulador-card" data-form="clase">
+                            <div class="simulador-card-icono">📋</div>
+                            <h3>Reservar clase</h3>
+                            <p>Reserve una clase con nuestro equipo para mejorar su juego.</p>
+                            <button type="button" class="btn-reservar-simulador" data-form="clase">Reservar clase</button>
+                        </div>
+                    </div>
+                    <div class="simulador-form-panel">
+                        <div id="form-horario" class="simulador-form-wrap activo" data-form="horario">
+                            <form class="configurador-form simulador-form simulador-form-compact">
+                                <div class="simulador-form-grid">
+                                    <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" required></div>
+                                    <div class="form-group"><label>Correo *</label><input type="email" name="correo" required></div>
+                                    <div class="form-group"><label>Teléfono *</label><input type="tel" name="telefono" required></div>
+                                    <div class="form-group"><label>Club</label><input type="text" name="club" placeholder="Opcional"></div>
+                                    <div class="form-group form-group-correspondencia form-group-full" data-campo="simulador">
+                                        <label>Club/campo (correspondencia)</label>
+                                        <select name="club_correspondencia" class="select-club-correspondencia"></select>
+                                        <div class="correspondencia-precio-info"></div>
+                                    </div>
+                                    <div class="form-group"><label>Handicap</label><input type="number" name="handicap" min="0" max="54" step="0.1" placeholder="—"></div>
+                                    <div class="form-group"><label>Fecha *</label><input type="date" name="fecha" required></div>
+                                    <div class="form-group"><label>Hora *</label><input type="time" name="hora" required></div>
+                                    <div class="form-group form-group-full"><button type="submit" class="btn-reservar-paquete">Enviar reserva</button></div>
+                                </div>
+                            </form>
+                        </div>
+                        <div id="form-clase" class="simulador-form-wrap" data-form="clase">
+                            <form class="configurador-form simulador-form simulador-form-compact">
+                                <div class="simulador-form-grid">
+                                    <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" required></div>
+                                    <div class="form-group"><label>Correo *</label><input type="email" name="correo" required></div>
+                                    <div class="form-group"><label>Teléfono *</label><input type="tel" name="telefono" required></div>
+                                    <div class="form-group"><label>Club</label><input type="text" name="club" placeholder="Opcional"></div>
+                                    <div class="form-group form-group-correspondencia form-group-full" data-campo="simulador">
+                                        <label>Club/campo (correspondencia)</label>
+                                        <select name="club_correspondencia" class="select-club-correspondencia"></select>
+                                        <div class="correspondencia-precio-info"></div>
+                                    </div>
+                                    <div class="form-group"><label>Handicap</label><input type="number" name="handicap" min="0" max="54" step="0.1" placeholder="—"></div>
+                                    <div class="form-group"><label>Fecha *</label><input type="date" name="fecha" required></div>
+                                    <div class="form-group"><label>Hora *</label><input type="time" name="hora" required></div>
+                                    <div class="form-group form-group-full"><label>Comentarios</label><textarea name="comentarios" rows="2" placeholder="Nivel, objetivos…"></textarea></div>
+                                    <div class="form-group form-group-full"><button type="submit" class="btn-reservar-paquete">Enviar solicitud de clase</button></div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Formularios de reserva -->
-            <div id="reservar-horario" class="configurador-paquete" style="scroll-margin-top: 90px;">
-                <h3 class="configurador-titulo">Reservar horario para jugar</h3>
-                <form class="configurador-form simulador-form">
-                    <h4 class="configurador-titulo" style="margin-top: 0; font-size: 1.1rem;">Datos del jugador</h4>
-                    <div class="form-group">
-                        <label>Nombre *</label>
-                        <input type="text" name="nombre" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Correo *</label>
-                        <input type="email" name="correo" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Teléfono *</label>
-                        <input type="tel" name="telefono" required>
-                    </div>
-                    <div class="form-group form-group-correspondencia" data-campo="simulador">
-                        <label>Club / Campo de procedencia (para tarifa correspondencia)</label>
-                        <select name="club_correspondencia" class="select-club-correspondencia"></select>
-                        <div class="correspondencia-precio-info"></div>
-                    </div>
-                    <div class="form-group">
-                        <label>Club</label>
-                        <input type="text" name="club" placeholder="Club de golf">
-                    </div>
-                    <div class="form-group">
-                        <label>Handicap</label>
-                        <input type="number" name="handicap" min="0" max="54" step="0.1" placeholder="Opcional">
-                    </div>
-                    <div class="form-group">
-                        <label>Fecha deseada *</label>
-                        <input type="date" name="fecha" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Hora preferida *</label>
-                        <input type="time" name="hora" required>
-                    </div>
-                    <button type="submit" class="btn-reservar-paquete">Enviar solicitud de reserva</button>
-                </form>
-            </div>
-
-            <div id="reservar-clase" class="configurador-paquete" style="scroll-margin-top: 90px;">
-                <h3 class="configurador-titulo">Reservar clase</h3>
-                <form class="configurador-form simulador-form">
-                    <h4 class="configurador-titulo" style="margin-top: 0; font-size: 1.1rem;">Datos del jugador</h4>
-                    <div class="form-group">
-                        <label>Nombre *</label>
-                        <input type="text" name="nombre" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Correo *</label>
-                        <input type="email" name="correo" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Teléfono *</label>
-                        <input type="tel" name="telefono" required>
-                    </div>
-                    <div class="form-group form-group-correspondencia" data-campo="simulador">
-                        <label>Club / Campo de procedencia (para tarifa correspondencia)</label>
-                        <select name="club_correspondencia" class="select-club-correspondencia"></select>
-                        <div class="correspondencia-precio-info"></div>
-                    </div>
-                    <div class="form-group">
-                        <label>Club</label>
-                        <input type="text" name="club" placeholder="Club de golf">
-                    </div>
-                    <div class="form-group">
-                        <label>Handicap</label>
-                        <input type="number" name="handicap" min="0" max="54" step="0.1" placeholder="Opcional">
-                    </div>
-                    <div class="form-group">
-                        <label>Fecha deseada *</label>
-                        <input type="date" name="fecha" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Hora preferida *</label>
-                        <input type="time" name="hora" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Comentarios</label>
-                        <textarea name="comentarios" rows="3" placeholder="Nivel, objetivos, etc."></textarea>
-                    </div>
-                    <button type="submit" class="btn-reservar-paquete">Enviar solicitud de clase</button>
-                </form>
             </div>
         </div>
     </section>
@@ -235,6 +197,17 @@
                     e.preventDefault();
                     alert('Solicitud enviada. Nos pondremos en contacto con usted para confirmar la reserva.');
                     form.reset();
+                });
+            });
+            document.querySelectorAll('.simulador-card').forEach(function(card) {
+                card.addEventListener('click', function() {
+                    var formId = card.getAttribute('data-form');
+                    if (!formId) return;
+                    document.querySelectorAll('.simulador-card').forEach(function(c) { c.classList.remove('activa'); });
+                    document.querySelectorAll('.simulador-form-wrap').forEach(function(w) { w.classList.remove('activo'); });
+                    card.classList.add('activa');
+                    var wrap = document.getElementById('form-' + formId);
+                    if (wrap) wrap.classList.add('activo');
                 });
             });
         });

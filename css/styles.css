@@ -2416,10 +2416,10 @@ img {
     filter: none;
 }
 
-/* Página Hazte Socio */
+/* Página Hazte Socio / Bodas / Empresa – hero compartido */
 .hazte-socio-hero {
     position: relative;
-    min-height: 420px;
+    min-height: 560px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2441,7 +2441,7 @@ img {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(15, 51, 36, 0.85) 0%, rgba(26, 77, 58, 0.9) 100%);
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.55));
 }
 
 .hazte-socio-hero-content {
@@ -2787,6 +2787,35 @@ img {
     background: linear-gradient(180deg, rgba(26, 77, 58, 0.06) 0%, transparent 100%);
 }
 
+/* Bodas-eventos página: Organizar boda | Otros eventos a la misma altura */
+.bodas-eventos-pagina {
+    padding: 3rem 0;
+    background: var(--color-bg-light);
+}
+
+.bodas-eventos-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+.bodas-eventos-layout .boda-andaya-redirect {
+    max-width: none;
+    margin: 0;
+}
+
+.bodas-eventos-layout .hazte-socio-form-intro {
+    text-align: left;
+    max-width: none;
+    margin: 0 0 1.25rem;
+}
+
+.bodas-eventos-layout .hazte-socio-form {
+    max-width: none;
+    margin: 0;
+}
+
 .boda-andaya-redirect {
     max-width: 600px;
     margin: 0 auto;
@@ -2969,7 +2998,23 @@ img {
 }
 
 .simulador-opciones {
-    margin-bottom: 4rem;
+    margin-bottom: 2rem;
+}
+
+/* Layout: tarjetas a un lado, formulario al otro */
+.simulador-reserva-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 1.5rem 2rem;
+    align-items: start;
+}
+
+.simulador-reserva-layout .simulador-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: none;
+    margin: 0;
 }
 
 .simulador-cards {
@@ -2987,9 +3032,15 @@ img {
     text-align: center;
     border: 2px solid transparent;
     transition: var(--transition);
+    cursor: pointer;
 }
 
-.simulador-card:hover {
+.simulador-reserva-layout .simulador-card {
+    padding: 1.25rem 1.25rem;
+}
+
+.simulador-card:hover,
+.simulador-card.activa {
     border-color: var(--color-primary);
     box-shadow: var(--shadow-lg);
 }
@@ -2999,6 +3050,11 @@ img {
     margin-bottom: 1rem;
 }
 
+.simulador-reserva-layout .simulador-card-icono {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
 .simulador-card h3 {
     font-family: var(--font-primary);
     font-size: 1.4rem;
@@ -3006,10 +3062,21 @@ img {
     margin-bottom: 1rem;
 }
 
+.simulador-reserva-layout .simulador-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
 .simulador-card p {
     color: var(--color-text);
     line-height: 1.6;
     margin-bottom: 1.5rem;
+}
+
+.simulador-reserva-layout .simulador-card p {
+    font-size: 0.9rem;
+    line-height: 1.45;
+    margin-bottom: 1rem;
 }
 
 .btn-reservar-simulador {
@@ -3021,12 +3088,72 @@ img {
     text-decoration: none;
     font-weight: 600;
     transition: var(--transition);
+    border: none;
+    cursor: pointer;
+    font: inherit;
 }
 
 .btn-reservar-simulador:hover {
     background: var(--color-primary-dark);
     transform: translateY(-2px);
     box-shadow: var(--shadow);
+}
+
+.simulador-reserva-layout .btn-reservar-simulador {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+/* Panel del formulario: se muestra el que corresponde a la tarjeta activa */
+.simulador-form-panel {
+    min-width: 0;
+}
+
+.simulador-form-wrap {
+    display: none;
+}
+
+.simulador-form-wrap.activo {
+    display: block;
+}
+
+.simulador-form-panel .configurador-form {
+    padding: 1.25rem 1.5rem;
+    margin: 0;
+}
+
+.simulador-form-compact .simulador-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 1rem;
+}
+
+.simulador-form-compact .simulador-form-grid .form-group {
+    margin-bottom: 0;
+}
+
+.simulador-form-panel .form-group-full {
+    grid-column: 1 / -1;
+}
+
+.simulador-form-panel .form-group label {
+    font-size: 0.875rem;
+}
+
+.simulador-form-panel .form-group input,
+.simulador-form-panel .form-group select,
+.simulador-form-panel .form-group textarea {
+    padding: 0.5rem 0.65rem;
+    font-size: 0.9rem;
+}
+
+.simulador-form-panel .form-group textarea {
+    min-height: 56px;
+}
+
+.simulador-form-panel .btn-reservar-paquete {
+    padding: 0.6rem 1.25rem;
+    font-size: 0.9rem;
 }
 
 .simulador-form {
@@ -3885,6 +4012,10 @@ img {
         font-size: 0.9rem;
     }
 
+    .hazte-socio-hero {
+        min-height: 400px;
+    }
+
     .simulador-hero-imagen {
         height: 360px;
     }
@@ -3899,6 +4030,18 @@ img {
 
     .simulador-hero-intro {
         font-size: 1rem;
+    }
+
+    .simulador-reserva-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .bodas-eventos-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .simulador-form-compact .simulador-form-grid {
+        grid-template-columns: 1fr;
     }
 
     .simulador-cards {
