@@ -3263,27 +3263,59 @@ img {
 
     .paquete-wrapper {
         gap: 0.5rem;
+        min-height: 0;
     }
 
     .paquete-titulo-externo {
-        font-size: 0.95rem;
-        min-height: 2.5rem;
+        font-size: 0.9rem;
+        height: 2.6rem;
+        min-height: 2.6rem;
+        padding: 0 0.5rem;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     .paquete-card {
-        padding: 1.25rem 1rem;
+        padding: 0;
     }
 
     .paquete-card-fondo {
-        min-height: 180px;
+        height: 200px;
+        min-height: 200px;
+    }
+
+    .paquete-logos-campos {
+        top: 0.5rem;
+        right: 0.5rem;
+        padding: 0.2rem 0.4rem;
+        gap: 0.2rem;
+        border-radius: 6px;
+    }
+
+    .paquete-logo-campo {
+        height: 20px;
+        max-width: 48px;
     }
 
     .paquete-content {
-        padding: 1rem;
+        padding: 0.5rem 0.5rem;
+    }
+
+    .paquete-descripcion {
+        font-size: 0.8rem;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-align: center;
     }
 
     .paquete-card h3 {
-        font-size: 1rem;
+        font-size: 0.95rem;
     }
 
     .configurador-form {
