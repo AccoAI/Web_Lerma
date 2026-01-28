@@ -75,63 +75,29 @@
                         </div>
                     </div>
 
-                    <!-- Selección de Hotel -->
-                    <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">2. Selecciona tu hotel</h3>
-                        <div class="hoteles-selector">
-                            <div class="hotel-option">
-                                <label class="hotel-radio">
-                                    <input type="radio" name="hotel" value="lerma" id="hotel-lerma" required>
-                                    <span>Hoteles en Lerma</span>
-                                </label>
-                                <div class="hoteles-lerma" id="hoteles-lerma-list">
-                                    <div class="hotel-card-selectable">
-                                        <div class="hotel-image">
-                                            <img src="FOTOS/hotel_alisa.jpg" alt="Hotel Alisa">
-                                        </div>
-                                        <div class="hotel-content">
-                                            <h4>Hotel Alisa</h4>
-                                            <p class="hotel-descuento">% DESCUENTO EN GF</p>
-                                            <div class="hotel-info">
-                                                <p><strong>Teléfono:</strong> 947 17 02 50</p>
-                                                <p><strong>Website:</strong> <a href="http://www.hotelalisa.com" target="_blank">www.hotelalisa.com</a></p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="hotel-card-selectable">
-                                        <div class="hotel-image">
-                                            <img src="FOTOS/hotel_ceres.jpg" alt="Hotel CERES">
-                                        </div>
-                                        <div class="hotel-content">
-                                            <h4>Hotel CERES</h4>
-                                            <p class="hotel-descuento">Desde 70 € p.p.</p>
-                                            <p class="hotel-descripcion">Hotel ubicado en el centro de la Villa de Lerma</p>
-                                        </div>
-                                    </div>
-                                    <div class="hotel-card-selectable">
-                                        <div class="hotel-image">
-                                            <img src="FOTOS/hotel_parador_lerma.jpg" alt="Parador de Lerma">
-                                        </div>
-                                        <div class="hotel-content">
-                                            <h4>Parador de Lerma</h4>
-                                            <p class="hotel-descuento">Descuento sobre tarifa oficial</p>
-                                            <div class="hotel-info">
-                                                <p><strong>Teléfono:</strong> 947 17 71 10</p>
-                                                <p><strong>Website:</strong> <a href="http://www.parador.es" target="_blank">www.parador.es</a></p>
-                                            </div>
-                                        </div>
-                                    </div>
+                    <!-- Selección de Hotel (solo si 2+ días) -->
+                    <div class="configurador-seccion" id="configurador-hotel-wrap" style="display: none;">
+                        <h3 class="configurador-titulo">2. Alojamiento</h3>
+                        <p class="hotel-ciudad-label">¿Dónde te alojas?</p>
+                        <div class="opciones-grid opciones-grid-ciudad">
+                            <label class="opcion-card">
+                                <input type="radio" name="hotel-ciudad" value="lerma" id="hotel-ciudad-lerma" required>
+                                <div class="opcion-content">
+                                    <span class="opcion-icon">🏨</span>
+                                    <span class="opcion-texto">Estancia en Lerma</span>
                                 </div>
-                            </div>
-                            <div class="hotel-option">
-                                <label class="hotel-radio">
-                                    <input type="radio" name="hotel" value="burgos" id="hotel-burgos" required>
-                                    <span>Hoteles en Burgos</span>
-                                </label>
-                                <div class="hoteles-burgos" id="hoteles-burgos-list" style="display: none;">
-                                    <p class="info-text">Puedes elegir cualquier hotel en Burgos. Contacta con nosotros para más información sobre hoteles disponibles.</p>
+                            </label>
+                            <label class="opcion-card">
+                                <input type="radio" name="hotel-ciudad" value="burgos" id="hotel-ciudad-burgos" required>
+                                <div class="opcion-content">
+                                    <span class="opcion-icon">🏨</span>
+                                    <span class="opcion-texto">Estancia en Burgos</span>
                                 </div>
-                            </div>
+                            </label>
+                        </div>
+                        <div id="hotel-por-noche-block" class="hotel-por-noche-block" style="display: none;">
+                            <span class="campos-dias-label">Hotel para cada noche:</span>
+                            <div id="hoteles-por-noche-container" class="campos-dias-row"></div>
                         </div>
                     </div>
 

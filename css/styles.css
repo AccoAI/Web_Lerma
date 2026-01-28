@@ -1062,6 +1062,47 @@ img {
     margin: 0.5rem 0;
 }
 
+.resumen-subtotal {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.resumen-subtotal-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.resumen-subtotal-tabla td {
+    padding: 0.35rem 0;
+}
+
+.resumen-subtotal-tabla td:last-child {
+    text-align: right;
+    font-weight: 500;
+}
+
+.resumen-subtotal-tabla tr.resumen-descuento td:last-child {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.resumen-subtotal-tabla tr.resumen-total td {
+    padding-top: 0.75rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.resumen-subtotal-tabla tr.resumen-total td:last-child {
+    font-size: 1.25rem;
+}
+
+.resumen-subtotal-nota {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    opacity: 0.85;
+}
+
 .btn-reservar-paquete {
     width: 100%;
     background: var(--color-white);
@@ -1173,6 +1214,57 @@ img {
     border-color: var(--color-primary-light);
 }
 .campos-dias-item select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(26, 77, 58, 0.15);
+}
+
+.hotel-ciudad-label {
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.hotel-por-noche-block {
+    margin-top: 1rem;
+}
+
+.hoteles-por-noche-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hoteles-por-noche-item label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+.hoteles-por-noche-item select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    font-family: inherit;
+    color: var(--color-text);
+    border: 1px solid #d0d7de;
+    border-radius: 8px;
+    min-width: 140px;
+    background: var(--color-white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m3 4.5 3 3 3-3'/%3E%3C/svg%3E") no-repeat right 0.65rem center;
+    background-size: 12px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hoteles-por-noche-item select:hover {
+    border-color: var(--color-primary-light);
+}
+
+.hoteles-por-noche-item select:focus {
     outline: none;
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(26, 77, 58, 0.15);
