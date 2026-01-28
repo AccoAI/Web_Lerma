@@ -279,9 +279,70 @@
                 var orden = (fd.get('orden-36hoyos') || '').trim();
                 var usuarios = form.querySelectorAll('.usuario-form');
                 var fp = (fd.get('forma_pago') || 'unico').trim() || 'unico';
-                var html = '<div class="resumen-items"><p><strong>Fechas:</strong> ' + (fechas.length ? fechas.join(', ') : '—') + '</p>';
+                var numParticipants = Math.max(1, parseInt((fd.get('tamanio_grupo') || '').trim(), 10) || usuarios.length);
+                
+                // Obtener grupos de correspondencia
+                var grupos = (typeof getCorrespondenciaGrupos === 'function') ? getCorrespondenciaGrupos(form) : [];
+                
+                // Obtener clubId para calcular descuentos de correspondencia
+                var clubId = '';
+                for (var gi = 0; gi < grupos.length; gi++) {
+                    if (grupos[gi].club_id && grupos[gi].club_id !== 'sin') {
+                        clubId = grupos[gi].club_id;
+                        break;
+                    }
+                }
+                
+                // Calcular green fees con correspondencia si existe
+                var totalGF = 0;
+                var tieneCorrespondencia = false;
+                if (fechas.length > 0) {
+                    var iso = fechas[0];
+                    if (iso) {
+                        var d = new Date(iso + 'T12:00:00');
+                        var dow = d.getDay();
+                        var esFinDeSemana = (dow === 0 || dow === 6);
+                        var p = null;
+                        // MANTENER LÓGICA DE CORRESPONDENCIA CORRECTA
+                        if (clubId && typeof getPrecioGreenFee === 'function') {
+                            p = getPrecioGreenFee(clubId, esFinDeSemana ? 'saldana' : 'lerma');
+                            if (p != null) tieneCorrespondencia = true;
+                        }
+                        // Si hay correspondencia, usar precio real; si no, usar dummy
+                        if (p == null) p = esFinDeSemana ? 50 : 50; // dummy: 50€ base
+                        totalGF = p * 2; // 2 green fees (Lerma + Saldaña)
+                    }
+                } else {
+                    totalGF = 100; // dummy: 100€ pack base
+                }
+                var gf = totalGF * numParticipants;
+                
+                var base = gf;
+                // Si hay correspondencia, calcular descuento sobre base real; si no, usar dummy
+                var desc = tieneCorrespondencia ? Math.round(base * 0.15) : Math.round(base * 0.12); // dummy: 12-15%
+                var subtotal = base - desc;
+                
+                var html = '<div class="resumen-items">';
+                html += '<p><strong>Fechas:</strong> ' + (fechas.length ? fechas.join(', ') : '—') + '</p>';
                 if (orden) html += '<p><strong>Orden:</strong> ' + (orden === 'lerma-saldana' ? 'Golf Lerma → Saldaña Golf' : 'Saldaña Golf → Golf Lerma') + '</p>';
-                html += '<p><strong>Participantes:</strong> ' + usuarios.length + '</p><p><strong>Forma de pago:</strong> ' + (fp === 'por_persona' ? 'Por persona' : 'Único') + '</p></div>';
+                html += '<p><strong>Participantes:</strong> ' + usuarios.length + '</p>';
+                if (grupos.length > 0) {
+                    html += '<p><strong>Correspondencias (grupos):</strong> ' + grupos.map(function (g) { return g.cantidad + ' × ' + g.label; }).join(', ') + '</p>';
+                }
+                html += '<p><strong>Forma de pago:</strong> ' + (fp === 'por_persona' ? 'Por persona' : 'Único') + '</p>';
+                html += '</div>';
+                
+                html += '<div class="resumen-subtotal">';
+                html += '<table class="resumen-subtotal-tabla">';
+                html += '<tr><td>Green fees 36 hoyos (2 campos' + (numParticipants > 1 ? ' × ' + numParticipants + ' pers.' : '') + ')</td><td>' + gf + ' €</td></tr>';
+                html += '<tr class="resumen-descuento"><td>Descuento pack (-' + (tieneCorrespondencia ? '15' : '12') + '%)</td><td>-' + desc + ' €</td></tr>';
+                html += '<tr class="resumen-total"><td>Subtotal</td><td>' + subtotal + ' €</td></tr>';
+                if (numParticipants > 1) {
+                    html += '<tr class="resumen-por-persona"><td>Importe por persona (' + numParticipants + ')</td><td>' + (Math.round((subtotal / numParticipants) * 100) / 100) + ' €</td></tr>';
+                }
+                html += '</table>';
+                html += '<p class="resumen-subtotal-nota">Descuento por pack aplicado.' + (clubId ? ' Tarifa correspondencia aplicada según día de la semana.' : '') + ' Forma de pago: ' + (fp === 'por_persona' ? 'por persona (enlaces individuales).' : 'único.') + '</p></div>';
+                
                 resumenDiv.innerHTML = html;
             };
 

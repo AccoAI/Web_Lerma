@@ -3695,19 +3695,24 @@ img {
 
 .checkbox-group {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 0.5rem;
     text-align: left;
+    justify-content: flex-start;
 }
 
 .checkbox-group input[type="checkbox"] {
-    margin-top: 0.2rem;
+    margin: 0;
     flex-shrink: 0;
+    width: auto;
 }
 
 .checkbox-group label {
     font-size: 0.9rem;
     color: var(--color-text-light);
+    margin: 0;
+    display: inline;
+    font-weight: normal;
 }
 
 .checkbox-group a {

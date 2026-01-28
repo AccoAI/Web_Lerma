@@ -297,6 +297,23 @@ var PRECIO_COMIDA = 22;
 var PRECIO_SERVICIO_BURGOS = 25;   // dummy: comida/cena en Burgos
 var DESCUENTO_PACK_PORC = 15;
 
+// Función global para obtener grupos de correspondencia
+function getCorrespondenciaGrupos(f) {
+    if (!f) return [];
+    var rows = f.querySelectorAll('.correspondencia-grupos-row');
+    var out = [];
+    for (var i = 0; i < rows.length; i++) {
+        var inp = rows[i].querySelector('.corr-grupo-cantidad');
+        var sel = rows[i].querySelector('.corr-grupo-club');
+        var cant = parseInt((inp && inp.value) ? inp.value : '0', 10);
+        var clubId = (sel && sel.value) ? String(sel.value).trim() : '';
+        if (cant < 1) continue;
+        var label = (clubId === 'sin' || !clubId) ? 'Sin correspondencia' : (typeof getClubById === 'function' && getClubById(clubId)) ? getClubById(clubId).nombre : clubId;
+        out.push({ cantidad: cant, club_id: clubId || 'sin', label: label });
+    }
+    return out;
+}
+
 function initConfiguradorPaquete() {
     var form = document.getElementById('configuradorForm');
     var resumenDiv = document.getElementById('resumen-paquete');
@@ -308,22 +325,6 @@ function initConfiguradorPaquete() {
     var hotelesPorNocheContainer = document.getElementById('hoteles-por-noche-container');
     var comidaSinFechas = document.getElementById('comida-sin-fechas');
     var comidaPorDiaContainer = document.getElementById('comida-por-dia-container');
-
-    function getCorrespondenciaGrupos(f) {
-        if (!f) return [];
-        var rows = f.querySelectorAll('.correspondencia-grupos-row');
-        var out = [];
-        for (var i = 0; i < rows.length; i++) {
-            var inp = rows[i].querySelector('.corr-grupo-cantidad');
-            var sel = rows[i].querySelector('.corr-grupo-club');
-            var cant = parseInt((inp && inp.value) ? inp.value : '0', 10);
-            var clubId = (sel && sel.value) ? String(sel.value).trim() : '';
-            if (cant < 1) continue;
-            var label = (clubId === 'sin' || !clubId) ? 'Sin correspondencia' : (typeof getClubById === 'function' && getClubById(clubId)) ? getClubById(clubId).nombre : clubId;
-            out.push({ cantidad: cant, club_id: clubId || 'sin', label: label });
-        }
-        return out;
-    }
 
     function generarCamposPorDiaFinSemana(numDias) {
         if (!diasCamposContainerFinSemana) return;
@@ -620,6 +621,7 @@ function initConfiguradorPaquete() {
             var fechasGF = formData.getAll('fechas[]') || [];
             var totalGF = 0;
             var numGF = Math.min(2, fechasGF.length);
+            var tieneCorrespondencia = false;
             for (var idx = 0; idx < numGF; idx++) {
                 var iso = fechasGF[idx];
                 if (!iso) continue;
@@ -627,16 +629,20 @@ function initConfiguradorPaquete() {
                 var dow = d.getDay();
                 var esFinDeSemana = (dow === 0 || dow === 6);
                 var p = null;
+                // MANTENER LÓGICA DE CORRESPONDENCIA CORRECTA
                 if (clubId && typeof getPrecioGreenFee === 'function') {
                     p = getPrecioGreenFee(clubId, esFinDeSemana ? 'saldana' : 'lerma');
+                    if (p != null) tieneCorrespondencia = true;
                 }
-                if (p == null) p = esFinDeSemana ? PRECIO_GF_BASE_FINSEMANA : PRECIO_GF_BASE_LABORABLE;
+                // Si hay correspondencia, usar precio real; si no, usar dummy
+                if (p == null) p = esFinDeSemana ? 50 : 50; // dummy: 50€ base
                 totalGF += p;
             }
-            if (numGF === 0) totalGF = PRECIO_GF_PACK;
+            if (numGF === 0) totalGF = 100; // dummy: 100€ pack base
             var gf = totalGF * numParticipants;
 
-            var aloj = (necesitaHotel && hotelOk) ? (nNoches * PRECIO_ALOJ_POR_NOCHE) : 0;
+            // DUMMY: usar números ficticios para alojamiento
+            var aloj = (necesitaHotel && hotelOk) ? (nNoches * 75) : 0; // dummy: 75€/noche
 
             var numServicios = 0;
             for (var iv = 1; iv <= count; iv++) {
@@ -645,10 +651,12 @@ function initConfiguradorPaquete() {
                 if (cv === 'lerma' || cv === 'burgos') numServicios++;
                 if (cev === 'lerma' || cev === 'burgos') numServicios++;
             }
-            var comidaVal = numServicios * PRECIO_COMIDA * numParticipants;
+            // DUMMY: usar números ficticios para comidas
+            var comidaVal = numServicios * 25 * numParticipants; // dummy: 25€/servicio
 
             var base = gf + aloj + comidaVal;
-            var desc = Math.round(base * DESCUENTO_PACK_PORC / 100);
+            // Si hay correspondencia, calcular descuento sobre base real; si no, usar dummy
+            var desc = tieneCorrespondencia ? Math.round(base * DESCUENTO_PACK_PORC / 100) : Math.round(base * 0.12); // dummy: 12% si no hay correspondencia
             var subtotal = base - desc;
 
             resumenHTML += '<div class="resumen-subtotal">';
