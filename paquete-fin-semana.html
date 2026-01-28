@@ -70,30 +70,15 @@
                         <h3 class="configurador-titulo">1. Selecciona tus fechas</h3>
                         <p class="info-text" style="margin-bottom: 1rem;">Elige las fechas en el calendario (clic o arrastra un rango). El número de noches se calculará automáticamente según el rango.</p>
                         <div id="calendario-dias-finsemana" class="calendario-dias-container"></div>
-                        <div id="campos-dias-finsemana" class="campos-dias-selector" style="display: none; margin-top: 1.5rem;">
-                            <h4 class="sub-titulo">Selecciona el campo para cada día de juego</h4>
-                            <div id="dias-campos-container-finsemana"></div>
-                        </div>
-                    </div>
-
-                    <!-- Green Fees Incluidos -->
-                    <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">2. Green Fees Incluidos</h3>
-                        <div class="incluidos-info">
-                            <div class="incluido-item">
-                                <span class="incluido-icon">✓</span>
-                                <span>1 Green-fee en Golf Lerma</span>
-                            </div>
-                            <div class="incluido-item">
-                                <span class="incluido-icon">✓</span>
-                                <span>1 Green-fee en Saldaña Golf</span>
-                            </div>
+                        <div id="campos-dias-finsemana" class="campos-dias-selector campos-dias-selector-mini" style="display: none; margin-top: 1rem;">
+                            <span class="campos-dias-label">Campo para cada día:</span>
+                            <div id="dias-campos-container-finsemana" class="campos-dias-row"></div>
                         </div>
                     </div>
 
                     <!-- Selección de Hotel -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">3. Selecciona tu hotel</h3>
+                        <h3 class="configurador-titulo">2. Selecciona tu hotel</h3>
                         <div class="hoteles-selector">
                             <div class="hotel-option">
                                 <label class="hotel-radio">
@@ -153,7 +138,7 @@
 
                     <!-- Opciones de Comida -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">4. Opciones para comer</h3>
+                        <h3 class="configurador-titulo">3. Opciones para comer</h3>
                         <div class="opciones-grid">
                             <label class="opcion-card">
                                 <input type="radio" name="comida" value="lerma" required>
@@ -174,7 +159,7 @@
 
                     <!-- Datos de Usuarios -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">5. Datos de los participantes</h3>
+                        <h3 class="configurador-titulo">4. Datos de los participantes</h3>
                         <div id="usuarios-container">
                             <div class="usuario-form" data-usuario="1">
                                 <h4 class="usuario-numero">Participante 1</h4>

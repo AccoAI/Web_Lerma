@@ -287,28 +287,17 @@ function initConfiguradorPaquete() {
         if (!diasCamposContainerFinSemana) return;
         diasCamposContainerFinSemana.innerHTML = '';
         for (let i = 1; i <= numDias; i++) {
-            const diaDiv = document.createElement('div');
-            diaDiv.className = 'dia-campo-selector';
-            diaDiv.innerHTML = `
-                <h5 class="dia-titulo">Día ${i}:</h5>
-                <div class="opciones-grid">
-                    <label class="opcion-card">
-                        <input type="radio" name="campo-dia-${i}" value="lerma" required>
-                        <div class="opcion-content">
-                            <span class="opcion-icon">⛳</span>
-                            <span class="opcion-texto">Golf Lerma</span>
-                        </div>
-                    </label>
-                    <label class="opcion-card">
-                        <input type="radio" name="campo-dia-${i}" value="saldana" required>
-                        <div class="opcion-content">
-                            <span class="opcion-icon">⛳</span>
-                            <span class="opcion-texto">Saldaña Golf</span>
-                        </div>
-                    </label>
-                </div>
+            const item = document.createElement('div');
+            item.className = 'campos-dias-item';
+            item.innerHTML = `
+                <label for="campo-dia-${i}-sel">Día ${i}</label>
+                <select id="campo-dia-${i}-sel" name="campo-dia-${i}" required>
+                    <option value="">—</option>
+                    <option value="lerma">Golf Lerma</option>
+                    <option value="saldana">Saldaña Golf</option>
+                </select>
             `;
-            diasCamposContainerFinSemana.appendChild(diaDiv);
+            diasCamposContainerFinSemana.appendChild(item);
         }
     }
 

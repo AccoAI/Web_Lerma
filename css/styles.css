@@ -1118,6 +1118,49 @@ img {
     font-weight: 600;
 }
 
+/* Selector campo/día minimalista (paquete fin de semana) */
+.campos-dias-selector-mini {
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-light);
+    border-radius: 6px;
+}
+
+.campos-dias-selector-mini .campos-dias-label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--color-text-light);
+    margin-bottom: 0.5rem;
+}
+
+.campos-dias-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+}
+
+.campos-dias-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.campos-dias-item label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+.campos-dias-item select {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.9rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-width: 130px;
+    background: var(--color-white);
+}
+
 .opciones-checkbox {
     display: flex;
     flex-direction: column;
