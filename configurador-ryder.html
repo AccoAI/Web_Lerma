@@ -67,11 +67,9 @@
                         <h3 class="configurador-titulo">1. Días de juego</h3>
                         <p class="info-text" style="margin-bottom: 1rem;">Elige las fechas en el calendario (clic o arrastra un rango). El número de días de juego se calculará automáticamente.</p>
                         <div id="calendario-dias-ryder" class="calendario-dias-container"></div>
-                        
-                        <!-- Selección de Campo por Día -->
-                        <div id="campos-dias" class="campos-dias-selector" style="display: none; margin-top: 2rem;">
-                            <h4 class="sub-titulo">Selecciona el campo para cada día:</h4>
-                            <div id="dias-campos-container"></div>
+                        <div id="campos-dias-ryder" class="campos-dias-selector campos-dias-selector-mini" style="display: none; margin-top: 1rem;">
+                            <span class="campos-dias-label">Campo para cada día *</span>
+                            <div id="dias-campos-container-ryder" class="campos-dias-row"></div>
                         </div>
                     </div>
 
@@ -117,30 +115,9 @@
                         </div>
                     </div>
 
-                    <!-- Equipación -->
-                    <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">3. ¿Quieres equipación por equipo con logos Lerma?</h3>
-                        <div class="opciones-grid">
-                            <label class="opcion-card">
-                                <input type="radio" name="equipacion" value="si" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-icon">✓</span>
-                                    <span class="opcion-texto">Sí</span>
-                                </div>
-                            </label>
-                            <label class="opcion-card">
-                                <input type="radio" name="equipacion" value="no" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-icon">✗</span>
-                                    <span class="opcion-texto">No</span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
                     <!-- Pack de Comida -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">4. Pack de comida</h3>
+                        <h3 class="configurador-titulo">3. Pack de comida</h3>
                         <p class="info-text" style="margin-bottom: 1.5rem;">Puedes elegir entre comida en Lerma o bien pack de huevos + morcilla o de cochinillo</p>
                         <div class="opciones-grid">
                             <label class="opcion-card">
@@ -169,7 +146,7 @@
 
                     <!-- Transporte -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">5. Transporte desde Madrid hasta 12 personas</h3>
+                        <h3 class="configurador-titulo">4. Transporte desde Madrid hasta 12 personas</h3>
                         <p class="info-text" style="margin-bottom: 1.5rem;">Incluye servicio fin de semana total</p>
                         <div class="opciones-grid">
                             <label class="opcion-card">
@@ -189,37 +166,9 @@
                         </div>
                     </div>
 
-                    <!-- Opciones Adicionales -->
-                    <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">6. Opciones adicionales</h3>
-                        <div class="opciones-checkbox">
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="opciones[]" value="trofeos">
-                                <span class="checkbox-label">
-                                    <span class="checkbox-icon">🏆</span>
-                                    <span>Gestión de trofeos y premios económicos</span>
-                                </span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="opciones[]" value="bolas">
-                                <span class="checkbox-label">
-                                    <span class="checkbox-icon">⛳</span>
-                                    <span>Bolas personalizadas</span>
-                                </span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="opciones[]" value="buggies">
-                                <span class="checkbox-label">
-                                    <span class="checkbox-icon">🚗</span>
-                                    <span>Buggies</span>
-                                </span>
-                            </label>
-                        </div>
-                    </div>
-
                     <!-- Datos de Usuarios -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">7. Datos de los participantes</h3>
+                        <h3 class="configurador-titulo">5. Datos de los participantes</h3>
                         <div id="usuarios-container">
                             <div class="usuario-form" data-usuario="1">
                                 <h4 class="usuario-numero">Participante 1</h4>
@@ -255,6 +204,33 @@
                         <button type="button" class="btn-agregar-usuario" id="agregar-usuario">
                             <span>+</span> Agregar Participante
                         </button>
+                    </div>
+
+                    <!-- Servicios Adicionales -->
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo">Servicios adicionales</h3>
+                        <div class="ancillaries-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                            <label class="ancillary-item" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                <input type="checkbox" name="ancillary_bolas_personalizadas" value="1">
+                                <span>⛳ Bolas personalizadas</span>
+                            </label>
+                            <label class="ancillary-item" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                <input type="checkbox" name="ancillary_equipacion_equipos" value="1">
+                                <span>👕 Equipación por equipos personalizada</span>
+                            </label>
+                            <label class="ancillary-item" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                <input type="checkbox" name="ancillary_gestion_trofeos" value="1">
+                                <span>🏆 Gestión de trofeos</span>
+                            </label>
+                            <label class="ancillary-item" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                <input type="checkbox" name="ancillary_premio_economico" value="1">
+                                <span>💰 Premio económico</span>
+                            </label>
+                            <label class="ancillary-item" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                <input type="checkbox" name="ancillary_buggy" value="1">
+                                <span>🛺 Buggies</span>
+                            </label>
+                        </div>
                     </div>
 
                     <!-- Resumen y Botón -->

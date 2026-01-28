@@ -2,8 +2,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('configuradorRyderForm');
     const resumenDiv = document.getElementById('resumen-ryder');
-    const camposDiasContainer = document.getElementById('campos-dias');
-    const diasCamposContainer = document.getElementById('dias-campos-container');
+    const camposDiasContainer = document.getElementById('campos-dias-ryder');
+    const diasCamposContainer = document.getElementById('dias-campos-container-ryder');
     const calendarioContainer = document.getElementById('calendario-dias-ryder');
 
     if (calendarioContainer && form && typeof CalendarioDias !== 'undefined') {
@@ -14,11 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
             nameFechas: 'fechas[]',
             maxSeleccion: 10,
             onChange: function (count, fechas) {
-                if (count > 0) {
-                    camposDiasContainer.style.display = 'block';
-                    generarCamposPorDia(count);
-                } else {
-                    camposDiasContainer.style.display = 'none';
+                if (camposDiasContainer) {
+                    if (count > 0) {
+                        camposDiasContainer.style.display = 'block';
+                        generarCamposPorDia(count);
+                    } else {
+                        camposDiasContainer.style.display = 'none';
+                    }
                 }
                 actualizarResumenRyder();
             }
@@ -26,38 +28,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function generarCamposPorDia(numDias) {
+        if (!diasCamposContainer) return;
+        var prev = {};
+        for (var i = 1; i <= numDias; i++) {
+            var sel = form && form.querySelector('select[name="campo-dia-' + i + '"]');
+            if (sel && sel.value) prev[i] = sel.value;
+        }
         diasCamposContainer.innerHTML = '';
-        for (let i = 1; i <= numDias; i++) {
-            const diaDiv = document.createElement('div');
-            diaDiv.className = 'dia-campo-selector';
-            diaDiv.innerHTML = `
-                <h5 class="dia-titulo">Día ${i}:</h5>
-                <div class="opciones-grid">
-                    <label class="opcion-card">
-                        <input type="radio" name="campo-dia-${i}" value="lerma" required>
-                        <div class="opcion-content">
-                            <span class="opcion-icon">⛳</span>
-                            <span class="opcion-texto">Golf Lerma</span>
-                        </div>
-                    </label>
-                    <label class="opcion-card">
-                        <input type="radio" name="campo-dia-${i}" value="saldana" required>
-                        <div class="opcion-content">
-                            <span class="opcion-icon">⛳</span>
-                            <span class="opcion-texto">Saldaña Golf</span>
-                        </div>
-                    </label>
-                </div>
-            `;
-            diasCamposContainer.appendChild(diaDiv);
+        for (var i = 1; i <= numDias; i++) {
+            var saved = prev[i] || '';
+            var item = document.createElement('div');
+            item.className = 'campos-dias-item';
+            item.innerHTML = [
+                '<label for="campo-dia-' + i + '-sel-ryder">Día ' + i + '</label>',
+                '<select id="campo-dia-' + i + '-sel-ryder" name="campo-dia-' + i + '" required>',
+                '<option value="">Sin reserva</option>',
+                '<option value="lerma"' + (saved === 'lerma' ? ' selected' : '') + '>Golf Lerma</option>',
+                '<option value="saldana"' + (saved === 'saldana' ? ' selected' : '') + '>Saldaña Golf</option>',
+                '</select>'
+            ].join('');
+            diasCamposContainer.appendChild(item);
         }
     }
 
     // Actualizar resumen cuando cambian las opciones
     if (form) {
-        const inputs = form.querySelectorAll('input[type="radio"], input[type="checkbox"]');
-        inputs.forEach(input => {
-            input.addEventListener('change', actualizarResumenRyder);
+        form.addEventListener('change', function(e) {
+            actualizarResumenRyder();
+        });
+        form.addEventListener('input', function(e) {
+            actualizarResumenRyder();
         });
     }
 
@@ -66,12 +66,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const diasJuego = formData.get('dias-juego');
         const noches = formData.get('noches');
         const hotelUbicacion = formData.get('hotel-ubicacion');
-        const equipacion = formData.get('equipacion');
         const comida = formData.get('comida');
         const transporte = formData.get('transporte');
-        const opciones = formData.getAll('opciones[]');
+        
+        // Servicios adicionales (ancillaries)
+        const ancillaries = [];
+        if (formData.get('ancillary_bolas_personalizadas')) ancillaries.push('Bolas personalizadas');
+        if (formData.get('ancillary_equipacion_equipos')) ancillaries.push('Equipación por equipos personalizada');
+        if (formData.get('ancillary_gestion_trofeos')) ancillaries.push('Gestión de trofeos');
+        if (formData.get('ancillary_premio_economico')) ancillaries.push('Premio económico');
+        if (formData.get('ancillary_buggy')) ancillaries.push('Buggies');
 
-        if (diasJuego && noches && hotelUbicacion && equipacion && comida && transporte) {
+        if (diasJuego && noches && hotelUbicacion && comida && transporte) {
             let resumenHTML = '<div class="resumen-items">';
             
             resumenHTML += `<p><strong>Días de juego:</strong> ${diasJuego} ${diasJuego === '1' ? 'día' : 'días'}</p>`;
@@ -90,7 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             resumenHTML += `<p><strong>Noches:</strong> ${noches} ${noches === '1' ? 'noche' : 'noches'}</p>`;
             resumenHTML += `<p><strong>Hotel:</strong> ${hotelUbicacion === 'lerma' ? 'Lerma' : 'Burgos'}</p>`;
-            resumenHTML += `<p><strong>Equipación con logos Lerma:</strong> ${equipacion === 'si' ? 'Sí' : 'No'}</p>`;
             
             let comidaTexto = '';
             if (comida === 'lerma') {
@@ -104,16 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             resumenHTML += `<p><strong>Transporte desde Madrid:</strong> ${transporte === 'si' ? 'Sí (hasta 12 personas)' : 'No'}</p>`;
             
-            if (opciones.length > 0) {
-                resumenHTML += '<p><strong>Opciones adicionales:</strong></p><ul>';
-                opciones.forEach(opcion => {
-                    let opcionTexto = '';
-                    if (opcion === 'trofeos') opcionTexto = 'Gestión de trofeos y premios económicos';
-                    else if (opcion === 'bolas') opcionTexto = 'Bolas personalizadas';
-                    else if (opcion === 'buggies') opcionTexto = 'Buggies';
-                    resumenHTML += `<li>${opcionTexto}</li>`;
-                });
-                resumenHTML += '</ul>';
+            if (ancillaries.length > 0) {
+                resumenHTML += '<p><strong>Servicios adicionales:</strong> ' + ancillaries.join(', ') + '</p>';
             }
             
             resumenHTML += '<p style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.2);"><strong>Live Scoring:</strong> Web de puntuaciones en vivo durante todo el fin de semana</p>';
@@ -146,10 +143,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 fechas: formData.getAll('fechas[]'),
                 noches: formData.get('noches'),
                 hotelUbicacion: formData.get('hotel-ubicacion'),
-                equipacion: formData.get('equipacion'),
                 comida: formData.get('comida'),
                 transporte: formData.get('transporte'),
-                opciones: formData.getAll('opciones[]')
+                ancillaries: {
+                    bolas_personalizadas: formData.get('ancillary_bolas_personalizadas') === '1',
+                    equipacion_equipos: formData.get('ancillary_equipacion_equipos') === '1',
+                    gestion_trofeos: formData.get('ancillary_gestion_trofeos') === '1',
+                    premio_economico: formData.get('ancillary_premio_economico') === '1',
+                    buggy: formData.get('ancillary_buggy') === '1'
+                }
             };
             
             // Aquí puedes enviar los datos a tu backend
