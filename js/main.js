@@ -660,11 +660,11 @@ function initConfiguradorPaquete() {
             resumenHTML += '<tr><td>Comidas y cenas' + (comidaVal > 0 ? ' (' + numServicios + (numParticipants > 1 ? ' × ' + numParticipants + ' pers.' : '') + ')' : '') + '</td><td>' + (comidaVal > 0 ? comidaVal + ' €' : '—') + '</td></tr>';
             resumenHTML += '<tr class="resumen-descuento"><td>Descuento pack (-' + DESCUENTO_PACK_PORC + '%)</td><td>-' + desc + ' €</td></tr>';
             resumenHTML += '<tr class="resumen-total"><td>Subtotal</td><td>' + subtotal + ' €</td></tr>';
-            if (formaPago === 'por_persona' && numParticipants > 1) {
+            if (numParticipants > 1) {
                 resumenHTML += '<tr class="resumen-por-persona"><td>Importe por persona (' + numParticipants + ')</td><td>' + (Math.round((subtotal / numParticipants) * 100) / 100) + ' €</td></tr>';
             }
             resumenHTML += '</table>';
-            resumenHTML += '<p class="resumen-subtotal-nota">Precios orientativos. Descuento por pack aplicado.' + (clubId ? ' Tarifa correspondencia aplicada según día de la semana.' : '') + ' Forma de pago: ' + (formaPago === 'por_persona' ? 'por persona (enlaces individuales).' : 'único.') + '</p></div>';
+            resumenHTML += '<p class="resumen-subtotal-nota">Descuento por pack aplicado.' + (clubId ? ' Tarifa correspondencia aplicada según día de la semana.' : '') + ' Forma de pago: ' + (formaPago === 'por_persona' ? 'por persona (enlaces individuales).' : 'único.') + '</p></div>';
 
             resumenDiv.innerHTML = resumenHTML;
         } else {

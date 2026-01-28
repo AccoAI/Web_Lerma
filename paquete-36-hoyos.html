@@ -99,7 +99,11 @@
             <div class="configurador-paquete" style="margin-top: 3rem;">
                 <form id="form36Hoyos" class="configurador-form">
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">Orden de recorrido</h3>
+                        <h3 class="configurador-titulo">1. Selecciona tus fechas</h3>
+                        <div id="calendario-dias-36h" class="calendario-dias-container"></div>
+                    </div>
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo">2. Orden de recorrido</h3>
                         <p class="info-text" style="margin-bottom: 1rem;">Indica en qué orden quieres jugar los 18 hoyos de cada campo.</p>
                         <div class="opciones-grid">
                             <label class="opcion-card">
@@ -117,10 +121,26 @@
                         </div>
                     </div>
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">Datos de los participantes</h3>
-                        <div id="usuarios-container">
-                            <div class="usuario-form" data-usuario="1">
-                                <h4 class="usuario-numero">Participante 1</h4>
+                        <h3 class="configurador-titulo">4. Datos de los participantes</h3>
+                        <div class="reserva-datos-iniciales">
+                            <div class="form-group-inline">
+                                <label for="tamanio-grupo">Tamaño del grupo</label>
+                                <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" placeholder="Ej. 4" title="Número de jugadores">
+                            </div>
+                            <div class="form-group-inline">
+                                <label for="hora-salida">Hora de salida</label>
+                                <input type="time" id="hora-salida" name="hora_salida" title="Hora preferida de salida">
+                            </div>
+                            <div class="form-group-inline">
+                                <label for="numero-grupos-output">Nº de grupos</label>
+                                <output id="numero-grupos-output" for="tamanio-grupo" aria-live="polite" aria-readonly="true" tabindex="-1">1</output>
+                                <input type="hidden" name="numero_grupos" id="numero-grupos">
+                            </div>
+                        </div>
+                        <p class="configurador-hint">Solo los datos de la reserva son obligatorios. Puedes añadir más participantes si lo deseas.</p>
+                        <div id="usuarios-container" data-extra-opcionales="true" data-simplificar-extras="true" data-grupos-correspondencia="true">
+                            <div class="usuario-form usuario-form-reserva" data-usuario="1">
+                                <div class="usuario-form-header"><h4 class="usuario-numero">Datos de la reserva *</h4></div>
                                 <div class="usuario-campos">
                                     <div class="form-group-usuario">
                                         <label>Nombre *</label>
@@ -134,28 +154,49 @@
                                         <label>Móvil *</label>
                                         <input type="tel" name="usuario[1][movil]" required>
                                     </div>
-                                    <div class="form-group form-group-correspondencia" data-campo="paquete">
-                                        <label>Club / Campo de procedencia (para tarifa correspondencia)</label>
-                                        <select name="usuario[1][club_correspondencia]" class="select-club-correspondencia"></select>
-                                        <div class="correspondencia-precio-info"></div>
-                                    </div>
-                                    <div class="form-group-usuario">
-                                        <label>Club</label>
-                                        <input type="text" name="usuario[1][club]">
-                                    </div>
-                                    <div class="form-group-usuario">
-                                        <label>Handicap</label>
-                                        <input type="number" name="usuario[1][handicap]" min="0" max="54" step="0.1">
-                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <button type="button" class="btn-agregar-usuario" id="agregar-usuario">
-                            <span>+</span> Agregar Participante
-                        </button>
+                        <div id="correspondencia-grupos-wrap" class="correspondencia-grupos-wrap" style="display:none;" aria-hidden="true"></div>
+                        <div class="handicap-grupo-block">
+                            <label for="handicap-grupo">Handicap del grupo (orientativo)</label>
+                            <input type="text" id="handicap-grupo" name="handicap_grupo" placeholder="Ej. 18 o 15-25" title="Handicap aproximado del grupo">
+                        </div>
+                        <div class="agregar-usuario-line">
+                            <button type="button" class="btn-agregar-usuario" id="agregar-usuario"><span>+</span> Añadir participante</button>
+                            <span id="participantes-contador" class="participantes-contador" aria-live="polite"></span>
+                        </div>
                     </div>
 
-                    <div style="margin-top: 2rem;">
+                    <div class="forma-pago-block">
+                        <p class="forma-pago-label">Forma de pago</p>
+                        <div class="opciones-grid opciones-grid-2">
+                            <label class="opcion-card opcion-card-compact">
+                                <input type="radio" name="forma_pago" value="unico" checked>
+                                <div class="opcion-content">
+                                    <span class="opcion-icon">💳</span>
+                                    <span class="opcion-texto">Pago único</span>
+                                    <span class="opcion-desc">Una sola transacción por el importe total</span>
+                                </div>
+                            </label>
+                            <label class="opcion-card opcion-card-compact">
+                                <input type="radio" name="forma_pago" value="por_persona">
+                                <div class="opcion-content">
+                                    <span class="opcion-icon">🔗</span>
+                                    <span class="opcion-texto">Pago por persona</span>
+                                    <span class="opcion-desc">Cada uno recibe un enlace para pagar su parte</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="configurador-resumen">
+                        <div class="resumen-content">
+                            <h3>Resumen de tu paquete</h3>
+                            <div id="resumen-paquete" class="resumen-detalle">
+                                <p>Completa las opciones para ver el resumen</p>
+                            </div>
+                        </div>
                         <button type="submit" class="btn-reservar-paquete">Reservar Paquete 36 Hoyos</button>
                     </div>
                 </form>
@@ -211,17 +252,60 @@
     <script src="js/correspondencias-data.js"></script>
     <script src="js/correspondencias.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/calendario-dias.js"></script>
     <script src="js/usuarios-form.js"></script>
     <script>
-        // Inicializar formulario de usuarios
         document.addEventListener('DOMContentLoaded', function() {
-            if (typeof initUsuariosForm === 'function') {
-                initUsuariosForm();
+            var form = document.getElementById('form36Hoyos');
+            var resumenDiv = document.getElementById('resumen-paquete');
+            var cal = document.getElementById('calendario-dias-36h');
+
+            function recalcNumeroGrupos() {
+                var tg = document.getElementById('tamanio-grupo');
+                var out = document.getElementById('numero-grupos-output');
+                var hid = document.getElementById('numero-grupos');
+                if (!tg) return;
+                var n = parseInt(tg.value, 10);
+                var val = (n >= 1) ? String(Math.ceil(n / 4)) : '';
+                if (out) out.textContent = val;
+                if (hid) hid.value = val;
+                if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
             }
 
-            // Manejar envío del formulario
-            const form = document.getElementById('form36Hoyos');
+            window.actualizarResumen = function() {
+                if (!form || !resumenDiv) return;
+                var fd = new FormData(form);
+                var fechas = fd.getAll('fechas[]') || [];
+                var orden = (fd.get('orden-36hoyos') || '').trim();
+                var usuarios = form.querySelectorAll('.usuario-form');
+                var fp = (fd.get('forma_pago') || 'unico').trim() || 'unico';
+                var html = '<div class="resumen-items"><p><strong>Fechas:</strong> ' + (fechas.length ? fechas.join(', ') : '—') + '</p>';
+                if (orden) html += '<p><strong>Orden:</strong> ' + (orden === 'lerma-saldana' ? 'Golf Lerma → Saldaña Golf' : 'Saldaña Golf → Golf Lerma') + '</p>';
+                html += '<p><strong>Participantes:</strong> ' + usuarios.length + '</p><p><strong>Forma de pago:</strong> ' + (fp === 'por_persona' ? 'Por persona' : 'Único') + '</p></div>';
+                resumenDiv.innerHTML = html;
+            };
+
+            if (cal && form && typeof CalendarioDias !== 'undefined') {
+                CalendarioDias.init({
+                    container: cal,
+                    form: form,
+                    nameFechas: 'fechas[]',
+                    nameNoches: 'noches',
+                    maxSeleccion: 1,
+                    onChange: function() { if (typeof window.actualizarResumen === 'function') window.actualizarResumen(); }
+                });
+            }
+
             if (form) {
+                form.addEventListener('change', function(e) {
+                    if (e.target && e.target.id === 'tamanio-grupo') recalcNumeroGrupos();
+                    if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
+                });
+                form.addEventListener('input', function(e) {
+                    if (e.target && e.target.id === 'tamanio-grupo') recalcNumeroGrupos();
+                    if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
+                });
+                recalcNumeroGrupos();
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
                     alert('¡Solicitud de reserva enviada correctamente! Nos pondremos en contacto contigo pronto.');
