@@ -47,9 +47,6 @@
                 </ul>
             </nav>
             <div class="header-actions">
-                <div class="header-logo-saldaña">
-                    <img src="FOTOS/Logo-Saldaña-Golf-Footer.png" alt="Saldaña Golf" class="header-logo-saldaña-image">
-                </div>
                 <a href="hazte-socio.html" class="btn-hazte-socio">Hazte Socio</a>
                 <a href="area-socio.html" class="btn-login">Area Socio</a>
             </div>
@@ -100,24 +97,11 @@
                 <form id="form36Hoyos" class="configurador-form">
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo">1. Selecciona tus fechas</h3>
+                        <p class="info-text" style="margin-bottom: 1rem;">Selecciona exactamente 2 días para jugar los 36 hoyos (18 hoyos cada día).</p>
                         <div id="calendario-dias-36h" class="calendario-dias-container"></div>
-                    </div>
-                    <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">2. Orden de recorrido</h3>
-                        <p class="info-text" style="margin-bottom: 1rem;">Indica en qué orden quieres jugar los 18 hoyos de cada campo.</p>
-                        <div class="opciones-grid">
-                            <label class="opcion-card">
-                                <input type="radio" name="orden-36hoyos" value="lerma-saldana" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-texto">Golf Lerma → Saldaña Golf</span>
-                                </div>
-                            </label>
-                            <label class="opcion-card">
-                                <input type="radio" name="orden-36hoyos" value="saldana-lerma" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-texto">Saldaña Golf → Golf Lerma</span>
-                                </div>
-                            </label>
+                        <div id="campos-dias-36h" class="campos-dias-selector campos-dias-selector-mini" style="display: none; margin-top: 1rem;">
+                            <span class="campos-dias-label">Campo para cada día *</span>
+                            <div id="dias-campos-container-36h" class="campos-dias-row"></div>
                         </div>
                     </div>
                     <div class="configurador-seccion">
@@ -259,6 +243,32 @@
             var form = document.getElementById('form36Hoyos');
             var resumenDiv = document.getElementById('resumen-paquete');
             var cal = document.getElementById('calendario-dias-36h');
+            var camposDias36h = document.getElementById('campos-dias-36h');
+            var diasCamposContainer36h = document.getElementById('dias-campos-container-36h');
+
+            function generarCamposPorDia36h(numDias) {
+                if (!diasCamposContainer36h) return;
+                var prev = {};
+                for (var i = 1; i <= numDias; i++) {
+                    var sel = form && form.querySelector('select[name="campo-dia-' + i + '"]');
+                    if (sel && sel.value) prev[i] = sel.value;
+                }
+                diasCamposContainer36h.innerHTML = '';
+                for (var i = 1; i <= numDias; i++) {
+                    var saved = prev[i] || '';
+                    var item = document.createElement('div');
+                    item.className = 'campos-dias-item';
+                    item.innerHTML = [
+                        '<label for="campo-dia-' + i + '-sel-36h">Día ' + i + '</label>',
+                        '<select id="campo-dia-' + i + '-sel-36h" name="campo-dia-' + i + '" required>',
+                        '<option value="">Sin reserva</option>',
+                        '<option value="lerma"' + (saved === 'lerma' ? ' selected' : '') + '>Golf Lerma</option>',
+                        '<option value="saldana"' + (saved === 'saldana' ? ' selected' : '') + '>Saldaña Golf</option>',
+                        '</select>'
+                    ].join('');
+                    diasCamposContainer36h.appendChild(item);
+                }
+            }
 
             function recalcNumeroGrupos() {
                 var tg = document.getElementById('tamanio-grupo');
@@ -276,7 +286,6 @@
                 if (!form || !resumenDiv) return;
                 var fd = new FormData(form);
                 var fechas = fd.getAll('fechas[]') || [];
-                var orden = (fd.get('orden-36hoyos') || '').trim();
                 var usuarios = form.querySelectorAll('.usuario-form');
                 var fp = (fd.get('forma_pago') || 'unico').trim() || 'unico';
                 var numParticipants = Math.max(1, parseInt((fd.get('tamanio_grupo') || '').trim(), 10) || usuarios.length);
@@ -296,25 +305,27 @@
                 // Calcular green fees con correspondencia si existe
                 var totalGF = 0;
                 var tieneCorrespondencia = false;
-                if (fechas.length > 0) {
-                    var iso = fechas[0];
-                    if (iso) {
-                        var d = new Date(iso + 'T12:00:00');
-                        var dow = d.getDay();
-                        var esFinDeSemana = (dow === 0 || dow === 6);
-                        var p = null;
-                        // MANTENER LÓGICA DE CORRESPONDENCIA CORRECTA
-                        if (clubId && typeof getPrecioGreenFee === 'function') {
-                            p = getPrecioGreenFee(clubId, esFinDeSemana ? 'saldana' : 'lerma');
-                            if (p != null) tieneCorrespondencia = true;
-                        }
-                        // Si hay correspondencia, usar precio real; si no, usar dummy
-                        if (p == null) p = esFinDeSemana ? 50 : 50; // dummy: 50€ base
-                        totalGF = p * 2; // 2 green fees (Lerma + Saldaña)
+                var fechasGF = fechas || [];
+                var numGF = Math.min(2, fechasGF.length);
+                for (var idx = 0; idx < numGF; idx++) {
+                    var iso = fechasGF[idx];
+                    if (!iso) continue;
+                    var d = new Date(iso + 'T12:00:00');
+                    var dow = d.getDay();
+                    var esFinDeSemana = (dow === 0 || dow === 6);
+                    var campoDia = fd.get('campo-dia-' + (idx + 1));
+                    var campo = campoDia || (esFinDeSemana ? 'saldana' : 'lerma');
+                    var p = null;
+                    // MANTENER LÓGICA DE CORRESPONDENCIA CORRECTA
+                    if (clubId && typeof getPrecioGreenFee === 'function') {
+                        p = getPrecioGreenFee(clubId, campo === 'saldana' ? 'saldana' : 'lerma');
+                        if (p != null) tieneCorrespondencia = true;
                     }
-                } else {
-                    totalGF = 100; // dummy: 100€ pack base
+                    // Si hay correspondencia, usar precio real; si no, usar dummy
+                    if (p == null) p = 50; // dummy: 50€ base
+                    totalGF += p;
                 }
+                if (numGF === 0) totalGF = 100; // dummy: 100€ pack base (2 campos)
                 var gf = totalGF * numParticipants;
                 
                 var base = gf;
@@ -324,7 +335,12 @@
                 
                 var html = '<div class="resumen-items">';
                 html += '<p><strong>Fechas:</strong> ' + (fechas.length ? fechas.join(', ') : '—') + '</p>';
-                if (orden) html += '<p><strong>Orden:</strong> ' + (orden === 'lerma-saldana' ? 'Golf Lerma → Saldaña Golf' : 'Saldaña Golf → Golf Lerma') + '</p>';
+                if (fechas.length > 0) {
+                    for (var i = 1; i <= fechas.length; i++) {
+                        var c = fd.get('campo-dia-' + i);
+                        if (c) html += '<p><strong>Día ' + i + ':</strong> ' + (c === 'lerma' ? 'Golf Lerma' : 'Saldaña Golf') + '</p>';
+                    }
+                }
                 html += '<p><strong>Participantes:</strong> ' + usuarios.length + '</p>';
                 if (grupos.length > 0) {
                     html += '<p><strong>Correspondencias (grupos):</strong> ' + grupos.map(function (g) { return g.cantidad + ' × ' + g.label; }).join(', ') + '</p>';
@@ -352,8 +368,18 @@
                     form: form,
                     nameFechas: 'fechas[]',
                     nameNoches: 'noches',
-                    maxSeleccion: 1,
-                    onChange: function() { if (typeof window.actualizarResumen === 'function') window.actualizarResumen(); }
+                    maxSeleccion: 2,
+                    onChange: function (count, fechas) {
+                        if (camposDias36h) {
+                            if (count === 2) {
+                                camposDias36h.style.display = 'block';
+                                generarCamposPorDia36h(count);
+                            } else {
+                                camposDias36h.style.display = 'none';
+                            }
+                        }
+                        if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
+                    }
                 });
             }
 
@@ -369,6 +395,18 @@
                 recalcNumeroGrupos();
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
+                    var formData = new FormData(form);
+                    var fechas = formData.getAll('fechas[]') || [];
+                    if (fechas.length !== 2) {
+                        alert('Por favor, selecciona exactamente 2 días para jugar los 36 hoyos.');
+                        return;
+                    }
+                    var campo1 = formData.get('campo-dia-1');
+                    var campo2 = formData.get('campo-dia-2');
+                    if (!campo1 || !campo2) {
+                        alert('Por favor, selecciona el campo para cada día.');
+                        return;
+                    }
                     alert('¡Solicitud de reserva enviada correctamente! Nos pondremos en contacto contigo pronto.');
                     form.reset();
                 });

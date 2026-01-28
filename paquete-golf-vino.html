@@ -47,9 +47,6 @@
                 </ul>
             </nav>
             <div class="header-actions">
-                <div class="header-logo-saldaña">
-                    <img src="FOTOS/Logo-Saldaña-Golf-Footer.png" alt="Saldaña Golf" class="header-logo-saldaña-image">
-                </div>
                 <a href="hazte-socio.html" class="btn-hazte-socio">Hazte Socio</a>
                 <a href="area-socio.html" class="btn-login">Area Socio</a>
             </div>
@@ -104,12 +101,30 @@
             <!-- Formulario de Reserva -->
             <div class="configurador-paquete" style="margin-top: 3rem;">
                 <form id="formGolfVino" class="configurador-form">
+                    <!-- Fechas / noches (calendario) -->
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo">1. Selecciona tus fechas</h3>
                         <div id="calendario-dias-vino" class="calendario-dias-container"></div>
+                        <div id="campos-dias-vino" class="campos-dias-selector campos-dias-selector-mini" style="display: none; margin-top: 1rem;">
+                            <span class="campos-dias-label">Campo para cada día *</span>
+                            <div id="dias-campos-container-vino" class="campos-dias-row"></div>
+                        </div>
                     </div>
+
+                    <!-- Selección de Hotel (solo si 2+ días) -->
+                    <div class="configurador-seccion" id="configurador-hotel-wrap-vino" style="display: none;">
+                        <h3 class="configurador-titulo">2. Alojamiento</h3>
+                        <p class="hotel-ciudad-label">Elige el hotel para cada noche. Puedes combinar Lerma y Burgos (ej.: una noche en Lerma y otra en Burgos).</p>
+                        <div id="hotel-por-noche-block-vino" class="hotel-por-noche-block">
+                            <span class="campos-dias-label">Hotel para cada noche:</span>
+                            <p class="hotel-noche-hint">Elige primero el <strong>lugar</strong> (Lerma o Burgos) y después el <strong>hotel</strong> de ese lugar.</p>
+                            <div id="hoteles-por-noche-container-vino" class="campos-dias-row"></div>
+                        </div>
+                    </div>
+
+                    <!-- Datos de Usuarios -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">4. Datos de los participantes</h3>
+                        <h3 class="configurador-titulo">3. Datos de los participantes</h3>
                         <div class="reserva-datos-iniciales">
                             <div class="form-group-inline">
                                 <label for="tamanio-grupo">Tamaño del grupo</label>
@@ -247,6 +262,118 @@
             var form = document.getElementById('formGolfVino');
             var resumenDiv = document.getElementById('resumen-paquete');
             var cal = document.getElementById('calendario-dias-vino');
+            var camposDiasVino = document.getElementById('campos-dias-vino');
+            var diasCamposContainerVino = document.getElementById('dias-campos-container-vino');
+            var configuradorHotelWrapVino = document.getElementById('configurador-hotel-wrap-vino');
+            var hotelPorNocheBlockVino = document.getElementById('hotel-por-noche-block-vino');
+            var hotelesPorNocheContainerVino = document.getElementById('hoteles-por-noche-container-vino');
+
+            function getHotelLabelFromValue(val) {
+                if (!val || val.indexOf('-') < 0) return val || 'Sin reserva';
+                var idx = val.indexOf('-');
+                var c = val.substring(0, idx);
+                var h = val.substring(idx + 1);
+                var lbl = (typeof HOTELES_LABELS !== 'undefined' && HOTELES_LABELS[c]) ? HOTELES_LABELS[c][h] : null;
+                return lbl ? lbl + ' (' + (c === 'lerma' ? 'Lerma' : 'Burgos') + ')' : val;
+            }
+
+            function generarCamposPorDiaVino(numDias) {
+                if (!diasCamposContainerVino) return;
+                var prev = {};
+                for (var i = 1; i <= numDias; i++) {
+                    var sel = form && form.querySelector('select[name="campo-dia-' + i + '"]');
+                    if (sel && sel.value) prev[i] = sel.value;
+                }
+                diasCamposContainerVino.innerHTML = '';
+                for (var i = 1; i <= numDias; i++) {
+                    var saved = prev[i] || '';
+                    var item = document.createElement('div');
+                    item.className = 'campos-dias-item';
+                    item.innerHTML = [
+                        '<label for="campo-dia-' + i + '-sel-vino">Día ' + i + '</label>',
+                        '<select id="campo-dia-' + i + '-sel-vino" name="campo-dia-' + i + '" required>',
+                        '<option value="">Sin reserva</option>',
+                        '<option value="lerma"' + (saved === 'lerma' ? ' selected' : '') + '>Golf Lerma</option>',
+                        '<option value="saldana"' + (saved === 'saldana' ? ' selected' : '') + '>Saldaña Golf</option>',
+                        '</select>'
+                    ].join('');
+                    diasCamposContainerVino.appendChild(item);
+                }
+            }
+
+            function refillHotelSelectVino(i, ciudad) {
+                var sel = form && form.querySelector('select[name="hotel-noche-' + i + '"]');
+                if (!sel) return;
+                var kept = sel.value;
+                var opts = [{ v: '', l: 'Sin reserva' }];
+                if (ciudad === 'lerma' || ciudad === 'burgos') {
+                    var arr = (typeof HOTELES_OPTS !== 'undefined' && HOTELES_OPTS[ciudad]) ? HOTELES_OPTS[ciudad] : [];
+                    for (var j = 0; j < arr.length; j++) {
+                        opts.push({ v: ciudad + '-' + arr[j].v, l: arr[j].l, p: arr[j].p });
+                    }
+                }
+                sel.innerHTML = opts.map(function (o) {
+                    var txt = (o.p != null && o.p !== '') ? o.l + ' · ' + o.p + ' €' : o.l;
+                    return '<option value="' + o.v + '"' + (o.v === kept ? ' selected' : '') + '>' + txt + '</option>';
+                }).join('');
+                var found = opts.some(function (o) { return o.v === kept; });
+                if (!found) sel.value = '';
+                if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
+            }
+
+            function generarHotelesPorNocheVino(n) {
+                if (!hotelesPorNocheContainerVino) return;
+                var prev = {};
+                for (var i = 1; i <= n; i++) {
+                    var hSel = form && form.querySelector('select[name="hotel-noche-' + i + '"]');
+                    var lSel = form && form.querySelector('select[name="lugar-noche-' + i + '"]');
+                    var h = (hSel && hSel.value) ? hSel.value : '';
+                    var l = (lSel && lSel.value) ? lSel.value : '';
+                    if (!l && h && h.indexOf('-') >= 0) l = h.split('-')[0];
+                    prev[i] = { hotel: h || '', lugar: l || '' };
+                }
+                hotelesPorNocheContainerVino.innerHTML = '';
+                for (var i = 1; i <= n; i++) {
+                    var savedL = prev[i].lugar;
+                    var savedH = prev[i].hotel;
+                    var lugarOpts = '<option value="">Sin reserva</option><option value="lerma"' + (savedL === 'lerma' ? ' selected' : '') + '>Lerma</option><option value="burgos"' + (savedL === 'burgos' ? ' selected' : '') + '>Burgos</option>';
+                    var hotelOpts = [{ v: '', l: 'Sin reserva' }];
+                    if (savedL === 'lerma' || savedL === 'burgos') {
+                        var arr = (typeof HOTELES_OPTS !== 'undefined' && HOTELES_OPTS[savedL]) ? HOTELES_OPTS[savedL] : [];
+                        for (var j = 0; j < arr.length; j++) {
+                            hotelOpts.push({ v: savedL + '-' + arr[j].v, l: arr[j].l, p: arr[j].p });
+                        }
+                    }
+                    var hotelOptHtml = hotelOpts.map(function (o) {
+                        var txt = (o.p != null && o.p !== '') ? o.l + ' · ' + o.p + ' €' : o.l;
+                        return '<option value="' + o.v + '"' + (o.v === savedH ? ' selected' : '') + '>' + txt + '</option>';
+                    }).join('');
+                    var item = document.createElement('div');
+                    item.className = 'hoteles-por-noche-item hotel-noche-fila';
+                    item.innerHTML = [
+                        '<span class="hotel-noche-num">Noche ' + i + '</span>',
+                        '<div class="hotel-noche-par">',
+                        '<label for="lugar-noche-' + i + '-vino">Lugar</label>',
+                        '<select id="lugar-noche-' + i + '-vino" name="lugar-noche-' + i + '" required aria-label="Lugar noche ' + i + '">' + lugarOpts + '</select>',
+                        '</div>',
+                        '<div class="hotel-noche-par">',
+                        '<label for="hotel-noche-' + i + '-vino">Hotel</label>',
+                        '<select id="hotel-noche-' + i + '-vino" name="hotel-noche-' + i + '" required aria-label="Hotel noche ' + i + '">' + hotelOptHtml + '</select>',
+                        '</div>'
+                    ].join('');
+                    hotelesPorNocheContainerVino.appendChild(item);
+                }
+            }
+
+            function actualizarBloqueHotelVino() {
+                var noches = parseInt(((form && form.querySelector('input[name="noches"]')) || {}).value || '0', 10);
+                if (noches >= 1) {
+                    if (hotelPorNocheBlockVino) hotelPorNocheBlockVino.style.display = 'block';
+                    generarHotelesPorNocheVino(noches);
+                } else {
+                    if (hotelPorNocheBlockVino) hotelPorNocheBlockVino.style.display = 'none';
+                }
+            }
 
             function recalcNumeroGrupos() {
                 var tg = document.getElementById('tamanio-grupo');
@@ -264,12 +391,54 @@
                 if (!form || !resumenDiv) return;
                 var fd = new FormData(form);
                 var fechas = fd.getAll('fechas[]') || [];
+                var count = fechas.length;
                 var usuarios = form.querySelectorAll('.usuario-form');
                 var fp = (fd.get('forma_pago') || 'unico').trim() || 'unico';
                 var numParticipants = Math.max(1, parseInt((fd.get('tamanio_grupo') || '').trim(), 10) || usuarios.length);
                 
+                var necesitaHotel = count >= 2;
+                var hotelOk = !necesitaHotel || (function () {
+                    var n = parseInt((fd.get('noches') || '0'), 10);
+                    for (var i = 1; i <= n; i++) { if (!fd.get('hotel-noche-' + i)) return false; }
+                    return true;
+                })();
+                
+                var nNoches = parseInt((fd.get('noches') || '0'), 10);
+                
+                if (nNoches < 1 && count < 1) {
+                    resumenDiv.innerHTML = '<p>Completa las opciones para ver el resumen</p>';
+                    return;
+                }
+                
+                var html = '<div class="resumen-items">';
+                if (fechas.length > 0) {
+                    html += '<p><strong>Fechas:</strong> ' + fechas.join(', ') + '</p>';
+                    for (var i = 1; i <= count; i++) {
+                        var c = fd.get('campo-dia-' + i);
+                        if (c) html += '<p><strong>Día ' + i + ':</strong> ' + (c === 'lerma' ? 'Golf Lerma' : 'Saldaña Golf') + '</p>';
+                    }
+                }
+                
+                if (necesitaHotel && hotelOk) {
+                    var n = parseInt((fd.get('noches') || '0'), 10);
+                    var parts = [];
+                    for (var i = 1; i <= n; i++) {
+                        var v = fd.get('hotel-noche-' + i);
+                        if (v) parts.push('Noche ' + i + ': ' + getHotelLabelFromValue(v));
+                    }
+                    if (parts.length) html += '<p><strong>Alojamiento:</strong> ' + parts.join('. ') + '</p>';
+                }
+                
+                html += '<p><strong>Participantes:</strong> ' + usuarios.length + '</p>';
+                
                 // Obtener grupos de correspondencia
                 var grupos = (typeof getCorrespondenciaGrupos === 'function') ? getCorrespondenciaGrupos(form) : [];
+                if (grupos.length > 0) {
+                    html += '<p><strong>Correspondencias (grupos):</strong> ' + grupos.map(function (g) { return g.cantidad + ' × ' + g.label; }).join(', ') + '</p>';
+                }
+                
+                html += '<p><strong>Forma de pago:</strong> ' + (fp === 'por_persona' ? 'Por persona' : 'Único') + '</p>';
+                html += '</div>';
                 
                 // Obtener clubId para calcular descuentos de correspondencia
                 var clubId = '';
@@ -281,49 +450,48 @@
                 }
                 
                 // Calcular green fees con correspondencia si existe
+                var fechasGF = fechas || [];
                 var totalGF = 0;
+                var numGF = Math.min(fechasGF.length, fechasGF.length);
                 var tieneCorrespondencia = false;
-                if (fechas.length > 0) {
-                    var iso = fechas[0];
-                    if (iso) {
-                        var d = new Date(iso + 'T12:00:00');
-                        var dow = d.getDay();
-                        var esFinDeSemana = (dow === 0 || dow === 6);
-                        var p = null;
-                        // MANTENER LÓGICA DE CORRESPONDENCIA CORRECTA
-                        if (clubId && typeof getPrecioGreenFee === 'function') {
-                            p = getPrecioGreenFee(clubId, esFinDeSemana ? 'saldana' : 'lerma');
-                            if (p != null) tieneCorrespondencia = true;
-                        }
-                        // Si hay correspondencia, usar precio real; si no, usar dummy
-                        if (p == null) p = esFinDeSemana ? 50 : 50; // dummy: 50€ base
-                        totalGF = p; // 1 green fee
+                for (var idx = 0; idx < numGF; idx++) {
+                    var iso = fechasGF[idx];
+                    if (!iso) continue;
+                    var d = new Date(iso + 'T12:00:00');
+                    var dow = d.getDay();
+                    var esFinDeSemana = (dow === 0 || dow === 6);
+                    var campoDia = fd.get('campo-dia-' + (idx + 1));
+                    var campo = campoDia || (esFinDeSemana ? 'saldana' : 'lerma');
+                    var p = null;
+                    // MANTENER LÓGICA DE CORRESPONDENCIA CORRECTA
+                    if (clubId && typeof getPrecioGreenFee === 'function') {
+                        p = getPrecioGreenFee(clubId, campo === 'saldana' ? 'saldana' : 'lerma');
+                        if (p != null) tieneCorrespondencia = true;
                     }
-                } else {
-                    totalGF = 50; // dummy: 50€ base
+                    // Si hay correspondencia, usar precio real; si no, usar dummy
+                    if (p == null) p = 50; // dummy: 50€ base
+                    totalGF += p;
                 }
+                if (numGF === 0) totalGF = 50; // dummy: 50€ base
                 var gf = totalGF * numParticipants;
+                
+                // DUMMY: Alojamiento
+                var aloj = (necesitaHotel && hotelOk) ? (nNoches * 75) : 0; // dummy: 75€/noche
                 
                 // DUMMY: Cata de vinos y transporte
                 var vinoVal = 40 * numParticipants; // dummy: 40€/persona (cata + transporte)
                 
-                var base = gf + vinoVal;
+                var base = gf + aloj + vinoVal;
                 // Si hay correspondencia, calcular descuento sobre base real; si no, usar dummy
                 var desc = tieneCorrespondencia ? Math.round(base * 0.15) : Math.round(base * 0.12); // dummy: 12-15%
                 var subtotal = base - desc;
                 
-                var html = '<div class="resumen-items">';
-                html += '<p><strong>Fechas:</strong> ' + (fechas.length ? fechas.join(', ') : '—') + '</p>';
-                html += '<p><strong>Participantes:</strong> ' + usuarios.length + '</p>';
-                if (grupos.length > 0) {
-                    html += '<p><strong>Correspondencias (grupos):</strong> ' + grupos.map(function (g) { return g.cantidad + ' × ' + g.label; }).join(', ') + '</p>';
-                }
-                html += '<p><strong>Forma de pago:</strong> ' + (fp === 'por_persona' ? 'Por persona' : 'Único') + '</p>';
-                html += '</div>';
-                
                 html += '<div class="resumen-subtotal">';
                 html += '<table class="resumen-subtotal-tabla">';
-                html += '<tr><td>Green fee' + (numParticipants > 1 ? ' (' + numParticipants + ' pers.)' : '') + '</td><td>' + gf + ' €</td></tr>';
+                html += '<tr><td>Green fees (' + (numGF > 0 ? numGF : 1) + (numParticipants > 1 ? ' × ' + numParticipants + ' pers.' : '') + ')</td><td>' + gf + ' €</td></tr>';
+                if (necesitaHotel) {
+                    html += '<tr><td>Alojamiento (' + nNoches + ' ' + (nNoches === 1 ? 'noche' : 'noches') + ')</td><td>' + (hotelOk ? (aloj + ' €') : '—') + '</td></tr>';
+                }
                 html += '<tr><td>Cata de vinos Bodegas Portia + Transporte' + (numParticipants > 1 ? ' (' + numParticipants + ' pers.)' : '') + '</td><td>' + vinoVal + ' €</td></tr>';
                 html += '<tr class="resumen-descuento"><td>Descuento pack (-' + (tieneCorrespondencia ? '15' : '12') + '%)</td><td>-' + desc + ' €</td></tr>';
                 html += '<tr class="resumen-total"><td>Subtotal</td><td>' + subtotal + ' €</td></tr>';
@@ -342,18 +510,44 @@
                     form: form,
                     nameFechas: 'fechas[]',
                     nameNoches: 'noches',
-                    maxSeleccion: 5,
-                    onChange: function() { if (typeof window.actualizarResumen === 'function') window.actualizarResumen(); }
+                    maxSeleccion: 7,
+                    onChange: function (count, fechas) {
+                        if (camposDiasVino) {
+                            if (count >= 1) {
+                                camposDiasVino.style.display = 'block';
+                                generarCamposPorDiaVino(count);
+                            } else {
+                                camposDiasVino.style.display = 'none';
+                            }
+                        }
+                        if (configuradorHotelWrapVino) {
+                            if (count >= 2) {
+                                configuradorHotelWrapVino.style.display = 'block';
+                                actualizarBloqueHotelVino();
+                            } else {
+                                configuradorHotelWrapVino.style.display = 'none';
+                                if (hotelPorNocheBlockVino) hotelPorNocheBlockVino.style.display = 'none';
+                            }
+                        }
+                        if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
+                    }
                 });
             }
 
             if (form) {
                 form.addEventListener('change', function(e) {
-                    if (e.target && e.target.id === 'tamanio-grupo') recalcNumeroGrupos();
+                    var t = e.target;
+                    if (t && t.name && t.name.indexOf('lugar-noche-') === 0) {
+                        var i = parseInt(t.name.replace('lugar-noche-', ''), 10);
+                        if (i >= 1) refillHotelSelectVino(i, t.value || '');
+                        return;
+                    }
+                    if (t && t.id === 'tamanio-grupo') recalcNumeroGrupos();
                     if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
                 });
                 form.addEventListener('input', function(e) {
-                    if (e.target && e.target.id === 'tamanio-grupo') recalcNumeroGrupos();
+                    var t = e.target;
+                    if (t && t.id === 'tamanio-grupo') recalcNumeroGrupos();
                     if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
                 });
                 recalcNumeroGrupos();
