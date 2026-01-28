@@ -81,7 +81,14 @@ for (const r of dataRows) {
     id,
     nombre,
     greenFeeLerma: lab,
-    greenFeeSaldana: sab
+    greenFeeSaldana: sab,
+    zona: (r[0] || '').trim(),
+    ccaa: (r[2] || '').trim(),
+    laborables: (r[3] || '').trim(),
+    sabFest: (r[4] || '').trim(),
+    dias: (r[5] || '').trim(),
+    telReservas: (r[6] || '').trim(),
+    observaciones: (r[7] || '').trim()
   });
 }
 

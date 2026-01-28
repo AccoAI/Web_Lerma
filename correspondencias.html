@@ -61,16 +61,13 @@
                 Los socios de los clubs con los que tenemos acuerdo de correspondencia pueden jugar en Golf Lerma y Saldaña Golf a la tarifa indicada. En reservas y paquetes, al seleccionar su club en el desplegable se aplicará automáticamente el precio de correspondencia.
             </p>
 
-            <div class="correspondencias-tablas">
-                <div class="correspondencias-tabla-block">
-                    <h2 class="campo-titulo">Green fee correspondencia · Golf Lerma</h2>
-                    <div id="tabla-correspondencias-lerma"></div>
-                </div>
-                <div class="correspondencias-tabla-block">
-                    <h2 class="campo-titulo">Green fee correspondencia · Saldaña Golf</h2>
-                    <div id="tabla-correspondencias-saldana"></div>
-                </div>
+            <h2 class="campo-titulo">Green fee correspondencia · Lerma y Saldaña</h2>
+            <div class="correspondencias-buscador">
+                <input type="search" id="correspondencias-buscar" class="correspondencias-buscador-input" placeholder="Buscar tu campo..." autocomplete="off" aria-label="Buscar club o campo de golf">
             </div>
+            <div id="correspondencias-tabla-grupos" class="correspondencias-grupos"></div>
+            <div id="correspondencias-cargando" class="correspondencias-cargando" style="display:none;">Cargando correspondencias…</div>
+            <div id="correspondencias-sin-resultados" class="correspondencias-sin-resultados" style="display:none;">No hay coincidencias con tu búsqueda.</div>
 
             <p class="correspondencias-nota">
                 Para incorporar o actualizar clubs en la lista de correspondencias, contacte en <a href="tel:947564630">947 56 46 30</a>.
