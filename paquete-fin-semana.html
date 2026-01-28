@@ -42,7 +42,7 @@
                         <a href="correspondencias.html" class="nav-link">CORRESPONDENCIAS</a>
                     </li>
                     <li class="nav-item">
-                        <a href="index.html#camara-tiempo" class="nav-link">CÁMARA DEL TIEMPO</a>
+                        <a href="camara-tiempo.html" class="nav-link">CÁMARA DEL TIEMPO</a>
                     </li>
                 </ul>
             </nav>
@@ -67,7 +67,7 @@
                         <h3 class="configurador-titulo">1. Selecciona tus fechas</h3>
                         <div id="calendario-dias-finsemana" class="calendario-dias-container"></div>
                         <div id="campos-dias-finsemana" class="campos-dias-selector campos-dias-selector-mini" style="display: none; margin-top: 1rem;">
-                            <span class="campos-dias-label">Campo para cada día:</span>
+                            <span class="campos-dias-label">Campo para cada día *</span>
                             <div id="dias-campos-container-finsemana" class="campos-dias-row"></div>
                         </div>
                     </div>
@@ -78,6 +78,7 @@
                         <p class="hotel-ciudad-label">Elige el hotel para cada noche. Puedes combinar Lerma y Burgos (ej.: una noche en Lerma y otra en Burgos).</p>
                         <div id="hotel-por-noche-block" class="hotel-por-noche-block">
                             <span class="campos-dias-label">Hotel para cada noche:</span>
+                            <p class="hotel-noche-hint">Elige primero el <strong>lugar</strong> (Lerma o Burgos) y después el <strong>hotel</strong> de ese lugar.</p>
                             <div id="hoteles-por-noche-container" class="campos-dias-row"></div>
                         </div>
                     </div>
@@ -105,8 +106,9 @@
                                 <input type="time" id="hora-salida" name="hora_salida" title="Hora preferida de salida">
                             </div>
                             <div class="form-group-inline">
-                                <label for="numero-grupos">Nº de grupos</label>
-                                <input type="number" id="numero-grupos" name="numero_grupos" min="1" placeholder="1 por cada 4" title="Se calcula: 1 grupo por cada 4 jugadores (7→2, 8→2, 9→3). Puedes editarlo.">
+                                <label for="numero-grupos-output">Nº de grupos</label>
+                                <output id="numero-grupos-output" for="tamanio-grupo" aria-live="polite" aria-readonly="true" tabindex="-1">1</output>
+                                <input type="hidden" name="numero_grupos" id="numero-grupos">
                             </div>
                         </div>
                         <p class="configurador-hint">Solo los datos de la reserva son obligatorios. Puedes añadir más participantes si lo deseas.</p>
@@ -161,11 +163,10 @@
                                 <div class="opcion-content">
                                     <span class="opcion-icon">🔗</span>
                                     <span class="opcion-texto">Pago por persona</span>
-                                    <span class="opcion-desc">Cada uno recibe un enlace para pagar su parte (como Playtomic)</span>
+                                    <span class="opcion-desc">Cada uno recibe un enlace para pagar su parte</span>
                                 </div>
                             </label>
                         </div>
-                        <p class="forma-pago-nota" id="forma-pago-nota" style="display:none;">Cada participante recibirá por correo un enlace para abonar su parte. El importe por persona = subtotal ÷ número de participantes.</p>
                     </div>
 
                     <!-- Resumen y Botón -->
@@ -209,7 +210,7 @@
                         <li><a href="hazte-socio.html">Hazte Socio</a></li>
                         <li><a href="area-socio.html">Área Socio</a></li>
                         <li><a href="correspondencias.html">Correspondencias</a></li>
-                        <li><a href="index.html#camara-tiempo">Cámara del Tiempo</a></li>
+                        <li><a href="camara-tiempo.html">Cámara del Tiempo</a></li>
                         <li><a href="index.html#contacto">Contacto</a></li>
                     </ul>
                 </div>

@@ -31,7 +31,7 @@
                     <li class="nav-item"><a href="index.html#bodas-eventos" class="nav-link">BODAS, EVENTOS, EMPRESA</a></li>
                     <li class="nav-item"><a href="simulador.html" class="nav-link">SIMULADOR</a></li>
                     <li class="nav-item"><a href="correspondencias.html" class="nav-link">CORRESPONDENCIAS</a></li>
-                    <li class="nav-item"><a href="index.html#camara-tiempo" class="nav-link">CÁMARA DEL TIEMPO</a></li>
+                    <li class="nav-item"><a href="camara-tiempo.html" class="nav-link">CÁMARA DEL TIEMPO</a></li>
                 </ul>
             </nav>
             <div class="header-actions">
@@ -102,6 +102,63 @@
         </div>
     </section>
 
+    <!-- Área de pago (simulada) -->
+    <section class="area-pago-simulada" id="pagar-cuota">
+        <div class="container">
+            <h2 class="section-title">Pagar primera cuota</h2>
+            <p class="area-pago-intro">Elija el tipo de cuota y complete los datos de pago para abonar la primera mensualidad. <strong>Simulación</strong>: no se realizará ningún cargo real.</p>
+            <form id="formPagoSocio" class="area-pago-form">
+                <div class="area-pago-tarifa">
+                    <div class="form-group">
+                        <label for="tipo-cuota">Tipo de cuota *</label>
+                        <select id="tipo-cuota" name="tipo_cuota" required>
+                            <option value="">Seleccione el tipo de cuota</option>
+                            <option value="105">Titular — 105 €/mes</option>
+                            <option value="53">Cónyuge — 53 €/mes</option>
+                            <option value="16">Hijo hasta 18 años — 16 €/mes</option>
+                            <option value="37">Hijo 19-25 años — 37 €/mes</option>
+                            <option value="53">Hijo 26-35 años — 53 €/mes</option>
+                            <option value="55">Titular menor de 35 — 55 €/mes</option>
+                        </select>
+                    </div>
+                    <div class="form-group area-pago-importe-wrap">
+                        <label>Importe a pagar</label>
+                        <output id="pago-importe" class="area-pago-importe" for="tipo-cuota">0</output> <span class="area-pago-euro">€</span>
+                    </div>
+                </div>
+                <div class="area-pago-tarjeta">
+                    <h3 class="area-pago-subtitulo">Datos de pago</h3>
+                    <div class="form-group">
+                        <label for="pago-nombre">Nombre en la tarjeta *</label>
+                        <input type="text" id="pago-nombre" name="nombre_tarjeta" required placeholder="Como aparece en la tarjeta" autocomplete="cc-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="pago-numero">Número de tarjeta *</label>
+                        <input type="text" id="pago-numero" name="numero_tarjeta" required placeholder="1234 5678 9012 3456" maxlength="19" autocomplete="cc-number">
+                    </div>
+                    <div class="area-pago-fila">
+                        <div class="form-group">
+                            <label for="pago-caducidad">Caducidad (MM/AA) *</label>
+                            <input type="text" id="pago-caducidad" name="caducidad" required placeholder="MM/AA" maxlength="5" autocomplete="cc-exp">
+                        </div>
+                        <div class="form-group">
+                            <label for="pago-cvv">CVV *</label>
+                            <input type="text" id="pago-cvv" name="cvv" required placeholder="123" maxlength="4" autocomplete="cc-csc">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="area-pago-check">
+                            <input type="checkbox" name="acepto_domiciliacion" id="pago-domiciliacion">
+                            <span>Acepto la domiciliación bancaria para las cuotas sucesivas</span>
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="btn-pago-socio">Pagar primera cuota</button>
+                <p class="area-pago-nota">Simulación de pago. No se realizará ningún cargo. Para un alta real, puede <a href="#solicitar-impresos">solicitar impresos</a> más abajo o contactar en el 947 17 12 14 / 947 40 42 81.</p>
+            </form>
+        </div>
+    </section>
+
     <!-- Formulario solicitud impresos -->
     <section class="hazte-socio-formulario" id="solicitar-impresos">
         <div class="container">
@@ -154,7 +211,7 @@
                         <li><a href="index.html#bodas-eventos">Bodas, Eventos, Empresa</a></li>
                         <li><a href="simulador.html">Simulador</a></li>
                         <li><a href="correspondencias.html">Correspondencias</a></li>
-                        <li><a href="index.html#camara-tiempo">Cámara del Tiempo</a></li>
+                        <li><a href="camara-tiempo.html">Cámara del Tiempo</a></li>
                         <li><a href="hazte-socio.html">Hazte Socio</a></li>
                         <li><a href="area-socio.html">Área Socio</a></li>
                     </ul>
@@ -182,6 +239,25 @@
             this.reset();
             this.querySelector('[name="asunto"]').value = 'Solicitud Impresos Socios';
         });
+
+        (function() {
+            var tipo = document.getElementById('tipo-cuota');
+            var importe = document.getElementById('pago-importe');
+            var form = document.getElementById('formPagoSocio');
+            if (!tipo || !importe || !form) return;
+            function actualizarImporte() {
+                var v = tipo.value;
+                importe.textContent = v ? v : '0';
+            }
+            tipo.addEventListener('change', actualizarImporte);
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                var imp = importe.textContent || '0';
+                alert('Pago simulado correctamente.\n\nSe ha registrado el pago de ' + imp + ' € por la primera cuota. En un proceso real se completaría el cobro y el alta como socio. Nos pondremos en contacto para formalizar tu alta.');
+                form.reset();
+                importe.textContent = '0';
+            });
+        })();
     </script>
 </body>
 </html>

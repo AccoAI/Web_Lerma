@@ -273,8 +273,16 @@ function loadCamaraLive() {
 
 // Configurador de Paquete Fin de Semana
 var HOTELES_OPTS = {
-    lerma: [{ v: 'alisa', l: 'Hotel Alisa' }, { v: 'ceres', l: 'Hotel CERES' }, { v: 'parador', l: 'Parador de Lerma' }],
-    burgos: [{ v: 'silken', l: 'Silken' }, { v: 'palacio-blasones', l: 'Palacio de los Blasones' }, { v: 'hotel-centro', l: 'Hotel Centro' }]
+    lerma: [
+        { v: 'alisa', l: 'Hotel Alisa', p: 65 },
+        { v: 'ceres', l: 'Hotel CERES', p: 70 },
+        { v: 'parador', l: 'Parador de Lerma', p: 95 }
+    ],
+    burgos: [
+        { v: 'silken', l: 'Silken', p: 55 },
+        { v: 'palacio-blasones', l: 'Palacio de los Blasones', p: 60 },
+        { v: 'hotel-centro', l: 'Hotel Centro', p: 50 }
+    ]
 };
 var HOTELES_LABELS = {
     lerma: { alisa: 'Hotel Alisa', ceres: 'Hotel CERES', parador: 'Parador de Lerma' },
@@ -286,6 +294,7 @@ var PRECIO_GF_BASE_LABORABLE = 45;   // cuando no hay correspondencia, día entr
 var PRECIO_GF_BASE_FINSEMANA = 45;   // cuando no hay correspondencia, sáb/dom
 var PRECIO_ALOJ_POR_NOCHE = 65;
 var PRECIO_COMIDA = 22;
+var PRECIO_SERVICIO_BURGOS = 25;   // dummy: comida/cena en Burgos
 var DESCUENTO_PACK_PORC = 15;
 
 function initConfiguradorPaquete() {
@@ -331,7 +340,7 @@ function initConfiguradorPaquete() {
             item.innerHTML = [
                 '<label for="campo-dia-' + i + '-sel">Día ' + i + '</label>',
                 '<select id="campo-dia-' + i + '-sel" name="campo-dia-' + i + '" required>',
-                '<option value="">—</option>',
+                '<option value="">Sin reserva</option>',
                 '<option value="lerma"' + (saved === 'lerma' ? ' selected' : '') + '>Golf Lerma</option>',
                 '<option value="saldana"' + (saved === 'saldana' ? ' selected' : '') + '>Saldaña Golf</option>',
                 '</select>'
@@ -341,7 +350,7 @@ function initConfiguradorPaquete() {
     }
 
     function getHotelLabelFromValue(val) {
-        if (!val || val.indexOf('-') < 0) return val || '—';
+        if (!val || val.indexOf('-') < 0) return val || 'Sin reserva';
         var idx = val.indexOf('-');
         var c = val.substring(0, idx);
         var h = val.substring(idx + 1);
@@ -349,43 +358,65 @@ function initConfiguradorPaquete() {
         return lbl ? lbl + ' (' + (c === 'lerma' ? 'Lerma' : 'Burgos') + ')' : val;
     }
 
+    function refillHotelSelect(i, ciudad) {
+        var sel = form && form.querySelector('select[name="hotel-noche-' + i + '"]');
+        if (!sel) return;
+        var kept = sel.value;
+        var opts = [{ v: '', l: 'Sin reserva' }];
+        if (ciudad === 'lerma' || ciudad === 'burgos') {
+            var arr = HOTELES_OPTS[ciudad] || [];
+            for (var j = 0; j < arr.length; j++) {
+                opts.push({ v: ciudad + '-' + arr[j].v, l: arr[j].l, p: arr[j].p });
+            }
+        }
+        sel.innerHTML = opts.map(function (o) {
+            var txt = (o.p != null && o.p !== '') ? o.l + ' · ' + o.p + ' €' : o.l;
+            return '<option value="' + o.v + '"' + (o.v === kept ? ' selected' : '') + '>' + txt + '</option>';
+        }).join('');
+        var found = opts.some(function (o) { return o.v === kept; });
+        if (!found) sel.value = '';
+        if (typeof actualizarResumen === 'function') actualizarResumen();
+    }
+
     function generarHotelesPorNoche(n) {
         if (!hotelesPorNocheContainer) return;
-        var opts = [];
-        ['lerma', 'burgos'].forEach(function (ciudad) {
-            var arr = HOTELES_OPTS[ciudad] || [];
-            var cityLabel = ciudad === 'lerma' ? 'Lerma' : 'Burgos';
-            for (var j = 0; j < arr.length; j++) {
-                opts.push({ v: ciudad + '-' + arr[j].v, l: cityLabel + ' · ' + arr[j].l });
-            }
-        });
         var prev = {};
         for (var i = 1; i <= n; i++) {
-            var sel = form && form.querySelector('select[name="hotel-noche-' + i + '"]');
-            var v = (sel && sel.value) ? sel.value : '';
-            if (v) {
-                if (v.indexOf('-') >= 0) prev[i] = v;
-                else {
-                    for (var c in HOTELES_OPTS) {
-                        for (var k = 0; k < HOTELES_OPTS[c].length; k++) {
-                            if (HOTELES_OPTS[c][k].v === v) { prev[i] = c + '-' + v; break; }
-                        }
-                    }
-                }
-            }
+            var hSel = form && form.querySelector('select[name="hotel-noche-' + i + '"]');
+            var lSel = form && form.querySelector('select[name="lugar-noche-' + i + '"]');
+            var h = (hSel && hSel.value) ? hSel.value : '';
+            var l = (lSel && lSel.value) ? lSel.value : '';
+            if (!l && h && h.indexOf('-') >= 0) l = h.split('-')[0];
+            prev[i] = { hotel: h || '', lugar: l || '' };
         }
         hotelesPorNocheContainer.innerHTML = '';
         for (var i = 1; i <= n; i++) {
-            var saved = prev[i] || '';
-            var item = document.createElement('div');
-            item.className = 'campos-dias-item hoteles-por-noche-item';
-            var optHtml = '<option value="">—</option>';
-            for (var j = 0; j < opts.length; j++) {
-                optHtml += '<option value="' + opts[j].v + '"' + (saved === opts[j].v ? ' selected' : '') + '>' + opts[j].l + '</option>';
+            var savedL = prev[i].lugar;
+            var savedH = prev[i].hotel;
+            var lugarOpts = '<option value="">Sin reserva</option><option value="lerma"' + (savedL === 'lerma' ? ' selected' : '') + '>Lerma</option><option value="burgos"' + (savedL === 'burgos' ? ' selected' : '') + '>Burgos</option>';
+            var hotelOpts = [{ v: '', l: 'Sin reserva' }];
+            if (savedL === 'lerma' || savedL === 'burgos') {
+                var arr = HOTELES_OPTS[savedL] || [];
+                for (var j = 0; j < arr.length; j++) {
+                    hotelOpts.push({ v: savedL + '-' + arr[j].v, l: arr[j].l, p: arr[j].p });
+                }
             }
+            var hotelOptHtml = hotelOpts.map(function (o) {
+                var txt = (o.p != null && o.p !== '') ? o.l + ' · ' + o.p + ' €' : o.l;
+                return '<option value="' + o.v + '"' + (o.v === savedH ? ' selected' : '') + '>' + txt + '</option>';
+            }).join('');
+            var item = document.createElement('div');
+            item.className = 'hoteles-por-noche-item hotel-noche-fila';
             item.innerHTML = [
-                '<label for="hotel-noche-' + i + '-sel">Noche ' + i + '</label>',
-                '<select id="hotel-noche-' + i + '-sel" name="hotel-noche-' + i + '" required>' + optHtml + '</select>'
+                '<span class="hotel-noche-num">Noche ' + i + '</span>',
+                '<div class="hotel-noche-par">',
+                '<label for="lugar-noche-' + i + '">Lugar</label>',
+                '<select id="lugar-noche-' + i + '" name="lugar-noche-' + i + '" required aria-label="Lugar noche ' + i + '">' + lugarOpts + '</select>',
+                '</div>',
+                '<div class="hotel-noche-par">',
+                '<label for="hotel-noche-' + i + '">Hotel</label>',
+                '<select id="hotel-noche-' + i + '" name="hotel-noche-' + i + '" required aria-label="Hotel noche ' + i + '">' + hotelOptHtml + '</select>',
+                '</div>'
             ].join('');
             hotelesPorNocheContainer.appendChild(item);
         }
@@ -430,8 +461,8 @@ function initConfiguradorPaquete() {
         for (var i = 1; i <= count; i++) {
             var fechaStr = formatearFechaComida(fechas[i - 1]);
             var titulo = 'Día ' + i + (fechaStr ? ' <span class="comida-dia-fecha">(' + fechaStr + ')</span>' : '');
-            var optComida = '<option value="">— No reservar</option><option value="lerma"' + (prevComida[i] === 'lerma' ? ' selected' : '') + '>Lerma · Club Social Golf Lerma</option><option value="burgos"' + (prevComida[i] === 'burgos' ? ' selected' : '') + '>Burgos · Restaurantes</option>';
-            var optCena = '<option value="">— No reservar</option><option value="lerma"' + (prevCena[i] === 'lerma' ? ' selected' : '') + '>Lerma · Club Social Golf Lerma</option><option value="burgos"' + (prevCena[i] === 'burgos' ? ' selected' : '') + '>Burgos · Restaurantes</option>';
+            var optComida = '<option value="">Sin reserva</option><option value="lerma"' + (prevComida[i] === 'lerma' ? ' selected' : '') + '>Lerma · Club Social Golf Lerma · ' + PRECIO_COMIDA + ' €</option><option value="burgos"' + (prevComida[i] === 'burgos' ? ' selected' : '') + '>Burgos · Restaurantes · ' + PRECIO_SERVICIO_BURGOS + ' €</option>';
+            var optCena = '<option value="">Sin reserva</option><option value="lerma"' + (prevCena[i] === 'lerma' ? ' selected' : '') + '>Lerma · Club Social Golf Lerma · ' + PRECIO_COMIDA + ' €</option><option value="burgos"' + (prevCena[i] === 'burgos' ? ' selected' : '') + '>Burgos · Restaurantes · ' + PRECIO_SERVICIO_BURGOS + ' €</option>';
             var block = document.createElement('div');
             block.className = 'comida-dia-block';
             block.innerHTML = '<div class="comida-dia-titulo">' + titulo + '</div><div class="comida-dia-campos"><div class="form-group-inline"><label>Comida</label><select name="comida_dia_' + i + '">' + optComida + '</select></div><div class="form-group-inline"><label>Cena</label><select name="cena_dia_' + i + '">' + optCena + '</select></div></div>';
@@ -472,23 +503,34 @@ function initConfiguradorPaquete() {
 
     if (form) {
         form.addEventListener('change', function (e) {
-            if (e.target && e.target.id === 'tamanio-grupo') recalcNumeroGrupos();
+            var t = e.target;
+            if (t && t.name && t.name.indexOf('lugar-noche-') === 0) {
+                var i = parseInt(t.name.replace('lugar-noche-', ''), 10);
+                if (i >= 1) refillHotelSelect(i, t.value || '');
+                return;
+            }
+            if (t && t.id === 'tamanio-grupo') recalcNumeroGrupos();
             actualizarResumen();
         });
         form.addEventListener('input', function (e) {
             var t = e.target;
             if (t && t.id === 'tamanio-grupo') recalcNumeroGrupos();
-            if (t && t.matches && t.matches('#tamanio-grupo, #hora-salida, #numero-grupos, #handicap-grupo')) actualizarResumen();
+            if (t && t.matches && t.matches('#tamanio-grupo, #hora-salida, #handicap-grupo')) actualizarResumen();
         });
         window.actualizarResumen = actualizarResumen;
+        recalcNumeroGrupos();
     }
 
     function recalcNumeroGrupos() {
         var tg = document.getElementById('tamanio-grupo');
-        var ng = document.getElementById('numero-grupos');
-        if (!tg || !ng) return;
+        var out = document.getElementById('numero-grupos-output');
+        var hid = document.getElementById('numero-grupos');
+        if (!tg) return;
         var n = parseInt(tg.value, 10);
-        ng.value = (n >= 1) ? String(Math.ceil(n / 4)) : '';
+        var val = (n >= 1) ? String(Math.ceil(n / 4)) : '';
+        if (out) out.textContent = val;
+        if (hid) hid.value = val;
+        if (typeof actualizarResumen === 'function') actualizarResumen();
     }
 
     function actualizarResumen() {
@@ -627,11 +669,6 @@ function initConfiguradorPaquete() {
             resumenDiv.innerHTML = resumenHTML;
         } else {
             resumenDiv.innerHTML = '<p>Completa las opciones para ver el resumen</p>';
-        }
-        var notaEl = document.getElementById('forma-pago-nota');
-        if (notaEl) {
-            var fp = ((formData.get('forma_pago') || 'unico').trim() || 'unico');
-            notaEl.style.display = fp === 'por_persona' ? 'block' : 'none';
         }
     }
 

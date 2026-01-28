@@ -863,7 +863,7 @@ img {
 
 .resumen-por-persona td {
     font-weight: 600;
-    color: var(--color-primary);
+    color: var(--color-white);
 }
 
 /* Calendario multiselección / arrastre (días de juego) */
@@ -1294,6 +1294,13 @@ img {
     margin-top: 1rem;
 }
 
+.hotel-por-noche-block .hotel-noche-hint {
+    font-size: 0.9rem;
+    color: var(--color-text);
+    margin: 0.35rem 0 0.75rem;
+    opacity: 0.9;
+}
+
 .hoteles-por-noche-item {
     display: flex;
     align-items: center;
@@ -1332,6 +1339,31 @@ img {
     outline: none;
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(26, 77, 58, 0.15);
+}
+
+.hotel-noche-fila {
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+}
+
+.hotel-noche-fila .hotel-noche-num {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+.hotel-noche-fila .hotel-noche-par {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.hotel-noche-fila .hotel-noche-par label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-text);
 }
 
 .opciones-checkbox {
@@ -1634,6 +1666,19 @@ img {
 
 .reserva-datos-iniciales .form-group-inline input[type="time"] {
     min-width: 0;
+}
+
+.reserva-datos-iniciales .form-group-inline output {
+    padding: 0.5rem 0.6rem;
+    border: 2px solid #e8e8e8;
+    border-radius: 6px;
+    font-size: 1rem;
+    background: #f8f8f8;
+    color: var(--color-text);
+    min-height: 2.25rem;
+    display: flex;
+    align-items: center;
+    cursor: default;
 }
 
 .configurador-hint {
@@ -2582,6 +2627,140 @@ img {
 .hazte-socio-form {
     max-width: 520px;
     margin: 0 auto;
+}
+
+/* Área de pago simulada - Hazte socio */
+.area-pago-simulada {
+    padding: 4rem 0;
+    background: linear-gradient(180deg, rgba(26, 77, 58, 0.06) 0%, var(--color-bg-light) 100%);
+}
+
+.area-pago-intro {
+    text-align: center;
+    max-width: 580px;
+    margin: 0 auto 2rem;
+    color: var(--color-text);
+}
+
+.area-pago-form {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 2rem 2.5rem;
+    background: var(--color-white);
+    border-radius: 12px;
+    border: 2px solid var(--color-primary);
+    box-shadow: var(--shadow);
+}
+
+.area-pago-tarifa {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem 1.5rem;
+    align-items: end;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.area-pago-importe-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.5rem;
+    margin-bottom: 0;
+}
+
+.area-pago-importe-wrap label {
+    margin-bottom: 0;
+}
+
+.area-pago-importe {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.area-pago-euro {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.area-pago-tarjeta {
+    margin-bottom: 1.5rem;
+}
+
+.area-pago-subtitulo {
+    font-size: 1.1rem;
+    color: var(--color-primary);
+    margin-bottom: 1rem;
+}
+
+.area-pago-fila {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.area-pago-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.area-pago-check input {
+    width: auto;
+    margin-top: 0.2rem;
+}
+
+.btn-pago-socio {
+    width: 100%;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    color: var(--color-white);
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-pago-socio:hover {
+    opacity: 0.95;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+.area-pago-nota {
+    margin-top: 1.25rem;
+    font-size: 0.85rem;
+    color: var(--color-text-light);
+    line-height: 1.5;
+}
+
+.area-pago-nota a {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+.area-pago-nota a:hover {
+    text-decoration: none;
+}
+
+@media (max-width: 560px) {
+    .area-pago-tarifa {
+        grid-template-columns: 1fr;
+    }
+    .area-pago-fila {
+        grid-template-columns: 1fr;
+    }
+    .area-pago-form {
+        padding: 1.5rem 1.25rem;
+    }
 }
 
 .form-captcha .captcha-placeholder {
