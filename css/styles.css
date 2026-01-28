@@ -486,10 +486,6 @@ img {
     line-clamp: 2;
     overflow: hidden;
 }
-.paquete-titulo-externo .paquete-icon-inline {
-    display: inline;
-}
-
 .paquete-card {
     background: linear-gradient(135deg, var(--color-white) 0%, var(--color-bg-light) 100%);
     padding: 2.5rem 2rem;
@@ -561,14 +557,6 @@ img {
 
 .paquete-card-fondo * {
     color: var(--color-white) !important;
-}
-
-.paquete-icon-inline {
-    font-size: 1em;
-    line-height: 1;
-    display: inline-block;
-    vertical-align: middle;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
 .paquete-logos-campos {
