@@ -285,18 +285,24 @@ function initConfiguradorPaquete() {
 
     function generarCamposPorDiaFinSemana(numDias) {
         if (!diasCamposContainerFinSemana) return;
+        const prev = {};
+        for (let i = 1; i <= numDias; i++) {
+            const sel = form && form.querySelector('select[name="campo-dia-' + i + '"]');
+            if (sel && sel.value) prev[i] = sel.value;
+        }
         diasCamposContainerFinSemana.innerHTML = '';
         for (let i = 1; i <= numDias; i++) {
+            const saved = prev[i] || '';
             const item = document.createElement('div');
             item.className = 'campos-dias-item';
-            item.innerHTML = `
-                <label for="campo-dia-${i}-sel">Día ${i}</label>
-                <select id="campo-dia-${i}-sel" name="campo-dia-${i}" required>
-                    <option value="">—</option>
-                    <option value="lerma">Golf Lerma</option>
-                    <option value="saldana">Saldaña Golf</option>
-                </select>
-            `;
+            item.innerHTML = [
+                '<label for="campo-dia-' + i + '-sel">Día ' + i + '</label>',
+                '<select id="campo-dia-' + i + '-sel" name="campo-dia-' + i + '" required>',
+                '<option value="">—</option>',
+                '<option value="lerma"' + (saved === 'lerma' ? ' selected' : '') + '>Golf Lerma</option>',
+                '<option value="saldana"' + (saved === 'saldana' ? ' selected' : '') + '>Saldaña Golf</option>',
+                '</select>'
+            ].join('');
             diasCamposContainerFinSemana.appendChild(item);
         }
     }

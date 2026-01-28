@@ -198,7 +198,7 @@
             }
 
             container.innerHTML = (
-                '<p class="calendario-hint">Haz clic en las fechas para seleccionar o <strong>arrastra</strong> para elegir un rango. <strong class="calendario-count">0</strong> días seleccionados.</p>' +
+                '<p class="calendario-hint">Clic o <strong>arrastra</strong> para elegir rango. <strong class="calendario-count">0</strong> días seleccionados.</p>' +
                 '<div class="calendario-nav">' +
                 '<button type="button" class="calendario-btn-prev" aria-label="Mes anterior">‹</button>' +
                 '<span class="calendario-mes-titulo"></span>' +
