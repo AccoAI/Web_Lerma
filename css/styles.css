@@ -1464,6 +1464,114 @@ img {
     box-shadow: var(--shadow);
 }
 
+/* 3. Opciones para comer: por día, comida/cena */
+.comida-intro {
+    font-size: 0.95rem;
+    color: var(--color-text);
+    margin: 0 0 1rem;
+}
+
+.comida-sin-fechas {
+    font-size: 0.95rem;
+    color: var(--color-text);
+    opacity: 0.85;
+    font-style: italic;
+    margin: 0;
+}
+
+.comida-por-dia-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.comida-dia-block {
+    padding: 1rem 1.25rem;
+    background: rgba(26, 77, 58, 0.05);
+    border: 1px solid rgba(26, 77, 58, 0.15);
+    border-radius: 10px;
+}
+
+.comida-dia-titulo {
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: 0.75rem;
+    font-size: 1.05rem;
+}
+
+.comida-dia-fecha {
+    font-weight: 400;
+    color: var(--color-text);
+    opacity: 0.9;
+    font-size: 0.9rem;
+}
+
+.comida-dia-campos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.comida-dia-campos .form-group-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.comida-dia-campos .form-group-inline label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.comida-dia-campos .form-group-inline select {
+    padding: 0.5rem 0.6rem;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    background: #fff;
+}
+
+.comida-dia-campos .form-group-inline select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.reserva-datos-iniciales {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.reserva-datos-iniciales .form-group-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.reserva-datos-iniciales .form-group-inline label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.reserva-datos-iniciales .form-group-inline input {
+    padding: 0.5rem 0.6rem;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.reserva-datos-iniciales .form-group-inline input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.reserva-datos-iniciales .form-group-inline input[type="time"] {
+    min-width: 0;
+}
+
 .configurador-hint {
     color: var(--color-text);
     font-size: 0.95rem;

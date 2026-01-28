@@ -297,6 +297,8 @@ function initConfiguradorPaquete() {
     var configuradorHotelWrap = document.getElementById('configurador-hotel-wrap');
     var hotelPorNocheBlock = document.getElementById('hotel-por-noche-block');
     var hotelesPorNocheContainer = document.getElementById('hoteles-por-noche-container');
+    var comidaSinFechas = document.getElementById('comida-sin-fechas');
+    var comidaPorDiaContainer = document.getElementById('comida-por-dia-container');
 
     function getCorrespondenciaGrupos(f) {
         if (!f) return [];
@@ -338,13 +340,39 @@ function initConfiguradorPaquete() {
         }
     }
 
-    function generarHotelesPorNoche(n, ciudad) {
+    function getHotelLabelFromValue(val) {
+        if (!val || val.indexOf('-') < 0) return val || '—';
+        var idx = val.indexOf('-');
+        var c = val.substring(0, idx);
+        var h = val.substring(idx + 1);
+        var lbl = (HOTELES_LABELS[c] || {})[h];
+        return lbl ? lbl + ' (' + (c === 'lerma' ? 'Lerma' : 'Burgos') + ')' : val;
+    }
+
+    function generarHotelesPorNoche(n) {
         if (!hotelesPorNocheContainer) return;
-        var opts = HOTELES_OPTS[ciudad] || [];
+        var opts = [];
+        ['lerma', 'burgos'].forEach(function (ciudad) {
+            var arr = HOTELES_OPTS[ciudad] || [];
+            var cityLabel = ciudad === 'lerma' ? 'Lerma' : 'Burgos';
+            for (var j = 0; j < arr.length; j++) {
+                opts.push({ v: ciudad + '-' + arr[j].v, l: cityLabel + ' · ' + arr[j].l });
+            }
+        });
         var prev = {};
         for (var i = 1; i <= n; i++) {
             var sel = form && form.querySelector('select[name="hotel-noche-' + i + '"]');
-            if (sel && sel.value && opts.some(function (o) { return o.v === sel.value; })) prev[i] = sel.value;
+            var v = (sel && sel.value) ? sel.value : '';
+            if (v) {
+                if (v.indexOf('-') >= 0) prev[i] = v;
+                else {
+                    for (var c in HOTELES_OPTS) {
+                        for (var k = 0; k < HOTELES_OPTS[c].length; k++) {
+                            if (HOTELES_OPTS[c][k].v === v) { prev[i] = c + '-' + v; break; }
+                        }
+                    }
+                }
+            }
         }
         hotelesPorNocheContainer.innerHTML = '';
         for (var i = 1; i <= n; i++) {
@@ -364,14 +392,50 @@ function initConfiguradorPaquete() {
     }
 
     function actualizarBloqueHotel() {
-        var ciudadEl = form && form.querySelector('input[name="hotel-ciudad"]:checked');
-        var ciudad = ciudadEl ? ciudadEl.value : null;
         var noches = parseInt(((form && form.querySelector('input[name="noches"]')) || {}).value || '0', 10);
-        if (ciudad && noches >= 1) {
-            hotelPorNocheBlock.style.display = 'block';
-            generarHotelesPorNoche(noches, ciudad);
+        if (noches >= 1) {
+            if (hotelPorNocheBlock) hotelPorNocheBlock.style.display = 'block';
+            generarHotelesPorNoche(noches);
         } else {
-            hotelPorNocheBlock.style.display = 'none';
+            if (hotelPorNocheBlock) hotelPorNocheBlock.style.display = 'none';
+        }
+    }
+
+    function formatearFechaComida(iso) {
+        if (!iso) return '';
+        try {
+            var d = new Date(iso + 'T12:00:00');
+            return d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+        } catch (e) { return ''; }
+    }
+
+    function actualizarBloqueComida(count, fechas) {
+        fechas = fechas || [];
+        if (comidaSinFechas) comidaSinFechas.style.display = count >= 1 ? 'none' : 'block';
+        if (!comidaPorDiaContainer) return;
+        if (count < 1) {
+            comidaPorDiaContainer.style.display = 'none';
+            comidaPorDiaContainer.innerHTML = '';
+            return;
+        }
+        var prevComida = {}, prevCena = {};
+        for (var i = 1; i <= count; i++) {
+            var sc = form && form.querySelector('select[name="comida_dia_' + i + '"]');
+            var sv = form && form.querySelector('select[name="cena_dia_' + i + '"]');
+            if (sc && sc.value) prevComida[i] = sc.value;
+            if (sv && sv.value) prevCena[i] = sv.value;
+        }
+        comidaPorDiaContainer.style.display = 'block';
+        comidaPorDiaContainer.innerHTML = '';
+        for (var i = 1; i <= count; i++) {
+            var fechaStr = formatearFechaComida(fechas[i - 1]);
+            var titulo = 'Día ' + i + (fechaStr ? ' <span class="comida-dia-fecha">(' + fechaStr + ')</span>' : '');
+            var optComida = '<option value="">— No reservar</option><option value="lerma"' + (prevComida[i] === 'lerma' ? ' selected' : '') + '>Lerma · Club Social Golf Lerma</option><option value="burgos"' + (prevComida[i] === 'burgos' ? ' selected' : '') + '>Burgos · Restaurantes</option>';
+            var optCena = '<option value="">— No reservar</option><option value="lerma"' + (prevCena[i] === 'lerma' ? ' selected' : '') + '>Lerma · Club Social Golf Lerma</option><option value="burgos"' + (prevCena[i] === 'burgos' ? ' selected' : '') + '>Burgos · Restaurantes</option>';
+            var block = document.createElement('div');
+            block.className = 'comida-dia-block';
+            block.innerHTML = '<div class="comida-dia-titulo">' + titulo + '</div><div class="comida-dia-campos"><div class="form-group-inline"><label>Comida</label><select name="comida_dia_' + i + '">' + optComida + '</select></div><div class="form-group-inline"><label>Cena</label><select name="cena_dia_' + i + '">' + optCena + '</select></div></div>';
+            comidaPorDiaContainer.appendChild(block);
         }
     }
 
@@ -382,7 +446,7 @@ function initConfiguradorPaquete() {
             nameFechas: 'fechas[]',
             nameNoches: 'noches',
             maxSeleccion: 7,
-            onChange: function (count) {
+            onChange: function (count, fechas) {
                 if (camposDiasFinSemana) {
                     if (count >= 1) {
                         camposDiasFinSemana.style.display = 'block';
@@ -400,15 +464,16 @@ function initConfiguradorPaquete() {
                         if (hotelPorNocheBlock) hotelPorNocheBlock.style.display = 'none';
                     }
                 }
+                actualizarBloqueComida(count, fechas || []);
                 if (typeof actualizarResumen === 'function') actualizarResumen();
             }
         });
     }
 
     if (form) {
-        form.addEventListener('change', function (e) {
-            if (e.target && e.target.getAttribute('name') === 'hotel-ciudad') actualizarBloqueHotel();
-            actualizarResumen();
+        form.addEventListener('change', function () { actualizarResumen(); });
+        form.addEventListener('input', function (e) {
+            if (e.target && e.target.matches && e.target.matches('#tamanio-grupo, #hora-salida, #numero-grupos')) actualizarResumen();
         });
         window.actualizarResumen = actualizarResumen;
     }
@@ -418,15 +483,13 @@ function initConfiguradorPaquete() {
         var formData = new FormData(form);
         var noches = formData.get('noches');
         var count = (formData.getAll('fechas[]') || []).length;
-        var hotelCiudad = formData.get('hotel-ciudad');
-        var comida = formData.get('comida');
 
         var necesitaHotel = count >= 2;
-        var hotelOk = !necesitaHotel || (hotelCiudad && (function () {
+        var hotelOk = !necesitaHotel || (function () {
             var n = parseInt(noches || '0', 10);
             for (var i = 1; i <= n; i++) { if (!formData.get('hotel-noche-' + i)) return false; }
             return true;
-        })());
+        })();
 
         var nNoches = parseInt(noches || '0', 10);
         if (nNoches >= 1) {
@@ -442,18 +505,42 @@ function initConfiguradorPaquete() {
                 }
             }
 
-            if (necesitaHotel && hotelCiudad) {
-                var labels = HOTELES_LABELS[hotelCiudad] || {};
+            if (necesitaHotel && hotelOk) {
                 var n = parseInt(noches || '0', 10);
                 var parts = [];
                 for (var i = 1; i <= n; i++) {
                     var v = formData.get('hotel-noche-' + i);
-                    if (v && labels[v]) parts.push('Noche ' + i + ': ' + labels[v]);
+                    if (v) parts.push('Noche ' + i + ': ' + getHotelLabelFromValue(v));
                 }
-                resumenHTML += '<p><strong>Alojamiento:</strong> ' + (hotelCiudad === 'lerma' ? 'Lerma' : 'Burgos') + '. ' + parts.join('. ') + '</p>';
+                if (parts.length) resumenHTML += '<p><strong>Alojamiento:</strong> ' + parts.join('. ') + '</p>';
             }
 
-            resumenHTML += '<p><strong>Comida:</strong> ' + (comida === 'lerma' ? 'Club Social Golf Lerma' : (comida ? 'Restaurantes en Burgos' : '—')) + '</p>';
+            var partesComida = [];
+            var numServicios = 0;
+            for (var ic = 1; ic <= count; ic++) {
+                var com = (formData.get('comida_dia_' + ic) || '').trim();
+                var cen = (formData.get('cena_dia_' + ic) || '').trim();
+                var labCom = (com === 'lerma' ? 'Lerma' : com === 'burgos' ? 'Burgos' : '');
+                var labCen = (cen === 'lerma' ? 'Lerma' : cen === 'burgos' ? 'Burgos' : '');
+                if (labCom || labCen) {
+                    var p = 'Día ' + ic + ':';
+                    if (labCom) { p += ' Comida ' + labCom; numServicios++; }
+                    if (labCen) { p += (labCom ? ', ' : '') + 'Cena ' + labCen; numServicios++; }
+                    partesComida.push(p);
+                }
+            }
+            if (partesComida.length) resumenHTML += '<p><strong>Comidas / cenas:</strong> ' + partesComida.join('. ') + '</p>';
+
+            var tg = (formData.get('tamanio_grupo') || '').trim();
+            var hs = (formData.get('hora_salida') || '').trim();
+            var ng = (formData.get('numero_grupos') || '').trim();
+            if (tg || hs || ng) {
+                var partsInit = [];
+                if (tg) partsInit.push('Tamaño del grupo: ' + tg);
+                if (hs) partsInit.push('Hora de salida: ' + hs);
+                if (ng) partsInit.push('Nº de grupos: ' + ng);
+                resumenHTML += '<p><strong>Reserva:</strong> ' + partsInit.join(' · ') + '</p>';
+            }
 
             var usuarios = form.querySelectorAll('.usuario-form');
             if (usuarios.length > 0) resumenHTML += '<p><strong>Número de participantes:</strong> ' + usuarios.length + '</p>';
@@ -485,7 +572,13 @@ function initConfiguradorPaquete() {
             var gf = totalGF;
 
             var aloj = (necesitaHotel && hotelOk) ? (nNoches * PRECIO_ALOJ_POR_NOCHE) : 0;
-            var comidaVal = comida ? PRECIO_COMIDA : 0;
+            var comidaVal = 0;
+            for (var iv = 1; iv <= count; iv++) {
+                var cv = (formData.get('comida_dia_' + iv) || '').trim();
+                var cev = (formData.get('cena_dia_' + iv) || '').trim();
+                if (cv === 'lerma' || cv === 'burgos') comidaVal += PRECIO_COMIDA;
+                if (cev === 'lerma' || cev === 'burgos') comidaVal += PRECIO_COMIDA;
+            }
             var base = gf + aloj + comidaVal;
             var desc = Math.round(base * DESCUENTO_PACK_PORC / 100);
             var subtotal = base - desc;
@@ -496,7 +589,7 @@ function initConfiguradorPaquete() {
             if (necesitaHotel) {
                 resumenHTML += '<tr><td>Alojamiento (' + nNoches + ' ' + (nNoches === 1 ? 'noche' : 'noches') + ')</td><td>' + (hotelOk ? (aloj + ' €') : '—') + '</td></tr>';
             }
-            resumenHTML += '<tr><td>Comida</td><td>' + (comida ? comidaVal + ' €' : '—') + '</td></tr>';
+            resumenHTML += '<tr><td>Comidas y cenas' + (comidaVal > 0 ? ' (' + (comidaVal / PRECIO_COMIDA) + ')' : '') + '</td><td>' + (comidaVal > 0 ? comidaVal + ' €' : '—') + '</td></tr>';
             resumenHTML += '<tr class="resumen-descuento"><td>Descuento pack (-' + DESCUENTO_PACK_PORC + '%)</td><td>-' + desc + ' €</td></tr>';
             resumenHTML += '<tr class="resumen-total"><td>Subtotal</td><td>' + subtotal + ' €</td></tr>';
             resumenHTML += '</table>';
@@ -520,11 +613,6 @@ function initConfiguradorPaquete() {
             var fechas = formData.getAll('fechas[]');
             var count = (fechas || []).length;
             if (count >= 2) {
-                var hotelCiudad = formData.get('hotel-ciudad');
-                if (!hotelCiudad) {
-                    alert('Indica dónde te alojas: Estancia en Lerma o Estancia en Burgos.');
-                    return;
-                }
                 var n = parseInt(noches, 10);
                 for (var i = 1; i <= n; i++) {
                     if (!formData.get('hotel-noche-' + i)) {
@@ -545,24 +633,46 @@ function initConfiguradorPaquete() {
                 for (var i = 1; i <= n; i++) { hotelPorNoche[i] = formData.get('hotel-noche-' + i); }
             }
             var corresGrupos = getCorrespondenciaGrupos(form);
+            var comidaPorDia = [];
+            for (var icd = 1; icd <= count; icd++) {
+                var cpd = (formData.get('comida_dia_' + icd) || '').trim();
+                var cnd = (formData.get('cena_dia_' + icd) || '').trim();
+                if (cpd || cnd) comidaPorDia.push({ dia: icd, comida: cpd || null, cena: cnd || null });
+            }
             var datos = {
                 noches: noches,
                 fechas: fechas,
                 camposPorDia: camposPorDia,
-                hotelCiudad: formData.get('hotel-ciudad'),
                 hotelPorNoche: hotelPorNoche,
-                comida: formData.get('comida'),
-                correspondenciaGrupos: corresGrupos
+                comidaPorDia: comidaPorDia,
+                correspondenciaGrupos: corresGrupos,
+                tamanioGrupo: (formData.get('tamanio_grupo') || '').trim() || null,
+                horaSalida: (formData.get('hora_salida') || '').trim() || null,
+                numeroGrupos: (formData.get('numero_grupos') || '').trim() || null
             };
 
             var msg = '¡Paquete configurado! Te contactaremos pronto para confirmar tu reserva.\n\nNoches: ' + datos.noches + '\n';
-            if (count >= 2 && datos.hotelCiudad) {
-                var lbl = HOTELES_LABELS[datos.hotelCiudad] || {};
-                var parts = [];
-                for (var k in datos.hotelPorNoche) { if (lbl[datos.hotelPorNoche[k]]) parts.push('Noche ' + k + ': ' + lbl[datos.hotelPorNoche[k]]); }
-                msg += 'Alojamiento: ' + (datos.hotelCiudad === 'lerma' ? 'Lerma' : 'Burgos') + '. ' + parts.join('. ') + '\n';
+            if (count >= 2 && Object.keys(hotelPorNoche).length > 0) {
+                var partsAloj = [];
+                for (var k in hotelPorNoche) { partsAloj.push('Noche ' + k + ': ' + getHotelLabelFromValue(hotelPorNoche[k])); }
+                msg += 'Alojamiento: ' + partsAloj.join('. ') + '\n';
             }
-            msg += 'Comida: ' + (datos.comida === 'lerma' ? 'Club Social Lerma' : 'Burgos');
+            if (comidaPorDia.length > 0) {
+                var partsCom = comidaPorDia.map(function (x) {
+                    var t = 'Día ' + x.dia + ':';
+                    if (x.comida) t += ' Comida ' + (x.comida === 'lerma' ? 'Lerma' : 'Burgos');
+                    if (x.cena) t += (x.comida ? ', ' : '') + 'Cena ' + (x.cena === 'lerma' ? 'Lerma' : 'Burgos');
+                    return t;
+                });
+                msg += 'Comidas y cenas: ' + partsCom.join('. ') + '\n';
+            }
+            if (datos.tamanioGrupo || datos.horaSalida || datos.numeroGrupos) {
+                var extras = [];
+                if (datos.tamanioGrupo) extras.push('Tamaño grupo: ' + datos.tamanioGrupo);
+                if (datos.horaSalida) extras.push('Hora salida: ' + datos.horaSalida);
+                if (datos.numeroGrupos) extras.push('Nº grupos: ' + datos.numeroGrupos);
+                msg += '\n' + extras.join(' · ');
+            }
             if (corresGrupos.length > 0) msg += '\nCorrespondencias: ' + corresGrupos.map(function (g) { return g.cantidad + ' × ' + g.label; }).join(', ');
             alert(msg);
         });

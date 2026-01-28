@@ -75,24 +75,8 @@
                     <!-- Selección de Hotel (solo si 2+ días) -->
                     <div class="configurador-seccion" id="configurador-hotel-wrap" style="display: none;">
                         <h3 class="configurador-titulo">2. Alojamiento</h3>
-                        <p class="hotel-ciudad-label">¿Dónde te alojas?</p>
-                        <div class="opciones-grid opciones-grid-ciudad">
-                            <label class="opcion-card">
-                                <input type="radio" name="hotel-ciudad" value="lerma" id="hotel-ciudad-lerma" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-icon">🏨</span>
-                                    <span class="opcion-texto">Estancia en Lerma</span>
-                                </div>
-                            </label>
-                            <label class="opcion-card">
-                                <input type="radio" name="hotel-ciudad" value="burgos" id="hotel-ciudad-burgos" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-icon">🏨</span>
-                                    <span class="opcion-texto">Estancia en Burgos</span>
-                                </div>
-                            </label>
-                        </div>
-                        <div id="hotel-por-noche-block" class="hotel-por-noche-block" style="display: none;">
+                        <p class="hotel-ciudad-label">Elige el hotel para cada noche. Puedes combinar Lerma y Burgos (ej.: una noche en Lerma y otra en Burgos).</p>
+                        <div id="hotel-por-noche-block" class="hotel-por-noche-block">
                             <span class="campos-dias-label">Hotel para cada noche:</span>
                             <div id="hoteles-por-noche-container" class="campos-dias-row"></div>
                         </div>
@@ -101,29 +85,32 @@
                     <!-- Opciones de Comida -->
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo">3. Opciones para comer</h3>
-                        <div class="opciones-grid">
-                            <label class="opcion-card">
-                                <input type="radio" name="comida" value="lerma" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-icon">🍽️</span>
-                                    <span class="opcion-texto">Club Social<br>Golf Lerma</span>
-                                </div>
-                            </label>
-                            <label class="opcion-card">
-                                <input type="radio" name="comida" value="burgos" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-icon">🍽️</span>
-                                    <span class="opcion-texto">Restaurantes<br>en Burgos</span>
-                                </div>
-                            </label>
+                        <p class="comida-intro">Indica para cada día si reservas <strong>comida</strong> (almuerzo) y/o <strong>cena</strong>, y dónde.</p>
+                        <div id="comida-por-dia-wrap">
+                            <p class="comida-sin-fechas" id="comida-sin-fechas">Selecciona las fechas en el calendario para indicar comidas y cenas por día.</p>
+                            <div id="comida-por-dia-container" class="comida-por-dia-container" style="display:none;"></div>
                         </div>
                     </div>
 
                     <!-- Datos de Usuarios -->
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo">4. Datos de los participantes</h3>
-                        <p class="configurador-hint">Solo el participante 1 (quien reserva) es obligatorio. Puedes añadir hasta 7 más sin rellenar todos los datos.</p>
-                        <div id="usuarios-container" data-max-participantes="8" data-extra-opcionales="true" data-simplificar-extras="true" data-grupos-correspondencia="true">
+                        <div class="reserva-datos-iniciales">
+                            <div class="form-group-inline">
+                                <label for="tamanio-grupo">Tamaño del grupo</label>
+                                <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" placeholder="Ej. 4" title="Número de jugadores">
+                            </div>
+                            <div class="form-group-inline">
+                                <label for="hora-salida">Hora de salida</label>
+                                <input type="time" id="hora-salida" name="hora_salida" title="Hora preferida de salida">
+                            </div>
+                            <div class="form-group-inline">
+                                <label for="numero-grupos">Nº de grupos</label>
+                                <input type="number" id="numero-grupos" name="numero_grupos" min="1" placeholder="Ej. 2" title="Número de grupos en el campo">
+                            </div>
+                        </div>
+                        <p class="configurador-hint">Solo el participante 1 (quien reserva) es obligatorio. Puedes añadir más participantes si lo deseas.</p>
+                        <div id="usuarios-container" data-extra-opcionales="true" data-simplificar-extras="true" data-grupos-correspondencia="true">
                             <div class="usuario-form usuario-form-reserva" data-usuario="1">
                                 <div class="usuario-form-header"><h4 class="usuario-numero">Participante 1 (quien reserva) *</h4></div>
                                 <div class="usuario-campos">
