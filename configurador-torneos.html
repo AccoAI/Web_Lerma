@@ -62,52 +62,9 @@
             <!-- Configurador de Torneo -->
             <div class="configurador-paquete">
                 <form id="configuradorTorneosForm" class="configurador-form">
-                    <!-- Número de Jugadores -->
+                    <!-- Fechas / noches (calendario) -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">1. Número de jugadores</h3>
-                        <div class="opciones-grid">
-                            <label class="opcion-card">
-                                <input type="radio" name="jugadores" value="2-4" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-numero">2-4</span>
-                                    <span class="opcion-texto">Jugadores</span>
-                                </div>
-                            </label>
-                            <label class="opcion-card">
-                                <input type="radio" name="jugadores" value="5-8" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-numero">5-8</span>
-                                    <span class="opcion-texto">Jugadores</span>
-                                </div>
-                            </label>
-                            <label class="opcion-card">
-                                <input type="radio" name="jugadores" value="9-16" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-numero">9-16</span>
-                                    <span class="opcion-texto">Jugadores</span>
-                                </div>
-                            </label>
-                            <label class="opcion-card">
-                                <input type="radio" name="jugadores" value="17-32" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-numero">17-32</span>
-                                    <span class="opcion-texto">Jugadores</span>
-                                </div>
-                            </label>
-                            <label class="opcion-card">
-                                <input type="radio" name="jugadores" value="33+" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-numero">33+</span>
-                                    <span class="opcion-texto">Jugadores</span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Fecha(s) del torneo -->
-                    <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">2. Fecha(s) del torneo</h3>
-                        <p class="info-text" style="margin-bottom: 1rem;">Elige una o varias fechas en el calendario (clic o arrastra un rango).</p>
+                        <h3 class="configurador-titulo">1. Selecciona tus fechas</h3>
                         <div id="calendario-dias-torneos" class="calendario-dias-container"></div>
                         <div id="campos-dias-torneos" class="campos-dias-selector campos-dias-selector-mini" style="display: none; margin-top: 1rem;">
                             <span class="campos-dias-label">Campo para cada día *</span>
@@ -117,12 +74,22 @@
 
                     <!-- Selección de Hotel (solo si 2+ días) -->
                     <div class="configurador-seccion" id="configurador-hotel-wrap-torneos" style="display: none;">
-                        <h3 class="configurador-titulo">3. Alojamiento</h3>
+                        <h3 class="configurador-titulo">2. Alojamiento</h3>
                         <p class="hotel-ciudad-label">Elige el hotel para cada noche. Puedes combinar Lerma y Burgos (ej.: una noche en Lerma y otra en Burgos).</p>
                         <div id="hotel-por-noche-block-torneos" class="hotel-por-noche-block">
                             <span class="campos-dias-label">Hotel para cada noche:</span>
                             <p class="hotel-noche-hint">Elige primero el <strong>lugar</strong> (Lerma o Burgos) y después el <strong>hotel</strong> de ese lugar.</p>
                             <div id="hoteles-por-noche-container-torneos" class="campos-dias-row"></div>
+                        </div>
+                    </div>
+
+                    <!-- Opciones de Comida -->
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo">3. Opciones para comer</h3>
+                        <p class="comida-intro">Indica para cada día si reservas <strong>comida</strong> (almuerzo) y/o <strong>cena</strong>, y dónde.</p>
+                        <div id="comida-por-dia-wrap-torneos">
+                            <p class="comida-sin-fechas" id="comida-sin-fechas-torneos">Selecciona las fechas en el calendario para indicar comidas y cenas por día.</p>
+                            <div id="comida-por-dia-container-torneos" class="comida-por-dia-container" style="display:none;"></div>
                         </div>
                     </div>
 
@@ -171,9 +138,25 @@
                     <!-- Datos de Usuarios -->
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo">5. Datos de los participantes</h3>
-                        <div id="usuarios-container">
-                            <div class="usuario-form" data-usuario="1">
-                                <h4 class="usuario-numero">Participante 1</h4>
+                        <div class="reserva-datos-iniciales">
+                            <div class="form-group-inline">
+                                <label for="tamanio-grupo-torneos">Tamaño del grupo</label>
+                                <input type="number" id="tamanio-grupo-torneos" name="tamanio_grupo" min="1" placeholder="Ej. 4" title="Número de jugadores">
+                            </div>
+                            <div class="form-group-inline">
+                                <label for="hora-salida-torneos">Hora de salida</label>
+                                <input type="time" id="hora-salida-torneos" name="hora_salida" title="Hora preferida de salida">
+                            </div>
+                            <div class="form-group-inline">
+                                <label for="numero-grupos-output-torneos">Nº de grupos</label>
+                                <output id="numero-grupos-output-torneos" for="tamanio-grupo-torneos" aria-live="polite" aria-readonly="true" tabindex="-1">1</output>
+                                <input type="hidden" name="numero_grupos" id="numero-grupos-torneos">
+                            </div>
+                        </div>
+                        <p class="configurador-hint">Solo los datos de la reserva son obligatorios. Puedes añadir más participantes si lo deseas.</p>
+                        <div id="usuarios-container" data-extra-opcionales="true" data-simplificar-extras="true" data-grupos-correspondencia="true">
+                            <div class="usuario-form usuario-form-reserva" data-usuario="1">
+                                <div class="usuario-form-header"><h4 class="usuario-numero">Datos de la reserva *</h4></div>
                                 <div class="usuario-campos">
                                     <div class="form-group-usuario">
                                         <label>Nombre *</label>
@@ -187,25 +170,22 @@
                                         <label>Móvil *</label>
                                         <input type="tel" name="usuario[1][movil]" required>
                                     </div>
-                                    <div class="form-group form-group-correspondencia" data-campo="paquete">
-                                        <label>Club / Campo de procedencia (para tarifa correspondencia)</label>
-                                        <select name="usuario[1][club_correspondencia]" class="select-club-correspondencia"></select>
-                                        <div class="correspondencia-precio-info"></div>
-                                    </div>
-                                    <div class="form-group-usuario">
-                                        <label>Club</label>
-                                        <input type="text" name="usuario[1][club]">
-                                    </div>
-                                    <div class="form-group-usuario">
-                                        <label>Handicap</label>
-                                        <input type="number" name="usuario[1][handicap]" min="0" max="54" step="0.1">
-                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <button type="button" class="btn-agregar-usuario" id="agregar-usuario">
-                            <span>+</span> Agregar Participante
-                        </button>
+                        <div id="correspondencia-grupos-wrap" class="correspondencia-grupos-wrap" style="display:none;" aria-hidden="true">
+                            <!-- Correspondencias por grupos: se rellena por usuarios-form.js -->
+                        </div>
+                        <div class="handicap-grupo-block">
+                            <label for="handicap-grupo-torneos">Handicap del grupo (orientativo)</label>
+                            <input type="text" id="handicap-grupo-torneos" name="handicap_grupo" placeholder="Ej. 18 o 15-25" title="Handicap aproximado del grupo">
+                        </div>
+                        <div class="agregar-usuario-line">
+                            <button type="button" class="btn-agregar-usuario" id="agregar-usuario">
+                                <span>+</span> Añadir participante
+                            </button>
+                            <span id="participantes-contador" class="participantes-contador" aria-live="polite"></span>
+                        </div>
                     </div>
 
                     <!-- Servicios Adicionales -->

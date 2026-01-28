@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', function() {
     var configuradorHotelWrapTorneos = document.getElementById('configurador-hotel-wrap-torneos');
     var hotelPorNocheBlockTorneos = document.getElementById('hotel-por-noche-block-torneos');
     var hotelesPorNocheContainerTorneos = document.getElementById('hoteles-por-noche-container-torneos');
+    var comidaSinFechasTorneos = document.getElementById('comida-sin-fechas-torneos');
+    var comidaPorDiaContainerTorneos = document.getElementById('comida-por-dia-container-torneos');
 
     function getHotelLabelFromValueTorneos(val) {
         if (!val || val.indexOf('-') < 0) return val || 'Sin reserva';
@@ -117,6 +119,58 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function formatearFechaComidaTorneos(iso) {
+        if (!iso) return '';
+        try {
+            var d = new Date(iso + 'T12:00:00');
+            return d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+        } catch (e) { return ''; }
+    }
+
+    function actualizarBloqueComidaTorneos(count, fechas) {
+        fechas = fechas || [];
+        if (comidaSinFechasTorneos) comidaSinFechasTorneos.style.display = count >= 1 ? 'none' : 'block';
+        if (!comidaPorDiaContainerTorneos) return;
+        if (count < 1) {
+            comidaPorDiaContainerTorneos.style.display = 'none';
+            comidaPorDiaContainerTorneos.innerHTML = '';
+            return;
+        }
+        var prevComida = {}, prevCena = {};
+        for (var i = 1; i <= count; i++) {
+            var sc = form && form.querySelector('select[name="comida_dia_' + i + '"]');
+            var sv = form && form.querySelector('select[name="cena_dia_' + i + '"]');
+            if (sc && sc.value) prevComida[i] = sc.value;
+            if (sv && sv.value) prevCena[i] = sv.value;
+        }
+        comidaPorDiaContainerTorneos.style.display = 'block';
+        comidaPorDiaContainerTorneos.innerHTML = '';
+        var precioComida = (typeof PRECIO_COMIDA !== 'undefined') ? PRECIO_COMIDA : 22;
+        var precioBurgos = (typeof PRECIO_SERVICIO_BURGOS !== 'undefined') ? PRECIO_SERVICIO_BURGOS : 25;
+        for (var i = 1; i <= count; i++) {
+            var fechaStr = formatearFechaComidaTorneos(fechas[i - 1]);
+            var titulo = 'Día ' + i + (fechaStr ? ' <span class="comida-dia-fecha">(' + fechaStr + ')</span>' : '');
+            var optComida = '<option value="">Sin reserva</option><option value="lerma"' + (prevComida[i] === 'lerma' ? ' selected' : '') + '>Lerma · Club Social Golf Lerma · ' + precioComida + ' €</option><option value="burgos"' + (prevComida[i] === 'burgos' ? ' selected' : '') + '>Burgos · Restaurantes · ' + precioBurgos + ' €</option>';
+            var optCena = '<option value="">Sin reserva</option><option value="lerma"' + (prevCena[i] === 'lerma' ? ' selected' : '') + '>Lerma · Club Social Golf Lerma · ' + precioComida + ' €</option><option value="burgos"' + (prevCena[i] === 'burgos' ? ' selected' : '') + '>Burgos · Restaurantes · ' + precioBurgos + ' €</option>';
+            var block = document.createElement('div');
+            block.className = 'comida-dia-block';
+            block.innerHTML = '<div class="comida-dia-titulo">' + titulo + '</div><div class="comida-dia-campos"><div class="form-group-inline"><label>Comida</label><select name="comida_dia_' + i + '">' + optComida + '</select></div><div class="form-group-inline"><label>Cena</label><select name="cena_dia_' + i + '">' + optCena + '</select></div></div>';
+            comidaPorDiaContainerTorneos.appendChild(block);
+        }
+    }
+
+    function recalcNumeroGruposTorneos() {
+        var tg = document.getElementById('tamanio-grupo-torneos');
+        var out = document.getElementById('numero-grupos-output-torneos');
+        var hid = document.getElementById('numero-grupos-torneos');
+        if (!tg) return;
+        var n = parseInt(tg.value, 10);
+        var val = (n >= 1) ? String(Math.ceil(n / 4)) : '';
+        if (out) out.textContent = val;
+        if (hid) hid.value = val;
+        if (typeof actualizarResumenTorneo === 'function') actualizarResumenTorneo();
+    }
+
     if (calendarioContainer && typeof CalendarioDias !== 'undefined') {
         CalendarioDias.init({
             container: calendarioContainer,
@@ -144,6 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (hotelPorNocheBlockTorneos) hotelPorNocheBlockTorneos.style.display = 'none';
                     }
                 }
+                actualizarBloqueComidaTorneos(count, fechas || []);
                 actualizarResumenTorneo();
             }
         });
@@ -162,9 +217,15 @@ document.addEventListener('DOMContentLoaded', function() {
             if (i >= 1) refillHotelSelectTorneos(i, t.value || '');
             return;
         }
+        if (t && t.id === 'tamanio-grupo-torneos') recalcNumeroGruposTorneos();
         actualizarResumenTorneo();
     });
-    form.addEventListener('input', actualizarResumenTorneo);
+    form.addEventListener('input', function(e) {
+        var t = e.target;
+        if (t && t.id === 'tamanio-grupo-torneos') recalcNumeroGruposTorneos();
+        if (t && t.matches && t.matches('#tamanio-grupo-torneos, #hora-salida-torneos, #handicap-grupo-torneos')) actualizarResumenTorneo();
+    });
+    recalcNumeroGruposTorneos();
 
     // Manejar envío del formulario
     form.addEventListener('submit', function(e) {
@@ -197,53 +258,60 @@ function actualizarResumenTorneo() {
     if (!resumenDetalle) return;
 
     const formData = new FormData(form);
-    const jugadores = formData.get('jugadores');
-    const fecha = formData.get('fecha');
     const modalidad = formData.get('modalidad');
-
-    let resumenHTML = '';
-
-    if (jugadores) {
-        resumenHTML += `<p><strong>Número de jugadores:</strong> ${jugadores}</p>`;
-    }
-
     var fechas = formData.getAll('fechas[]');
-    var fecha = formData.get('fecha');
-    var count = fechas ? fechas.length : (fecha ? 1 : 0);
-    
-    if (fechas && fechas.length > 0) {
-        if (fechas.length === 1) {
-            var d = new Date(fechas[0] + 'T00:00:00');
-            resumenHTML += '<p><strong>Fecha:</strong> ' + d.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + '</p>';
-        } else {
-            resumenHTML += '<p><strong>Fechas:</strong> ' + fechas.join(', ') + '</p>';
-        }
-        // Mostrar campos seleccionados por día
-        for (var i = 1; i <= fechas.length; i++) {
-            var c = formData.get('campo-dia-' + i);
-            if (c) resumenHTML += '<p><strong>Día ' + i + ':</strong> ' + (c === 'lerma' ? 'Golf Lerma' : 'Saldaña Golf') + '</p>';
-        }
-    } else if (fecha) {
-        var d = new Date(fecha + 'T00:00:00');
-        resumenHTML += '<p><strong>Fecha:</strong> ' + d.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + '</p>';
+    var count = fechas ? fechas.length : 0;
+
+    var necesitaHotel = count >= 2;
+    var hotelOk = !necesitaHotel || (function () {
+        var n = parseInt((formData.get('noches') || '0'), 10);
+        for (var i = 1; i <= n; i++) { if (!formData.get('hotel-noche-' + i)) return false; }
+        return true;
+    })();
+
+    var nNoches = parseInt((formData.get('noches') || '0'), 10);
+
+    if (count < 1) {
+        resumenDetalle.innerHTML = '<p>Completa las opciones para ver el resumen</p>';
+        return;
     }
 
-    // Mostrar hoteles si hay 2+ días
-    var necesitaHotel = count >= 2;
-    if (necesitaHotel) {
-        var nNoches = parseInt((formData.get('noches') || '0'), 10);
-        if (nNoches >= 1) {
-            var parts = [];
-            for (var i = 1; i <= nNoches; i++) {
-                var v = formData.get('hotel-noche-' + i);
-                if (v) {
-                    var lbl = (typeof window.getHotelLabelFromValueTorneos === 'function') ? window.getHotelLabelFromValueTorneos(v) : v;
-                    parts.push('Noche ' + i + ': ' + lbl);
-                }
+    var resumenHTML = '<div class="resumen-items">';
+    resumenHTML += '<p><strong>Fechas:</strong> ' + (fechas.length ? fechas.join(', ') : '—') + '</p>';
+    
+    for (var i = 1; i <= count; i++) {
+        var c = formData.get('campo-dia-' + i);
+        if (c) resumenHTML += '<p><strong>Día ' + i + ':</strong> ' + (c === 'lerma' ? 'Golf Lerma' : 'Saldaña Golf') + '</p>';
+    }
+
+    if (necesitaHotel && hotelOk) {
+        var n = parseInt((formData.get('noches') || '0'), 10);
+        var parts = [];
+        for (var i = 1; i <= n; i++) {
+            var v = formData.get('hotel-noche-' + i);
+            if (v) {
+                var lbl = (typeof window.getHotelLabelFromValueTorneos === 'function') ? window.getHotelLabelFromValueTorneos(v) : v;
+                parts.push('Noche ' + i + ': ' + lbl);
             }
-            if (parts.length) resumenHTML += '<p><strong>Alojamiento:</strong> ' + parts.join('. ') + '</p>';
+        }
+        if (parts.length) resumenHTML += '<p><strong>Alojamiento:</strong> ' + parts.join('. ') + '</p>';
+    }
+
+    var partesComida = [];
+    var numServicios = 0;
+    for (var ic = 1; ic <= count; ic++) {
+        var com = (formData.get('comida_dia_' + ic) || '').trim();
+        var cen = (formData.get('cena_dia_' + ic) || '').trim();
+        var labCom = (com === 'lerma' ? 'Lerma' : com === 'burgos' ? 'Burgos' : '');
+        var labCen = (cen === 'lerma' ? 'Lerma' : cen === 'burgos' ? 'Burgos' : '');
+        if (labCom || labCen) {
+            var p = 'Día ' + ic + ':';
+            if (labCom) { p += ' Comida ' + labCom; numServicios++; }
+            if (labCen) { p += (labCom ? ', ' : '') + 'Cena ' + labCen; numServicios++; }
+            partesComida.push(p);
         }
     }
+    if (partesComida.length) resumenHTML += '<p><strong>Comidas / cenas:</strong> ' + partesComida.join('. ') + '</p>';
 
     if (modalidad) {
         const modalidades = {
@@ -256,6 +324,26 @@ function actualizarResumenTorneo() {
         resumenHTML += `<p><strong>Modalidad:</strong> ${modalidades[modalidad] || modalidad}</p>`;
     }
 
+    var tg = (formData.get('tamanio_grupo') || '').trim();
+    var hs = (formData.get('hora_salida') || '').trim();
+    var ng = (formData.get('numero_grupos') || '').trim();
+    if (tg || hs || ng) {
+        var partsInit = [];
+        if (tg) partsInit.push('Tamaño del grupo: ' + tg);
+        if (hs) partsInit.push('Hora de salida: ' + hs);
+        if (ng) partsInit.push('Nº de grupos: ' + ng);
+        resumenHTML += '<p><strong>Reserva:</strong> ' + partsInit.join(' · ') + '</p>';
+    }
+
+    var usuarios = form.querySelectorAll('.usuario-form');
+    if (usuarios.length > 0) resumenHTML += '<p><strong>Número de participantes:</strong> ' + usuarios.length + '</p>';
+    
+    var grupos = (typeof getCorrespondenciaGrupos === 'function') ? getCorrespondenciaGrupos(form) : [];
+    if (grupos.length > 0) resumenHTML += '<p><strong>Correspondencias (grupos):</strong> ' + grupos.map(function (g) { return g.cantidad + ' × ' + g.label; }).join(', ') + '</p>';
+    
+    var hg = (formData.get('handicap_grupo') || '').trim();
+    if (hg) resumenHTML += '<p><strong>Handicap del grupo (orientativo):</strong> ' + hg + '</p>';
+
     // Servicios adicionales
     var ancillaries = [];
     if (formData.get('ancillary_buggy')) ancillaries.push('Buggies');
@@ -265,15 +353,7 @@ function actualizarResumenTorneo() {
         resumenHTML += '<p><strong>Servicios adicionales:</strong> ' + ancillaries.join(', ') + '</p>';
     }
 
-    // Agregar información de participantes
-    const usuariosForms = document.querySelectorAll('.usuario-form');
-    if (usuariosForms.length > 0) {
-        resumenHTML += `<p><strong>Número de participantes registrados:</strong> ${usuariosForms.length}</p>`;
-    }
-
-    if (!resumenHTML) {
-        resumenHTML = '<p>Completa el formulario para ver el resumen</p>';
-    }
+    resumenHTML += '</div>';
 
     resumenDetalle.innerHTML = resumenHTML;
 }
