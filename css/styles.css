@@ -1353,6 +1353,17 @@ img {
     box-shadow: var(--shadow);
 }
 
+.usuario-form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.usuario-form-header .usuario-numero {
+    margin-bottom: 0;
+}
+
 .usuario-numero {
     font-family: var(--font-primary);
     font-size: 1.3rem;
@@ -1451,6 +1462,129 @@ img {
     background: #c82333;
     transform: translateY(-1px);
     box-shadow: var(--shadow);
+}
+
+.configurador-hint {
+    color: var(--color-text);
+    font-size: 0.95rem;
+    margin: -0.5rem 0 1rem;
+    opacity: 0.9;
+}
+
+.agregar-usuario-line {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.agregar-usuario-line .btn-agregar-usuario {
+    margin: 0;
+}
+
+.btn-agregar-usuario:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.participantes-contador {
+    font-size: 0.95rem;
+    color: var(--color-text);
+}
+
+/* Correspondencias por grupos (paquete fin de semana) */
+.correspondencia-grupos-wrap {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background: rgba(26, 77, 58, 0.06);
+    border-radius: 10px;
+    border: 1px solid rgba(26, 77, 58, 0.2);
+}
+
+.correspondencia-grupos-titulo {
+    font-size: 1.1rem;
+    color: var(--color-primary);
+    margin: 0 0 0.5rem;
+}
+
+.correspondencia-grupos-hint {
+    font-size: 0.9rem;
+    color: var(--color-text);
+    margin: 0 0 1rem;
+    opacity: 0.9;
+}
+
+.correspondencia-grupos-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.correspondencia-grupos-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.corr-grupo-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.correspondencia-grupos-row .corr-grupo-cantidad {
+    width: 4rem;
+    padding: 0.5rem;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.correspondencia-grupos-row .corr-grupo-club {
+    flex: 1;
+    min-width: 180px;
+    padding: 0.5rem;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.correspondencia-grupos-row .btn-eliminar-grupo {
+    background: transparent;
+    color: #999;
+    border: 1px solid #ddd;
+    padding: 0.35rem 0.6rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.correspondencia-grupos-row .btn-eliminar-grupo:hover {
+    background: #fee;
+    color: #c23;
+    border-color: #fcc;
+}
+
+.btn-anadir-grupo {
+    margin-top: 1rem;
+    background: transparent;
+    color: var(--color-primary);
+    border: 2px dashed rgba(26, 77, 58, 0.5);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-anadir-grupo:hover {
+    background: rgba(26, 77, 58, 0.08);
+    border-color: var(--color-primary);
 }
 
 /* Menú Castellano */

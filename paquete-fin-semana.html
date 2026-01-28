@@ -30,13 +30,10 @@
                         <a href="index.html#inicio" class="nav-link">INICIO</a>
                     </li>
                     <li class="nav-item">
-                        <a href="index.html#campo" class="nav-link">EL CAMPO</a>
+                        <a href="el-campo.html" class="nav-link">EL CAMPO</a>
                     </li>
                     <li class="nav-item">
-                        <a href="index.html#paquetes" class="nav-link">PAQUETES DE GOLF</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="index.html#bodas-eventos" class="nav-link">BODAS Y EVENTOS</a>
+                        <a href="index.html#bodas-eventos" class="nav-link">BODAS, EVENTOS, EMPRESA</a>
                     </li>
                     <li class="nav-item">
                         <a href="simulador.html" class="nav-link">SIMULADOR</a>
@@ -125,9 +122,10 @@
                     <!-- Datos de Usuarios -->
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo">4. Datos de los participantes</h3>
-                        <div id="usuarios-container">
-                            <div class="usuario-form" data-usuario="1">
-                                <h4 class="usuario-numero">Participante 1</h4>
+                        <p class="configurador-hint">Solo el participante 1 (quien reserva) es obligatorio. Puedes añadir hasta 7 más sin rellenar todos los datos.</p>
+                        <div id="usuarios-container" data-max-participantes="8" data-extra-opcionales="true" data-simplificar-extras="true" data-grupos-correspondencia="true">
+                            <div class="usuario-form usuario-form-reserva" data-usuario="1">
+                                <div class="usuario-form-header"><h4 class="usuario-numero">Participante 1 (quien reserva) *</h4></div>
                                 <div class="usuario-campos">
                                     <div class="form-group-usuario">
                                         <label>Nombre *</label>
@@ -157,9 +155,15 @@
                                 </div>
                             </div>
                         </div>
-                        <button type="button" class="btn-agregar-usuario" id="agregar-usuario">
-                            <span>+</span> Agregar Participante
-                        </button>
+                        <div id="correspondencia-grupos-wrap" class="correspondencia-grupos-wrap" style="display:none;" aria-hidden="true">
+                            <!-- Se rellena por usuarios-form.js cuando hay 2+ participantes -->
+                        </div>
+                        <div class="agregar-usuario-line">
+                            <button type="button" class="btn-agregar-usuario" id="agregar-usuario">
+                                <span>+</span> Añadir participante
+                            </button>
+                            <span id="participantes-contador" class="participantes-contador" aria-live="polite"></span>
+                        </div>
                     </div>
 
                     <!-- Resumen y Botón -->

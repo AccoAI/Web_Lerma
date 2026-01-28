@@ -282,6 +282,8 @@ var HOTELES_LABELS = {
 };
 
 var PRECIO_GF_PACK = 90;
+var PRECIO_GF_BASE_LABORABLE = 45;   // cuando no hay correspondencia, día entre semana
+var PRECIO_GF_BASE_FINSEMANA = 45;   // cuando no hay correspondencia, sáb/dom
 var PRECIO_ALOJ_POR_NOCHE = 65;
 var PRECIO_COMIDA = 22;
 var DESCUENTO_PACK_PORC = 15;
@@ -295,6 +297,22 @@ function initConfiguradorPaquete() {
     var configuradorHotelWrap = document.getElementById('configurador-hotel-wrap');
     var hotelPorNocheBlock = document.getElementById('hotel-por-noche-block');
     var hotelesPorNocheContainer = document.getElementById('hoteles-por-noche-container');
+
+    function getCorrespondenciaGrupos(f) {
+        if (!f) return [];
+        var rows = f.querySelectorAll('.correspondencia-grupos-row');
+        var out = [];
+        for (var i = 0; i < rows.length; i++) {
+            var inp = rows[i].querySelector('.corr-grupo-cantidad');
+            var sel = rows[i].querySelector('.corr-grupo-club');
+            var cant = parseInt((inp && inp.value) ? inp.value : '0', 10);
+            var clubId = (sel && sel.value) ? String(sel.value).trim() : '';
+            if (cant < 1) continue;
+            var label = (clubId === 'sin' || !clubId) ? 'Sin correspondencia' : (typeof getClubById === 'function' && getClubById(clubId)) ? getClubById(clubId).nombre : clubId;
+            out.push({ cantidad: cant, club_id: clubId || 'sin', label: label });
+        }
+        return out;
+    }
 
     function generarCamposPorDiaFinSemana(numDias) {
         if (!diasCamposContainerFinSemana) return;
@@ -392,9 +410,11 @@ function initConfiguradorPaquete() {
             if (e.target && e.target.getAttribute('name') === 'hotel-ciudad') actualizarBloqueHotel();
             actualizarResumen();
         });
+        window.actualizarResumen = actualizarResumen;
     }
 
     function actualizarResumen() {
+        if (!form) return;
         var formData = new FormData(form);
         var noches = formData.get('noches');
         var count = (formData.getAll('fechas[]') || []).length;
@@ -437,9 +457,33 @@ function initConfiguradorPaquete() {
 
             var usuarios = form.querySelectorAll('.usuario-form');
             if (usuarios.length > 0) resumenHTML += '<p><strong>Número de participantes:</strong> ' + usuarios.length + '</p>';
+            var grupos = getCorrespondenciaGrupos(form);
+            if (grupos.length > 0) resumenHTML += '<p><strong>Correspondencias (grupos):</strong> ' + grupos.map(function (g) { return g.cantidad + ' × ' + g.label; }).join(', ') + '</p>';
             resumenHTML += '</div>';
 
-            var gf = PRECIO_GF_PACK;
+            // Green fees: precio por día según correspondencia y día de la semana (laborable→Lerma, sáb/dom→Saldaña)
+            var fechasGF = formData.getAll('fechas[]') || [];
+            var clubSel = form.querySelector('select.select-club-correspondencia');
+            var clubId = (clubSel && clubSel.value) ? clubSel.value : '';
+            if (clubId === 'otro') clubId = '';
+            var totalGF = 0;
+            var numGF = Math.min(2, fechasGF.length);
+            for (var idx = 0; idx < numGF; idx++) {
+                var iso = fechasGF[idx];
+                if (!iso) continue;
+                var d = new Date(iso + 'T12:00:00');
+                var dow = d.getDay();
+                var esFinDeSemana = (dow === 0 || dow === 6);
+                var p = null;
+                if (clubId && typeof getPrecioGreenFee === 'function') {
+                    p = getPrecioGreenFee(clubId, esFinDeSemana ? 'saldana' : 'lerma');
+                }
+                if (p == null) p = esFinDeSemana ? PRECIO_GF_BASE_FINSEMANA : PRECIO_GF_BASE_LABORABLE;
+                totalGF += p;
+            }
+            if (numGF === 0) totalGF = PRECIO_GF_PACK;
+            var gf = totalGF;
+
             var aloj = (necesitaHotel && hotelOk) ? (nNoches * PRECIO_ALOJ_POR_NOCHE) : 0;
             var comidaVal = comida ? PRECIO_COMIDA : 0;
             var base = gf + aloj + comidaVal;
@@ -448,7 +492,7 @@ function initConfiguradorPaquete() {
 
             resumenHTML += '<div class="resumen-subtotal">';
             resumenHTML += '<table class="resumen-subtotal-tabla">';
-            resumenHTML += '<tr><td>Green fees (2)</td><td>' + gf + ' €</td></tr>';
+            resumenHTML += '<tr><td>Green fees (' + (numGF > 0 ? numGF : 2) + ')</td><td>' + gf + ' €</td></tr>';
             if (necesitaHotel) {
                 resumenHTML += '<tr><td>Alojamiento (' + nNoches + ' ' + (nNoches === 1 ? 'noche' : 'noches') + ')</td><td>' + (hotelOk ? (aloj + ' €') : '—') + '</td></tr>';
             }
@@ -456,7 +500,7 @@ function initConfiguradorPaquete() {
             resumenHTML += '<tr class="resumen-descuento"><td>Descuento pack (-' + DESCUENTO_PACK_PORC + '%)</td><td>-' + desc + ' €</td></tr>';
             resumenHTML += '<tr class="resumen-total"><td>Subtotal</td><td>' + subtotal + ' €</td></tr>';
             resumenHTML += '</table>';
-            resumenHTML += '<p class="resumen-subtotal-nota">Precios orientativos. Descuento por pack aplicado.</p></div>';
+            resumenHTML += '<p class="resumen-subtotal-nota">Precios orientativos. Descuento por pack aplicado.' + (clubId ? ' Tarifa correspondencia aplicada según día de la semana.' : '') + '</p></div>';
 
             resumenDiv.innerHTML = resumenHTML;
         } else {
@@ -500,13 +544,15 @@ function initConfiguradorPaquete() {
                 var n = parseInt(noches, 10);
                 for (var i = 1; i <= n; i++) { hotelPorNoche[i] = formData.get('hotel-noche-' + i); }
             }
+            var corresGrupos = getCorrespondenciaGrupos(form);
             var datos = {
                 noches: noches,
                 fechas: fechas,
                 camposPorDia: camposPorDia,
                 hotelCiudad: formData.get('hotel-ciudad'),
                 hotelPorNoche: hotelPorNoche,
-                comida: formData.get('comida')
+                comida: formData.get('comida'),
+                correspondenciaGrupos: corresGrupos
             };
 
             var msg = '¡Paquete configurado! Te contactaremos pronto para confirmar tu reserva.\n\nNoches: ' + datos.noches + '\n';
@@ -517,6 +563,7 @@ function initConfiguradorPaquete() {
                 msg += 'Alojamiento: ' + (datos.hotelCiudad === 'lerma' ? 'Lerma' : 'Burgos') + '. ' + parts.join('. ') + '\n';
             }
             msg += 'Comida: ' + (datos.comida === 'lerma' ? 'Club Social Lerma' : 'Burgos');
+            if (corresGrupos.length > 0) msg += '\nCorrespondencias: ' + corresGrupos.map(function (g) { return g.cantidad + ' × ' + g.label; }).join(', ');
             alert(msg);
         });
     }
