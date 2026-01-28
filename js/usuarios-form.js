@@ -35,7 +35,7 @@ function initUsuariosForm() {
             }
         }
         if (gruposCorr && gruposWrap) {
-            if (n >= 2) {
+            if (n >= 1) {
                 gruposWrap.style.display = 'block';
                 gruposWrap.setAttribute('aria-hidden', 'false');
                 if (!gruposWrap.querySelector('.correspondencia-grupos-inner')) inicializarGruposBlock();
@@ -168,7 +168,7 @@ function initUsuariosForm() {
             const titulo = usuario.querySelector('.usuario-numero');
             if (titulo) {
                 if (nuevoNumero === 1 && usuario.classList.contains('usuario-form-reserva')) {
-                    titulo.textContent = 'Participante 1 (quien reserva) *';
+                    titulo.textContent = 'Datos de la reserva *';
                 } else {
                     titulo.textContent = 'Participante ' + nuevoNumero;
                 }

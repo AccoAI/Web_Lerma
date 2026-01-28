@@ -471,11 +471,24 @@ function initConfiguradorPaquete() {
     }
 
     if (form) {
-        form.addEventListener('change', function () { actualizarResumen(); });
+        form.addEventListener('change', function (e) {
+            if (e.target && e.target.id === 'tamanio-grupo') recalcNumeroGrupos();
+            actualizarResumen();
+        });
         form.addEventListener('input', function (e) {
-            if (e.target && e.target.matches && e.target.matches('#tamanio-grupo, #hora-salida, #numero-grupos')) actualizarResumen();
+            var t = e.target;
+            if (t && t.id === 'tamanio-grupo') recalcNumeroGrupos();
+            if (t && t.matches && t.matches('#tamanio-grupo, #hora-salida, #numero-grupos, #handicap-grupo')) actualizarResumen();
         });
         window.actualizarResumen = actualizarResumen;
+    }
+
+    function recalcNumeroGrupos() {
+        var tg = document.getElementById('tamanio-grupo');
+        var ng = document.getElementById('numero-grupos');
+        if (!tg || !ng) return;
+        var n = parseInt(tg.value, 10);
+        ng.value = (n >= 1) ? String(Math.ceil(n / 4)) : '';
     }
 
     function actualizarResumen() {
@@ -495,7 +508,7 @@ function initConfiguradorPaquete() {
         if (nNoches >= 1) {
             var resumenHTML = '<div class="resumen-items">';
             resumenHTML += '<p><strong>Noches:</strong> ' + noches + ' ' + (noches === '1' ? 'noche' : 'noches') + '</p>';
-            resumenHTML += '<p><strong>Green Fees incluidos:</strong> 1 en Golf Lerma + 1 en Saldaña Golf</p>';
+            resumenHTML += '<p><strong>Green Fees incluidos:</strong> 1 en Golf Lerma + 1 en Saldaña Golf <em>(por persona)</em></p>';
 
             var fechas = formData.getAll('fechas[]');
             if (fechas && fechas.length > 0) {
@@ -546,13 +559,23 @@ function initConfiguradorPaquete() {
             if (usuarios.length > 0) resumenHTML += '<p><strong>Número de participantes:</strong> ' + usuarios.length + '</p>';
             var grupos = getCorrespondenciaGrupos(form);
             if (grupos.length > 0) resumenHTML += '<p><strong>Correspondencias (grupos):</strong> ' + grupos.map(function (g) { return g.cantidad + ' × ' + g.label; }).join(', ') + '</p>';
+            var hg = (formData.get('handicap_grupo') || '').trim();
+            if (hg) resumenHTML += '<p><strong>Handicap del grupo (orientativo):</strong> ' + hg + '</p>';
             resumenHTML += '</div>';
 
-            // Green fees: precio por día según correspondencia y día de la semana (laborable→Lerma, sáb/dom→Saldaña)
+            var numParticipants = Math.max(1, parseInt((formData.get('tamanio_grupo') || '').trim(), 10) || form.querySelectorAll('.usuario-form').length);
+            var formaPago = ((formData.get('forma_pago') || 'unico').trim() || 'unico');
+
+            // Green fees: precio por día según correspondencia y día de la semana (laborable→Lerma, sáb/dom→Saldaña). Por persona.
+            // Club para tarifa: primer grupo de correspondencias con club (no "sin"); si no, sin correspondencia.
+            var clubId = '';
+            for (var gi = 0; gi < grupos.length; gi++) {
+                if (grupos[gi].club_id && grupos[gi].club_id !== 'sin') {
+                    clubId = grupos[gi].club_id;
+                    break;
+                }
+            }
             var fechasGF = formData.getAll('fechas[]') || [];
-            var clubSel = form.querySelector('select.select-club-correspondencia');
-            var clubId = (clubSel && clubSel.value) ? clubSel.value : '';
-            if (clubId === 'otro') clubId = '';
             var totalGF = 0;
             var numGF = Math.min(2, fechasGF.length);
             for (var idx = 0; idx < numGF; idx++) {
@@ -569,35 +592,46 @@ function initConfiguradorPaquete() {
                 totalGF += p;
             }
             if (numGF === 0) totalGF = PRECIO_GF_PACK;
-            var gf = totalGF;
+            var gf = totalGF * numParticipants;
 
             var aloj = (necesitaHotel && hotelOk) ? (nNoches * PRECIO_ALOJ_POR_NOCHE) : 0;
-            var comidaVal = 0;
+
+            var numServicios = 0;
             for (var iv = 1; iv <= count; iv++) {
                 var cv = (formData.get('comida_dia_' + iv) || '').trim();
                 var cev = (formData.get('cena_dia_' + iv) || '').trim();
-                if (cv === 'lerma' || cv === 'burgos') comidaVal += PRECIO_COMIDA;
-                if (cev === 'lerma' || cev === 'burgos') comidaVal += PRECIO_COMIDA;
+                if (cv === 'lerma' || cv === 'burgos') numServicios++;
+                if (cev === 'lerma' || cev === 'burgos') numServicios++;
             }
+            var comidaVal = numServicios * PRECIO_COMIDA * numParticipants;
+
             var base = gf + aloj + comidaVal;
             var desc = Math.round(base * DESCUENTO_PACK_PORC / 100);
             var subtotal = base - desc;
 
             resumenHTML += '<div class="resumen-subtotal">';
             resumenHTML += '<table class="resumen-subtotal-tabla">';
-            resumenHTML += '<tr><td>Green fees (' + (numGF > 0 ? numGF : 2) + ')</td><td>' + gf + ' €</td></tr>';
+            resumenHTML += '<tr><td>Green fees (' + (numGF > 0 ? numGF : 2) + (numParticipants > 1 ? ' × ' + numParticipants + ' pers.' : '') + ')</td><td>' + gf + ' €</td></tr>';
             if (necesitaHotel) {
                 resumenHTML += '<tr><td>Alojamiento (' + nNoches + ' ' + (nNoches === 1 ? 'noche' : 'noches') + ')</td><td>' + (hotelOk ? (aloj + ' €') : '—') + '</td></tr>';
             }
-            resumenHTML += '<tr><td>Comidas y cenas' + (comidaVal > 0 ? ' (' + (comidaVal / PRECIO_COMIDA) + ')' : '') + '</td><td>' + (comidaVal > 0 ? comidaVal + ' €' : '—') + '</td></tr>';
+            resumenHTML += '<tr><td>Comidas y cenas' + (comidaVal > 0 ? ' (' + numServicios + (numParticipants > 1 ? ' × ' + numParticipants + ' pers.' : '') + ')' : '') + '</td><td>' + (comidaVal > 0 ? comidaVal + ' €' : '—') + '</td></tr>';
             resumenHTML += '<tr class="resumen-descuento"><td>Descuento pack (-' + DESCUENTO_PACK_PORC + '%)</td><td>-' + desc + ' €</td></tr>';
             resumenHTML += '<tr class="resumen-total"><td>Subtotal</td><td>' + subtotal + ' €</td></tr>';
+            if (formaPago === 'por_persona' && numParticipants > 1) {
+                resumenHTML += '<tr class="resumen-por-persona"><td>Importe por persona (' + numParticipants + ')</td><td>' + (Math.round((subtotal / numParticipants) * 100) / 100) + ' €</td></tr>';
+            }
             resumenHTML += '</table>';
-            resumenHTML += '<p class="resumen-subtotal-nota">Precios orientativos. Descuento por pack aplicado.' + (clubId ? ' Tarifa correspondencia aplicada según día de la semana.' : '') + '</p></div>';
+            resumenHTML += '<p class="resumen-subtotal-nota">Precios orientativos. Descuento por pack aplicado.' + (clubId ? ' Tarifa correspondencia aplicada según día de la semana.' : '') + ' Forma de pago: ' + (formaPago === 'por_persona' ? 'por persona (enlaces individuales).' : 'único.') + '</p></div>';
 
             resumenDiv.innerHTML = resumenHTML;
         } else {
             resumenDiv.innerHTML = '<p>Completa las opciones para ver el resumen</p>';
+        }
+        var notaEl = document.getElementById('forma-pago-nota');
+        if (notaEl) {
+            var fp = ((formData.get('forma_pago') || 'unico').trim() || 'unico');
+            notaEl.style.display = fp === 'por_persona' ? 'block' : 'none';
         }
     }
 
@@ -639,6 +673,7 @@ function initConfiguradorPaquete() {
                 var cnd = (formData.get('cena_dia_' + icd) || '').trim();
                 if (cpd || cnd) comidaPorDia.push({ dia: icd, comida: cpd || null, cena: cnd || null });
             }
+            var formaPagoSubmit = ((formData.get('forma_pago') || 'unico').trim() || 'unico');
             var datos = {
                 noches: noches,
                 fechas: fechas,
@@ -648,7 +683,9 @@ function initConfiguradorPaquete() {
                 correspondenciaGrupos: corresGrupos,
                 tamanioGrupo: (formData.get('tamanio_grupo') || '').trim() || null,
                 horaSalida: (formData.get('hora_salida') || '').trim() || null,
-                numeroGrupos: (formData.get('numero_grupos') || '').trim() || null
+                numeroGrupos: (formData.get('numero_grupos') || '').trim() || null,
+                formaPago: formaPagoSubmit,
+                handicapGrupo: (formData.get('handicap_grupo') || '').trim() || null
             };
 
             var msg = '¡Paquete configurado! Te contactaremos pronto para confirmar tu reserva.\n\nNoches: ' + datos.noches + '\n';
@@ -673,6 +710,8 @@ function initConfiguradorPaquete() {
                 if (datos.numeroGrupos) extras.push('Nº grupos: ' + datos.numeroGrupos);
                 msg += '\n' + extras.join(' · ');
             }
+            msg += '\nForma de pago: ' + (formaPagoSubmit === 'por_persona' ? 'Pago por persona (cada uno recibirá un enlace para abonar su parte)' : 'Pago único');
+            if (datos.handicapGrupo) msg += '\nHandicap del grupo (orientativo): ' + datos.handicapGrupo;
             if (corresGrupos.length > 0) msg += '\nCorrespondencias: ' + corresGrupos.map(function (g) { return g.cantidad + ' × ' + g.label; }).join(', ');
             alert(msg);
         });

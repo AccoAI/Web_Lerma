@@ -106,13 +106,13 @@
                             </div>
                             <div class="form-group-inline">
                                 <label for="numero-grupos">Nº de grupos</label>
-                                <input type="number" id="numero-grupos" name="numero_grupos" min="1" placeholder="Ej. 2" title="Número de grupos en el campo">
+                                <input type="number" id="numero-grupos" name="numero_grupos" min="1" placeholder="1 por cada 4" title="Se calcula: 1 grupo por cada 4 jugadores (7→2, 8→2, 9→3). Puedes editarlo.">
                             </div>
                         </div>
-                        <p class="configurador-hint">Solo el participante 1 (quien reserva) es obligatorio. Puedes añadir más participantes si lo deseas.</p>
+                        <p class="configurador-hint">Solo los datos de la reserva son obligatorios. Puedes añadir más participantes si lo deseas.</p>
                         <div id="usuarios-container" data-extra-opcionales="true" data-simplificar-extras="true" data-grupos-correspondencia="true">
                             <div class="usuario-form usuario-form-reserva" data-usuario="1">
-                                <div class="usuario-form-header"><h4 class="usuario-numero">Participante 1 (quien reserva) *</h4></div>
+                                <div class="usuario-form-header"><h4 class="usuario-numero">Datos de la reserva *</h4></div>
                                 <div class="usuario-campos">
                                     <div class="form-group-usuario">
                                         <label>Nombre *</label>
@@ -126,24 +126,15 @@
                                         <label>Móvil *</label>
                                         <input type="tel" name="usuario[1][movil]" required>
                                     </div>
-                                    <div class="form-group form-group-correspondencia" data-campo="paquete">
-                                        <label>Club / Campo de procedencia (para tarifa correspondencia)</label>
-                                        <select name="usuario[1][club_correspondencia]" class="select-club-correspondencia"></select>
-                                        <div class="correspondencia-precio-info"></div>
-                                    </div>
-                                    <div class="form-group-usuario">
-                                        <label>Club</label>
-                                        <input type="text" name="usuario[1][club]">
-                                    </div>
-                                    <div class="form-group-usuario">
-                                        <label>Handicap</label>
-                                        <input type="number" name="usuario[1][handicap]" min="0" max="54" step="0.1">
-                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div id="correspondencia-grupos-wrap" class="correspondencia-grupos-wrap" style="display:none;" aria-hidden="true">
-                            <!-- Se rellena por usuarios-form.js cuando hay 2+ participantes -->
+                            <!-- Correspondencias por grupos: se rellena por usuarios-form.js -->
+                        </div>
+                        <div class="handicap-grupo-block">
+                            <label for="handicap-grupo">Handicap del grupo (orientativo)</label>
+                            <input type="text" id="handicap-grupo" name="handicap_grupo" placeholder="Ej. 18 o 15-25" title="Handicap aproximado del grupo">
                         </div>
                         <div class="agregar-usuario-line">
                             <button type="button" class="btn-agregar-usuario" id="agregar-usuario">
@@ -151,6 +142,30 @@
                             </button>
                             <span id="participantes-contador" class="participantes-contador" aria-live="polite"></span>
                         </div>
+                    </div>
+
+                    <!-- Forma de pago -->
+                    <div class="forma-pago-block">
+                        <p class="forma-pago-label">Forma de pago</p>
+                        <div class="opciones-grid opciones-grid-2">
+                            <label class="opcion-card opcion-card-compact">
+                                <input type="radio" name="forma_pago" value="unico" checked>
+                                <div class="opcion-content">
+                                    <span class="opcion-icon">💳</span>
+                                    <span class="opcion-texto">Pago único</span>
+                                    <span class="opcion-desc">Una sola transacción por el importe total</span>
+                                </div>
+                            </label>
+                            <label class="opcion-card opcion-card-compact">
+                                <input type="radio" name="forma_pago" value="por_persona">
+                                <div class="opcion-content">
+                                    <span class="opcion-icon">🔗</span>
+                                    <span class="opcion-texto">Pago por persona</span>
+                                    <span class="opcion-desc">Cada uno recibe un enlace para pagar su parte (como Playtomic)</span>
+                                </div>
+                            </label>
+                        </div>
+                        <p class="forma-pago-nota" id="forma-pago-nota" style="display:none;">Cada participante recibirá por correo un enlace para abonar su parte. El importe por persona = subtotal ÷ número de participantes.</p>
                     </div>
 
                     <!-- Resumen y Botón -->
