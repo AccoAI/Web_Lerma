@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const camposDiasContainer = document.getElementById('campos-dias-ryder');
     const diasCamposContainer = document.getElementById('dias-campos-container-ryder');
     const calendarioContainer = document.getElementById('calendario-dias-ryder');
+    const configuradorHotelWrapRyder = document.getElementById('configurador-hotel-wrap-ryder');
     const hotelPorNocheBlockRyder = document.getElementById('hotel-por-noche-block-ryder');
     const hotelesPorNocheContainerRyder = document.getElementById('hoteles-por-noche-container-ryder');
 
@@ -82,12 +83,27 @@ document.addEventListener('DOMContentLoaded', () => {
         actualizarResumenRyder();
     }
 
+    function actualizarBloqueHotelRyder() {
+        var noches = parseInt(((form && form.querySelector('input[name="noches"]')) || {}).value || '0', 10);
+        if (configuradorHotelWrapRyder) {
+            if (noches >= 1) {
+                configuradorHotelWrapRyder.style.display = 'block';
+                if (hotelPorNocheBlockRyder) hotelPorNocheBlockRyder.style.display = 'block';
+                generarHotelesPorNocheRyder(noches);
+            } else {
+                configuradorHotelWrapRyder.style.display = 'none';
+                if (hotelPorNocheBlockRyder) hotelPorNocheBlockRyder.style.display = 'none';
+            }
+        }
+    }
+
     if (calendarioContainer && form && typeof CalendarioDias !== 'undefined') {
         CalendarioDias.init({
             container: calendarioContainer,
             form: form,
             nameDias: 'dias-juego',
             nameFechas: 'fechas[]',
+            nameNoches: 'noches',
             maxSeleccion: 10,
             onChange: function (count, fechas) {
                 if (camposDiasContainer) {
@@ -96,6 +112,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         generarCamposPorDia(count);
                     } else {
                         camposDiasContainer.style.display = 'none';
+                    }
+                }
+                if (configuradorHotelWrapRyder) {
+                    if (count >= 2) {
+                        actualizarBloqueHotelRyder();
+                    } else {
+                        configuradorHotelWrapRyder.style.display = 'none';
+                        if (hotelPorNocheBlockRyder) hotelPorNocheBlockRyder.style.display = 'none';
+                        if (hotelesPorNocheContainerRyder) hotelesPorNocheContainerRyder.innerHTML = '';
                     }
                 }
                 actualizarResumenRyder();
@@ -130,11 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (form) {
         form.addEventListener('change', function (e) {
             var t = e.target;
-            if (t && t.name && t.name === 'noches') {
-                var n = parseInt(t.value, 10);
-                if (n >= 1) generarHotelesPorNocheRyder(n);
-                return;
-            }
             if (t && t.name && t.name.indexOf('lugar-noche-') === 0) {
                 var i = parseInt(t.name.replace('lugar-noche-', ''), 10);
                 if (i >= 1) refillHotelSelectRyder(i, t.value || '');
@@ -147,8 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    generarHotelesPorNocheRyder(1);
-
     function actualizarResumenRyder() {
         const formData = new FormData(form);
         const diasJuego = formData.get('dias-juego');
@@ -157,8 +175,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const transporte = formData.get('transporte');
 
         var nNoches = parseInt(noches || '0', 10);
-        var hotelOk = nNoches >= 1;
-        if (hotelOk) {
+        var sectionAlojamientoShown = formData.get('hotel-noche-1') !== null;
+        var hotelOk = true;
+        if (nNoches >= 1 && sectionAlojamientoShown) {
             for (var i = 1; i <= nNoches; i++) {
                 if (!formData.get('hotel-noche-' + i)) { hotelOk = false; break; }
             }
@@ -175,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (cuboVal === 'cervezas') ancillaries.push('Cubo premium: Cubo de cervezas');
         else if (cuboVal === 'vino_blanco') ancillaries.push('Cubo premium: Vino blanco');
 
-        if (diasJuego && noches && hotelOk && comida && transporte) {
+        if (diasJuego && hotelOk && comida && transporte) {
             var resumenHTML = '<div class="resumen-items">';
 
             resumenHTML += '<p><strong>Días de juego:</strong> ' + diasJuego + ' ' + (diasJuego === '1' ? 'día' : 'días') + '</p>';
@@ -189,13 +208,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            resumenHTML += '<p><strong>Noches:</strong> ' + noches + ' ' + (noches === '1' ? 'noche' : 'noches') + '</p>';
-            var parts = [];
-            for (var k = 1; k <= nNoches; k++) {
-                var v = formData.get('hotel-noche-' + k);
-                if (v) parts.push('Noche ' + k + ': ' + getHotelLabelFromValueRyder(v));
+            if (sectionAlojamientoShown && nNoches >= 1) {
+                resumenHTML += '<p><strong>Noches:</strong> ' + noches + ' ' + (noches === '1' ? 'noche' : 'noches') + '</p>';
+                var parts = [];
+                for (var k = 1; k <= nNoches; k++) {
+                    var v = formData.get('hotel-noche-' + k);
+                    if (v) parts.push('Noche ' + k + ': ' + getHotelLabelFromValueRyder(v));
+                }
+                if (parts.length) resumenHTML += '<p><strong>Alojamiento:</strong> ' + parts.join('. ') + '</p>';
             }
-            if (parts.length) resumenHTML += '<p><strong>Alojamiento:</strong> ' + parts.join('. ') + '</p>';
 
             var comidaTexto = '';
             if (comida === 'lerma') comidaTexto = 'Comida en Lerma';
