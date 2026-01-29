@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const configuradorHotelWrapRyder = document.getElementById('configurador-hotel-wrap-ryder');
     const hotelPorNocheBlockRyder = document.getElementById('hotel-por-noche-block-ryder');
     const hotelesPorNocheContainerRyder = document.getElementById('hoteles-por-noche-container-ryder');
+    const comidaSinFechasRyder = document.getElementById('comida-sin-fechas-ryder');
+    const comidaPorDiaContainerRyder = document.getElementById('comida-por-dia-container-ryder');
 
     function getHotelLabelFromValueRyder(val) {
         if (!val || val.indexOf('-') < 0) return val || 'Sin reserva';
@@ -97,6 +99,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function formatearFechaComidaRyder(iso) {
+        if (!iso) return '';
+        try {
+            var d = new Date(iso + 'T12:00:00');
+            return d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+        } catch (e) { return ''; }
+    }
+
+    function actualizarBloqueComidaRyder(count, fechas) {
+        fechas = fechas || [];
+        if (comidaSinFechasRyder) comidaSinFechasRyder.style.display = count >= 1 ? 'none' : 'block';
+        if (!comidaPorDiaContainerRyder) return;
+        if (count < 1) {
+            comidaPorDiaContainerRyder.style.display = 'none';
+            comidaPorDiaContainerRyder.innerHTML = '';
+            return;
+        }
+        var prevComida = {}, prevCena = {};
+        for (var i = 1; i <= count; i++) {
+            var sc = form && form.querySelector('select[name="comida_dia_' + i + '"]');
+            var sv = form && form.querySelector('select[name="cena_dia_' + i + '"]');
+            if (sc && sc.value) prevComida[i] = sc.value;
+            if (sv && sv.value) prevCena[i] = sv.value;
+        }
+        comidaPorDiaContainerRyder.style.display = 'block';
+        comidaPorDiaContainerRyder.innerHTML = '';
+        var precioComida = (typeof PRECIO_COMIDA !== 'undefined') ? PRECIO_COMIDA : 22;
+        var precioBurgos = (typeof PRECIO_SERVICIO_BURGOS !== 'undefined') ? PRECIO_SERVICIO_BURGOS : 25;
+        for (var i = 1; i <= count; i++) {
+            var fechaStr = formatearFechaComidaRyder(fechas[i - 1]);
+            var titulo = 'Día ' + i + (fechaStr ? ' <span class="comida-dia-fecha">(' + fechaStr + ')</span>' : '');
+            var optComida = '<option value="">Sin reserva</option><option value="lerma"' + (prevComida[i] === 'lerma' ? ' selected' : '') + '>Lerma · Club Social Golf Lerma · ' + precioComida + ' €</option><option value="burgos"' + (prevComida[i] === 'burgos' ? ' selected' : '') + '>Burgos · Restaurantes · ' + precioBurgos + ' €</option>';
+            var optCena = '<option value="">Sin reserva</option><option value="lerma"' + (prevCena[i] === 'lerma' ? ' selected' : '') + '>Lerma · Club Social Golf Lerma · ' + precioComida + ' €</option><option value="burgos"' + (prevCena[i] === 'burgos' ? ' selected' : '') + '>Burgos · Restaurantes · ' + precioBurgos + ' €</option>';
+            var block = document.createElement('div');
+            block.className = 'comida-dia-block';
+            block.innerHTML = '<div class="comida-dia-titulo">' + titulo + '</div><div class="comida-dia-campos"><div class="form-group-inline"><label>Comida</label><select name="comida_dia_' + i + '">' + optComida + '</select></div><div class="form-group-inline"><label>Cena</label><select name="cena_dia_' + i + '">' + optCena + '</select></div></div>';
+            comidaPorDiaContainerRyder.appendChild(block);
+        }
+        actualizarResumenRyder();
+    }
+
     if (calendarioContainer && form && typeof CalendarioDias !== 'undefined') {
         CalendarioDias.init({
             container: calendarioContainer,
@@ -123,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (hotelesPorNocheContainerRyder) hotelesPorNocheContainerRyder.innerHTML = '';
                     }
                 }
+                actualizarBloqueComidaRyder(count, fechas || []);
                 actualizarResumenRyder();
             }
         });
@@ -171,7 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData(form);
         const diasJuego = formData.get('dias-juego');
         const noches = formData.get('noches');
-        const comida = formData.get('comida');
         const transporte = formData.get('transporte');
 
         var nNoches = parseInt(noches || '0', 10);
@@ -194,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (cuboVal === 'cervezas') ancillaries.push('Cubo premium: Cubo de cervezas');
         else if (cuboVal === 'vino_blanco') ancillaries.push('Cubo premium: Vino blanco');
 
-        if (diasJuego && hotelOk && comida && transporte) {
+        if (diasJuego && hotelOk && transporte) {
             var resumenHTML = '<div class="resumen-items">';
 
             resumenHTML += '<p><strong>Días de juego:</strong> ' + diasJuego + ' ' + (diasJuego === '1' ? 'día' : 'días') + '</p>';
@@ -218,11 +261,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (parts.length) resumenHTML += '<p><strong>Alojamiento:</strong> ' + parts.join('. ') + '</p>';
             }
 
-            var comidaTexto = '';
-            if (comida === 'lerma') comidaTexto = 'Comida en Lerma';
-            else if (comida === 'pack-huevos-morcilla') comidaTexto = 'Pack Huevos + Morcilla';
-            else if (comida === 'pack-cochinillo') comidaTexto = 'Pack Cochinillo';
-            resumenHTML += '<p><strong>Pack de comida:</strong> ' + comidaTexto + '</p>';
+            var numDiasResumen = parseInt(diasJuego, 10);
+            var partesComida = [];
+            for (var ic = 1; ic <= numDiasResumen; ic++) {
+                var com = (formData.get('comida_dia_' + ic) || '').trim();
+                var cen = (formData.get('cena_dia_' + ic) || '').trim();
+                var labCom = (com === 'lerma' ? 'Lerma' : com === 'burgos' ? 'Burgos' : '');
+                var labCen = (cen === 'lerma' ? 'Lerma' : cen === 'burgos' ? 'Burgos' : '');
+                if (labCom || labCen) {
+                    var p = 'Día ' + ic + ':';
+                    if (labCom) p += ' Comida ' + labCom;
+                    if (labCen) p += (labCom ? ', ' : '') + 'Cena ' + labCen;
+                    partesComida.push(p);
+                }
+            }
+            if (partesComida.length) resumenHTML += '<p><strong>Comidas / cenas:</strong> ' + partesComida.join('. ') + '</p>';
 
             resumenHTML += '<p><strong>Transporte desde Madrid:</strong> ' + (transporte === 'si' ? 'Sí (hasta 12 personas)' : 'No') + '</p>';
 
@@ -258,12 +311,17 @@ document.addEventListener('DOMContentLoaded', () => {
             for (var i = 1; i <= nNoches; i++) {
                 hoteles.push({ noche: i, hotel: formData.get('hotel-noche-' + i), lugar: formData.get('lugar-noche-' + i) });
             }
+            var numDiasSubmit = parseInt(diasJuego || '0', 10);
+            var comidasPorDia = [];
+            for (var j = 1; j <= numDiasSubmit; j++) {
+                comidasPorDia.push({ dia: j, comida: formData.get('comida_dia_' + j) || '', cena: formData.get('cena_dia_' + j) || '' });
+            }
             var datos = {
                 diasJuego: diasJuego,
                 fechas: formData.getAll('fechas[]'),
                 noches: formData.get('noches'),
                 hotelesPorNoche: hoteles,
-                comida: formData.get('comida'),
+                comidasPorDia: comidasPorDia,
                 transporte: formData.get('transporte'),
                 ancillaries: {
                     bolas_personalizadas: formData.get('ancillary_bolas_personalizadas') === '1',

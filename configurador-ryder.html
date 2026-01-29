@@ -84,32 +84,13 @@
                         </div>
                     </div>
 
-                    <!-- Pack de Comida -->
+                    <!-- Opciones para comer (igual que torneos / paquete fin de semana) -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">3. Pack de comida</h3>
-                        <p class="info-text" style="margin-bottom: 1.5rem;">Puedes elegir entre comida en Lerma o bien pack de huevos + morcilla o de cochinillo</p>
-                        <div class="opciones-grid">
-                            <label class="opcion-card">
-                                <input type="radio" name="comida" value="lerma" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-icon">🍽️</span>
-                                    <span class="opcion-texto">Comida en Lerma</span>
-                                </div>
-                            </label>
-                            <label class="opcion-card">
-                                <input type="radio" name="comida" value="pack-huevos-morcilla" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-icon">🥚</span>
-                                    <span class="opcion-texto">Pack Huevos + Morcilla</span>
-                                </div>
-                            </label>
-                            <label class="opcion-card">
-                                <input type="radio" name="comida" value="pack-cochinillo" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-icon">🍖</span>
-                                    <span class="opcion-texto">Pack Cochinillo</span>
-                                </div>
-                            </label>
+                        <h3 class="configurador-titulo">3. Opciones para comer</h3>
+                        <p class="comida-intro">Indica para cada día si reservas <strong>comida</strong> (almuerzo) y/o <strong>cena</strong>, y dónde.</p>
+                        <div id="comida-por-dia-wrap-ryder">
+                            <p class="comida-sin-fechas" id="comida-sin-fechas-ryder">Selecciona las fechas en el calendario para indicar comidas y cenas por día.</p>
+                            <div id="comida-por-dia-container-ryder" class="comida-por-dia-container" style="display:none;"></div>
                         </div>
                     </div>
 
