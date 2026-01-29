@@ -839,6 +839,96 @@ img {
     opacity: 0.95;
 }
 
+/* Modalidad: tarjetas compactas y serias */
+.modalidad-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.modalidad-card {
+    display: block;
+    cursor: pointer;
+    position: relative;
+}
+
+.modalidad-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.modalidad-content {
+    background: var(--color-bg-light);
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 0.75rem;
+    text-align: center;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.modalidad-card:hover .modalidad-content {
+    border-color: var(--color-primary);
+}
+
+.modalidad-card input[type="radio"]:checked + .modalidad-content {
+    border-color: var(--color-primary);
+    border-width: 2px;
+    box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.modalidad-img-wrap {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #e8e8e8;
+}
+
+.modalidad-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.modalidad-titulo {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.modalidad-card input[type="radio"]:checked + .modalidad-content .modalidad-titulo {
+    color: var(--color-primary);
+}
+
+.modalidad-desc {
+    font-size: 0.7rem;
+    line-height: 1.35;
+    color: var(--color-text-light);
+}
+
+.modalidad-card input[type="radio"]:checked + .modalidad-content .modalidad-desc {
+    color: var(--color-text);
+}
+
+@media (max-width: 900px) {
+    .modalidad-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 500px) {
+    .modalidad-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .forma-pago-nota {
     font-size: 0.9rem;
     color: var(--color-text);

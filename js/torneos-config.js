@@ -316,7 +316,6 @@ function actualizarResumenTorneo() {
     if (modalidad) {
         const modalidades = {
             'golf': 'Golf',
-            'frisbee-golf': 'Frisbee Golf',
             'foot-golf': 'Foot Golf',
             'disc-golf': 'Disc Golf',
             'pitch-putt': 'Pitch and Putt'
