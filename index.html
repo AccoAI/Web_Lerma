@@ -272,6 +272,22 @@
         </div>
     </footer>
 
+    <!-- Popup torneos (portada): se muestra si data/torneos-popup.json tiene popupActivo -->
+    <div class="torneos-popup-overlay" id="torneosPopup" role="dialog" aria-labelledby="torneosPopupTitulo" aria-modal="true" hidden>
+        <div class="torneos-popup">
+            <button type="button" class="torneos-popup-close" id="torneosPopupClose" aria-label="Cerrar">×</button>
+            <h2 class="torneos-popup-titulo" id="torneosPopupTitulo">Próximos torneos</h2>
+            <p class="torneos-popup-subtitulo" id="torneosPopupSubtitulo" hidden></p>
+            <div class="torneos-popup-imagen-wrap" id="torneosPopupImagenWrap" hidden></div>
+            <div class="torneos-popup-texto-wrap" id="torneosPopupTextoWrap" hidden><p class="torneos-popup-texto" id="torneosPopupTexto"></p></div>
+            <div class="torneos-popup-list" id="torneosPopupList"></div>
+            <a href="#" class="torneos-popup-link" id="torneosPopupLink" hidden>Más información</a>
+            <label class="torneos-popup-no-hoy">
+                <input type="checkbox" id="torneosPopupNoHoy" /> No volver a mostrar hoy
+            </label>
+        </div>
+    </div>
+
     <!-- Cookie Consent (se mostrará con JavaScript) -->
     <div class="cookie-consent" id="cookieConsent">
         <div class="cookie-content">
@@ -287,6 +303,7 @@
     </div>
 
     <script src="js/main.js"></script>
+    <script src="js/torneos-popup.js"></script>
 </body>
 </html>
 
