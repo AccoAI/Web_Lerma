@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Área de socios - Acceso exclusivo Golf Lerma y Saldaña Golf">
+    <meta name="description" content="Área de socios - Acceso exclusivo Golf Lerma y Saldaña Golf. Ranking, Hall of Fame, amigos y estadísticas.">
     <title>Área Socio | Golf Lerma</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -41,12 +41,12 @@
         </div>
     </header>
 
-    <!-- Área Socio - Login -->
-    <section class="area-socio-login" style="margin-top: 70px; padding: 4rem 0;">
+    <!-- Login (visible cuando no hay sesión) -->
+    <section id="area-socio-login-section" class="area-socio-login" style="margin-top: 70px; padding: 4rem 0;">
         <div class="container">
             <div class="area-socio-card">
                 <h1 class="section-title">Área Socio</h1>
-                <p class="area-socio-intro">Acceso exclusivo para socios de Golf Lerma y Saldaña Golf.</p>
+                <p class="area-socio-intro">Acceso exclusivo para socios de Golf Lerma y Saldaña Golf. Ranking, Hall of Fame, amigos y tus estadísticas.</p>
                 <form id="formLogin" class="area-socio-form">
                     <div class="form-group">
                         <label>Usuario</label>
@@ -56,9 +56,58 @@
                         <label>Contraseña</label>
                         <input type="password" name="password" required autocomplete="current-password" placeholder="Introduzca su contraseña">
                     </div>
+                    <p class="area-socio-demo">Usuario demo: <code>socio</code> / <code>golf2024</code></p>
                     <button type="submit" class="btn-area-socio-entrar">Entrar</button>
                     <p class="area-socio-olvido"><a href="#">¿Olvidó su contraseña?</a></p>
                 </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard (visible cuando hay sesión) -->
+    <section id="area-socio-dashboard-section" class="area-socio-dashboard" hidden style="margin-top: 70px; padding: 2rem 0 4rem;">
+        <div class="container">
+            <div class="area-socio-dashboard-header">
+                <h1 class="section-title">Área Socio</h1>
+                <nav class="area-socio-nav">
+                    <a href="#vista-dashboard" class="area-socio-nav-link activo">Inicio</a>
+                    <a href="#vista-hall" class="area-socio-nav-link">Hall of Fame</a>
+                    <a href="#vista-amigos" class="area-socio-nav-link">Amigos y Rivales</a>
+                    <a href="#vista-perfil" class="area-socio-nav-link">Mi perfil</a>
+                    <a href="#" id="area-socio-logout" class="area-socio-nav-link area-socio-logout">Cerrar sesión</a>
+                </nav>
+            </div>
+
+            <div id="vista-dashboard" class="area-socio-vista" role="region" aria-label="Dashboard">
+                <div class="area-socio-dashboard-grid">
+                    <div class="area-socio-dashboard-main">
+                        <h2 class="area-socio-vista-titulo">Mis estadísticas</h2>
+                        <div id="area-socio-stats" class="area-socio-stats"></div>
+                        <h2 class="area-socio-vista-titulo">Actividad</h2>
+                        <div id="area-socio-feed" class="area-socio-feed"></div>
+                    </div>
+                    <aside class="area-socio-dashboard-side">
+                        <h3 class="area-socio-side-titulo">Top 5 ranking</h3>
+                        <div id="area-socio-ranking-preview" class="area-socio-ranking-preview"></div>
+                        <p class="area-socio-cta-simulador"><a href="simulador.html">Reservar simulador</a></p>
+                    </aside>
+                </div>
+            </div>
+
+            <div id="vista-hall" class="area-socio-vista" hidden role="region" aria-label="Hall of Fame">
+                <h2 class="area-socio-vista-titulo">Hall of Fame</h2>
+                <p class="area-socio-vista-intro">Mejor tarjeta del mes, consistencia y mayor mejora. Los tiempos cuentan solo si se registran en campo o simulador.</p>
+                <div id="area-socio-hall-content" class="area-socio-hall"></div>
+            </div>
+
+            <div id="vista-amigos" class="area-socio-vista" hidden role="region" aria-label="Amigos y Rivales">
+                <h2 class="area-socio-vista-titulo">Amigos y Rivales</h2>
+                <div id="area-socio-amigos-content" class="area-socio-amigos"></div>
+            </div>
+
+            <div id="vista-perfil" class="area-socio-vista" hidden role="region" aria-label="Mi perfil">
+                <h2 class="area-socio-vista-titulo">Mi perfil</h2>
+                <div id="area-socio-perfil-content" class="area-socio-perfil"></div>
             </div>
         </div>
     </section>
@@ -104,12 +153,7 @@
     </footer>
 
     <script src="js/main.js"></script>
-    <script>
-        document.getElementById('formLogin').addEventListener('submit', function(e) {
-            e.preventDefault();
-            // Placeholder: la autenticación real dependerá del backend
-            alert('El acceso al Área Socio está en configuración. Para cualquier consulta, contacte en el 947 56 46 30.');
-        });
-    </script>
+    <script src="js/area-socio-data.js"></script>
+    <script src="js/area-socio.js"></script>
 </body>
 </html>

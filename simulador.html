@@ -65,8 +65,22 @@
         </div>
     </section>
 
+    <!-- Ranking público (Showroom) -->
+    <section class="ranking-widget-section">
+        <div class="container">
+            <h2 class="campo-titulo">Top 5 · Mejores tarjetas</h2>
+            <p class="ranking-widget-intro">Los mejores resultados registrados en campo y simulador. Solo cuentan partidas oficiales.</p>
+            <div class="ranking-widget" id="rankingWidget">
+                <ol class="ranking-widget-lista" id="rankingWidgetLista"></ol>
+                <p class="ranking-widget-cta">
+                    <a href="#simulador-reserva" class="btn-ranking-cta">¿Crees que puedes superarlos? Reserva tu sesión</a>
+                </p>
+            </div>
+        </div>
+    </section>
+
     <!-- Ubicación y acceso -->
-    <section class="simulador-info">
+    <section class="simulador-info" id="simulador-reserva">
         <div class="container">
             <div class="simulador-ubicacion">
                 <h2 class="campo-titulo">Ubicación y acceso</h2>
@@ -186,9 +200,18 @@
 
     <script src="js/correspondencias-data.js"></script>
     <script src="js/correspondencias.js"></script>
+    <script src="js/area-socio-data.js"></script>
     <script src="js/main.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            var lista = document.getElementById('rankingWidgetLista');
+            var data = window.AREA_SOCIO_DATA;
+            if (lista && data && data.rankingTop10) {
+                var top5 = data.rankingTop10.slice(0, 5);
+                lista.innerHTML = top5.map(function(r) {
+                    return '<li><span class="ranking-widget-pos">' + r.pos + '</span><span class="ranking-widget-nom">' + (r.nombre || '') + '</span><span class="ranking-widget-score">' + r.score + '</span></li>';
+                }).join('');
+            }
             document.querySelectorAll('.simulador-form').forEach(function(form) {
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
