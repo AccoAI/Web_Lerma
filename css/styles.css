@@ -1791,6 +1791,36 @@ img {
     border-color: var(--color-primary);
 }
 
+.cubo-premium-block {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+}
+
+.cubo-premium-block label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.cubo-premium-select {
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    border: 1px solid #d0d7de;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: var(--color-text);
+    min-width: 180px;
+    background: var(--color-white);
+    cursor: pointer;
+}
+
+.cubo-premium-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
 .agregar-usuario-line {
     display: flex;
     align-items: center;

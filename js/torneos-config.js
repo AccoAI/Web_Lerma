@@ -348,6 +348,10 @@ function actualizarResumenTorneo() {
     if (formData.get('ancillary_buggy')) ancillaries.push('Buggies');
     if (formData.get('ancillary_carrito_mano')) ancillaries.push('Carrito de mano');
     if (formData.get('ancillary_carrito_electrico')) ancillaries.push('Carrito eléctrico');
+    var cuboVal = (formData.get('ancillary_cubo_premium_boogie') || '').trim();
+    if (cuboVal === 'champagne') ancillaries.push('Cubo premium: Champagne');
+    else if (cuboVal === 'cervezas') ancillaries.push('Cubo premium: Cubo de cervezas');
+    else if (cuboVal === 'vino_blanco') ancillaries.push('Cubo premium: Vino blanco');
     if (ancillaries.length > 0) {
         resumenHTML += '<p><strong>Servicios adicionales:</strong> ' + ancillaries.join(', ') + '</p>';
     }

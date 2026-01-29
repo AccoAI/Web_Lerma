@@ -170,6 +170,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (formData.get('ancillary_gestion_trofeos')) ancillaries.push('Gestión de trofeos');
         if (formData.get('ancillary_premio_economico')) ancillaries.push('Premio económico');
         if (formData.get('ancillary_buggy')) ancillaries.push('Buggies');
+        var cuboVal = (formData.get('ancillary_cubo_premium_boogie') || '').trim();
+        if (cuboVal === 'champagne') ancillaries.push('Cubo premium: Champagne');
+        else if (cuboVal === 'cervezas') ancillaries.push('Cubo premium: Cubo de cervezas');
+        else if (cuboVal === 'vino_blanco') ancillaries.push('Cubo premium: Vino blanco');
 
         if (diasJuego && noches && hotelOk && comida && transporte) {
             var resumenHTML = '<div class="resumen-items">';
@@ -245,7 +249,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     equipacion_equipos: formData.get('ancillary_equipacion_equipos') === '1',
                     gestion_trofeos: formData.get('ancillary_gestion_trofeos') === '1',
                     premio_economico: formData.get('ancillary_premio_economico') === '1',
-                    buggy: formData.get('ancillary_buggy') === '1'
+                    buggy: formData.get('ancillary_buggy') === '1',
+                    cubo_premium_boogie: formData.get('ancillary_cubo_premium_boogie') || ''
                 }
             };
 

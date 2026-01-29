@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Tour en boogie por el campo - Golf Lerma y Saldaña Golf">
+    <title>Tour en boogie por el campo - Golf Lerma</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="header-logo">
+                <a href="index.html#inicio">
+                    <img src="FOTOS/Logo-Golf-Lerma-Footer-1.png" alt="Golf Lerma" class="header-logo-image">
+                </a>
+            </div>
+            <button class="menu-toggle" aria-label="Abrir menú">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav class="nav" id="mainNav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="index.html#inicio" class="nav-link">INICIO</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="index.html#campo" class="nav-link">EL CAMPO</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="index.html#bodas-eventos" class="nav-link">BODAS Y EVENTOS</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="simulador.html" class="nav-link">SIMULADOR</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="correspondencias.html" class="nav-link">CORRESPONDENCIAS</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="camara-tiempo.html" class="nav-link">CÁMARA DEL TIEMPO</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <a href="hazte-socio.html" class="btn-hazte-socio">Hazte Socio</a>
+                <a href="area-socio.html" class="btn-login">Area Socio</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Tour en boogie por el campo -->
+    <section class="paquete-detalle" style="margin-top: 70px; padding-top: 4rem;">
+        <div class="container">
+            <h2 class="section-title">Tour en boogie por el campo</h2>
+            <p class="paquete-intro">Recorre el campo en boogie y disfruta de las vistas. Una experiencia relajada para grupos que quieren vivir el recorrido sin renunciar al confort.</p>
+
+            <div class="campo-imagenes" style="margin-bottom: 2rem;">
+                <div class="campo-imagen-principal">
+                    <img src="FOTOS/boogievino.png" alt="Tour en boogie por el campo - Golf Lerma">
+                </div>
+            </div>
+
+            <div class="paquete-info">
+                <div class="info-card">
+                    <h3>¿Qué incluye?</h3>
+                    <ul class="info-lista">
+                        <li>Tour en boogie por el campo (Golf Lerma o Saldaña Golf)</li>
+                        <li>Boogie incluido para el recorrido</li>
+                        <li>Experiencia en grupo</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Formulario de Reserva -->
+            <div class="configurador-paquete" style="margin-top: 3rem;">
+                <form id="formTourBoogie" class="configurador-form">
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo">1. Selecciona tus fechas</h3>
+                        <div id="calendario-dias-tourboogie" class="calendario-dias-container"></div>
+                    </div>
+
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo">2. Datos de los participantes</h3>
+                        <div class="reserva-datos-iniciales">
+                            <div class="form-group-inline">
+                                <label for="tamanio-grupo">Tamaño del grupo</label>
+                                <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" placeholder="Ej. 4" title="Número de personas">
+                            </div>
+                            <div class="form-group-inline">
+                                <label for="hora-salida">Hora preferida</label>
+                                <input type="time" id="hora-salida" name="hora_salida" title="Hora preferida">
+                            </div>
+                        </div>
+                        <p class="configurador-hint">Solo los datos de la reserva son obligatorios.</p>
+                        <div id="usuarios-container" data-extra-opcionales="true" data-simplificar-extras="true">
+                            <div class="usuario-form usuario-form-reserva" data-usuario="1">
+                                <div class="usuario-form-header"><h4 class="usuario-numero">Datos de la reserva *</h4></div>
+                                <div class="usuario-campos">
+                                    <div class="form-group-usuario">
+                                        <label>Nombre *</label>
+                                        <input type="text" name="usuario[1][nombre]" required>
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label>Correo *</label>
+                                        <input type="email" name="usuario[1][correo]" required>
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label>Móvil *</label>
+                                        <input type="tel" name="usuario[1][movil]" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="agregar-usuario-line">
+                            <button type="button" class="btn-agregar-usuario" id="agregar-usuario"><span>+</span> Añadir participante</button>
+                            <span id="participantes-contador" class="participantes-contador" aria-live="polite"></span>
+                        </div>
+                    </div>
+
+                    <!-- Servicios adicionales: solo Cubo premium para boogies -->
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo">Cubo premium para boogies</h3>
+                        <p class="configurador-hint" style="margin-bottom: 0.75rem;">Opcional. Elige una opción para disfrutar durante el tour.</p>
+                        <div class="cubo-premium-block">
+                            <label for="cubo-premium-tourboogie">Contenido del cubo</label>
+                            <select id="cubo-premium-tourboogie" name="ancillary_cubo_premium_boogie" class="cubo-premium-select">
+                                <option value="">Sin</option>
+                                <option value="champagne">Champagne</option>
+                                <option value="cervezas">Cubo de cervezas</option>
+                                <option value="vino_blanco">Vino blanco</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="forma-pago-block">
+                        <p class="forma-pago-label">Forma de pago</p>
+                        <div class="opciones-grid opciones-grid-2">
+                            <label class="opcion-card opcion-card-compact">
+                                <input type="radio" name="forma_pago" value="unico" checked>
+                                <div class="opcion-content">
+                                    <span class="opcion-icon">💳</span>
+                                    <span class="opcion-texto">Pago único</span>
+                                    <span class="opcion-desc">Una sola transacción por el importe total</span>
+                                </div>
+                            </label>
+                            <label class="opcion-card opcion-card-compact">
+                                <input type="radio" name="forma_pago" value="por_persona">
+                                <div class="opcion-content">
+                                    <span class="opcion-icon">🔗</span>
+                                    <span class="opcion-texto">Pago por persona</span>
+                                    <span class="opcion-desc">Cada uno recibe un enlace para pagar su parte</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="configurador-resumen">
+                        <div class="resumen-content">
+                            <h3>Resumen de tu reserva</h3>
+                            <div id="resumen-paquete" class="resumen-detalle">
+                                <p>Completa las opciones para ver el resumen</p>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-reservar-paquete">Reservar Tour en boogie</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Contacto</h3>
+                    <div class="contact-info">
+                        <p><strong>Golf Lerma:</strong><br>
+                        Autovía Madrid-Burgos, km. 195,5<br>
+                        Lerma · Burgos</p>
+                        <p><strong>Saldaña Golf:</strong><br>
+                        Urbanización Golf Saldaña<br>
+                        Saldaña de Burgos · Burgos</p>
+                        <p><strong>Teléfono:</strong> (+34) 947 56 46 30</p>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Enlaces</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html#campo">El Campo</a></li>
+                        <li><a href="index.html#paquetes">Paquetes de Golf</a></li>
+                        <li><a href="index.html#bodas-eventos">Bodas y Eventos</a></li>
+                        <li><a href="simulador.html">Simulador</a></li>
+                        <li><a href="hazte-socio.html">Hazte Socio</a></li>
+                        <li><a href="area-socio.html">Área Socio</a></li>
+                        <li><a href="correspondencias.html">Correspondencias</a></li>
+                        <li><a href="camara-tiempo.html">Cámara del Tiempo</a></li>
+                        <li><a href="index.html#contacto">Contacto</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Legal</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html#politica-privacidad">Política de privacidad</a></li>
+                        <li><a href="index.html#advertencia-legal">Advertencia legal</a></li>
+                        <li><a href="index.html#proteccion-datos">Protección de Datos</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>Copyright © Golf Lerma 2024 · Política de privacidad · Advertencia legal · Protección de Datos</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/correspondencias-data.js"></script>
+    <script src="js/correspondencias.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/calendario-dias.js"></script>
+    <script src="js/usuarios-form.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var form = document.getElementById('formTourBoogie');
+            var resumenDiv = document.getElementById('resumen-paquete');
+            var cal = document.getElementById('calendario-dias-tourboogie');
+
+            function cuboPremiumLabel(val) {
+                if (!val) return null;
+                if (val === 'champagne') return 'Champagne';
+                if (val === 'cervezas') return 'Cubo de cervezas';
+                if (val === 'vino_blanco') return 'Vino blanco';
+                return val;
+            }
+
+            window.actualizarResumen = function() {
+                if (!form || !resumenDiv) return;
+                var fd = new FormData(form);
+                var fechas = fd.getAll('fechas[]') || [];
+                var usuarios = form.querySelectorAll('.usuario-form');
+                var fp = (fd.get('forma_pago') || 'unico').trim() || 'unico';
+                var cubo = cuboPremiumLabel((fd.get('ancillary_cubo_premium_boogie') || '').trim());
+
+                var html = '<div class="resumen-items">';
+                html += '<p><strong>Fechas:</strong> ' + (fechas.length ? fechas.join(', ') : '—') + '</p>';
+                html += '<p><strong>Participantes:</strong> ' + usuarios.length + '</p>';
+                html += '<p><strong>Forma de pago:</strong> ' + (fp === 'por_persona' ? 'Por persona' : 'Único') + '</p>';
+                if (cubo) html += '<p><strong>Cubo premium:</strong> ' + cubo + '</p>';
+                html += '</div>';
+                resumenDiv.innerHTML = html;
+            };
+
+            if (cal && form && typeof CalendarioDias !== 'undefined') {
+                CalendarioDias.init({
+                    container: cal,
+                    form: form,
+                    nameFechas: 'fechas[]',
+                    maxSeleccion: 1,
+                    onChange: function() { if (typeof window.actualizarResumen === 'function') window.actualizarResumen(); }
+                });
+            }
+
+            if (form) {
+                form.addEventListener('change', function() { if (typeof window.actualizarResumen === 'function') window.actualizarResumen(); });
+                form.addEventListener('input', function() { if (typeof window.actualizarResumen === 'function') window.actualizarResumen(); });
+                window.actualizarResumen();
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    var usuarios = form.querySelectorAll('.usuario-form');
+                    alert('¡Reserva de Tour en boogie enviada! Te contactaremos pronto para confirmar.\n\nParticipantes: ' + usuarios.length);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
