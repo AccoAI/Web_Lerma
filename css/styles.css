@@ -77,10 +77,12 @@ img {
 .header-container {
     width: 100%;
     max-width: 100%;
+    min-width: 0;
     padding: 1.25rem 2rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 1rem;
     min-height: 70px;
     box-sizing: border-box;
 }
@@ -88,6 +90,7 @@ img {
 .header-logo {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .header-logo a {
@@ -212,6 +215,7 @@ img {
     display: flex;
     align-items: center;
     gap: 1rem;
+    flex-shrink: 0;
 }
 
 .btn-hazte-socio {
@@ -774,6 +778,7 @@ img {
     position: sticky;
     top: 120px;
     align-self: start;
+    margin-right: -40px;
 }
 
 .configurador-form {
@@ -3087,6 +3092,7 @@ img {
     .configurador-paquete .configurador-resumen {
         position: static;
         margin-top: 2rem;
+        margin-right: 0;
     }
 }
 
@@ -5090,7 +5096,7 @@ img {
     }
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1400px) {
     html {
         scroll-padding-top: 90px;
     }
@@ -5392,6 +5398,7 @@ img {
     .configurador-paquete .configurador-resumen {
         position: static;
         margin-top: 2rem;
+        margin-right: 0;
     }
 
     .configurador-resumen {
