@@ -61,12 +61,14 @@ img {
     left: 0;
     right: 0;
     width: 100%;
+    max-width: 100vw;
     background: rgba(0, 0, 0, 0.25);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     z-index: 1000;
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
     transition: background 0.3s ease;
+    overflow-x: hidden;
 }
 .header.header-scrolled {
     background: rgba(0, 0, 0, 0.6);
@@ -757,13 +759,13 @@ img {
 
 /* Configurador de Paquete */
 .configurador-paquete {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 3rem auto 0;
 }
 
 .configurador-paquete .configurador-layout {
     display: grid;
-    grid-template-columns: 1fr 340px;
+    grid-template-columns: 1fr 420px;
     gap: 2rem;
     align-items: start;
 }
@@ -5088,27 +5090,40 @@ img {
     }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1280px) {
+    html {
+        scroll-padding-top: 90px;
+    }
+
     .menu-toggle {
         display: flex;
     }
 
+    .header {
+        top: 0.5rem;
+    }
+
+    .header-container {
+        padding: 1rem 1.25rem;
+        min-height: 56px;
+    }
+
     .header-logo-image {
-        height: 40px;
-        max-width: 150px;
+        height: 38px;
+        max-width: 130px;
     }
 
     .header-logo-saldaña-image {
-        height: 40px;
-        max-width: 150px;
+        height: 38px;
+        max-width: 130px;
     }
 
     .nav {
         position: fixed;
-        top: 70px;
+        top: 64px;
         left: -100%;
         width: 100%;
-        height: calc(100vh - 70px);
+        height: calc(100vh - 64px);
         background: var(--color-primary-dark);
         transition: var(--transition);
         overflow-y: auto;
