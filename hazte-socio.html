@@ -69,6 +69,38 @@
         </div>
     </section>
 
+    <!-- Agenda de actividades -->
+    <section class="agenda-section" id="agenda">
+        <div class="container">
+            <h2 class="section-title">Agenda</h2>
+            <div class="agenda-layout">
+                <aside class="agenda-sidebar">
+                    <div class="agenda-mini-calendar" id="agendaMiniCal">
+                        <div class="agenda-cal-header">
+                            <button type="button" class="agenda-cal-prev" id="agendaCalPrev" aria-label="Mes anterior">‹</button>
+                            <span class="agenda-cal-mes" id="agendaCalMes">Febrero 2025</span>
+                            <button type="button" class="agenda-cal-next" id="agendaCalNext" aria-label="Mes siguiente">›</button>
+                        </div>
+                        <div class="agenda-cal-grid" id="agendaCalGrid"></div>
+                    </div>
+                    <nav class="agenda-filtros" aria-label="Filtrar por tipo">
+                        <button type="button" class="agenda-filtro activo" data-filtro="todos">Todos</button>
+                        <button type="button" class="agenda-filtro" data-filtro="deporte">Deporte</button>
+                        <button type="button" class="agenda-filtro" data-filtro="exposicion">Exposición</button>
+                        <button type="button" class="agenda-filtro" data-filtro="curso">Curso</button>
+                        <button type="button" class="agenda-filtro" data-filtro="otros">Otros</button>
+                    </nav>
+                </aside>
+                <div class="agenda-main">
+                    <div class="agenda-semana" id="agendaSemana">
+                        <div class="agenda-semana-header" id="agendaSemanaHeader"></div>
+                        <div class="agenda-semana-body" id="agendaSemanaBody"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Tarifas -->
     <section class="hazte-socio-tarifas">
         <div class="container">
@@ -281,6 +313,7 @@
     </footer>
 
     <script src="js/main.js"></script>
+    <script src="js/agenda.js"></script>
     <script>
         document.getElementById('formImpresos').addEventListener('submit', function(e) {
             e.preventDefault();
