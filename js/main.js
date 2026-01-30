@@ -14,12 +14,19 @@ const menuToggle = document.querySelector('.menu-toggle');
 const nav = document.querySelector('.nav');
 
 if (menuToggle && nav) {
-    menuToggle.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
+    function toggleMenu(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         nav.classList.toggle('active');
         menuToggle.classList.toggle('active');
-    });
+    }
+    menuToggle.addEventListener('click', toggleMenu);
+    menuToggle.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        toggleMenu(e);
+    }, { passive: false });
 }
 
 // Close menu when clicking outside
