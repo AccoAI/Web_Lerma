@@ -26,7 +26,7 @@
 
 html {
     scroll-behavior: smooth;
-    scroll-padding-top: 100px;
+    scroll-padding-top: 110px;
     overflow-x: hidden;
     width: 100%;
     max-width: 100%;
@@ -57,11 +57,11 @@ img {
 /* Header – transparente con opacidad, letras blancas */
 .header {
     position: fixed;
-    top: 1rem;
-    left: 1rem;
-    right: 1rem;
-    width: auto;
-    background: rgba(0, 0, 0, 0.4);
+    top: 1.5rem;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.25);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     z-index: 1000;
@@ -69,7 +69,7 @@ img {
     transition: background 0.3s ease;
 }
 .header.header-scrolled {
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 0.6);
 }
 
 .header-container {
@@ -192,7 +192,7 @@ img {
 .nav-link {
     color: var(--color-white);
     text-decoration: none;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 300;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -220,7 +220,7 @@ img {
     border: 1px solid var(--color-white);
     border-radius: 0;
     transition: var(--transition);
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     font-weight: 300;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -241,7 +241,7 @@ img {
     border: 1px solid var(--color-white);
     border-radius: 0;
     transition: var(--transition);
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     font-weight: 300;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -262,7 +262,7 @@ img {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    margin-top: 90px;
+    margin-top: 100px;
 }
 
 .hero-background {
@@ -374,16 +374,13 @@ img {
     top: 2rem;
     right: 2rem;
     z-index: 10;
-    background: rgba(255, 255, 255, 0.95);
+    background: transparent;
     padding: 1.25rem 1.5rem;
-    border-radius: 0;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
     max-width: 220px;
-    border: 2px solid rgba(26, 77, 58, 0.2);
 }
 
 .hero-saldaña-logo {
@@ -391,13 +388,16 @@ img {
     width: auto;
     max-width: 180px;
     object-fit: contain;
+    filter: brightness(0) invert(1);
 }
 
 .hero-saldaña-texto {
     margin: 0;
     font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--color-primary-dark);
+    font-weight: 300;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--color-white);
     text-align: center;
     line-height: 1.3;
 }
@@ -405,7 +405,7 @@ img {
 .hero-saldaña-sub {
     margin: 0;
     font-size: 0.8rem;
-    color: var(--color-text-light);
+    color: rgba(255, 255, 255, 0.9);
     text-align: center;
 }
 
@@ -675,7 +675,7 @@ img {
 
 .paquete-card h3 {
     font-family: var(--font-primary);
-    font-size: 1.3rem;
+    font-size: 1.75rem;
     font-weight: 300;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -690,7 +690,7 @@ img {
 
 .paquete-descripcion {
     font-family: var(--font-primary);
-    font-size: 0.85rem;
+    font-size: 1.2rem;
     font-weight: 300;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -705,6 +705,22 @@ img {
     letter-spacing: 1px;
     text-transform: uppercase;
     color: var(--color-white) !important;
+}
+
+.paquete-card-fondo .paquete-content::after {
+    content: 'LEER MÁS >';
+    font-family: var(--font-primary);
+    font-size: 1rem;
+    font-weight: 300;
+    letter-spacing: 2px;
+    color: var(--color-white);
+    opacity: 0;
+    margin-top: 1rem;
+    transition: opacity 0.3s ease;
+}
+
+.paquete-card-fondo:hover .paquete-content::after {
+    opacity: 1;
 }
 
 /* Secciones */
@@ -4627,15 +4643,15 @@ img {
     background: #d0d0d0;
 }
 
-/* Popup torneos (portada) */
+/* Popup torneos (portada) – rectángulo a un lado */
 .torneos-popup-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.4);
     z-index: 10001;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     padding: 1.5rem;
 }
 
@@ -4645,20 +4661,18 @@ img {
 
 .torneos-popup {
     background: var(--color-white);
-    max-width: 520px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
+    width: 280px;
+    max-width: calc(100% - 2rem);
+    padding: 1.5rem 1.25rem;
     border-radius: 0;
     box-shadow: var(--shadow-lg);
     position: relative;
-    padding: 2rem;
 }
 
 .torneos-popup-close {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
+    top: 0.5rem;
+    right: 0.5rem;
     background: none;
     border: none;
     font-size: 1.75rem;
@@ -4679,17 +4693,20 @@ img {
 
 .torneos-popup-titulo {
     font-family: var(--font-primary);
-    font-size: 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+    text-transform: uppercase;
     color: var(--color-primary);
-    margin-bottom: 1.25rem;
-    padding-right: 2rem;
+    margin: 0 0 0.5rem;
+    padding-right: 1.5rem;
 }
 
 .torneos-popup-subtitulo {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     color: var(--color-text-light);
-    margin: -0.5rem 0 1rem;
-    padding-right: 2rem;
+    margin: 0 0 1rem;
+    padding-right: 1.5rem;
 }
 
 .torneos-popup-imagen-wrap {
@@ -4702,33 +4719,24 @@ img {
 .torneos-popup-imagen {
     display: block;
     width: 100%;
-    max-height: 220px;
+    max-height: 140px;
     object-fit: cover;
 }
 
 .torneos-popup-texto-wrap {
-    max-height: 280px;
-    overflow-y: auto;
-    margin-bottom: 1rem;
-    padding-right: 0.25rem;
-}
-
-.torneos-popup-texto {
-    font-size: 0.9rem;
-    line-height: 1.5;
-    color: var(--color-text);
-    white-space: pre-line;
-    margin: 0;
+    display: none !important;
 }
 
 .torneos-popup-link {
     display: inline-block;
-    margin-bottom: 1rem;
-    padding: 0.5rem 1.25rem;
+    margin: 0;
+    padding: 0.5rem 1rem;
     background: var(--color-primary);
     color: var(--color-white);
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: 0.8rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+    text-transform: uppercase;
     text-decoration: none;
     border-radius: 0;
     transition: background 0.2s ease;
@@ -4739,11 +4747,8 @@ img {
     color: var(--color-white);
 }
 
-.torneos-popup-list[hidden] {
-    display: none !important;
-}
-
 .torneos-popup-list {
+    display: none !important;
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -4780,8 +4785,8 @@ img {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-top: 1.25rem;
-    font-size: 0.9rem;
+    margin-top: 1rem;
+    font-size: 0.8rem;
     color: var(--color-text-light);
     cursor: pointer;
 }
@@ -4812,7 +4817,7 @@ img {
     }
 
     .nav-link {
-        font-size: 0.8rem;
+        font-size: 0.95rem;
     }
 
     .header-actions {
@@ -4821,8 +4826,8 @@ img {
 
     .header-actions .btn-hazte-socio,
     .header-actions .btn-login {
-        padding: 0.35rem 0.7rem;
-        font-size: 0.75rem;
+        padding: 0.4rem 0.85rem;
+        font-size: 0.85rem;
     }
 }
 
@@ -4879,7 +4884,7 @@ img {
     .header-actions .btn-hazte-socio,
     .header-actions .btn-login {
         padding: 0.4rem 0.85rem;
-        font-size: 0.8rem;
+        font-size: 0.9rem;
     }
 
     .hero-title {
@@ -4935,8 +4940,8 @@ img {
 
     .header-actions .btn-hazte-socio,
     .header-actions .btn-login {
-        padding: 0.3rem 0.55rem;
-        font-size: 0.7rem;
+        padding: 0.35rem 0.65rem;
+        font-size: 0.8rem;
     }
 
     .nav {
@@ -5085,7 +5090,7 @@ img {
     }
 
     .paquete-card h3 {
-        font-size: 0.95rem;
+        font-size: 1.4rem;
     }
 
     .configurador-form {

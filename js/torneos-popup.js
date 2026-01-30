@@ -91,14 +91,8 @@
         }
 
         if (textoWrap && textoEl) {
-            var texto = (config.texto || '').trim();
-            if (texto) {
-                textoEl.textContent = texto;
-                textoWrap.removeAttribute('hidden');
-            } else {
-                textoWrap.setAttribute('hidden', '');
-                textoEl.textContent = '';
-            }
+            textoWrap.setAttribute('hidden', '');
+            textoEl.textContent = '';
         }
 
         if (linkEl) {
@@ -157,7 +151,7 @@
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (data) {
                 if (!data || !data.popupActivo) return;
-                var hasContent = (data.torneos && data.torneos.length) || (data.imagen && data.imagen.trim()) || (data.texto && data.texto.trim());
+                var hasContent = (data.torneos && data.torneos.length) || (data.imagen && data.imagen.trim()) || (data.texto && data.texto.trim()) || (data.linkUrl && data.linkTexto);
                 if (!hasContent) return;
                 setTimeout(function () {
                     showPopup(data);
