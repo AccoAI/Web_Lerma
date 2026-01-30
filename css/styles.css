@@ -585,13 +585,17 @@ img {
 .paquete-logo-lerma {
     position: absolute;
     top: 1rem;
-    left: 1rem;
+    right: 1rem;
     height: 36px;
     width: auto;
     max-width: 90px;
     object-fit: contain;
     z-index: 2;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.paquete-card-fondo:has(.paquete-logos-campos) .paquete-logo-lerma {
+    display: none;
 }
 
 .paquete-logos-campos {
@@ -757,23 +761,17 @@ img {
     margin: 3rem auto 0;
 }
 
-.configurador-paquete .configurador-form {
+.configurador-paquete .configurador-layout {
     display: grid;
     grid-template-columns: 1fr 340px;
     gap: 2rem;
     align-items: start;
 }
 
-.configurador-paquete .configurador-form > *:not(.configurador-resumen) {
-    grid-column: 1;
-}
-
-.configurador-paquete .configurador-form > .configurador-resumen {
-    grid-column: 2;
-    grid-row: 1 / -1;
-    align-self: start;
+.configurador-paquete .configurador-resumen {
     position: sticky;
     top: 120px;
+    align-self: start;
 }
 
 .configurador-form {
@@ -1267,9 +1265,6 @@ img {
     color: var(--color-white);
 }
 
-.configurador-paquete .configurador-form > .configurador-resumen {
-    margin-top: 0;
-}
 
 .resumen-content h3 {
     font-family: var(--font-primary);
@@ -2547,9 +2542,9 @@ img {
 
 .btn-bodas-texto {
     font-family: var(--font-primary);
-    font-size: 1.2rem;
+    font-size: 2.2rem;
     font-weight: 300;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
     text-transform: uppercase;
     text-align: center;
     color: var(--color-white);
@@ -2560,7 +2555,7 @@ img {
 .btn-bodas::after {
     content: 'LEER MÁS >';
     font-family: var(--font-primary);
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-weight: 300;
     letter-spacing: 2px;
     color: var(--color-white);
@@ -2678,7 +2673,7 @@ img {
 }
 
 .sostenibilidad .section-title {
-    color: var(--color-white);
+    color: var(--color-accent);
     white-space: nowrap;
     font-size: 1.9rem;
 }
@@ -3083,17 +3078,11 @@ img {
         grid-template-columns: 1fr;
     }
 
-    .configurador-paquete .configurador-form {
+    .configurador-paquete .configurador-layout {
         grid-template-columns: 1fr;
     }
 
-    .configurador-paquete .configurador-form > *:not(.configurador-resumen) {
-        grid-column: auto;
-    }
-
-    .configurador-paquete .configurador-form > .configurador-resumen {
-        grid-column: auto;
-        grid-row: auto;
+    .configurador-paquete .configurador-resumen {
         position: static;
         margin-top: 2rem;
     }
@@ -4749,10 +4738,6 @@ img {
     letter-spacing: 2px;
     text-transform: uppercase;
     margin-bottom: 1rem;
-    color: var(--color-white);
-}
-
-.footer-section:last-child h3 {
     color: var(--color-accent);
 }
 
@@ -5336,7 +5321,7 @@ img {
 
     .paquete-logo-lerma {
         top: 0.5rem;
-        left: 0.5rem;
+        right: 0.5rem;
         height: 24px;
         max-width: 60px;
     }
@@ -5385,17 +5370,11 @@ img {
         gap: 1rem;
     }
 
-    .configurador-paquete .configurador-form {
+    .configurador-paquete .configurador-layout {
         grid-template-columns: 1fr;
     }
 
-    .configurador-paquete .configurador-form > *:not(.configurador-resumen) {
-        grid-column: auto;
-    }
-
-    .configurador-paquete .configurador-form > .configurador-resumen {
-        grid-column: auto;
-        grid-row: auto;
+    .configurador-paquete .configurador-resumen {
         position: static;
         margin-top: 2rem;
     }
@@ -5469,7 +5448,7 @@ img {
     }
 
     .btn-bodas-texto {
-        font-size: 1.1rem;
+        font-size: 1.6rem;
         white-space: normal;
     }
 

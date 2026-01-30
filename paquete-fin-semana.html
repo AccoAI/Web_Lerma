@@ -64,6 +64,7 @@
             
             <!-- Configurador de Paquete -->
             <div class="configurador-paquete">
+                <div class="configurador-layout">
                 <form id="configuradorForm" class="configurador-form">
                     <!-- Fechas / noches (calendario) -->
                     <div class="configurador-seccion">
@@ -190,21 +191,20 @@
                             </label>
                         </div>
                     </div>
-
-                    <!-- Resumen y Botón -->
-                    <div class="configurador-resumen">
-                        <div class="resumen-content">
-                            <h3>Resumen de tu paquete</h3>
-                            <div id="resumen-paquete" class="resumen-detalle">
-                                <p>Completa las opciones para ver el resumen</p>
-                            </div>
-                        </div>
-                        <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(139, 69, 19, 0.05); border-radius: 6px; font-size: 0.9rem; color: var(--color-text-light);">
-                            <p style="margin: 0;">📧 <strong>Recibirás por correo:</strong> Un PDF con todas nuestras recomendaciones de la capital para disfrutar de un fin de semana perfecto en Burgos.</p>
-                        </div>
-                        <button type="submit" class="btn-reservar-paquete">Reservar Paquete</button>
-                    </div>
                 </form>
+                <aside class="configurador-resumen">
+                    <div class="resumen-content">
+                        <h3>Resumen de tu paquete</h3>
+                        <div id="resumen-paquete" class="resumen-detalle">
+                            <p>Completa las opciones para ver el resumen</p>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(139, 69, 19, 0.05); border-radius: 6px; font-size: 0.9rem; color: var(--color-text-light);">
+                        <p style="margin: 0;">📧 <strong>Recibirás por correo:</strong> Un PDF con todas nuestras recomendaciones de la capital para disfrutar de un fin de semana perfecto en Burgos.</p>
+                    </div>
+                    <button type="submit" form="configuradorForm" class="btn-reservar-paquete">Reservar Paquete</button>
+                </aside>
+                </div>
             </div>
         </div>
     </section>
