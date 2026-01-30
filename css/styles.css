@@ -1,6 +1,6 @@
 /* Reset y Variables – Estética elegante: Montserrat Light, mayúsculas, esquinas rectas */
 :root {
-    --header-sticky-offset: clamp(90px, 14vw, 130px);
+    --header-sticky-offset: clamp(105px, 18vw, 150px);
     --color-primary: #1a4d3a;
     --color-primary-dark: #0f3324;
     --color-primary-light: #2d6b4f;
@@ -5088,8 +5088,12 @@ img {
 /* Responsive - Header usa valores fluidos (clamp) en base */
 
 @media (max-width: 1024px) {
+    :root {
+        --header-sticky-offset: clamp(95px, 16vw, 120px);
+    }
+
     html {
-        scroll-padding-top: 90px;
+        scroll-padding-top: var(--header-sticky-offset);
     }
 
     .menu-toggle {
