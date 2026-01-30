@@ -1,5 +1,6 @@
 /* Reset y Variables – Estética elegante: Montserrat Light, mayúsculas, esquinas rectas */
 :root {
+    --header-sticky-offset: clamp(90px, 14vw, 130px);
     --color-primary: #1a4d3a;
     --color-primary-dark: #0f3324;
     --color-primary-light: #2d6b4f;
@@ -26,7 +27,7 @@
 
 html {
     scroll-behavior: smooth;
-    scroll-padding-top: 110px;
+    scroll-padding-top: var(--header-sticky-offset);
     overflow-x: hidden;
     width: 100%;
     max-width: 100%;
@@ -785,7 +786,7 @@ img {
 
 .configurador-paquete .configurador-resumen {
     position: sticky;
-    top: clamp(90px, 12vw, 120px);
+    top: var(--header-sticky-offset);
     align-self: start;
     margin-right: -80px;
 }
@@ -3116,7 +3117,6 @@ img {
     .configurador-paquete .configurador-resumen {
         margin-top: 2rem;
         margin-right: 0;
-        top: clamp(80px, 14vw, 100px);
     }
 }
 
@@ -5382,7 +5382,6 @@ img {
     .configurador-paquete .configurador-resumen {
         margin-top: 2rem;
         margin-right: 0;
-        top: clamp(70px, 15vw, 95px);
     }
 
     .configurador-resumen {
