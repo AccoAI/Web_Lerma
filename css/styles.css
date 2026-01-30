@@ -5197,8 +5197,6 @@ img {
 
     .hero {
         margin-top: 0;
-        height: 55vh;
-        min-height: 320px;
     }
 
     .hero-title {
@@ -5307,11 +5305,6 @@ img {
 
     .nav {
         margin: 0;
-    }
-
-    .hero {
-        height: 45vh;
-        min-height: 260px;
     }
 
     .hero-title {
