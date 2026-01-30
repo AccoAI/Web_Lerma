@@ -287,7 +287,6 @@ img {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    margin-top: 100px;
 }
 
 .hero-background {
@@ -5193,10 +5192,6 @@ img {
     .header-actions .btn-login {
         padding: clamp(0.35rem, 0.5vw, 0.4rem) clamp(0.6rem, 1.2vw, 0.85rem);
         font-size: clamp(0.75rem, 1vw, 0.9rem);
-    }
-
-    .hero {
-        margin-top: 0;
     }
 
     .hero-title {
