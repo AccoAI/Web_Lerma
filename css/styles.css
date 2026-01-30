@@ -64,7 +64,7 @@ img {
 /* Header – transparente con opacidad, letras blancas */
 .header {
     position: fixed;
-    top: clamp(0.5rem, 1.5vw, 1.5rem);
+    top: 0;
     left: 0;
     right: 0;
     width: 100%;
@@ -5123,7 +5123,7 @@ img {
     }
 
     .header {
-        top: 0.5rem;
+        top: 0;
     }
 
     .header-container {
