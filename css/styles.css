@@ -393,7 +393,7 @@ img {
 /* Cuadrante Saldaña Golf sobre la portada */
 .hero-saldaña-cuadrante {
     position: absolute;
-    top: 2rem;
+    top: calc(var(--header-height) + 1rem);
     right: 2rem;
     z-index: 10;
     background: transparent;
@@ -5334,7 +5334,7 @@ img {
     }
 
     .hero-saldaña-cuadrante {
-        top: 1rem;
+        top: calc(var(--header-height) + 0.75rem);
         right: 1rem;
         padding: 1rem 1.25rem;
         max-width: 200px;
