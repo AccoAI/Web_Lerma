@@ -78,6 +78,7 @@
 
             <!-- Formulario de Reserva -->
             <div class="configurador-paquete" style="margin-top: 3rem;">
+                <div class="configurador-layout">
                 <form id="formPausaDrive" class="configurador-form">
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo">1. Fecha y hora</h3>
@@ -187,17 +188,17 @@
                             </label>
                         </div>
                     </div>
-
-                    <div class="configurador-resumen">
-                        <div class="resumen-content">
-                            <h3>Resumen de tu reserva</h3>
-                            <div id="resumen-pausadrive" class="resumen-detalle">
-                                <p>Completa las opciones para ver el resumen</p>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-reservar-paquete">Reservar Pausa & Drive</button>
-                    </div>
                 </form>
+                <aside class="configurador-resumen">
+                    <div class="resumen-content">
+                        <h3>Resumen de tu reserva</h3>
+                        <div id="resumen-pausadrive" class="resumen-detalle">
+                            <p>Completa las opciones para ver el resumen</p>
+                        </div>
+                    </div>
+                    <button type="submit" form="formPausaDrive" class="btn-reservar-paquete">Reservar Pausa & Drive</button>
+                </aside>
+                </div>
             </div>
         </div>
     </section>

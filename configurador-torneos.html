@@ -61,6 +61,7 @@
             
             <!-- Configurador de Torneo -->
             <div class="configurador-paquete">
+                <div class="configurador-layout">
                 <form id="configuradorTorneosForm" class="configurador-form">
                     <!-- Fechas / noches (calendario) -->
                     <div class="configurador-seccion">
@@ -212,18 +213,17 @@
                             </select>
                         </div>
                     </div>
-
-                    <!-- Resumen -->
-                    <div class="configurador-resumen" id="resumen-torneo">
-                        <div class="resumen-content">
-                            <h3>Resumen del Torneo</h3>
-                            <div class="resumen-detalle" id="resumen-detalle">
-                                <p>Completa el formulario para ver el resumen</p>
-                            </div>
-                            <button type="submit" class="btn-reservar-paquete">Enviar Solicitud</button>
-                        </div>
-                    </div>
                 </form>
+                <aside class="configurador-resumen" id="resumen-torneo">
+                    <div class="resumen-content">
+                        <h3>Resumen del Torneo</h3>
+                        <div class="resumen-detalle" id="resumen-detalle">
+                            <p>Completa el formulario para ver el resumen</p>
+                        </div>
+                        <button type="submit" form="configuradorTorneosForm" class="btn-reservar-paquete">Enviar Solicitud</button>
+                    </div>
+                </aside>
+                </div>
             </div>
         </div>
     </section>
