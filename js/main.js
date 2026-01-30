@@ -1,3 +1,14 @@
+// Header: más opaco al hacer scroll (legibilidad sobre fondos claros)
+(function () {
+    var header = document.querySelector('.header');
+    if (!header) return;
+    function onScroll() {
+        header.classList.toggle('header-scrolled', window.scrollY > 60);
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+})();
+
 // Menu Toggle
 const menuToggle = document.querySelector('.menu-toggle');
 const nav = document.querySelector('.nav');
