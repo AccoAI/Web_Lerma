@@ -34,7 +34,7 @@ document.addEventListener('click', (e) => {
 const navLinks = document.querySelectorAll('.nav-link');
 navLinks.forEach(link => {
     link.addEventListener('click', () => {
-        if (window.innerWidth <= 1400) {
+        if (window.innerWidth <= 1024) {
             nav.classList.remove('active');
             menuToggle.classList.remove('active');
         }
