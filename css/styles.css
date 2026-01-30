@@ -78,12 +78,12 @@ img {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    padding: 1rem clamp(1rem, 2vw, 2rem);
+    padding: clamp(0.75rem, 1.5vw, 1.25rem) clamp(1rem, 2.5vw, 2rem);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.75rem;
-    min-height: 70px;
+    gap: clamp(0.5rem, 1vw, 1rem);
+    min-height: clamp(56px, 8vw, 70px);
     box-sizing: border-box;
     overflow: hidden;
 }
@@ -118,9 +118,9 @@ img {
 }
 
 .header-logo-saldaña-image {
-    height: 50px;
+    height: clamp(32px, 4vw, 50px);
     width: auto;
-    max-width: 200px;
+    max-width: min(200px, 22vw);
     object-fit: contain;
     transition: var(--transition);
 }
@@ -199,12 +199,12 @@ img {
 .nav-link {
     color: var(--color-white);
     text-decoration: none;
-    font-size: clamp(0.7rem, 1.2vw, 1.1rem);
+    font-size: clamp(0.65rem, 1.1vw, 1.1rem);
     font-weight: 300;
-    letter-spacing: clamp(0.5px, 0.3vw, 2px);
+    letter-spacing: clamp(0.5px, 0.2vw, 2px);
     text-transform: uppercase;
     transition: var(--transition);
-    padding: 0.5rem clamp(0.1rem, 0.5vw, 0.5rem) 0;
+    padding: clamp(0.35rem, 0.5vw, 0.5rem) clamp(0.1rem, 0.4vw, 0.5rem) 0;
     display: block;
     white-space: nowrap;
 }
@@ -216,7 +216,7 @@ img {
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: clamp(0.5rem, 1vw, 1rem);
     flex-shrink: 0;
 }
 
@@ -224,11 +224,11 @@ img {
     background: var(--color-white);
     color: var(--color-primary-dark);
     text-decoration: none;
-    padding: 0.5rem clamp(0.6rem, 1.5vw, 1.5rem);
+    padding: clamp(0.4rem, 0.6vw, 0.5rem) clamp(0.5rem, 1.5vw, 1.5rem);
     border: 1px solid var(--color-white);
     border-radius: 0;
     transition: var(--transition);
-    font-size: clamp(0.75rem, 1.1vw, 1rem);
+    font-size: clamp(0.65rem, 1vw, 1rem);
     font-weight: 300;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -245,11 +245,11 @@ img {
 .btn-login {
     color: var(--color-white);
     text-decoration: none;
-    padding: 0.5rem clamp(0.6rem, 1.5vw, 1.5rem);
+    padding: clamp(0.4rem, 0.6vw, 0.5rem) clamp(0.5rem, 1.5vw, 1.5rem);
     border: 1px solid var(--color-white);
     border-radius: 0;
     transition: var(--transition);
-    font-size: clamp(0.75rem, 1.1vw, 1rem);
+    font-size: clamp(0.65rem, 1vw, 1rem);
     font-weight: 300;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -786,7 +786,7 @@ img {
 .configurador-form {
     background: var(--color-white);
     padding: 3rem;
-    border-radius: 0;
+    border-radius: 8px;
     box-shadow: var(--shadow-lg);
 }
 
@@ -1027,6 +1027,11 @@ img {
     background: rgba(26, 77, 58, 0.08);
     border-radius: 0;
     border-left: 3px solid var(--color-primary);
+}
+
+.configurador-resumen .resumen-por-persona td {
+    font-weight: 600;
+    color: var(--color-accent);
 }
 
 .resumen-por-persona td {
@@ -1270,7 +1275,7 @@ img {
 .configurador-resumen {
     background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     padding: 2.5rem;
-    border-radius: 0;
+    border-radius: 8px;
     color: var(--color-white);
 }
 
@@ -1279,13 +1284,13 @@ img {
     font-family: var(--font-primary);
     font-size: 1.8rem;
     margin-bottom: 1.5rem;
-    color: var(--color-white);
+    color: var(--color-accent);
 }
 
 .resumen-detalle {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     padding: 1.5rem;
-    border-radius: 0;
+    border-radius: 6px;
     margin-bottom: 1.5rem;
     line-height: 1.8;
 }
@@ -1294,10 +1299,14 @@ img {
     margin: 0.5rem 0;
 }
 
+.configurador-resumen .resumen-detalle strong {
+    color: var(--color-accent);
+}
+
 .resumen-subtotal {
     margin-top: 1.25rem;
     padding-top: 1.25rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    border-top: 1px solid rgba(201, 169, 97, 0.4);
 }
 
 .resumen-subtotal-tabla {
@@ -1308,6 +1317,10 @@ img {
 
 .resumen-subtotal-tabla td {
     padding: 0.35rem 0;
+}
+
+.resumen-subtotal-tabla td:first-child {
+    color: rgba(255, 255, 255, 0.95);
 }
 
 .resumen-subtotal-tabla td:last-child {
@@ -1323,6 +1336,7 @@ img {
     padding-top: 0.75rem;
     font-weight: 700;
     font-size: 1.1rem;
+    color: var(--color-accent);
 }
 
 .resumen-subtotal-tabla tr.resumen-total td:last-child {
@@ -1332,7 +1346,8 @@ img {
 .resumen-subtotal-nota {
     margin-top: 0.5rem;
     font-size: 0.8rem;
-    opacity: 0.85;
+    opacity: 0.9;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .btn-reservar-paquete {
@@ -1341,7 +1356,7 @@ img {
     color: var(--color-primary-dark);
     padding: 1.25rem 2rem;
     border: none;
-    border-radius: 0;
+    border-radius: 6px;
     font-size: 1.2rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -5063,40 +5078,7 @@ img {
     height: 1rem;
 }
 
-/* Responsive */
-@media (max-width: 1200px) {
-    .header-container {
-        padding: 1rem 1.25rem;
-    }
-
-    .header-logo-image,
-    .header-logo-saldaña-image {
-        height: 45px;
-        max-width: 170px;
-    }
-
-    .nav {
-        margin: 0 0.75rem;
-    }
-
-    .nav-list {
-        gap: 1rem;
-    }
-
-    .nav-link {
-        font-size: 1.05rem;
-    }
-
-    .header-actions {
-        gap: 0.6rem;
-    }
-
-    .header-actions .btn-hazte-socio,
-    .header-actions .btn-login {
-        padding: 0.4rem 0.85rem;
-        font-size: 0.85rem;
-    }
-}
+/* Responsive - Header usa valores fluidos (clamp) en base */
 
 @media (max-width: 1024px) {
     html {
@@ -5112,26 +5094,22 @@ img {
     }
 
     .header-container {
-        padding: 1rem 1.25rem;
-        min-height: 56px;
+        padding: clamp(0.75rem, 1.5vw, 1rem) clamp(1rem, 2vw, 1.25rem);
+        min-height: clamp(52px, 7vw, 60px);
     }
 
-    .header-logo-image {
-        height: 38px;
-        max-width: 130px;
-    }
-
+    .header-logo-image,
     .header-logo-saldaña-image {
-        height: 38px;
-        max-width: 130px;
+        height: clamp(34px, 4.5vw, 42px);
+        max-width: min(130px, 18vw);
     }
 
     .nav {
         position: fixed;
-        top: 64px;
+        top: 58px;
         left: -100%;
         width: 100%;
-        height: calc(100vh - 64px);
+        height: calc(100vh - 58px);
         background: var(--color-primary-dark);
         transition: var(--transition);
         overflow-y: auto;
@@ -5153,18 +5131,19 @@ img {
     }
 
     .nav-link {
-        padding: 1rem 0;
+        padding: clamp(0.75rem, 2vw, 1rem) 0;
+        font-size: clamp(0.9rem, 2.5vw, 1.05rem);
         white-space: normal;
     }
 
     .header-actions {
-        gap: 0.5rem;
+        gap: clamp(0.4rem, 1vw, 0.5rem);
     }
 
     .header-actions .btn-hazte-socio,
     .header-actions .btn-login {
-        padding: 0.4rem 0.85rem;
-        font-size: 0.9rem;
+        padding: clamp(0.35rem, 0.5vw, 0.4rem) clamp(0.6rem, 1.2vw, 0.85rem);
+        font-size: clamp(0.75rem, 1vw, 0.9rem);
     }
 
     .hero-title {
@@ -5201,27 +5180,23 @@ img {
 
 @media (max-width: 640px) {
     .header-container {
-        padding: 1rem;
+        padding: clamp(0.75rem, 2vw, 1rem);
     }
 
-    .header-logo-image {
-        height: 35px;
-        max-width: 120px;
-    }
-
+    .header-logo-image,
     .header-logo-saldaña-image {
-        height: 35px;
-        max-width: 120px;
+        height: clamp(30px, 5vw, 38px);
+        max-width: min(120px, 25vw);
     }
 
     .header-actions {
-        gap: 0.4rem;
+        gap: clamp(0.3rem, 1vw, 0.4rem);
     }
 
     .header-actions .btn-hazte-socio,
     .header-actions .btn-login {
-        padding: 0.35rem 0.65rem;
-        font-size: 0.8rem;
+        padding: clamp(0.3rem, 0.8vw, 0.35rem) clamp(0.5rem, 1.5vw, 0.65rem);
+        font-size: clamp(0.7rem, 2.5vw, 0.85rem);
     }
 
     .nav {
