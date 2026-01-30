@@ -32,7 +32,8 @@
 html {
     scroll-behavior: smooth;
     scroll-padding-top: var(--header-sticky-offset);
-    overflow-x: hidden;
+    overflow-x: hidden; /* fallback */
+    overflow-x: clip; /* no scroll container, permite sticky en hijos */
     width: 100%;
     max-width: 100%;
 }
@@ -42,7 +43,8 @@ body {
     font-weight: var(--font-weight-light);
     color: var(--color-text);
     line-height: 1.6;
-    overflow-x: hidden;
+    overflow-x: hidden; /* fallback */
+    overflow-x: clip; /* permite sticky en resumen paquete */
     width: 100%;
     max-width: 100%;
     overflow-wrap: break-word;
