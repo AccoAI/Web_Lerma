@@ -9,6 +9,28 @@
     onScroll();
 })();
 
+// Mover nav a body en móvil para que el overlay cubra toda la pantalla (evita contención por backdrop-filter del header)
+(function () {
+    var nav = document.querySelector('.nav');
+    var headerContainer = document.querySelector('.header-container');
+    if (!nav || !headerContainer) return;
+    var mq = window.matchMedia('(max-width: 1280px)');
+    function moveNav() {
+        if (mq.matches) {
+            if (nav.parentNode !== document.body) {
+                document.body.appendChild(nav);
+            }
+        } else {
+            var headerActions = headerContainer.querySelector('.header-actions');
+            if (nav.parentNode !== headerContainer && headerActions) {
+                headerContainer.insertBefore(nav, headerActions);
+            }
+        }
+    }
+    moveNav();
+    mq.addEventListener('change', moveNav);
+})();
+
 // Menu Toggle
 const menuToggle = document.querySelector('.menu-toggle');
 const nav = document.querySelector('.nav');

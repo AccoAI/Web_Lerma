@@ -140,14 +140,14 @@ img {
 
 .menu-toggle {
     display: none;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
+    gap: 0.5rem;
     background: none;
     border: none;
     cursor: pointer;
     padding: 0.5rem;
-    gap: 4px;
     z-index: 1001;
     position: relative;
     min-width: 44px;
@@ -155,11 +155,26 @@ img {
     touch-action: manipulation;
 }
 
-.menu-toggle span {
+.menu-toggle-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.menu-toggle-bars span {
     width: 25px;
     height: 2px;
     background: var(--color-white);
     transition: var(--transition);
+}
+
+.menu-toggle-label {
+    font-family: var(--font-primary);
+    font-size: 0.75rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--color-white);
 }
 
 /* Hero Logo */
@@ -5145,6 +5160,8 @@ img {
     .header {
         overflow: visible;
         z-index: 10001;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
     }
 
     .nav {
