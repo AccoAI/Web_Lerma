@@ -373,23 +373,21 @@ img {
 .hero-btn {
     display: inline-block;
     padding: 0.875rem 1.75rem;
-    background: rgba(255, 255, 255, 0.97);
-    color: var(--color-primary-dark);
+    background: transparent;
+    color: var(--color-white);
     text-decoration: none;
     font-size: 0.75rem;
     font-weight: 300;
     letter-spacing: 2px;
     text-transform: uppercase;
     border-radius: 0;
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
-    transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+    border: 1px solid var(--color-white);
+    transition: box-shadow 0.2s ease, transform 0.2s ease, background 0.2s ease;
     white-space: nowrap;
 }
 
 .hero-btn:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-    border-color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.15);
     transform: translateY(-1px);
 }
 
@@ -498,11 +496,11 @@ img {
     width: 100%;
 }
 
-.paquetes-configuradores .container {
-    width: 100%;
-    max-width: 100%;
-    padding: 0 2rem;
-}
+    .paquetes-configuradores .container {
+        width: 100%;
+        max-width: 100%;
+        padding: 0 2rem;
+    }
 
 .paquetes-grid {
     display: grid;
@@ -5199,6 +5197,8 @@ img {
 
     .hero {
         margin-top: 0;
+        height: 55vh;
+        min-height: 320px;
     }
 
     .hero-title {
@@ -5260,6 +5260,35 @@ img {
         max-width: 100%;
     }
 
+    .paquetes-configuradores .container {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .paquete-titulo-externo {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .paquetes-grid {
+        gap: 0.5rem;
+    }
+
+    .bodas-eventos .container {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .bodas-eventos .section-title,
+    .bodas-intro {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .bodas-imagenes-grid {
+        gap: 0.5rem;
+    }
+
     .configurador-paquete {
         margin-left: 0;
     }
@@ -5278,6 +5307,11 @@ img {
 
     .nav {
         margin: 0;
+    }
+
+    .hero {
+        height: 45vh;
+        min-height: 260px;
     }
 
     .hero-title {
@@ -5390,7 +5424,11 @@ img {
     }
 
     .paquete-card-fondo {
-        height: 200px;
+        height: 150px;
+        min-height: 150px;
+    }
+
+    .boda-imagen-fondo {
         min-height: 200px;
     }
 
