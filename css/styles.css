@@ -763,10 +763,17 @@ img {
     scroll-margin-top: 80px;
 }
 
+.paquete-detalle .container {
+    padding-left: clamp(0.75rem, 2vw, 1.25rem);
+    padding-right: clamp(0.75rem, 2vw, 1.25rem);
+    max-width: min(1280px, calc(100vw - 1rem));
+}
+
 /* Configurador de Paquete */
 .configurador-paquete {
-    max-width: 1200px;
-    margin: 3rem auto 0;
+    max-width: 100%;
+    margin: 3rem 0 0;
+    margin-left: clamp(-2rem, -2.5vw, 0);
 }
 
 .configurador-paquete .configurador-layout {
@@ -778,14 +785,14 @@ img {
 
 .configurador-paquete .configurador-resumen {
     position: sticky;
-    top: 120px;
+    top: clamp(90px, 12vw, 120px);
     align-self: start;
     margin-right: -80px;
 }
 
 .configurador-form {
     background: var(--color-white);
-    padding: 3rem;
+    padding: clamp(1.5rem, 3vw, 3rem);
     border-radius: 8px;
     box-shadow: var(--shadow-lg);
 }
@@ -3107,9 +3114,9 @@ img {
     }
 
     .configurador-paquete .configurador-resumen {
-        position: static;
         margin-top: 2rem;
         margin-right: 0;
+        top: clamp(80px, 14vw, 100px);
     }
 }
 
@@ -5373,9 +5380,9 @@ img {
     }
 
     .configurador-paquete .configurador-resumen {
-        position: static;
         margin-top: 2rem;
         margin-right: 0;
+        top: clamp(70px, 15vw, 95px);
     }
 
     .configurador-resumen {
