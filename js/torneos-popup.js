@@ -8,7 +8,7 @@
 
     var STORAGE_KEY = 'torneosPopupCerrado';
     var DATA_URL = 'data/torneos-popup.json';
-    var DELAY_MS = 1800;
+    var DELAY_MS = 0;
 
     function isPortada() {
         var p = (window.location.pathname || '').replace(/\/$/, '');
@@ -153,9 +153,7 @@
                 if (!data || !data.popupActivo) return;
                 var hasContent = (data.torneos && data.torneos.length) || (data.imagen && data.imagen.trim()) || (data.texto && data.texto.trim()) || (data.linkUrl && data.linkTexto);
                 if (!hasContent) return;
-                setTimeout(function () {
-                    showPopup(data);
-                }, DELAY_MS);
+                showPopup(data);
             })
             .catch(function () {});
     }
