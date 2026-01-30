@@ -89,7 +89,7 @@ img {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: clamp(0.5rem, 1vw, 1rem);
+    gap: clamp(0.5rem, 1.5vw, 1.5rem);
     min-height: clamp(56px, 8vw, 70px);
     box-sizing: border-box;
     overflow: hidden;
@@ -98,7 +98,8 @@ img {
 .header-logo {
     display: flex;
     align-items: center;
-    flex-shrink: 0;
+    flex: 0 0 auto;
+    min-width: 0;
 }
 
 .header-logo a {
@@ -107,9 +108,9 @@ img {
 }
 
 .header-logo-image {
-    height: clamp(35px, 4vw, 50px);
+    height: clamp(32px, 3.5vw, 48px);
     width: auto;
-    max-width: min(200px, 25vw);
+    max-width: min(160px, 18vw);
     object-fit: contain;
     transition: var(--transition);
 }
@@ -125,9 +126,9 @@ img {
 }
 
 .header-logo-saldaña-image {
-    height: clamp(32px, 4vw, 50px);
+    height: clamp(32px, 3.5vw, 48px);
     width: auto;
-    max-width: min(200px, 22vw);
+    max-width: min(160px, 18vw);
     object-fit: contain;
     transition: var(--transition);
 }
@@ -186,17 +187,19 @@ img {
 .nav {
     flex: 1 1 auto;
     min-width: 0;
+    max-width: 100%;
     display: flex;
     justify-content: center;
-    margin: 0 clamp(0.5rem, 1.5vw, 2rem);
+    margin: 0 clamp(0.5rem, 1vw, 1.5rem);
 }
 
 .nav-list {
     display: flex;
     list-style: none;
-    gap: clamp(0.5rem, 1.5vw, 2rem);
+    gap: clamp(0.4rem, 1vw, 1.5rem);
     align-items: center;
     flex-wrap: nowrap;
+    min-width: 0;
 }
 
 .nav-item {
@@ -206,12 +209,12 @@ img {
 .nav-link {
     color: var(--color-white);
     text-decoration: none;
-    font-size: clamp(0.65rem, 1.1vw, 1.1rem);
+    font-size: clamp(0.6rem, 1vw, 1.05rem);
     font-weight: 300;
-    letter-spacing: clamp(0.5px, 0.2vw, 2px);
+    letter-spacing: clamp(0.5px, 0.15vw, 1.5px);
     text-transform: uppercase;
     transition: var(--transition);
-    padding: clamp(0.35rem, 0.5vw, 0.5rem) clamp(0.1rem, 0.4vw, 0.5rem) 0;
+    padding: clamp(0.3rem, 0.4vw, 0.5rem) clamp(0.15rem, 0.35vw, 0.5rem);
     display: block;
     white-space: nowrap;
 }
@@ -223,19 +226,19 @@ img {
 .header-actions {
     display: flex;
     align-items: center;
-    gap: clamp(0.5rem, 1vw, 1rem);
-    flex-shrink: 0;
+    gap: clamp(0.4rem, 0.8vw, 0.75rem);
+    flex: 0 0 auto;
 }
 
 .btn-hazte-socio {
     background: var(--color-white);
     color: var(--color-primary-dark);
     text-decoration: none;
-    padding: clamp(0.4rem, 0.6vw, 0.5rem) clamp(0.5rem, 1.5vw, 1.5rem);
+    padding: clamp(0.35rem, 0.5vw, 0.5rem) clamp(0.45rem, 1.2vw, 1.25rem);
     border: 1px solid var(--color-white);
     border-radius: 0;
     transition: var(--transition);
-    font-size: clamp(0.65rem, 1vw, 1rem);
+    font-size: clamp(0.6rem, 0.9vw, 0.95rem);
     font-weight: 300;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -252,11 +255,11 @@ img {
 .btn-login {
     color: var(--color-white);
     text-decoration: none;
-    padding: clamp(0.4rem, 0.6vw, 0.5rem) clamp(0.5rem, 1.5vw, 1.5rem);
+    padding: clamp(0.35rem, 0.5vw, 0.5rem) clamp(0.45rem, 1.2vw, 1.25rem);
     border: 1px solid var(--color-white);
     border-radius: 0;
     transition: var(--transition);
-    font-size: clamp(0.65rem, 1vw, 1rem);
+    font-size: clamp(0.6rem, 0.9vw, 0.95rem);
     font-weight: 300;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -5093,7 +5096,7 @@ img {
 
 /* Responsive - Header usa valores fluidos (clamp) en base */
 
-@media (max-width: 1024px) {
+@media (max-width: 1280px) {
     :root {
         --header-height: clamp(70px, 12vw, 95px);
     }
