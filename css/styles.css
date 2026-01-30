@@ -397,32 +397,32 @@ img {
     right: 2rem;
     z-index: 10;
     background: transparent;
-    padding: 1.25rem 1.5rem;
+    padding: 0.6rem 1rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
-    max-width: 220px;
+    gap: 0.35rem;
+    max-width: 140px;
     border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
 .hero-saldaña-logo {
-    height: 50px;
+    height: 32px;
     width: auto;
-    max-width: 180px;
+    max-width: 110px;
     object-fit: contain;
     filter: brightness(0) invert(1);
 }
 
 .hero-saldaña-texto {
     margin: 0;
-    font-size: 0.95rem;
+    font-size: 0.65rem;
     font-weight: 300;
     letter-spacing: 1px;
     text-transform: uppercase;
     color: var(--color-white);
     text-align: center;
-    line-height: 1.3;
+    line-height: 1.2;
 }
 
 .hero-saldaña-sub {
@@ -5335,17 +5335,18 @@ img {
 
     .hero-saldaña-cuadrante {
         top: calc(var(--header-height) + 0.75rem);
-        right: 1rem;
-        padding: 1rem 1.25rem;
-        max-width: 200px;
+        right: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        max-width: 120px;
     }
 
     .hero-saldaña-logo {
-        height: 40px;
+        height: 26px;
+        max-width: 90px;
     }
 
     .hero-saldaña-texto {
-        font-size: 0.9rem;
+        font-size: 0.55rem;
     }
 
     .hazte-socio-hero {
