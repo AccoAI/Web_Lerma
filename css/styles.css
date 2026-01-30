@@ -582,6 +582,18 @@ img {
     color: var(--color-white) !important;
 }
 
+.paquete-logo-lerma {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    height: 36px;
+    width: auto;
+    max-width: 90px;
+    object-fit: contain;
+    z-index: 2;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
 .paquete-logos-campos {
     position: absolute;
     top: 1rem;
@@ -590,10 +602,6 @@ img {
     gap: 0.75rem;
     align-items: center;
     z-index: 3;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 0.5rem 0.75rem;
-    border-radius: 0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .paquete-logo-campo {
@@ -745,8 +753,27 @@ img {
 
 /* Configurador de Paquete */
 .configurador-paquete {
-    max-width: 1000px;
+    max-width: 1100px;
     margin: 3rem auto 0;
+}
+
+.configurador-paquete .configurador-form {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 2rem;
+    align-items: start;
+}
+
+.configurador-paquete .configurador-form > *:not(.configurador-resumen) {
+    grid-column: 1;
+}
+
+.configurador-paquete .configurador-form > .configurador-resumen {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    align-self: start;
+    position: sticky;
+    top: 120px;
 }
 
 .configurador-form {
@@ -1238,7 +1265,10 @@ img {
     padding: 2.5rem;
     border-radius: 0;
     color: var(--color-white);
-    margin-top: 2rem;
+}
+
+.configurador-paquete .configurador-form > .configurador-resumen {
+    margin-top: 0;
 }
 
 .resumen-content h3 {
@@ -3052,6 +3082,21 @@ img {
     .hazte-socio-tarifas-grid.hazte-socio-tarifas-tres {
         grid-template-columns: 1fr;
     }
+
+    .configurador-paquete .configurador-form {
+        grid-template-columns: 1fr;
+    }
+
+    .configurador-paquete .configurador-form > *:not(.configurador-resumen) {
+        grid-column: auto;
+    }
+
+    .configurador-paquete .configurador-form > .configurador-resumen {
+        grid-column: auto;
+        grid-row: auto;
+        position: static;
+        margin-top: 2rem;
+    }
 }
 
 .hazte-socio-tarifa-card {
@@ -4685,7 +4730,7 @@ img {
 
 /* Footer */
 .footer {
-    background: var(--color-bg-dark);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     color: var(--color-white);
     padding: 3rem 0 1.5rem;
 }
@@ -4704,6 +4749,10 @@ img {
     letter-spacing: 2px;
     text-transform: uppercase;
     margin-bottom: 1rem;
+    color: var(--color-white);
+}
+
+.footer-section:last-child h3 {
     color: var(--color-accent);
 }
 
@@ -4726,14 +4775,14 @@ img {
 }
 
 .footer-links a {
-    color: var(--color-accent);
+    color: var(--color-white);
     text-decoration: none;
     font-size: 0.9rem;
     transition: var(--transition);
 }
 
 .footer-links a:hover {
-    color: var(--color-white);
+    color: var(--color-accent);
 }
 
 .footer-bottom {
@@ -5285,12 +5334,17 @@ img {
         min-height: 200px;
     }
 
+    .paquete-logo-lerma {
+        top: 0.5rem;
+        left: 0.5rem;
+        height: 24px;
+        max-width: 60px;
+    }
+
     .paquete-logos-campos {
         top: 0.5rem;
         right: 0.5rem;
-        padding: 0.2rem 0.4rem;
-        gap: 0.2rem;
-        border-radius: 0;
+        gap: 0.5rem;
     }
 
     .paquete-logo-campo {
@@ -5329,6 +5383,21 @@ img {
     .hoteles-burgos {
         grid-template-columns: repeat(2, 1fr);
         gap: 1rem;
+    }
+
+    .configurador-paquete .configurador-form {
+        grid-template-columns: 1fr;
+    }
+
+    .configurador-paquete .configurador-form > *:not(.configurador-resumen) {
+        grid-column: auto;
+    }
+
+    .configurador-paquete .configurador-form > .configurador-resumen {
+        grid-column: auto;
+        grid-row: auto;
+        position: static;
+        margin-top: 2rem;
     }
 
     .configurador-resumen {
