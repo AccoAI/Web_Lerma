@@ -141,11 +141,17 @@ img {
 .menu-toggle {
     display: none;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
     background: none;
     border: none;
     cursor: pointer;
     padding: 0.5rem;
     gap: 4px;
+    z-index: 1001;
+    position: relative;
+    min-width: 44px;
+    min-height: 44px;
 }
 
 .menu-toggle span {
@@ -2719,6 +2725,14 @@ img {
     font-size: 1.9rem;
 }
 
+@media (max-width: 640px) {
+    .sostenibilidad .section-title {
+        white-space: normal;
+        font-size: 1.4rem;
+        text-align: center;
+    }
+}
+
 .quote {
     font-family: var(--font-primary);
     font-size: 1.5rem;
@@ -5105,6 +5119,10 @@ img {
         display: flex;
     }
 
+    .header-actions {
+        display: none;
+    }
+
     .header {
         top: 0.5rem;
     }
@@ -5127,8 +5145,9 @@ img {
         width: 100%;
         height: calc(100vh - 58px);
         background: var(--color-primary-dark);
-        transition: var(--transition);
+        transition: left 0.3s ease;
         overflow-y: auto;
+        z-index: 999;
     }
 
     .nav.active {
@@ -5150,6 +5169,20 @@ img {
         padding: clamp(0.75rem, 2vw, 1rem) 0;
         font-size: clamp(0.9rem, 2.5vw, 1.05rem);
         white-space: normal;
+    }
+
+    .nav-mobile-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 1rem 0 0;
+        margin-top: 0.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-mobile-actions .nav-link-mobile {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
     }
 
     .header-actions {
@@ -5213,6 +5246,28 @@ img {
     .header-actions .btn-login {
         padding: clamp(0.3rem, 0.8vw, 0.35rem) clamp(0.5rem, 1.5vw, 0.65rem);
         font-size: clamp(0.7rem, 2.5vw, 0.85rem);
+    }
+
+    .paquete-detalle .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        max-width: 100%;
+    }
+
+    .configurador-paquete {
+        margin-left: 0;
+    }
+
+    .paquete-detalle {
+        padding: 2rem 0;
+    }
+
+    .paquete-card h3,
+    .paquete-card-fondo h3 {
+        -webkit-line-clamp: unset;
+        line-clamp: unset;
+        overflow: visible;
+        min-height: auto;
     }
 
     .nav {
@@ -5303,7 +5358,7 @@ img {
     }
 
     .paquetes-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
         gap: 1rem;
     }
 
@@ -5356,12 +5411,12 @@ img {
     }
 
     .paquete-descripcion {
-        font-size: 0.8rem;
-        line-height: 1.3;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+        font-size: 0.85rem;
+        line-height: 1.35;
+        -webkit-line-clamp: unset;
+        line-clamp: unset;
+        display: block;
+        overflow: visible;
         text-align: center;
     }
 

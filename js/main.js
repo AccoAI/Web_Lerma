@@ -13,8 +13,10 @@
 const menuToggle = document.querySelector('.menu-toggle');
 const nav = document.querySelector('.nav');
 
-if (menuToggle) {
-    menuToggle.addEventListener('click', () => {
+if (menuToggle && nav) {
+    menuToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
         nav.classList.toggle('active');
         menuToggle.classList.toggle('active');
     });
@@ -22,13 +24,49 @@ if (menuToggle) {
 
 // Close menu when clicking outside
 document.addEventListener('click', (e) => {
-    if (nav && nav.classList.contains('active')) {
+    if (nav && nav.classList.contains('active') && menuToggle) {
         if (!nav.contains(e.target) && !menuToggle.contains(e.target)) {
             nav.classList.remove('active');
             menuToggle.classList.remove('active');
         }
     }
 });
+
+// Inyectar Hazte Socio y Area Socio en el menú móvil (cuando header-actions está oculto)
+(function () {
+    function injectMobileActions() {
+        var navList = document.querySelector('.nav-list');
+        if (!navList) return;
+        if (navList.querySelector('.nav-item-mobile-actions')) return;
+        var headerActions = document.querySelector('.header-actions');
+        if (headerActions && navList && window.matchMedia('(max-width: 1280px)').matches) {
+            var wrap = document.createElement('li');
+            wrap.className = 'nav-item nav-item-mobile-actions';
+            wrap.setAttribute('data-injected', '1');
+            var actions = headerActions.querySelectorAll('a');
+            var div = document.createElement('div');
+            div.className = 'nav-mobile-actions';
+            actions.forEach(function (a) {
+                var link = document.createElement('a');
+                link.href = a.href;
+                link.className = a.className + ' nav-link-mobile';
+                link.textContent = a.textContent;
+                div.appendChild(link);
+            });
+            wrap.appendChild(div);
+            navList.appendChild(wrap);
+        }
+    }
+    injectMobileActions();
+    window.addEventListener('resize', function () {
+        var injected = document.querySelector('.nav-item-mobile-actions');
+        if (injected && window.matchMedia('(min-width: 1281px)').matches) {
+            injected.remove();
+        } else if (!injected && window.matchMedia('(max-width: 1280px)').matches) {
+            injectMobileActions();
+        }
+    });
+})();
 
 // Close menu when clicking on a link
 const navLinks = document.querySelectorAll('.nav-link');
