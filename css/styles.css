@@ -2,8 +2,8 @@
 :root {
     /* Altura aproximada de la hero bar (header fijo) */
     --header-height: clamp(88px, 14vw, 135px);
-    /* 1cm ≈ 38–40px de margen bajo la hero bar */
-    --resumen-sticky-top: calc(var(--header-height) + 40px);
+    /* El resumen empieza a quedarse sticky solo cuando queda 1px con la hero bar */
+    --resumen-sticky-top: calc(var(--header-height) + 1px);
     --header-sticky-offset: var(--resumen-sticky-top);
     --color-primary: #1a4d3a;
     --color-primary-dark: #0f3324;
