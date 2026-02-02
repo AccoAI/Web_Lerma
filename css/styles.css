@@ -819,8 +819,12 @@ img {
     margin-right: -80px;
 }
 
-/* Reforzar sticky en desktop (solo aplica en >640px; móvil usa pestaña fija) */
+/* Reforzar sticky en desktop: el wrapper debe estirarse para que el aside tenga "espacio" donde pegarse */
 @media (min-width: 641px) {
+    .configurador-paquete .configurador-layout .resumen-mobile-wrapper {
+        align-self: stretch;
+        min-height: 0;
+    }
     .configurador-paquete .configurador-resumen,
     .resumen-mobile-wrapper .configurador-resumen {
         position: sticky !important;
