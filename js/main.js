@@ -629,7 +629,7 @@ function initConfiguradorPaquete() {
         if (nNoches >= 1) {
             var resumenHTML = '<div class="resumen-items">';
             resumenHTML += '<p><strong>Noches:</strong> ' + noches + ' ' + (noches === '1' ? 'noche' : 'noches') + '</p>';
-            resumenHTML += '<p><strong>Green Fees:</strong> ' + (fechasGF.length || 0) + ' ' + ((fechasGF.length || 0) === 1 ? 'salida' : 'salidas') + ' <em>(por persona)</em></p>';
+            resumenHTML += '<p><strong>Green Fees:</strong> ' + count + ' ' + (count === 1 ? 'salida' : 'salidas') + ' <em>(por persona)</em></p>';
 
             var fechas = formData.getAll('fechas[]');
             if (fechas && fechas.length > 0) {
