@@ -627,61 +627,28 @@ function initConfiguradorPaquete() {
 
         var nNoches = parseInt(noches || '0', 10);
         if (nNoches >= 1) {
-            var resumenHTML = '<div class="resumen-items">';
-            resumenHTML += '<p><strong>Noches:</strong> ' + noches + ' ' + (noches === '1' ? 'noche' : 'noches') + '</p>';
-            resumenHTML += '<p><strong>Green Fees:</strong> ' + count + ' ' + (count === 1 ? 'salida' : 'salidas') + ' <em>(por persona)</em></p>';
-
             var fechas = formData.getAll('fechas[]');
-            if (fechas && fechas.length > 0) {
-                for (var i = 1; i <= fechas.length; i++) {
-                    var c = formData.get('campo-dia-' + i);
-                    if (c) resumenHTML += '<p><strong>Día ' + i + ':</strong> ' + (c === 'lerma' ? 'Golf Lerma' : 'Saldaña Golf') + '</p>';
-                }
-            }
-
-            if (necesitaHotel && hotelOk) {
-                var n = parseInt(noches || '0', 10);
-                var parts = [];
-                for (var i = 1; i <= n; i++) {
-                    var v = formData.get('hotel-noche-' + i);
-                    if (v) parts.push('Noche ' + i + ': ' + getHotelLabelFromValue(v));
-                }
-                if (parts.length) resumenHTML += '<p><strong>Alojamiento:</strong> ' + parts.join('. ') + '</p>';
-            }
-
-            var partesComida = [];
             var numServicios = 0;
             for (var ic = 1; ic <= count; ic++) {
                 var com = (formData.get('comida_dia_' + ic) || '').trim();
                 var cen = (formData.get('cena_dia_' + ic) || '').trim();
-                var labCom = (com === 'lerma' ? 'Lerma' : com === 'burgos' ? 'Burgos' : '');
-                var labCen = (cen === 'lerma' ? 'Lerma' : cen === 'burgos' ? 'Burgos' : '');
-                if (labCom || labCen) {
-                    var p = 'Día ' + ic + ':';
-                    if (labCom) { p += ' Comida ' + labCom; numServicios++; }
-                    if (labCen) { p += (labCom ? ', ' : '') + 'Cena ' + labCen; numServicios++; }
-                    partesComida.push(p);
-                }
+                if (com) numServicios++;
+                if (cen) numServicios++;
             }
-            if (partesComida.length) resumenHTML += '<p><strong>Comidas / cenas:</strong> ' + partesComida.join('. ') + '</p>';
 
-            var tg = (formData.get('tamanio_grupo') || '').trim();
-            var hs = (formData.get('hora_salida') || '').trim();
-            var ng = (formData.get('numero_grupos') || '').trim();
-            if (tg || hs || ng) {
-                var partsInit = [];
-                if (tg) partsInit.push('Tamaño del grupo: ' + tg);
-                if (hs) partsInit.push('Hora de salida: ' + hs);
-                if (ng) partsInit.push('Nº de grupos: ' + ng);
-                resumenHTML += '<p><strong>Reserva:</strong> ' + partsInit.join(' · ') + '</p>';
-            }
+            var resumenHTML = '<div class="resumen-items">';
+            resumenHTML += '<p><strong>Estancia:</strong> ' + noches + ' ' + (noches === '1' ? 'noche' : 'noches') + '</p>';
+            resumenHTML += '<p><strong>Green fees:</strong> ' + count + ' ' + (count === 1 ? 'salida' : 'salidas') + '</p>';
+            resumenHTML += '<p><strong>Alojamiento:</strong> ' + (necesitaHotel && hotelOk ? (noches + ' ' + (noches === '1' ? 'noche' : 'noches')) : '—') + '</p>';
+            resumenHTML += '<p><strong>Comidas y cenas:</strong> ' + (numServicios > 0 ? numServicios + ' ' + (numServicios === 1 ? 'servicio' : 'servicios') : '—') + '</p>';
 
             var usuarios = form.querySelectorAll('.usuario-form');
-            if (usuarios.length > 0) resumenHTML += '<p><strong>Número de participantes:</strong> ' + usuarios.length + '</p>';
+            var nPart = usuarios.length || (formData.get('tamanio_grupo') || '').trim() || '1';
+            resumenHTML += '<p><strong>Participantes:</strong> ' + nPart + '</p>';
             var grupos = getCorrespondenciaGrupos(form);
-            if (grupos.length > 0) resumenHTML += '<p><strong>Correspondencias (grupos):</strong> ' + grupos.map(function (g) { return g.cantidad + ' × ' + g.label; }).join(', ') + '</p>';
-            var hg = (formData.get('handicap_grupo') || '').trim();
-            if (hg) resumenHTML += '<p><strong>Handicap del grupo (orientativo):</strong> ' + hg + '</p>';
+            if (grupos.length > 0) resumenHTML += '<p><strong>Correspondencias:</strong> Sí</p>';
+            var tieneAnc = formData.get('ancillary_buggy') === '1' || formData.get('ancillary_carrito_mano') === '1' || formData.get('ancillary_carrito_electrico') === '1';
+            resumenHTML += '<p><strong>Servicios adicionales:</strong> ' + (tieneAnc ? 'Sí' : '—') + '</p>';
             resumenHTML += '</div>';
 
             var numParticipants = Math.max(1, parseInt((formData.get('tamanio_grupo') || '').trim(), 10) || form.querySelectorAll('.usuario-form').length);
@@ -730,9 +697,9 @@ function initConfiguradorPaquete() {
                 for (var inx = 1; inx <= nNoches; inx++) {
                     var hv = (formData.get('hotel-noche-' + inx) || '').trim();
                     if (hv && hv.indexOf('-') >= 0) {
-                        var partes = hv.split('-');
-                        var ciudad = partes[0];
-                        var hotelId = partes[1];
+                        var idx = hv.indexOf('-');
+                        var ciudad = hv.substring(0, idx);
+                        var hotelId = hv.substring(idx + 1);
                         var arr = opts[ciudad] || [];
                         for (var j = 0; j < arr.length; j++) {
                             if (arr[j].v === hotelId && arr[j].p != null) { aloj += arr[j].p; break; }
@@ -755,22 +722,28 @@ function initConfiguradorPaquete() {
             }
             var comidaVal = Math.round(totalComidaPorPersona * numParticipants * 100) / 100;
 
-            var base = gf + aloj + comidaVal;
+            var anc = precios.ancillaries || {};
+            var ancVal = 0;
+            var numGFAnc = Math.max(numGF, 1);
+            if (formData.get('ancillary_buggy') === '1') ancVal += (anc.buggy || 15) * numGFAnc;
+            if (formData.get('ancillary_carrito_mano') === '1') ancVal += (anc.carritoMano || 3) * numGFAnc;
+            if (formData.get('ancillary_carrito_electrico') === '1') ancVal += (anc.carritoElectrico || 5) * numGFAnc;
+
+            var base = gf + aloj + comidaVal + ancVal;
             // Si hay correspondencia, calcular descuento sobre base real; si no, usar dummy
             var desc = tieneCorrespondencia ? Math.round(base * DESCUENTO_PACK_PORC / 100) : Math.round(base * 0.12); // dummy: 12% si no hay correspondencia
             var subtotal = base - desc;
 
             resumenHTML += '<div class="resumen-subtotal">';
             resumenHTML += '<table class="resumen-subtotal-tabla">';
-            resumenHTML += '<tr><td>Green fees (' + (numGF > 0 ? numGF : 2) + (numParticipants > 1 ? ' × ' + numParticipants + ' pers.' : '') + ')</td><td>' + gf + ' €</td></tr>';
-            if (necesitaHotel) {
-                resumenHTML += '<tr><td>Alojamiento (' + nNoches + ' ' + (nNoches === 1 ? 'noche' : 'noches') + ')</td><td>' + (hotelOk ? (aloj + ' €') : '—') + '</td></tr>';
-            }
-            resumenHTML += '<tr><td>Comidas y cenas' + (comidaVal > 0 ? ' (' + numServicios + (numParticipants > 1 ? ' × ' + numParticipants + ' pers.' : '') + ')' : '') + '</td><td>' + (comidaVal > 0 ? comidaVal + ' €' : '—') + '</td></tr>';
+            resumenHTML += '<tr><td>Green fees</td><td>' + gf + ' €</td></tr>';
+            resumenHTML += '<tr><td>Alojamiento</td><td>' + (necesitaHotel && hotelOk ? (aloj + ' €') : '—') + '</td></tr>';
+            resumenHTML += '<tr><td>Comidas y cenas</td><td>' + (comidaVal > 0 ? comidaVal + ' €' : '—') + '</td></tr>';
+            resumenHTML += '<tr><td>Servicios adicionales</td><td>' + (ancVal > 0 ? ancVal + ' €' : '—') + '</td></tr>';
             resumenHTML += '<tr class="resumen-descuento"><td>Descuento pack (-' + DESCUENTO_PACK_PORC + '%)</td><td>-' + desc + ' €</td></tr>';
-            resumenHTML += '<tr class="resumen-total"><td>Subtotal</td><td>' + subtotal + ' €</td></tr>';
+            resumenHTML += '<tr class="resumen-total"><td>Total</td><td>' + subtotal + ' €</td></tr>';
             if (numParticipants > 1) {
-                resumenHTML += '<tr class="resumen-por-persona"><td>Importe por persona (' + numParticipants + ')</td><td>' + (Math.round((subtotal / numParticipants) * 100) / 100) + ' €</td></tr>';
+                resumenHTML += '<tr class="resumen-por-persona"><td>Por persona</td><td>' + (Math.round((subtotal / numParticipants) * 100) / 100) + ' €</td></tr>';
             }
             resumenHTML += '</table>';
             resumenHTML += '<p class="resumen-subtotal-nota">Descuento por pack aplicado.' + (clubId ? ' Tarifa correspondencia aplicada según día de la semana.' : '') + ' Forma de pago: ' + (formaPago === 'por_persona' ? 'por persona (enlaces individuales).' : 'único.') + '</p></div>';
