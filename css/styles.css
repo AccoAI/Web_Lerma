@@ -5589,6 +5589,8 @@ img {
     .resumen-mobile-total {
         font-weight: 600;
         color: var(--color-accent);
+        margin-left: auto;
+        margin-right: 0.5rem;
     }
 
     .resumen-mobile-chevron {

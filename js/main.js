@@ -846,7 +846,7 @@ function initConfiguradorPaquete() {
     function updateMobileTotal() {
         var mobileTotal = document.getElementById('resumen-total-mobile');
         if (!mobileTotal) return;
-        var totalCell = document.querySelector('.resumen-detalle .resumen-total td:last-child, #resumen-paquete .resumen-total td:last-child, #resumen-detalle .resumen-total td:last-child');
+        var totalCell = document.querySelector('#resumen-paquete .resumen-total td:last-child, #resumen-detalle .resumen-total td:last-child, #resumen-pausadrive .resumen-total td:last-child, #resumen-ryder .resumen-total td:last-child, .resumen-detalle .resumen-total td:last-child');
         mobileTotal.textContent = totalCell ? totalCell.textContent.trim() : '';
     }
     document.addEventListener('DOMContentLoaded', function () {
@@ -865,7 +865,7 @@ function initConfiguradorPaquete() {
                 }
             });
             var obs = new MutationObserver(updateMobileTotal);
-            var resumen = wrapper.querySelector('.resumen-detalle, #resumen-paquete, #resumen-detalle');
+            var resumen = wrapper.querySelector('.resumen-detalle, #resumen-paquete, #resumen-detalle, #resumen-pausadrive, #resumen-ryder, .resumen-content');
             if (resumen) obs.observe(resumen, { childList: true, subtree: true });
             updateMobileTotal();
         }
