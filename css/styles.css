@@ -1315,6 +1315,10 @@ img {
     color: var(--color-white);
 }
 
+.resumen-mobile-tab {
+    display: none;
+}
+
 
 .resumen-content h3 {
     font-family: var(--font-primary);
@@ -3153,6 +3157,7 @@ img {
 
     .configurador-paquete .configurador-layout {
         grid-template-columns: 1fr;
+        padding-bottom: 80px;
     }
 
     .configurador-paquete .configurador-resumen {
@@ -5292,6 +5297,27 @@ img {
         padding-left: 1rem;
         padding-right: 1rem;
         max-width: 100%;
+        box-sizing: border-box;
+        width: 100%;
+    }
+
+    .paquete-detalle .configurador-paquete,
+    .paquete-detalle .configurador-form {
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .paquete-detalle .configurador-layout {
+        min-width: 0;
+    }
+
+    .opciones-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .opciones-grid-2 {
+        grid-template-columns: 1fr;
     }
 
     .paquetes-configuradores .container {
@@ -5500,10 +5526,15 @@ img {
 
     .configurador-form {
         padding: 2rem 1.5rem;
+        min-width: 0;
+    }
+
+    .configurador-seccion {
+        min-width: 0;
     }
 
     .opciones-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
         gap: 1rem;
     }
 
@@ -5517,6 +5548,10 @@ img {
         grid-template-columns: 1fr;
     }
 
+    .configurador-paquete .configurador-layout {
+        padding-bottom: 80px;
+    }
+
     .configurador-paquete .configurador-resumen {
         margin-top: 2rem;
         margin-right: 0;
@@ -5524,6 +5559,56 @@ img {
 
     .configurador-resumen {
         padding: 2rem 1.5rem;
+    }
+
+    /* Resumen móvil: pestaña desplegable fija en la parte inferior */
+    .resumen-mobile-wrapper {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 900;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+    }
+
+    .resumen-mobile-tab {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.25rem;
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+        color: var(--color-white);
+        cursor: pointer;
+        font-family: var(--font-primary);
+        font-size: 1rem;
+        font-weight: 300;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    .resumen-mobile-total {
+        font-weight: 600;
+        color: var(--color-accent);
+    }
+
+    .resumen-mobile-chevron {
+        font-size: 0.9rem;
+        transition: transform 0.3s ease;
+    }
+
+    .resumen-mobile-wrapper.expanded .resumen-mobile-chevron {
+        transform: rotate(180deg);
+    }
+
+    .resumen-mobile-wrapper .configurador-resumen {
+        display: none;
+        max-height: 70vh;
+        overflow-y: auto;
+        margin: 0;
+    }
+
+    .resumen-mobile-wrapper.expanded .configurador-resumen {
+        display: block;
     }
 
     .campos-dias-selector {

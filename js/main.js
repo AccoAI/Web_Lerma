@@ -841,6 +841,37 @@ function initConfiguradorPaquete() {
     }
 }
 
+// Resumen móvil: pestaña desplegable
+(function () {
+    function updateMobileTotal() {
+        var mobileTotal = document.getElementById('resumen-total-mobile');
+        if (!mobileTotal) return;
+        var totalCell = document.querySelector('.resumen-detalle .resumen-total td:last-child, #resumen-paquete .resumen-total td:last-child, #resumen-detalle .resumen-total td:last-child');
+        mobileTotal.textContent = totalCell ? totalCell.textContent.trim() : '';
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        var tab = document.getElementById('resumen-mobile-tab');
+        var wrapper = tab && tab.closest('.resumen-mobile-wrapper');
+        if (tab && wrapper) {
+            function toggle() {
+                wrapper.classList.toggle('expanded');
+                tab.setAttribute('aria-expanded', wrapper.classList.contains('expanded'));
+            }
+            tab.addEventListener('click', toggle);
+            tab.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggle();
+                }
+            });
+            var obs = new MutationObserver(updateMobileTotal);
+            var resumen = wrapper.querySelector('.resumen-detalle, #resumen-paquete, #resumen-detalle');
+            if (resumen) obs.observe(resumen, { childList: true, subtree: true });
+            updateMobileTotal();
+        }
+    });
+})();
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     highlightNavigation();
