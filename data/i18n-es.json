@@ -123,7 +123,10 @@
   "contacto_directo": "O contacte directamente:",
 
   "empresa_title": "Eventos de empresa",
-  "empresa_intro": "Torneos, reuniones, incentivos. Déjenos su email corporativo y su mensaje, o contacte directamente por correo o teléfono.",
+  "empresa_intro": "Torneos, reuniones, incentivos, bautismos de golf. Déjenos su email corporativo y su mensaje, o contacte directamente por correo o teléfono.",
+  "empresa_bautismos_titulo": "Bautismos de golf:",
+  "empresa_bautismos_texto": "¿Necesita una actividad de iniciación para su equipo? Los bautismos de golf en el simulador de Burgos son ideales para eventos corporativos. ",
+  "empresa_bautismos_link": "Más información →",
   "empresa_envie_titulo": "Envíenos su consulta",
   "empresa_envie_intro": "Indique su email corporativo y su mensaje. Se abrirá su cliente de correo con los datos rellenados; solo tiene que pulsar enviar.",
   "label_email_corporativo": "Email corporativo *",

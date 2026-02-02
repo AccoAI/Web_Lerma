@@ -123,7 +123,10 @@
   "contacto_directo": "Or contact us directly:",
 
   "empresa_title": "Corporate events",
-  "empresa_intro": "Tournaments, meetings, incentives. Leave us your corporate email and message, or contact us directly by email or phone.",
+  "empresa_intro": "Tournaments, meetings, incentives, golf baptisms. Leave us your corporate email and message, or contact us directly by email or phone.",
+  "empresa_bautismos_titulo": "Golf baptisms:",
+  "empresa_bautismos_texto": "Need an introductory activity for your team? Golf baptisms at the Burgos simulator are ideal for corporate events. ",
+  "empresa_bautismos_link": "More information →",
   "empresa_envie_titulo": "Send us your enquiry",
   "empresa_envie_intro": "Provide your corporate email and message. Your email client will open with the data filled in; you just need to click send.",
   "label_email_corporativo": "Corporate email *",

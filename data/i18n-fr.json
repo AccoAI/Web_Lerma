@@ -123,7 +123,10 @@
   "contacto_directo": "Ou contactez-nous directement :",
 
   "empresa_title": "Événements d'entreprise",
-  "empresa_intro": "Tournois, réunions, incitatifs. Laissez-nous votre email professionnel et votre message, ou contactez-nous directement par email ou téléphone.",
+  "empresa_intro": "Tournois, réunions, incitatifs, baptêmes de golf. Laissez-nous votre email professionnel et votre message, ou contactez-nous directement par email ou téléphone.",
+  "empresa_bautismos_titulo": "Baptêmes de golf :",
+  "empresa_bautismos_texto": "Besoin d'une activité d'initiation pour votre équipe ? Les baptêmes de golf au simulateur de Burgos sont idéaux pour les événements d'entreprise. ",
+  "empresa_bautismos_link": "Plus d'informations →",
   "empresa_envie_titulo": "Envoyez-nous votre demande",
   "empresa_envie_intro": "Indiquez votre email professionnel et votre message. Votre client de messagerie s'ouvrira avec les données remplies ; il suffit de cliquer sur envoyer.",
   "label_email_corporativo": "Email professionnel *",

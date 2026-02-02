@@ -3739,6 +3739,17 @@ img {
     text-decoration: underline;
 }
 
+.empresa-bautismos-ref .empresa-bautismos-link {
+    color: var(--color-primary);
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.empresa-bautismos-ref .empresa-bautismos-link:hover {
+    text-decoration: underline;
+}
+
 /* Bodas: redirección a Finca Andaya */
 .bodas-andaya-section {
     padding: 2.5rem 0;
