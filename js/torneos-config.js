@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('input', function(e) {
         var t = e.target;
         if (t && t.id === 'tamanio-grupo-torneos') recalcNumeroGruposTorneos();
-        if (t && t.matches && t.matches('#tamanio-grupo-torneos, #hora-salida-torneos, #handicap-grupo-torneos')) actualizarResumenTorneo();
+        if (t && t.matches && t.matches('#tamanio-grupo-torneos, #hora-salida-torneos, #handicap-grupo-torneos, .ancillary-counter')) actualizarResumenTorneo();
     });
     recalcNumeroGruposTorneos();
 
@@ -345,9 +345,12 @@ function actualizarResumenTorneo() {
 
     // Servicios adicionales
     var ancillaries = [];
-    if (formData.get('ancillary_buggy')) ancillaries.push('Buggies');
-    if (formData.get('ancillary_carrito_mano')) ancillaries.push('Carrito de mano');
-    if (formData.get('ancillary_carrito_electrico')) ancillaries.push('Carrito eléctrico');
+    var qB = parseInt(formData.get('ancillary_buggy') || '0', 10);
+    var qC = parseInt(formData.get('ancillary_carrito_mano') || '0', 10);
+    var qE = parseInt(formData.get('ancillary_carrito_electrico') || '0', 10);
+    if (qB > 0) ancillaries.push('Buggies (' + qB + ')');
+    if (qC > 0) ancillaries.push('Carrito de mano (' + qC + ')');
+    if (qE > 0) ancillaries.push('Carrito eléctrico (' + qE + ')');
     var cuboVal = (formData.get('ancillary_cubo_premium_boogie') || '').trim();
     if (cuboVal === 'champagne') ancillaries.push('Cubo premium: Champagne');
     else if (cuboVal === 'cervezas') ancillaries.push('Cubo premium: Cubo de cervezas');

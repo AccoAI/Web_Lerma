@@ -231,7 +231,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (formData.get('ancillary_equipacion_equipos')) ancillaries.push('Equipación por equipos personalizada');
         if (formData.get('ancillary_gestion_trofeos')) ancillaries.push('Gestión de trofeos');
         if (formData.get('ancillary_premio_economico')) ancillaries.push('Premio económico');
-        if (formData.get('ancillary_buggy')) ancillaries.push('Buggies');
+        var qBuggy = parseInt(formData.get('ancillary_buggy') || '0', 10);
+        if (qBuggy > 0) ancillaries.push('Buggies (' + qBuggy + ')');
         var cuboVal = (formData.get('ancillary_cubo_premium_boogie') || '').trim();
         if (cuboVal === 'champagne') ancillaries.push('Cubo premium: Champagne');
         else if (cuboVal === 'cervezas') ancillaries.push('Cubo premium: Cubo de cervezas');
@@ -328,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     equipacion_equipos: formData.get('ancillary_equipacion_equipos') === '1',
                     gestion_trofeos: formData.get('ancillary_gestion_trofeos') === '1',
                     premio_economico: formData.get('ancillary_premio_economico') === '1',
-                    buggy: formData.get('ancillary_buggy') === '1',
+                    buggy: parseInt(formData.get('ancillary_buggy') || '0', 10),
                     cubo_premium_boogie: formData.get('ancillary_cubo_premium_boogie') || ''
                 }
             };

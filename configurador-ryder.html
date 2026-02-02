@@ -163,7 +163,7 @@
                     <!-- Servicios Adicionales -->
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo">Servicios adicionales</h3>
-                        <div class="ancillaries-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                        <div class="ancillaries-grid ancillaries-with-counter" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
                             <label class="ancillary-item" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
                                 <input type="checkbox" name="ancillary_bolas_personalizadas" value="1">
                                 <span>⛳ Bolas personalizadas</span>
@@ -180,10 +180,10 @@
                                 <input type="checkbox" name="ancillary_premio_economico" value="1">
                                 <span>💰 Premio económico</span>
                             </label>
-                            <label class="ancillary-item" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                <input type="checkbox" name="ancillary_buggy" value="1">
-                                <span>🛺 Buggies</span>
-                            </label>
+                            <div class="ancillary-item">
+                                <label for="ancillary_buggy">🛺 Buggies</label>
+                                <input type="number" id="ancillary_buggy" name="ancillary_buggy" min="0" max="20" value="0" class="ancillary-counter">
+                            </div>
                         </div>
                         <div class="cubo-premium-block" style="margin-top: 1.25rem;">
                             <label for="cubo-premium-ryder">🫙 Cubo premium para boogies</label>

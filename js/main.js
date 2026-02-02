@@ -594,7 +594,7 @@ function initConfiguradorPaquete() {
         form.addEventListener('input', function (e) {
             var t = e.target;
             if (t && t.id === 'tamanio-grupo') recalcNumeroGrupos();
-            if (t && t.matches && t.matches('#tamanio-grupo, #hora-salida, #handicap-grupo')) actualizarResumen();
+            if (t && t.matches && t.matches('#tamanio-grupo, #hora-salida, #handicap-grupo, .ancillary-counter')) actualizarResumen();
         });
         window.actualizarResumen = actualizarResumen;
         recalcNumeroGrupos();
@@ -647,7 +647,10 @@ function initConfiguradorPaquete() {
             resumenHTML += '<p><strong>Participantes:</strong> ' + nPart + '</p>';
             var grupos = getCorrespondenciaGrupos(form);
             if (grupos.length > 0) resumenHTML += '<p><strong>Correspondencias:</strong> Sí</p>';
-            var tieneAnc = formData.get('ancillary_buggy') === '1' || formData.get('ancillary_carrito_mano') === '1' || formData.get('ancillary_carrito_electrico') === '1';
+            var qB = parseInt(formData.get('ancillary_buggy') || 0, 10);
+            var qC = parseInt(formData.get('ancillary_carrito_mano') || 0, 10);
+            var qE = parseInt(formData.get('ancillary_carrito_electrico') || 0, 10);
+            var tieneAnc = (qB + qC + qE) > 0;
             resumenHTML += '<p><strong>Servicios adicionales:</strong> ' + (tieneAnc ? 'Sí' : '—') + '</p>';
             resumenHTML += '</div>';
 
@@ -724,10 +727,12 @@ function initConfiguradorPaquete() {
 
             var anc = precios.ancillaries || {};
             var ancVal = 0;
-            var numGFAnc = Math.max(numGF, 1);
-            if (formData.get('ancillary_buggy') === '1') ancVal += (anc.buggy || 15) * numGFAnc;
-            if (formData.get('ancillary_carrito_mano') === '1') ancVal += (anc.carritoMano || 3) * numGFAnc;
-            if (formData.get('ancillary_carrito_electrico') === '1') ancVal += (anc.carritoElectrico || 5) * numGFAnc;
+            var qBuggy = Math.max(0, parseInt(formData.get('ancillary_buggy') || '0', 10));
+            var qCarritoMano = Math.max(0, parseInt(formData.get('ancillary_carrito_mano') || '0', 10));
+            var qCarritoElec = Math.max(0, parseInt(formData.get('ancillary_carrito_electrico') || '0', 10));
+            ancVal += (anc.buggy || 15) * qBuggy;
+            ancVal += (anc.carritoMano || 3) * qCarritoMano;
+            ancVal += (anc.carritoElectrico || 5) * qCarritoElec;
 
             var base = gf + aloj + comidaVal + ancVal;
             // Si hay correspondencia, calcular descuento sobre base real; si no, usar dummy

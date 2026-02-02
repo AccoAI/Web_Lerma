@@ -5925,6 +5925,40 @@ img {
     }
 }
 
+/* ========== ANCILLARIES CON COUNTER ========== */
+.ancillaries-with-counter {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.ancillaries-with-counter .ancillary-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.ancillaries-with-counter .ancillary-item label {
+    font-weight: 400;
+    cursor: default;
+}
+
+.ancillaries-with-counter .ancillary-counter {
+    width: 4rem;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    text-align: center;
+}
+
+.ancillaries-with-counter .ancillary-counter:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
 /* ========== CHATBOT ========== */
 .chatbot-wrapper {
     position: fixed;
