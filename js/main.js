@@ -386,7 +386,7 @@ function getCorrespondenciaGrupos(f) {
         var cant = parseInt((inp && inp.value) ? inp.value : '0', 10);
         var clubId = (sel && sel.value) ? String(sel.value).trim() : '';
         if (cant < 1) continue;
-        var label = (clubId === 'sin' || !clubId) ? 'Sin correspondencia' : (typeof getClubById === 'function' && getClubById(clubId)) ? getClubById(clubId).nombre : clubId;
+        var label = (clubId === 'sin' || !clubId) ? (window.i18n && window.i18n.t ? window.i18n.t('sin_correspondencia') : 'Sin correspondencia') : (typeof getClubById === 'function' && getClubById(clubId)) ? getClubById(clubId).nombre : clubId;
         out.push({ cantidad: cant, club_id: clubId || 'sin', label: label });
     }
     return out;
@@ -597,6 +597,7 @@ function initConfiguradorPaquete() {
             if (t && t.matches && t.matches('#tamanio-grupo, #hora-salida, #handicap-grupo, .ancillary-counter')) actualizarResumen();
         });
         window.actualizarResumen = actualizarResumen;
+        document.addEventListener('i18n:changed', function () { if (typeof actualizarResumen === 'function') actualizarResumen(); });
         recalcNumeroGrupos();
     }
 
@@ -755,7 +756,7 @@ function initConfiguradorPaquete() {
 
             resumenDiv.innerHTML = resumenHTML;
         } else {
-            resumenDiv.innerHTML = '<p>Completa las opciones para ver el resumen</p>';
+            resumenDiv.innerHTML = '<p>' + (window.i18n && window.i18n.t ? window.i18n.t('resumen_completa') : 'Completa las opciones para ver el resumen') + '</p>';
         }
     }
 

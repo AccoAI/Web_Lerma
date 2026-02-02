@@ -64,20 +64,20 @@
             <div class="simulador-hero-overlay"></div>
         </div>
         <div class="simulador-hero-content">
-            <h1 class="section-title">Simulador de Golf en Burgos</h1>
-            <p class="simulador-hero-intro">En el corazón de Burgos, nuestro simulador le permite practicar y jugar en los mejores campos del mundo sin salir de la ciudad.</p>
+            <h1 class="section-title" data-i18n="simulador_title">Simulador de Golf en Burgos</h1>
+            <p class="simulador-hero-intro" data-i18n="simulador_intro">En el corazón de Burgos, nuestro simulador le permite practicar y jugar en los mejores campos del mundo sin salir de la ciudad.</p>
         </div>
     </section>
 
     <!-- Ranking público (Showroom) -->
     <section class="ranking-widget-section">
         <div class="container">
-            <h2 class="campo-titulo">Top 5 · Mejores tarjetas</h2>
-            <p class="ranking-widget-intro">Los mejores resultados registrados en campo y simulador. Solo cuentan partidas oficiales.</p>
+            <h2 class="campo-titulo" data-i18n="ranking_top5">Top 5 · Mejores tarjetas</h2>
+            <p class="ranking-widget-intro" data-i18n="ranking_intro">Los mejores resultados registrados en campo y simulador. Solo cuentan partidas oficiales.</p>
             <div class="ranking-widget" id="rankingWidget">
                 <ol class="ranking-widget-lista" id="rankingWidgetLista"></ol>
                 <p class="ranking-widget-cta">
-                    <a href="#simulador-reserva" class="btn-ranking-cta">¿Crees que puedes superarlos? Reserva tu sesión</a>
+                    <a href="#simulador-reserva" class="btn-ranking-cta" data-i18n="ranking_cta">¿Crees que puedes superarlos? Reserva tu sesión</a>
                 </p>
             </div>
         </div>
@@ -87,59 +87,59 @@
     <section class="simulador-info" id="simulador-reserva">
         <div class="container">
             <div class="simulador-opciones">
-                <h2 class="campo-titulo">Reserve desde la web</h2>
+                <h2 class="campo-titulo" data-i18n="reserve_web">Reserve desde la web</h2>
                 <div class="simulador-reserva-layout">
                     <div class="simulador-cards">
                         <div class="simulador-card activa" data-form="horario">
                             <div class="simulador-card-icono">⛳</div>
-                            <h3>Reservar horario para jugar</h3>
-                            <p>Elija su franja, acceda con el smartlock y juegue en el simulador cuando mejor le venga.</p>
-                            <button type="button" class="btn-reservar-simulador" data-form="horario">Reservar horario</button>
+                            <h3 data-i18n="reservar_horario">Reservar horario para jugar</h3>
+                            <p data-i18n="reservar_horario_desc">Elija su franja, acceda con el smartlock y juegue en el simulador cuando mejor le venga.</p>
+                            <button type="button" class="btn-reservar-simulador" data-form="horario" data-i18n="btn_reservar_horario">Reservar horario</button>
                         </div>
                         <div class="simulador-card" data-form="clase">
                             <div class="simulador-card-icono">📋</div>
-                            <h3>Reservar clase</h3>
-                            <p>Reserve una clase con nuestro equipo para mejorar su juego.</p>
-                            <button type="button" class="btn-reservar-simulador" data-form="clase">Reservar clase</button>
+                            <h3 data-i18n="reservar_clase">Reservar clase</h3>
+                            <p data-i18n="reservar_clase_desc">Reserve una clase con nuestro equipo para mejorar su juego.</p>
+                            <button type="button" class="btn-reservar-simulador" data-form="clase" data-i18n="btn_reservar_clase">Reservar clase</button>
                         </div>
                     </div>
                     <div class="simulador-form-panel">
                         <div id="form-horario" class="simulador-form-wrap activo" data-form="horario">
                             <form class="configurador-form simulador-form simulador-form-compact">
                                 <div class="simulador-form-grid">
-                                    <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" required></div>
-                                    <div class="form-group"><label>Correo *</label><input type="email" name="correo" required></div>
+                                    <div class="form-group"><label data-i18n="label_nombre">Nombre *</label><input type="text" name="nombre" required></div>
+                                    <div class="form-group"><label data-i18n="label_correo">Correo *</label><input type="email" name="correo" required></div>
                                     <div class="form-group"><label>Teléfono *</label><input type="tel" name="telefono" required></div>
-                                    <div class="form-group"><label>Club</label><input type="text" name="club" placeholder="Opcional"></div>
+                                    <div class="form-group"><label data-i18n="label_club">Club</label><input type="text" name="club" data-i18n-placeholder="placeholder_opcional" placeholder="Opcional"></div>
                                     <div class="form-group form-group-correspondencia form-group-full" data-campo="simulador">
-                                        <label>Club/campo (correspondencia)</label>
+                                        <label data-i18n="label_club_correspondencia">Club/campo (correspondencia)</label>
                                         <select name="club_correspondencia" class="select-club-correspondencia"></select>
                                         <div class="correspondencia-precio-info"></div>
                                     </div>
-                                    <div class="form-group"><label>Handicap</label><input type="number" name="handicap" min="0" max="54" step="0.1" placeholder="—"></div>
-                                    <div class="form-group"><label>Fecha *</label><input type="date" name="fecha" required></div>
-                                    <div class="form-group"><label>Hora *</label><input type="time" name="hora" required></div>
-                                    <div class="form-group form-group-full"><button type="submit" class="btn-reservar-paquete">Enviar reserva</button></div>
+                                    <div class="form-group"><label data-i18n="label_handicap">Handicap</label><input type="number" name="handicap" min="0" max="54" step="0.1" placeholder="—"></div>
+                                    <div class="form-group"><label data-i18n="label_fecha">Fecha *</label><input type="date" name="fecha" required></div>
+                                    <div class="form-group"><label data-i18n="label_hora">Hora *</label><input type="time" name="hora" required></div>
+                                    <div class="form-group form-group-full"><button type="submit" class="btn-reservar-paquete" data-i18n="btn_enviar_reserva">Enviar reserva</button></div>
                                 </div>
                             </form>
                         </div>
                         <div id="form-clase" class="simulador-form-wrap" data-form="clase">
                             <form class="configurador-form simulador-form simulador-form-compact">
                                 <div class="simulador-form-grid">
-                                    <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" required></div>
-                                    <div class="form-group"><label>Correo *</label><input type="email" name="correo" required></div>
+                                    <div class="form-group"><label data-i18n="label_nombre">Nombre *</label><input type="text" name="nombre" required></div>
+                                    <div class="form-group"><label data-i18n="label_correo">Correo *</label><input type="email" name="correo" required></div>
                                     <div class="form-group"><label>Teléfono *</label><input type="tel" name="telefono" required></div>
-                                    <div class="form-group"><label>Club</label><input type="text" name="club" placeholder="Opcional"></div>
+                                    <div class="form-group"><label data-i18n="label_club">Club</label><input type="text" name="club" data-i18n-placeholder="placeholder_opcional" placeholder="Opcional"></div>
                                     <div class="form-group form-group-correspondencia form-group-full" data-campo="simulador">
-                                        <label>Club/campo (correspondencia)</label>
+                                        <label data-i18n="label_club_correspondencia">Club/campo (correspondencia)</label>
                                         <select name="club_correspondencia" class="select-club-correspondencia"></select>
                                         <div class="correspondencia-precio-info"></div>
                                     </div>
-                                    <div class="form-group"><label>Handicap</label><input type="number" name="handicap" min="0" max="54" step="0.1" placeholder="—"></div>
-                                    <div class="form-group"><label>Fecha *</label><input type="date" name="fecha" required></div>
-                                    <div class="form-group"><label>Hora *</label><input type="time" name="hora" required></div>
-                                    <div class="form-group form-group-full"><label>Comentarios</label><textarea name="comentarios" rows="2" placeholder="Nivel, objetivos…"></textarea></div>
-                                    <div class="form-group form-group-full"><button type="submit" class="btn-reservar-paquete">Enviar solicitud de clase</button></div>
+                                    <div class="form-group"><label data-i18n="label_handicap">Handicap</label><input type="number" name="handicap" min="0" max="54" step="0.1" placeholder="—"></div>
+                                    <div class="form-group"><label data-i18n="label_fecha">Fecha *</label><input type="date" name="fecha" required></div>
+                                    <div class="form-group"><label data-i18n="label_hora">Hora *</label><input type="time" name="hora" required></div>
+                                    <div class="form-group form-group-full"><label data-i18n="label_comentarios">Comentarios</label><textarea name="comentarios" rows="2" data-i18n-placeholder="placeholder_comentarios" placeholder="Nivel, objetivos…"></textarea></div>
+                                    <div class="form-group form-group-full"><button type="submit" class="btn-reservar-paquete" data-i18n="btn_enviar_clase">Enviar solicitud de clase</button></div>
                                 </div>
                             </form>
                         </div>
@@ -148,9 +148,9 @@
             </div>
 
             <div class="simulador-ubicacion">
-                <h2 class="campo-titulo">Ubicación y acceso</h2>
+                <h2 class="campo-titulo" data-i18n="ubicacion_title">Ubicación y acceso</h2>
                 <p><strong>Calle Lain Calvo 12, Burgos.</strong></p>
-                <p>El acceso al local se realiza a través de un <strong>smartlock en la puerta</strong>. Una vez haya reservado su horario desde esta web, recibirá las instrucciones para acceder de forma autónoma y disfrutar del simulador.</p>
+                <p data-i18n="ubicacion_text">El acceso al local se realiza a través de un <strong>smartlock en la puerta</strong>. Una vez haya reservado su horario desde esta web, recibirá las instrucciones para acceder de forma autónoma y disfrutar del simulador.</p>
             </div>
         </div>
     </section>
@@ -160,7 +160,7 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>Contacto</h3>
+                    <h3 data-i18n="footer_contacto">Contacto</h3>
                     <div class="contact-info">
                         <p><strong>Golf Lerma:</strong><br>
                         Autovía Madrid-Burgos, km. 195,5<br>
@@ -174,30 +174,30 @@
                     </div>
                 </div>
                 <div class="footer-section">
-                    <h3>Enlaces</h3>
+                    <h3 data-i18n="footer_enlaces">Enlaces</h3>
                     <ul class="footer-links">
-                        <li><a href="el-campo.html">El Campo</a></li>
-                        <li><a href="index.html#paquetes">Paquetes de Golf</a></li>
-                        <li><a href="bodas-eventos.html">Bodas & Eventos</a></li>
-                        <li><a href="simulador.html">Simulador</a></li>
-                        <li><a href="hazte-socio.html">Hazte Socio</a></li>
-                        <li><a href="area-socio.html">Área Socio</a></li>
-                        <li><a href="correspondencias.html">Correspondencias</a></li>
-                        <li><a href="camara-tiempo.html">Tiempo</a></li>
-                        <li><a href="index.html#contacto">Contacto</a></li>
+                        <li><a href="el-campo.html" data-i18n="link_el_campo">El Campo</a></li>
+                        <li><a href="index.html#paquetes" data-i18n="link_paquetes">Paquetes de Golf</a></li>
+                        <li><a href="bodas-eventos.html" data-i18n="link_bodas">Bodas & Eventos</a></li>
+                        <li><a href="simulador.html" data-i18n="link_simulador">Simulador</a></li>
+                        <li><a href="hazte-socio.html" data-i18n="link_hazte_socio">Hazte Socio</a></li>
+                        <li><a href="area-socio.html" data-i18n="link_area_socio">Área Socio</a></li>
+                        <li><a href="correspondencias.html" data-i18n="link_correspondencias">Correspondencias</a></li>
+                        <li><a href="camara-tiempo.html" data-i18n="link_tiempo">Tiempo</a></li>
+                        <li><a href="index.html#contacto" data-i18n="link_contacto">Contacto</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h3>Legal</h3>
+                    <h3 data-i18n="footer_legal">Legal</h3>
                     <ul class="footer-links">
-                        <li><a href="index.html#politica-privacidad">Política de privacidad</a></li>
-                        <li><a href="index.html#advertencia-legal">Advertencia legal</a></li>
-                        <li><a href="index.html#proteccion-datos">Protección de Datos</a></li>
+                        <li><a href="index.html#politica-privacidad" data-i18n="link_politica">Política de privacidad</a></li>
+                        <li><a href="index.html#advertencia-legal" data-i18n="link_advertencia">Advertencia legal</a></li>
+                        <li><a href="index.html#proteccion-datos" data-i18n="link_proteccion">Protección de Datos</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>Copyright © Golf Lerma 2024 · Política de privacidad · Advertencia legal · Protección de Datos</p>
+                <p data-i18n="footer_bottom">Copyright © Golf Lerma 2024 · Política de privacidad · Advertencia legal · Protección de Datos</p>
             </div>
         </div>
     </footer>

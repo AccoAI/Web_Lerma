@@ -60,10 +60,10 @@
     <!-- Fin de Semana Golf en Burgos -->
     <section class="paquete-detalle" style="margin-top: 0; padding-top: calc(var(--header-height) + 1.5rem);">
         <div class="container">
-            <h2 class="section-title">Fin de Semana Golf en Burgos</h2>
-            <p class="paquete-intro">Configura tu paquete personalizado: elige las noches, el hotel y las opciones de comida. Incluye 1 green-fee en Golf Lerma y 1 green-fee en Saldaña Golf.</p>
+            <h2 class="section-title" data-i18n="paquete_finsemana_title">Fin de Semana Golf en Burgos</h2>
+            <p class="paquete-intro" data-i18n="paquete_finsemana_intro">Configura tu paquete personalizado: elige las noches, el hotel y las opciones de comida. Incluye 1 green-fee en Golf Lerma y 1 green-fee en Saldaña Golf.</p>
             <div class="paquete-info-destacada" style="background: rgba(139, 69, 19, 0.1); padding: 1.5rem; border-radius: 8px; margin: 2rem 0; border-left: 4px solid var(--color-primary);">
-                <p style="margin: 0; font-size: 1rem; color: var(--color-text);"><strong>📧 Información adicional:</strong> Una vez realizada tu reserva, te enviaremos un PDF al correo electrónico con todas nuestras recomendaciones de la capital para disfrutar de un fin de semana perfecto en Burgos.</p>
+                        <p style="margin: 0; font-size: 1rem; color: var(--color-text);" data-i18n="recibir_pdf">📧 Recibirás por correo: Un PDF con todas nuestras recomendaciones de la capital para disfrutar de un fin de semana perfecto en Burgos.</p>
             </div>
             
             <!-- Configurador de Paquete -->
@@ -72,10 +72,10 @@
                 <form id="configuradorForm" class="configurador-form">
                     <!-- Fechas / noches (calendario) -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">1. Selecciona tus fechas</h3>
+                        <h3 class="configurador-titulo" data-i18n="config_selecciona_fechas">1. Selecciona tus fechas</h3>
                         <div id="calendario-dias-finsemana" class="calendario-dias-container"></div>
                         <div id="campos-dias-finsemana" class="campos-dias-selector campos-dias-selector-mini" style="display: none; margin-top: 1rem;">
-                            <span class="campos-dias-label">Campo para cada día *</span>
+                            <span class="campos-dias-label" data-i18n="config_campo_dia">Campo para cada día *</span>
                             <div id="dias-campos-container-finsemana" class="campos-dias-row"></div>
                         </div>
                     </div>
@@ -93,8 +93,8 @@
 
                     <!-- Opciones de Comida -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">3. Opciones para comer</h3>
-                        <p class="comida-intro">Indica para cada día si reservas <strong>comida</strong> (almuerzo) y/o <strong>cena</strong>, y dónde.</p>
+                        <h3 class="configurador-titulo" data-i18n="config_comida">3. Opciones para comer</h3>
+                        <p class="comida-intro" data-i18n="config_comida_intro">Indica para cada día si reservas <strong>comida</strong> (almuerzo) y/o <strong>cena</strong>, y dónde.</p>
                         <div id="comida-por-dia-wrap">
                             <p class="comida-sin-fechas" id="comida-sin-fechas">Selecciona las fechas en el calendario para indicar comidas y cenas por día.</p>
                             <div id="comida-por-dia-container" class="comida-por-dia-container" style="display:none;"></div>
@@ -103,10 +103,10 @@
 
                     <!-- Datos de Usuarios -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">4. Datos de los participantes</h3>
+                        <h3 class="configurador-titulo" data-i18n="config_datos_participantes">4. Datos de los participantes</h3>
                         <div class="reserva-datos-iniciales">
                             <div class="form-group-inline">
-                                <label for="tamanio-grupo">Tamaño del grupo</label>
+                                <label for="tamanio-grupo" data-i18n="label_tamanio_grupo">Tamaño del grupo</label>
                                 <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" placeholder="Ej. 4" title="Número de jugadores">
                             </div>
                             <div class="form-group-inline">
@@ -114,7 +114,7 @@
                                 <input type="time" id="hora-salida" name="hora_salida" title="Hora preferida de salida">
                             </div>
                             <div class="form-group-inline">
-                                <label for="numero-grupos-output">Nº de grupos</label>
+                                <label for="numero-grupos-output" data-i18n="label_num_grupos">Nº de grupos</label>
                                 <output id="numero-grupos-output" for="tamanio-grupo" aria-live="polite" aria-readonly="true" tabindex="-1">1</output>
                                 <input type="hidden" name="numero_grupos" id="numero-grupos">
                             </div>
@@ -122,10 +122,10 @@
                         <p class="configurador-hint">Solo los datos de la reserva son obligatorios. Puedes añadir más participantes si lo deseas.</p>
                         <div id="usuarios-container" data-extra-opcionales="true" data-simplificar-extras="true" data-grupos-correspondencia="true">
                             <div class="usuario-form usuario-form-reserva" data-usuario="1">
-                                <div class="usuario-form-header"><h4 class="usuario-numero">Datos de la reserva *</h4></div>
+                                <div class="usuario-form-header"><h4 class="usuario-numero" data-i18n="datos_reserva">Datos de la reserva *</h4></div>
                                 <div class="usuario-campos">
                                     <div class="form-group-usuario">
-                                        <label>Nombre *</label>
+                                        <label data-i18n="label_nombre_req">Nombre *</label>
                                         <input type="text" name="usuario[1][nombre]" required>
                                     </div>
                                     <div class="form-group-usuario">
@@ -133,7 +133,7 @@
                                         <input type="email" name="usuario[1][correo]" required>
                                     </div>
                                     <div class="form-group-usuario">
-                                        <label>Móvil *</label>
+                                        <label data-i18n="label_movil">Móvil *</label>
                                         <input type="tel" name="usuario[1][movil]" required>
                                     </div>
                                 </div>
@@ -143,8 +143,8 @@
                             <!-- Correspondencias por grupos: se rellena por usuarios-form.js -->
                         </div>
                         <div class="handicap-grupo-block">
-                            <label for="handicap-grupo">Handicap del grupo (orientativo)</label>
-                            <input type="text" id="handicap-grupo" name="handicap_grupo" placeholder="Ej. 18 o 15-25" title="Handicap aproximado del grupo">
+                                <label for="handicap-grupo" data-i18n="label_handicap_grupo">Handicap del grupo (orientativo)</label>
+                            <input type="text" id="handicap-grupo" name="handicap_grupo" data-i18n-placeholder="placeholder_handicap" placeholder="Ej. 18 o 15-25" title="Handicap aproximado del grupo">
                         </div>
                         <div class="agregar-usuario-line">
                             <button type="button" class="btn-agregar-usuario" id="agregar-usuario">
@@ -156,18 +156,18 @@
 
                     <!-- Servicios Adicionales -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">Servicios adicionales</h3>
+                        <h3 class="configurador-titulo" data-i18n="servicios_adicionales">Servicios adicionales</h3>
                         <div class="ancillaries-grid ancillaries-with-counter">
                             <div class="ancillary-item">
                                 <label for="ancillary_buggy">🛺 Buggies</label>
                                 <input type="number" id="ancillary_buggy" name="ancillary_buggy" min="0" max="20" value="0" class="ancillary-counter">
                             </div>
                             <div class="ancillary-item">
-                                <label for="ancillary_carrito_mano">🛒 Carrito de mano</label>
+                                <label for="ancillary_carrito_mano">🛒 <span data-i18n="anc_carrito_mano">Carrito de mano</span></label>
                                 <input type="number" id="ancillary_carrito_mano" name="ancillary_carrito_mano" min="0" max="20" value="0" class="ancillary-counter">
                             </div>
                             <div class="ancillary-item">
-                                <label for="ancillary_carrito_electrico">⚡ Carrito eléctrico</label>
+                                <label for="ancillary_carrito_electrico">⚡ <span data-i18n="anc_carrito_electrico">Carrito eléctrico</span></label>
                                 <input type="number" id="ancillary_carrito_electrico" name="ancillary_carrito_electrico" min="0" max="20" value="0" class="ancillary-counter">
                             </div>
                         </div>
@@ -181,16 +181,16 @@
                                 <input type="radio" name="forma_pago" value="unico" checked>
                                 <div class="opcion-content">
                                     <span class="opcion-icon">💳</span>
-                                    <span class="opcion-texto">Pago único</span>
-                                    <span class="opcion-desc">Una sola transacción por el importe total</span>
+                                    <span class="opcion-texto" data-i18n="pago_unico">Pago único</span>
+                                    <span class="opcion-desc" data-i18n="pago_unico_desc">Una sola transacción por el importe total</span>
                                 </div>
                             </label>
                             <label class="opcion-card opcion-card-compact">
                                 <input type="radio" name="forma_pago" value="por_persona">
                                 <div class="opcion-content">
                                     <span class="opcion-icon">🔗</span>
-                                    <span class="opcion-texto">Pago por persona</span>
-                                    <span class="opcion-desc">Cada uno recibe un enlace para pagar su parte</span>
+                                    <span class="opcion-texto" data-i18n="pago_por_persona">Pago por persona</span>
+                                    <span class="opcion-desc" data-i18n="pago_por_persona_desc">Cada uno recibe un enlace para pagar su parte</span>
                                 </div>
                             </label>
                         </div>
@@ -204,15 +204,15 @@
                     </div>
                 <aside class="configurador-resumen">
                     <div class="resumen-content">
-                        <h3>Resumen de tu paquete</h3>
+                        <h3 data-i18n="resumen_paquete">Resumen de tu paquete</h3>
                         <div id="resumen-paquete" class="resumen-detalle">
-                            <p>Completa las opciones para ver el resumen</p>
+                            <p data-i18n="resumen_completa">Completa las opciones para ver el resumen</p>
                         </div>
                     </div>
                     <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(139, 69, 19, 0.05); border-radius: 6px; font-size: 0.9rem; color: var(--color-text-light);">
-                        <p style="margin: 0;">📧 <strong>Recibirás por correo:</strong> Un PDF con todas nuestras recomendaciones de la capital para disfrutar de un fin de semana perfecto en Burgos.</p>
+                        <p style="margin: 0;" data-i18n="recibir_pdf">📧 Recibirás por correo: Un PDF con todas nuestras recomendaciones de la capital para disfrutar de un fin de semana perfecto en Burgos.</p>
                     </div>
-                    <button type="submit" form="configuradorForm" class="btn-reservar-paquete">Reservar Paquete</button>
+                    <button type="submit" form="configuradorForm" class="btn-reservar-paquete" data-i18n="btn_reservar_paquete">Reservar Paquete</button>
                 </aside>
                 </div>
                 </div>
@@ -225,7 +225,7 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>Contacto</h3>
+                    <h3 data-i18n="footer_contacto">Contacto</h3>
                     <div class="contact-info">
                         <p><strong>Golf Lerma:</strong><br>
                         Autovía Madrid-Burgos, km. 195,5<br>
@@ -237,30 +237,30 @@
                     </div>
                 </div>
                 <div class="footer-section">
-                    <h3>Enlaces</h3>
+                    <h3 data-i18n="footer_enlaces">Enlaces</h3>
                     <ul class="footer-links">
-                        <li><a href="index.html#campo">El Campo</a></li>
-                        <li><a href="index.html#paquetes">Paquetes de Golf</a></li>
-                        <li><a href="bodas-eventos.html">Bodas & Eventos</a></li>
-                        <li><a href="simulador.html">Simulador</a></li>
-                        <li><a href="hazte-socio.html">Hazte Socio</a></li>
-                        <li><a href="area-socio.html">Área Socio</a></li>
-                        <li><a href="correspondencias.html">Correspondencias</a></li>
-                        <li><a href="camara-tiempo.html">Tiempo</a></li>
-                        <li><a href="index.html#contacto">Contacto</a></li>
+                        <li><a href="index.html#campo" data-i18n="link_el_campo">El Campo</a></li>
+                        <li><a href="index.html#paquetes" data-i18n="link_paquetes">Paquetes de Golf</a></li>
+                        <li><a href="bodas-eventos.html" data-i18n="link_bodas">Bodas & Eventos</a></li>
+                        <li><a href="simulador.html" data-i18n="link_simulador">Simulador</a></li>
+                        <li><a href="hazte-socio.html" data-i18n="link_hazte_socio">Hazte Socio</a></li>
+                        <li><a href="area-socio.html" data-i18n="link_area_socio">Área Socio</a></li>
+                        <li><a href="correspondencias.html" data-i18n="link_correspondencias">Correspondencias</a></li>
+                        <li><a href="camara-tiempo.html" data-i18n="link_tiempo">Tiempo</a></li>
+                        <li><a href="index.html#contacto" data-i18n="link_contacto">Contacto</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h3>Legal</h3>
+                    <h3 data-i18n="footer_legal">Legal</h3>
                     <ul class="footer-links">
-                        <li><a href="index.html#politica-privacidad">Política de privacidad</a></li>
-                        <li><a href="index.html#advertencia-legal">Advertencia legal</a></li>
-                        <li><a href="index.html#proteccion-datos">Protección de Datos</a></li>
+                        <li><a href="index.html#politica-privacidad" data-i18n="link_politica">Política de privacidad</a></li>
+                        <li><a href="index.html#advertencia-legal" data-i18n="link_advertencia">Advertencia legal</a></li>
+                        <li><a href="index.html#proteccion-datos" data-i18n="link_proteccion">Protección de Datos</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>Copyright © Golf Lerma 2024 · Política de privacidad · Advertencia legal · Protección de Datos</p>
+                <p data-i18n="footer_bottom">Copyright © Golf Lerma 2024 · Política de privacidad · Advertencia legal · Protección de Datos</p>
             </div>
         </div>
     </footer>

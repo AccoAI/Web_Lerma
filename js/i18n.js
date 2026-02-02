@@ -29,20 +29,33 @@
         return (base && base.href) ? base.getAttribute('href') : '';
     }
 
+    var currentTranslations = {};
+
     function applyTranslations(t) {
+        currentTranslations = t;
         document.querySelectorAll('[data-i18n]').forEach(function (el) {
             var key = el.getAttribute('data-i18n');
+            var useHtml = el.hasAttribute('data-i18n-html');
             if (t[key] != null) {
                 if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
                     if (el.placeholder !== undefined) el.placeholder = t[key];
                     else if (el.type === 'submit' || el.type === 'button') el.value = t[key];
+                } else if (useHtml) {
+                    el.innerHTML = t[key];
                 } else {
                     el.textContent = t[key];
                 }
             }
         });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) {
+            var key = el.getAttribute('data-i18n-placeholder');
+            if (t[key] != null && el.placeholder !== undefined) el.placeholder = t[key];
+        });
         document.documentElement.lang = (getLang() === 'es' ? 'es' : getLang() === 'fr' ? 'fr' : 'en');
     }
+
+    window.i18n = window.i18n || {};
+    window.i18n.t = function (key) { return (currentTranslations[key] != null) ? currentTranslations[key] : key; };
 
     function loadAndApply(lang) {
         var path = 'data/i18n-' + lang + '.json';

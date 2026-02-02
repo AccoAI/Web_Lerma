@@ -50,7 +50,7 @@ function initUsuariosForm() {
     function inicializarGruposBlock() {
         if (!gruposWrap || gruposWrap.querySelector('.correspondencia-grupos-inner')) return;
         const clubs = (typeof getClubsCorrespondencia === 'function' && getClubsCorrespondencia()) || [];
-        let optHtml = '<option value="sin">Sin correspondencia</option>';
+        let optHtml = '<option value="sin">' + (window.i18n && window.i18n.t ? window.i18n.t('sin_correspondencia') : 'Sin correspondencia') + '</option>';
         clubs.forEach(function (c) {
             optHtml += '<option value="' + (c.id || '').replace(/"/g, '&quot;') + '">' + (c.nombre || '').replace(/</g, '&lt;') + '</option>';
         });

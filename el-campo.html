@@ -60,13 +60,13 @@
     <!-- El Campo -->
     <section id="campo" class="el-campo" style="margin-top: 0; padding-top: calc(var(--header-height) + 1.5rem);">
         <div class="container">
-            <h2 class="section-title">El Campo</h2>
+            <h2 class="section-title" data-i18n="el_campo_title">El Campo</h2>
             
             <nav class="campo-tabs" role="tablist" aria-label="Secciones del campo">
-                <button type="button" class="campo-tab-btn activo" role="tab" aria-selected="true" aria-controls="panel-instalaciones" id="tab-instalaciones">Instalaciones</button>
-                <button type="button" class="campo-tab-btn" role="tab" aria-selected="false" aria-controls="panel-restaurante" id="tab-restaurante">Restaurante</button>
-                <button type="button" class="campo-tab-btn" role="tab" aria-selected="false" aria-controls="panel-guia" id="tab-guia">Guía del campo</button>
-                <button type="button" class="campo-tab-btn" role="tab" aria-selected="false" aria-controls="panel-recorrido" id="tab-recorrido">Recorrido</button>
+                <button type="button" class="campo-tab-btn activo" role="tab" aria-selected="true" aria-controls="panel-instalaciones" id="tab-instalaciones" data-i18n="tab_instalaciones">Instalaciones</button>
+                <button type="button" class="campo-tab-btn" role="tab" aria-selected="false" aria-controls="panel-restaurante" id="tab-restaurante" data-i18n="tab_restaurante">Restaurante</button>
+                <button type="button" class="campo-tab-btn" role="tab" aria-selected="false" aria-controls="panel-guia" id="tab-guia" data-i18n="tab_guia">Guía del campo</button>
+                <button type="button" class="campo-tab-btn" role="tab" aria-selected="false" aria-controls="panel-recorrido" id="tab-recorrido" data-i18n="tab_recorrido">Recorrido</button>
             </nav>
 
             <!-- Panel Instalaciones -->
@@ -77,29 +77,29 @@
                             <div class="instalacion-imagen">
                                 <img src="FOTOS/Salon-Social-1170x777.jpg" alt="Salón Social">
                             </div>
-                            <h4>Salón Social</h4>
-                            <p>Espacio acogedor para eventos y reuniones sociales</p>
+                            <h4 data-i18n="inst_salon_social">Salón Social</h4>
+                            <p data-i18n="inst_salon_desc">Espacio acogedor para eventos y reuniones sociales</p>
                         </div>
                         <div class="instalacion-item">
                             <div class="instalacion-imagen">
                                 <img src="FOTOS/LER-PISC-1170x777.jpg" alt="Piscina">
                             </div>
-                            <h4>Piscina</h4>
-                            <p>Disfruta de nuestras instalaciones acuáticas</p>
+                            <h4 data-i18n="inst_piscina">Piscina</h4>
+                            <p data-i18n="inst_piscina_desc">Disfruta de nuestras instalaciones acuáticas</p>
                         </div>
                         <div class="instalacion-item">
                             <div class="instalacion-imagen">
                                 <img src="FOTOS/Acceso-Cuarto-Palos-1170x878.jpg" alt="Cuarto de Palos">
                             </div>
-                            <h4>Tienda y Cuarto de Palos</h4>
-                            <p>Selección de las mejores marcas de golf, equipamiento y cornershop</p>
+                            <h4 data-i18n="inst_tienda">Tienda y Cuarto de Palos</h4>
+                            <p data-i18n="inst_tienda_desc">Selección de las mejores marcas de golf, equipamiento y cornershop</p>
                         </div>
                         <div class="instalacion-item">
                             <div class="instalacion-imagen">
                                 <img src="FOTOS/Casa-Club-Golf-Lerma-1170x878.jpg" alt="Casa Club Golf Lerma">
                             </div>
-                            <h4>Casa Club</h4>
-                            <p>Casa club con todas las comodidades para socios y visitantes</p>
+                            <h4 data-i18n="inst_casa_club">Casa Club</h4>
+                            <p data-i18n="inst_casa_club_desc">Casa club con todas las comodidades para socios y visitantes</p>
                         </div>
                     </div>
                 </div>
@@ -108,16 +108,16 @@
             <!-- Panel Restaurante -->
             <div id="panel-restaurante" class="campo-tab-panel" role="tabpanel" aria-labelledby="tab-restaurante" hidden>
                 <div class="campo-seccion">
-                    <h3 class="campo-titulo">Restaurante Golf Lerma</h3>
+                    <h3 class="campo-titulo" data-i18n="restaurante_title">Restaurante Golf Lerma</h3>
                     <div class="campo-restaurante-layout">
                         <div class="campo-imagen-lateral">
                             <img src="FOTOS/LER-RESTAUR-1170x777.jpg" alt="Restaurante Golf Lerma">
                         </div>
                         <div class="campo-contenido-lateral">
-                            <p>El restaurante del Campo conforma su suculenta oferta con los mejores platos de la cocina tradicional castellana, pero sin dejar por ello de lado las tendencias de la nueva cocina, primando, en todos ellos, la calidad de todos los productos que pasan por sus fogones. Junto a una carta de vinos en la que, evidentemente, los Ribera del Duero están presentes en sus mejores expresiones, el asado de cordero lechal se hace, merced a su horno de leña, monumento al paladar.</p>
-                            <p>Además de este representativo manjar, el Restaurante Golf Lerma ofrece a sus clientes una amplia carta, que incluye menú del día.</p>
+                            <p data-i18n="restaurante_text1">El restaurante del Campo conforma su suculenta oferta con los mejores platos de la cocina tradicional castellana, pero sin dejar por ello de lado las tendencias de la nueva cocina, primando, en todos ellos, la calidad de todos los productos que pasan por sus fogones. Junto a una carta de vinos en la que, evidentemente, los Ribera del Duero están presentes en sus mejores expresiones, el asado de cordero lechal se hace, merced a su horno de leña, monumento al paladar.</p>
+                            <p data-i18n="restaurante_text2">Además de este representativo manjar, el Restaurante Golf Lerma ofrece a sus clientes una amplia carta, que incluye menú del día.</p>
                             <div class="contacto-destacado">
-                                <p><strong>Teléfono Reservas:</strong> <a href="tel:947171215">947 17 12 15</a></p>
+                                <p><strong data-i18n="restaurante_reservas">Teléfono Reservas:</strong> <a href="tel:947171215">947 17 12 15</a></p>
                             </div>
                         </div>
                     </div>
@@ -127,7 +127,7 @@
             <!-- Panel Guía del campo -->
             <div id="panel-guia" class="campo-tab-panel" role="tabpanel" aria-labelledby="tab-guia" hidden>
                 <div class="campo-seccion">
-                    <h3 class="campo-titulo">Naturaleza Castellana</h3>
+                    <h3 class="campo-titulo" data-i18n="guia_title">Naturaleza Castellana</h3>
                     <div class="campo-imagenes">
                         <div class="campo-imagen-principal">
                             <img src="FOTOS/Vista-Aérea-Golf-Lerma-1170x780.jpg" alt="Vista Aérea Golf Lerma">
@@ -137,9 +137,9 @@
                         </div>
                     </div>
                     <div class="campo-contenido">
-                        <p>Construido en 1992 sobre una antigua finca de caza de 220 hectáreas denominada La Andaya, el campo de Golf de Lerma aúna en sus 18 hoyos la grandiosa sencillez de la naturaleza castellana y la divertida complejidad del juego del golf. Un paraje de amplios y luminosos horizontes, de orografía sobria y vegetación poderosa, fácil de andar y no tanto de negociar a la hora de agarrar los palos cuando el viento decide invitarse al juego, cosa que ocurre dos de cada tres días.</p>
-                        <p class="cita">"El campo ya está hecho; lo hizo Dios", afirmó el diseñador Pepe Gancedo, proyectista del campo, cuando reconoció el terreno antes de plasmar en papel lo que hoy es una realidad.</p>
-                        <p>Encinas, sabinas y robles salpican los 5.900 metros de sus calles en las que no es infrecuente ver corretear liebres o divisar el vuelo de bandadas de patos y gansos que reposan y se alimentan en alguno de los ocho lagos y dos riachuelos que jalonan el recorrido.</p>
+                        <p data-i18n="guia_text1">Construido en 1992 sobre una antigua finca de caza de 220 hectáreas denominada La Andaya, el campo de Golf de Lerma aúna en sus 18 hoyos la grandiosa sencillez de la naturaleza castellana y la divertida complejidad del juego del golf. Un paraje de amplios y luminosos horizontes, de orografía sobria y vegetación poderosa, fácil de andar y no tanto de negociar a la hora de agarrar los palos cuando el viento decide invitarse al juego, cosa que ocurre dos de cada tres días.</p>
+                        <p class="cita" data-i18n="guia_cita">"El campo ya está hecho; lo hizo Dios", afirmó el diseñador Pepe Gancedo, proyectista del campo, cuando reconoció el terreno antes de plasmar en papel lo que hoy es una realidad.</p>
+                        <p data-i18n="guia_text2">Encinas, sabinas y robles salpican los 5.900 metros de sus calles en las que no es infrecuente ver corretear liebres o divisar el vuelo de bandadas de patos y gansos que reposan y se alimentan en alguno de los ocho lagos y dos riachuelos que jalonan el recorrido.</p>
                     </div>
                 </div>
             </div>
@@ -147,15 +147,15 @@
             <!-- Panel Recorrido -->
             <div id="panel-recorrido" class="campo-tab-panel" role="tabpanel" aria-labelledby="tab-recorrido" hidden>
                 <div class="campo-seccion">
-                    <h3 class="campo-titulo">Recorrido de 18 hoyos</h3>
+                    <h3 class="campo-titulo" data-i18n="recorrido_title">Recorrido de 18 hoyos</h3>
                     <div class="campo-restaurante-layout">
                         <div class="campo-imagen-lateral">
                             <img src="FOTOS/Vista-Aérea-Golf-Lerma-1170x780.jpg" alt="Vista aérea del recorrido Golf Lerma">
                         </div>
                         <div class="campo-contenido-lateral">
-                            <p>El campo de Golf Lerma dispone de 18 hoyos distribuidos en 5.900 metros de recorrido. Diseñado por Pepe Gancedo sobre el paraje natural de La Andaya, combina calles amplias con retos técnicos en los greenes.</p>
-                            <p>Ocho lagos y dos riachuelos acompañan el juego, añadiendo emoción a varios hoyos. El viento, habitual en la meseta castellana, convierte cada partida en un desafío distinto.</p>
-                            <p>Par 72 · 5.900 m · Campo de amplios horizontes con encinas, sabinas y robles.</p>
+                            <p data-i18n="recorrido_text1">El campo de Golf Lerma dispone de 18 hoyos distribuidos en 5.900 metros de recorrido. Diseñado por Pepe Gancedo sobre el paraje natural de La Andaya, combina calles amplias con retos técnicos en los greenes.</p>
+                            <p data-i18n="recorrido_text2">Ocho lagos y dos riachuelos acompañan el juego, añadiendo emoción a varios hoyos. El viento, habitual en la meseta castellana, convierte cada partida en un desafío distinto.</p>
+                            <p data-i18n="recorrido_par">Par 72 · 5.900 m · Campo de amplios horizontes con encinas, sabinas y robles.</p>
                         </div>
                     </div>
                 </div>
@@ -168,7 +168,7 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>Contacto</h3>
+                    <h3 data-i18n="footer_contacto">Contacto</h3>
                     <div class="contact-info">
                         <p><strong>Golf Lerma:</strong><br>
                         Autovía Madrid-Burgos, km. 195,5<br>
@@ -180,30 +180,30 @@
                     </div>
                 </div>
                 <div class="footer-section">
-                    <h3>Enlaces</h3>
+                    <h3 data-i18n="footer_enlaces">Enlaces</h3>
                     <ul class="footer-links">
-                        <li><a href="el-campo.html">El Campo</a></li>
-                        <li><a href="index.html#paquetes">Paquetes de Golf</a></li>
-                        <li><a href="bodas-eventos.html">Bodas & Eventos</a></li>
-                        <li><a href="simulador.html">Simulador</a></li>
-                        <li><a href="hazte-socio.html">Hazte Socio</a></li>
-                        <li><a href="area-socio.html">Área Socio</a></li>
-                        <li><a href="correspondencias.html">Correspondencias</a></li>
-                        <li><a href="camara-tiempo.html">Tiempo</a></li>
-                        <li><a href="index.html#contacto">Contacto</a></li>
+                        <li><a href="el-campo.html" data-i18n="link_el_campo">El Campo</a></li>
+                        <li><a href="index.html#paquetes" data-i18n="link_paquetes">Paquetes de Golf</a></li>
+                        <li><a href="bodas-eventos.html" data-i18n="link_bodas">Bodas & Eventos</a></li>
+                        <li><a href="simulador.html" data-i18n="link_simulador">Simulador</a></li>
+                        <li><a href="hazte-socio.html" data-i18n="link_hazte_socio">Hazte Socio</a></li>
+                        <li><a href="area-socio.html" data-i18n="link_area_socio">Área Socio</a></li>
+                        <li><a href="correspondencias.html" data-i18n="link_correspondencias">Correspondencias</a></li>
+                        <li><a href="camara-tiempo.html" data-i18n="link_tiempo">Tiempo</a></li>
+                        <li><a href="index.html#contacto" data-i18n="link_contacto">Contacto</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h3>Legal</h3>
+                    <h3 data-i18n="footer_legal">Legal</h3>
                     <ul class="footer-links">
-                        <li><a href="index.html#politica-privacidad">Política de privacidad</a></li>
-                        <li><a href="index.html#advertencia-legal">Advertencia legal</a></li>
-                        <li><a href="index.html#proteccion-datos">Protección de Datos</a></li>
+                        <li><a href="index.html#politica-privacidad" data-i18n="link_politica">Política de privacidad</a></li>
+                        <li><a href="index.html#advertencia-legal" data-i18n="link_advertencia">Advertencia legal</a></li>
+                        <li><a href="index.html#proteccion-datos" data-i18n="link_proteccion">Protección de Datos</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>Copyright © Golf Lerma 2024 · Política de privacidad · Advertencia legal · Protección de Datos</p>
+                <p data-i18n="footer_bottom">Copyright © Golf Lerma 2024 · Política de privacidad · Advertencia legal · Protección de Datos</p>
             </div>
         </div>
     </footer>
