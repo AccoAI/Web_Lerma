@@ -25,21 +25,22 @@
                     <span></span>
                     <span></span>
                 </span>
-                <span class="menu-toggle-label">MENU</span>
+                <span class="menu-toggle-label" data-i18n="menu_label">MENU</span>
             </button>
             <nav class="nav" id="mainNav">
                 <ul class="nav-list">
-                    <li class="nav-item"><a href="index.html#inicio" class="nav-link">INICIO</a></li>
-                    <li class="nav-item"><a href="el-campo.html" class="nav-link">EL CAMPO</a></li>
-                    <li class="nav-item"><a href="bodas-eventos.html" class="nav-link">BODAS & EVENTOS</a></li>
-                    <li class="nav-item"><a href="simulador.html" class="nav-link">SIMULADOR</a></li>
-                    <li class="nav-item"><a href="correspondencias.html" class="nav-link">CORRESPONDENCIAS</a></li>
-                    <li class="nav-item"><a href="camara-tiempo.html" class="nav-link">TIEMPO</a></li>
+                    <li class="nav-item"><a href="index.html#inicio" class="nav-link" data-i18n="nav_inicio">INICIO</a></li>
+                    <li class="nav-item"><a href="el-campo.html" class="nav-link" data-i18n="nav_el_campo">EL CAMPO</a></li>
+                    <li class="nav-item"><a href="bodas-eventos.html" class="nav-link" data-i18n="nav_bodas_eventos">BODAS & EVENTOS</a></li>
+                    <li class="nav-item"><a href="simulador.html" class="nav-link" data-i18n="nav_simulador">SIMULADOR</a></li>
+                    <li class="nav-item"><a href="correspondencias.html" class="nav-link" data-i18n="nav_correspondencias">CORRESPONDENCIAS</a></li>
+                    <li class="nav-item"><a href="camara-tiempo.html" class="nav-link" data-i18n="nav_tiempo">TIEMPO</a></li>
                 </ul>
             </nav>
             <div class="header-actions">
-                <a href="hazte-socio.html" class="btn-hazte-socio">Hazte Socio</a>
-                <a href="area-socio.html" class="btn-login">Area Socio</a>
+                <div id="lang-selector" class="lang-selector"></div>
+                <a href="hazte-socio.html" class="btn-hazte-socio" data-i18n="btn_hazte_socio">Hazte Socio</a>
+                <a href="area-socio.html" class="btn-login" data-i18n="btn_area_socio">Area Socio</a>
             </div>
         </div>
     </header>
@@ -315,6 +316,7 @@
         </div>
     </footer>
 
+    <script src="js/i18n.js"></script>
     <script src="js/main.js"></script>
     <script src="js/chatbot.js"></script>
     <script src="js/agenda.js"></script>
