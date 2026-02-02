@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Celebrar tu boda o evento en Golf Lerma - Finca Andaya para bodas. Comuniones, reuniones y otros eventos.">
+    <title>Celebrar mi boda/evento | Golf Lerma y Saldaña Golf</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="header-logo">
+                <a href="index.html#inicio">
+                    <img src="FOTOS/Logo-Golf-Lerma-Footer-1.png" alt="Golf Lerma" class="header-logo-image">
+                </a>
+            </div>
+            <button class="menu-toggle" aria-label="Abrir menú">
+                <span class="menu-toggle-bars">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+                <span class="menu-toggle-label" data-i18n="menu_label">MENU</span>
+            </button>
+            <nav class="nav" id="mainNav">
+                <ul class="nav-list">
+                    <li class="nav-item"><a href="index.html#inicio" class="nav-link" data-i18n="nav_inicio">INICIO</a></li>
+                    <li class="nav-item"><a href="el-campo.html" class="nav-link" data-i18n="nav_el_campo">EL CAMPO</a></li>
+                    <li class="nav-item"><a href="bodas-eventos.html" class="nav-link" data-i18n="nav_bodas_eventos">BODAS & EVENTOS</a></li>
+                    <li class="nav-item"><a href="simulador.html" class="nav-link" data-i18n="nav_simulador">SIMULADOR</a></li>
+                    <li class="nav-item"><a href="correspondencias.html" class="nav-link" data-i18n="nav_correspondencias">CORRESPONDENCIAS</a></li>
+                    <li class="nav-item"><a href="camara-tiempo.html" class="nav-link" data-i18n="nav_tiempo">TIEMPO</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <a href="hazte-socio.html" class="btn-hazte-socio" data-i18n="btn_hazte_socio">Hazte Socio</a>
+                <a href="area-socio.html" class="btn-login" data-i18n="btn_area_socio">Area Socio</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Bodas -->
+    <section class="hazte-socio-hero" style="margin-top: 0;">
+        <div class="hazte-socio-hero-bg" style="background-image: url('FOTOS/bodas_17-scaled.jpg');">
+            <div class="hazte-socio-hero-overlay"></div>
+        </div>
+        <div class="hazte-socio-hero-content">
+            <h1 class="hazte-socio-titulo" data-i18n="btn_celebrar_boda">Celebrar mi boda/evento</h1>
+            <p class="bodas-intro bodas-intro-hero" data-i18n="bodas_intro">Celebra tu evento especial en un entorno único. Golf Lerma ofrece instalaciones excepcionales para bodas y eventos inolvidables.</p>
+        </div>
+    </section>
+
+    <!-- Bodas (Finca Andaya) y Otros eventos -->
+    <section class="bodas-eventos-pagina" id="contacto-eventos">
+        <div class="container">
+            <div class="bodas-eventos-layout">
+                <div class="boda-andaya-redirect">
+                    <h2 class="boda-andaya-titulo" data-i18n="boda_organizar_titulo">¿Organizar su boda?</h2>
+                    <p class="boda-andaya-texto" data-i18n="boda_organizar_texto" data-i18n-html>Las bodas se celebran en <strong>Finca Andaya Golf Lerma</strong>, el entorno de Golf Lerma dedicado al día más especial de su vida. Le redirigimos a su web.</p>
+                    <a href="https://andayagolflerma.com/" target="_blank" rel="noopener noreferrer" class="btn-boda-andaya" data-i18n="btn_ir_andaya">Ir a Finca Andaya Golf Lerma</a>
+                </div>
+                <div class="bodas-otros-eventos-block">
+                    <h2 class="section-title" data-i18n="otros_eventos">Otros eventos</h2>
+                    <p class="hazte-socio-form-intro" data-i18n="otros_eventos_intro">Para comuniones, reuniones familiares u otros eventos (distintos de boda), indique su email y mensaje. Se abrirá su cliente de correo; solo tiene que enviar. O contacte directamente.</p>
+                    <form id="formBodasEventos" class="hazte-socio-form configurador-form">
+                        <div class="form-group">
+                            <label data-i18n="label_email">Email *</label>
+                            <input type="email" name="email" required data-i18n-placeholder="placeholder_email" placeholder="su@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="label_nombre">Nombre</label>
+                            <input type="text" name="nombre" data-i18n-placeholder="placeholder_nombre" placeholder="Su nombre">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="label_mensaje">Mensaje</label>
+                            <textarea name="mensaje" rows="4" data-i18n-placeholder="placeholder_mensaje" placeholder="Tipo de evento, fechas aproximadas, número de invitados..."></textarea>
+                        </div>
+                        <button type="submit" class="btn-reservar-paquete" data-i18n="btn_abrir_correo">Abrir correo para enviar</button>
+                    </form>
+                    <div class="empresa-contacto-directo">
+                        <p><strong data-i18n="contacto_directo">O contacte directamente:</strong></p>
+                        <p>Email: <a href="mailto:eventos@golflerma.com">eventos@golflerma.com</a></p>
+                        <p>Teléfono: <a href="tel:947564630">947 56 46 30</a> · <a href="tel:947171214">947 17 12 14</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 data-i18n="footer_contacto">Contacto</h3>
+                    <div class="contact-info">
+                        <p><strong>Golf Lerma:</strong><br>Autovía Madrid-Burgos, km. 195,5 · Lerma · Burgos</p>
+                        <p><strong>Saldaña Golf:</strong><br>Urbanización Golf Saldaña · Saldaña de Burgos · Burgos</p>
+                        <p><strong>Teléfono:</strong> (+34) 947 56 46 30</p>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer_enlaces">Enlaces</h3>
+                    <ul class="footer-links">
+                        <li><a href="el-campo.html" data-i18n="link_el_campo">El Campo</a></li>
+                        <li><a href="index.html#paquetes" data-i18n="link_paquetes">Paquetes de Golf</a></li>
+                        <li><a href="bodas-eventos.html" data-i18n="link_bodas">Bodas & Eventos</a></li>
+                        <li><a href="simulador.html" data-i18n="link_simulador">Simulador</a></li>
+                        <li><a href="correspondencias.html" data-i18n="link_correspondencias">Correspondencias</a></li>
+                        <li><a href="empresa.html" data-i18n="link_eventos_empresa">Eventos de Empresa</a></li>
+                        <li><a href="hazte-socio.html" data-i18n="link_hazte_socio">Hazte Socio</a></li>
+                        <li><a href="area-socio.html" data-i18n="link_area_socio">Área Socio</a></li>
+                        <li><a href="camara-tiempo.html" data-i18n="link_tiempo">Tiempo</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer_legal">Legal</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html#politica-privacidad" data-i18n="link_politica">Política de privacidad</a></li>
+                        <li><a href="index.html#advertencia-legal" data-i18n="link_advertencia">Advertencia legal</a></li>
+                        <li><a href="index.html#proteccion-datos" data-i18n="link_proteccion">Protección de Datos</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p data-i18n="footer_bottom">Copyright © Golf Lerma 2024 · Política de privacidad · Advertencia legal · Protección de Datos</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/i18n.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/chatbot.js"></script>
+    <script>
+        document.getElementById('formBodasEventos').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var email = (this.querySelector('[name="email"]').value || '').trim();
+            var nombre = (this.querySelector('[name="nombre"]').value || '').trim();
+            var mensaje = (this.querySelector('[name="mensaje"]').value || '').trim();
+            var sujeto = 'Consulta evento' + (nombre ? ' - ' + nombre : '');
+            var cuerpo = 'Email: ' + email + '\n';
+            if (nombre) cuerpo += 'Nombre: ' + nombre + '\n';
+            if (mensaje) cuerpo += 'Mensaje: ' + mensaje;
+            var mailto = 'mailto:eventos@golflerma.com?subject=' + encodeURIComponent(sujeto) + '&body=' + encodeURIComponent(cuerpo);
+            window.location.href = mailto;
+        });
+    </script>
+</body>
+</html>

@@ -62,7 +62,7 @@
                 <div class="boda-imagen-card">
                     <div class="boda-imagen-fondo" style="background-image: url('FOTOS/bodas_17-scaled.jpg');">
                         <div class="boda-overlay"></div>
-                        <a href="#contacto-eventos" class="btn-bodas btn-celebrar">
+                        <a href="bodas-celebrar.html" class="btn-bodas btn-celebrar">
                             <span class="btn-bodas-texto" data-i18n="btn_celebrar_boda">Celebrar mi boda/evento</span>
                         </a>
                     </div>
@@ -73,43 +73,6 @@
                         <a href="empresa.html" class="btn-bodas btn-conocer">
                             <span class="btn-bodas-texto" data-i18n="btn_soy_empresa">Soy una empresa</span>
                         </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Bodas (Finca Andaya) y Otros eventos a la misma altura -->
-    <section class="bodas-eventos-pagina" id="contacto-eventos">
-        <div class="container">
-            <div class="bodas-eventos-layout">
-                <div class="boda-andaya-redirect">
-                    <h2 class="boda-andaya-titulo" data-i18n="boda_organizar_titulo">¿Organizar su boda?</h2>
-                    <p class="boda-andaya-texto" data-i18n="boda_organizar_texto" data-i18n-html>Las bodas se celebran en <strong>Finca Andaya Golf Lerma</strong>, el entorno de Golf Lerma dedicado al día más especial de su vida. Le redirigimos a su web.</p>
-                    <a href="https://andayagolflerma.com/" target="_blank" rel="noopener noreferrer" class="btn-boda-andaya" data-i18n="btn_ir_andaya">Ir a Finca Andaya Golf Lerma</a>
-                </div>
-                <div class="bodas-otros-eventos-block">
-                    <h2 class="section-title" data-i18n="otros_eventos">Otros eventos</h2>
-                    <p class="hazte-socio-form-intro" data-i18n="otros_eventos_intro">Para comuniones, reuniones familiares u otros eventos (distintos de boda), indique su email y mensaje. Se abrirá su cliente de correo; solo tiene que enviar. O contacte directamente.</p>
-                    <form id="formBodasEventos" class="hazte-socio-form configurador-form">
-                        <div class="form-group">
-                            <label data-i18n="label_email">Email *</label>
-                            <input type="email" name="email" required data-i18n-placeholder="placeholder_email" placeholder="su@email.com">
-                        </div>
-                        <div class="form-group">
-                            <label data-i18n="label_nombre">Nombre</label>
-                            <input type="text" name="nombre" data-i18n-placeholder="placeholder_nombre" placeholder="Su nombre">
-                        </div>
-                        <div class="form-group">
-                            <label data-i18n="label_mensaje">Mensaje</label>
-                            <textarea name="mensaje" rows="4" data-i18n-placeholder="placeholder_mensaje" placeholder="Tipo de evento, fechas aproximadas, número de invitados..."></textarea>
-                        </div>
-                        <button type="submit" class="btn-reservar-paquete" data-i18n="btn_abrir_correo">Abrir correo para enviar</button>
-                    </form>
-                    <div class="empresa-contacto-directo">
-                        <p><strong data-i18n="contacto_directo">O contacte directamente:</strong></p>
-                        <p>Email: <a href="mailto:eventos@golflerma.com">eventos@golflerma.com</a></p>
-                        <p>Teléfono: <a href="tel:947564630">947 56 46 30</a> · <a href="tel:947171214">947 17 12 14</a></p>
                     </div>
                 </div>
             </div>
@@ -160,19 +123,5 @@
     <script src="js/i18n.js"></script>
     <script src="js/main.js"></script>
     <script src="js/chatbot.js"></script>
-    <script>
-        document.getElementById('formBodasEventos').addEventListener('submit', function(e) {
-            e.preventDefault();
-            var email = (this.querySelector('[name="email"]').value || '').trim();
-            var nombre = (this.querySelector('[name="nombre"]').value || '').trim();
-            var mensaje = (this.querySelector('[name="mensaje"]').value || '').trim();
-            var sujeto = 'Consulta evento' + (nombre ? ' - ' + nombre : '');
-            var cuerpo = 'Email: ' + email + '\n';
-            if (nombre) cuerpo += 'Nombre: ' + nombre + '\n';
-            if (mensaje) cuerpo += 'Mensaje: ' + mensaje;
-            var mailto = 'mailto:eventos@golflerma.com?subject=' + encodeURIComponent(sujeto) + '&body=' + encodeURIComponent(cuerpo);
-            window.location.href = mailto;
-        });
-    </script>
 </body>
 </html>
