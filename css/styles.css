@@ -6071,6 +6071,21 @@ img {
     border-color: var(--color-primary);
 }
 
+.bautismos-counter {
+    width: 4rem;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    text-align: center;
+}
+
+.bautismos-counter:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
 /* ========== CHATBOT ========== */
 .chatbot-wrapper {
     position: fixed;

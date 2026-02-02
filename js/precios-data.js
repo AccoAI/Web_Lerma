@@ -43,6 +43,7 @@ window.PRECIOS_DATA = {
     cochinillo: { precioBasePorPersona: 55 },
     pausaDrive: { precioCerrado: 50 },
     golfVino: { descuentoPorcentaje: 10 },
-    tourBoogie: { precioBasePorPersona: 20 }
+    tourBoogie: { precioBasePorPersona: 20 },
+    bautismos: { adultos: 15, jovenes: 10 }
   }
 };
