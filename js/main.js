@@ -349,31 +349,31 @@ function loadCamaraLive() {
     }
 }
 
-// Configurador de Paquete Fin de Semana
-var HOTELES_OPTS = {
-    lerma: [
-        { v: 'alisa', l: 'Hotel Alisa', p: 65 },
-        { v: 'ceres', l: 'Hotel CERES', p: 70 },
-        { v: 'parador', l: 'Parador de Lerma', p: 95 }
-    ],
-    burgos: [
-        { v: 'silken', l: 'Silken', p: 55 },
-        { v: 'palacio-blasones', l: 'Palacio de los Blasones', p: 60 },
-        { v: 'hotel-centro', l: 'Hotel Centro', p: 50 }
-    ]
-};
-var HOTELES_LABELS = {
-    lerma: { alisa: 'Hotel Alisa', ceres: 'Hotel CERES', parador: 'Parador de Lerma' },
-    burgos: { silken: 'Silken', 'palacio-blasones': 'Palacio de los Blasones', 'hotel-centro': 'Hotel Centro' }
-};
+// Configurador de Paquete Fin de Semana - usa precios-data.js
+function getPrecios() {
+    return window.PRECIOS_DATA || {};
+}
+function getHotelesOpts() {
+    var p = getPrecios();
+    var hl = (p.hoteles && p.hoteles.lerma) || [];
+    var hb = (p.hoteles && p.hoteles.burgos) || [];
+    return {
+        lerma: hl.map(function (h) { return { v: h.id, l: h.nombre, p: h.precioPorNoche }; }),
+        burgos: hb.map(function (h) { return { v: h.id, l: h.nombre, p: h.precioPorNoche }; })
+    };
+}
+var HOTELES_OPTS = getHotelesOpts();
+var HOTELES_LABELS = (function () {
+    var o = {};
+    var opts = getHotelesOpts();
+    if (opts.lerma) opts.lerma.forEach(function (h) { if (!o.lerma) o.lerma = {}; o.lerma[h.v] = h.l; });
+    if (opts.burgos) opts.burgos.forEach(function (h) { if (!o.burgos) o.burgos = {}; o.burgos[h.v] = h.l; });
+    return o;
+})();
 
-var PRECIO_GF_PACK = 90;
-var PRECIO_GF_BASE_LABORABLE = 45;   // cuando no hay correspondencia, día entre semana
-var PRECIO_GF_BASE_FINSEMANA = 45;   // cuando no hay correspondencia, sáb/dom
-var PRECIO_ALOJ_POR_NOCHE = 65;
-var PRECIO_COMIDA = 22;
-var PRECIO_SERVICIO_BURGOS = 25;   // dummy: comida/cena en Burgos
-var DESCUENTO_PACK_PORC = 15;
+var PRECIO_COMIDA = (function () { var p = getPrecios(); return (p.comida && p.comida.lerma) != null ? p.comida.lerma : 22; })();
+var PRECIO_SERVICIO_BURGOS = (function () { var p = getPrecios(); return (p.comida && p.comida.burgos) != null ? p.comida.burgos : 25; })();
+var DESCUENTO_PACK_PORC = (function () { var p = getPrecios(); return (p.paquetes && p.paquetes.finSemana && p.paquetes.finSemana.descuentoPorcentaje) != null ? p.paquetes.finSemana.descuentoPorcentaje : 15; })();
 
 // Función global para obtener grupos de correspondencia
 function getCorrespondenciaGrupos(f) {
@@ -629,7 +629,7 @@ function initConfiguradorPaquete() {
         if (nNoches >= 1) {
             var resumenHTML = '<div class="resumen-items">';
             resumenHTML += '<p><strong>Noches:</strong> ' + noches + ' ' + (noches === '1' ? 'noche' : 'noches') + '</p>';
-            resumenHTML += '<p><strong>Green Fees incluidos:</strong> 1 en Golf Lerma + 1 en Saldaña Golf <em>(por persona)</em></p>';
+            resumenHTML += '<p><strong>Green Fees:</strong> ' + (fechasGF.length || 0) + ' ' + ((fechasGF.length || 0) === 1 ? 'salida' : 'salidas') + ' <em>(por persona)</em></p>';
 
             var fechas = formData.getAll('fechas[]');
             if (fechas && fechas.length > 0) {
@@ -697,40 +697,63 @@ function initConfiguradorPaquete() {
                 }
             }
             var fechasGF = formData.getAll('fechas[]') || [];
+            var numGF = fechasGF.length;
             var totalGF = 0;
-            var numGF = Math.min(2, fechasGF.length);
             var tieneCorrespondencia = false;
+            var precios = getPrecios();
+            var gfLerma = (precios.greenFees && precios.greenFees.lerma) || {};
+            var gfSaldana = (precios.greenFees && precios.greenFees.saldana) || {};
             for (var idx = 0; idx < numGF; idx++) {
                 var iso = fechasGF[idx];
                 if (!iso) continue;
                 var d = new Date(iso + 'T12:00:00');
                 var dow = d.getDay();
                 var esFinDeSemana = (dow === 0 || dow === 6);
+                var campoDia = formData.get('campo-dia-' + (idx + 1));
                 var p = null;
-                // MANTENER LÓGICA DE CORRESPONDENCIA CORRECTA
                 if (clubId && typeof getPrecioGreenFee === 'function') {
-                    p = getPrecioGreenFee(clubId, esFinDeSemana ? 'saldana' : 'lerma');
+                    p = getPrecioGreenFee(clubId, (campoDia === 'saldana') ? 'saldana' : 'lerma');
                     if (p != null) tieneCorrespondencia = true;
                 }
-                // Si hay correspondencia, usar precio real; si no, usar dummy
-                if (p == null) p = esFinDeSemana ? 50 : 50; // dummy: 50€ base
+                if (p == null) {
+                    var gfc = (campoDia === 'saldana') ? gfSaldana : gfLerma;
+                    p = esFinDeSemana ? (gfc.finDeSemana || 44) : (gfc.laborable || 33);
+                }
                 totalGF += p;
             }
-            if (numGF === 0) totalGF = 100; // dummy: 100€ pack base
+            if (numGF === 0) totalGF = (gfLerma.laborable || 33) + (gfSaldana.finDeSemana || 44);
             var gf = totalGF * numParticipants;
 
-            // DUMMY: usar números ficticios para alojamiento
-            var aloj = (necesitaHotel && hotelOk) ? (nNoches * 75) : 0; // dummy: 75€/noche
+            var aloj = 0;
+            if (necesitaHotel && hotelOk) {
+                var opts = getHotelesOpts();
+                for (var inx = 1; inx <= nNoches; inx++) {
+                    var hv = (formData.get('hotel-noche-' + inx) || '').trim();
+                    if (hv && hv.indexOf('-') >= 0) {
+                        var partes = hv.split('-');
+                        var ciudad = partes[0];
+                        var hotelId = partes[1];
+                        var arr = opts[ciudad] || [];
+                        for (var j = 0; j < arr.length; j++) {
+                            if (arr[j].v === hotelId && arr[j].p != null) { aloj += arr[j].p; break; }
+                        }
+                    }
+                }
+            }
 
+            var totalComidaPorPersona = 0;
             var numServicios = 0;
+            var precioComida = (precios.comida && precios.comida.lerma) != null ? precios.comida.lerma : 22;
+            var precioBurgos = (precios.comida && precios.comida.burgos) != null ? precios.comida.burgos : 25;
             for (var iv = 1; iv <= count; iv++) {
                 var cv = (formData.get('comida_dia_' + iv) || '').trim();
                 var cev = (formData.get('cena_dia_' + iv) || '').trim();
-                if (cv === 'lerma' || cv === 'burgos') numServicios++;
-                if (cev === 'lerma' || cev === 'burgos') numServicios++;
+                if (cv === 'lerma') { totalComidaPorPersona += precioComida; numServicios++; }
+                else if (cv === 'burgos') { totalComidaPorPersona += precioBurgos; numServicios++; }
+                if (cev === 'lerma') { totalComidaPorPersona += precioComida; numServicios++; }
+                else if (cev === 'burgos') { totalComidaPorPersona += precioBurgos; numServicios++; }
             }
-            // DUMMY: usar números ficticios para comidas
-            var comidaVal = numServicios * 25 * numParticipants; // dummy: 25€/servicio
+            var comidaVal = Math.round(totalComidaPorPersona * numParticipants * 100) / 100;
 
             var base = gf + aloj + comidaVal;
             // Si hay correspondencia, calcular descuento sobre base real; si no, usar dummy

@@ -223,9 +223,11 @@
         </div>
     </footer>
 
+    <script src="js/precios-data.js"></script>
     <script src="js/correspondencias-data.js"></script>
     <script src="js/correspondencias.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/chatbot.js"></script>
     <script src="js/calendario-dias.js"></script>
     <script src="js/usuarios-form.js"></script>
     <script>
@@ -241,21 +243,43 @@
                 if (val === 'vino_blanco') return 'Vino blanco';
                 return val;
             }
+            function cuboPrecio(val) {
+                var p = window.PRECIOS_DATA && window.PRECIOS_DATA.ancillaries;
+                if (!p) return 0;
+                if (val === 'champagne') return p.cuboChampagne || 40;
+                if (val === 'cervezas') return p.cuboCervezas || 15;
+                if (val === 'vino_blanco') return p.cuboVinoBlanco || 26;
+                return 0;
+            }
+
+            var precioTour = (window.PRECIOS_DATA && window.PRECIOS_DATA.paquetes && window.PRECIOS_DATA.paquetes.tourBoogie && window.PRECIOS_DATA.paquetes.tourBoogie.precioBasePorPersona) || 20;
 
             window.actualizarResumen = function() {
                 if (!form || !resumenDiv) return;
                 var fd = new FormData(form);
                 var fechas = fd.getAll('fechas[]') || [];
                 var usuarios = form.querySelectorAll('.usuario-form');
+                var n = Math.max(1, usuarios.length);
                 var fp = (fd.get('forma_pago') || 'unico').trim() || 'unico';
-                var cubo = cuboPremiumLabel((fd.get('ancillary_cubo_premium_boogie') || '').trim());
+                var cuboVal = (fd.get('ancillary_cubo_premium_boogie') || '').trim();
+                var cubo = cuboPremiumLabel(cuboVal);
+                var precioCubo = cuboPrecio(cuboVal);
+
+                var baseTour = precioTour * n;
+                var total = baseTour + precioCubo;
 
                 var html = '<div class="resumen-items">';
                 html += '<p><strong>Fechas:</strong> ' + (fechas.length ? fechas.join(', ') : '—') + '</p>';
-                html += '<p><strong>Participantes:</strong> ' + usuarios.length + '</p>';
+                html += '<p><strong>Participantes:</strong> ' + n + '</p>';
                 html += '<p><strong>Forma de pago:</strong> ' + (fp === 'por_persona' ? 'Por persona' : 'Único') + '</p>';
                 if (cubo) html += '<p><strong>Cubo premium:</strong> ' + cubo + '</p>';
                 html += '</div>';
+                html += '<div class="resumen-subtotal"><table class="resumen-subtotal-tabla">';
+                html += '<tr><td>Tour en boogie (' + n + ' ' + (n === 1 ? 'persona' : 'personas') + ')</td><td>' + baseTour + ' €</td></tr>';
+                if (cubo) html += '<tr><td>Cubo premium: ' + cubo + '</td><td>' + precioCubo + ' €</td></tr>';
+                html += '<tr class="resumen-total"><td>Total</td><td>' + total + ' €</td></tr>';
+                if (n > 1 && !cubo) html += '<tr class="resumen-por-persona"><td>Por persona</td><td>' + precioTour + ' €</td></tr>';
+                html += '</table></div>';
                 resumenDiv.innerHTML = html;
             };
 

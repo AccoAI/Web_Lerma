@@ -95,49 +95,8 @@
                     </div>
 
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">2. Green fee</h3>
-                        <div class="opciones-grid opciones-grid-2">
-                            <label class="opcion-card opcion-card-compact">
-                                <input type="radio" name="green_fee" value="9hoyos" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-icon">⛳</span>
-                                    <span class="opcion-texto">9 hoyos</span>
-                                    <span class="opcion-desc">Rápido. Ideal para una pausa corta.</span>
-                                </div>
-                            </label>
-                            <label class="opcion-card opcion-card-compact">
-                                <input type="radio" name="green_fee" value="18buggy">
-                                <div class="opcion-content">
-                                    <span class="opcion-icon">🛞</span>
-                                    <span class="opcion-texto">18 hoyos con buggy</span>
-                                    <span class="opcion-desc">Buggy incluido para agilizar el recorrido.</span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">3. Campo</h3>
-                        <div class="opciones-grid opciones-grid-2">
-                            <label class="opcion-card opcion-card-compact">
-                                <input type="radio" name="campo" value="lerma" required>
-                                <div class="opcion-content">
-                                    <span class="opcion-texto">Golf Lerma</span>
-                                    <span class="opcion-desc">Autovía Madrid–Burgos km 195,5</span>
-                                </div>
-                            </label>
-                            <label class="opcion-card opcion-card-compact">
-                                <input type="radio" name="campo" value="saldana">
-                                <div class="opcion-content">
-                                    <span class="opcion-texto">Saldaña Golf</span>
-                                    <span class="opcion-desc">Urbanización Golf Saldaña</span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">4. Datos de los participantes</h3>
+                        <h3 class="configurador-titulo">2. Datos de los participantes</h3>
+                        <input type="hidden" name="campo" value="lerma">
                         <div class="reserva-datos-iniciales">
                             <div class="form-group-inline">
                                 <label for="tamanio-grupo-pausadrive">Tamaño del grupo</label>
@@ -258,9 +217,11 @@
         </div>
     </footer>
 
+    <script src="js/precios-data.js"></script>
     <script src="js/correspondencias-data.js"></script>
     <script src="js/correspondencias.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/chatbot.js"></script>
     <script src="js/calendario-dias.js"></script>
     <script src="js/usuarios-form.js"></script>
     <script>
@@ -269,28 +230,33 @@
             var resumenDiv = document.getElementById('resumen-pausadrive');
             var cal = document.getElementById('calendario-dias-pausadrive');
 
-            var greenFeeLabels = { '9hoyos': '9 hoyos', '18buggy': '18 hoyos con buggy' };
             var campoLabels = { 'lerma': 'Golf Lerma', 'saldana': 'Saldaña Golf' };
+            var precioPausa = (window.PRECIOS_DATA && window.PRECIOS_DATA.paquetes && window.PRECIOS_DATA.paquetes.pausaDrive && window.PRECIOS_DATA.paquetes.pausaDrive.precioCerrado) || 50;
 
             window.actualizarResumen = function() {
                 if (!form || !resumenDiv) return;
                 var fd = new FormData(form);
                 var fechas = fd.getAll('fechas[]') || [];
-                var gf = fd.get('green_fee');
                 var campo = fd.get('campo');
                 var usuarios = form.querySelectorAll('.usuario-form');
+                var n = Math.max(1, usuarios.length);
                 var fp = (fd.get('forma_pago') || 'unico').trim() || 'unico';
                 var hora = (fd.get('hora_salida') || '').trim();
+                var total = precioPausa * n;
 
                 var html = '<div class="resumen-items">';
                 html += '<p><strong>Fecha:</strong> ' + (fechas.length ? fechas[0] : '—') + '</p>';
                 if (hora) html += '<p><strong>Hora preferida:</strong> ' + hora + '</p>';
-                if (gf) html += '<p><strong>Green fee:</strong> ' + (greenFeeLabels[gf] || gf) + '</p>';
+                html += '<p><strong>9 hoyos con buggy</strong> – Menú Castellano Express, vestuarios premium.</p>';
                 if (campo) html += '<p><strong>Campo:</strong> ' + (campoLabels[campo] || campo) + '</p>';
-                html += '<p><strong>Incluye:</strong> Menú Castellano Express, vestuarios premium.</p>';
-                html += '<p><strong>Participantes:</strong> ' + usuarios.length + '</p>';
+                html += '<p><strong>Participantes:</strong> ' + n + '</p>';
                 html += '<p><strong>Forma de pago:</strong> ' + (fp === 'por_persona' ? 'Por persona' : 'Único') + '</p>';
                 html += '</div>';
+                html += '<div class="resumen-subtotal"><table class="resumen-subtotal-tabla">';
+                html += '<tr><td>Pausa & Drive (' + n + ' ' + (n === 1 ? 'persona' : 'personas') + ')</td><td>' + total + ' €</td></tr>';
+                html += '<tr class="resumen-total"><td>Total</td><td>' + total + ' €</td></tr>';
+                if (n > 1) html += '<tr class="resumen-por-persona"><td>Por persona</td><td>' + precioPausa + ' €</td></tr>';
+                html += '</table></div>';
                 resumenDiv.innerHTML = html;
             };
 
