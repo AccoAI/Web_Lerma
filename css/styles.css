@@ -444,6 +444,24 @@ img {
     gap: 0.6rem;
 }
 
+.hero-instagram-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.95);
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.hero-instagram-link:hover {
+    color: var(--color-white);
+    transform: scale(1.1);
+}
+
+.hero-instagram-icon {
+    width: 22px;
+    height: 22px;
+}
+
 .lang-selector-hero .lang-select {
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.8);
@@ -2922,6 +2940,28 @@ img {
     right: 0;
     bottom: 0;
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.55));
+}
+
+.bodas-instagram-link {
+    position: absolute;
+    top: calc(var(--header-height) + 1rem);
+    right: 2rem;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.95);
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.bodas-instagram-link:hover {
+    color: var(--color-white);
+    transform: scale(1.1);
+}
+
+.bodas-instagram-icon {
+    width: 22px;
+    height: 22px;
 }
 
 .hazte-socio-hero-content {
@@ -5757,6 +5797,11 @@ img {
 
     .hazte-socio-hero {
         min-height: 400px;
+    }
+
+    .bodas-instagram-link {
+        top: calc(var(--header-height) + 0.75rem);
+        right: 0.75rem;
     }
 
     .simulador-hero-imagen {
