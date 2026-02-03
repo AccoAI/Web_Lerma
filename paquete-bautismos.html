@@ -226,6 +226,7 @@
     <script src="js/precios-data.js"></script>
     <script src="js/correspondencias-data.js"></script>
     <script src="js/correspondencias.js"></script>
+    <script src="js/stripe-pago.js"></script>
     <script src="js/main.js"></script>
     <script src="js/chatbot.js"></script>
     <script src="js/calendario-dias.js"></script>
@@ -300,7 +301,13 @@
                         alert('Indique al menos un participante (adulto o joven).');
                         return;
                     }
-                    alert('¡Reserva de Bautismos de golf enviada! Te contactaremos pronto para confirmar.');
+                    var totalEuros = (typeof window.getTotalFromResumen === 'function') ? window.getTotalFromResumen() : (adultos * precioAdulto + jovenes * precioJoven);
+                    if (totalEuros <= 0) { alert('Completa las opciones para proceder al pago.'); return; }
+                    var fp = (new FormData(form).get('forma_pago') || 'unico').trim() || 'unico';
+                    var btn = document.querySelector('button[form="formBautismos"]');
+                    if (typeof window.iniciarPagoStripe === 'function') {
+                        window.iniciarPagoStripe({ totalEuros: totalEuros, modo: fp, numParticipantes: adultos + jovenes, paquete: 'bautismos', submitButton: btn });
+                    } else { alert('Error: módulo de pago no cargado.'); }
                 });
             }
 

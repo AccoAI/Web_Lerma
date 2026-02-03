@@ -799,46 +799,27 @@ function initConfiguradorPaquete() {
                 if (cpd || cnd) comidaPorDia.push({ dia: icd, comida: cpd || null, cena: cnd || null });
             }
             var formaPagoSubmit = ((formData.get('forma_pago') || 'unico').trim() || 'unico');
-            var datos = {
-                noches: noches,
-                fechas: fechas,
-                camposPorDia: camposPorDia,
-                hotelPorNoche: hotelPorNoche,
-                comidaPorDia: comidaPorDia,
-                correspondenciaGrupos: corresGrupos,
-                tamanioGrupo: (formData.get('tamanio_grupo') || '').trim() || null,
-                horaSalida: (formData.get('hora_salida') || '').trim() || null,
-                numeroGrupos: (formData.get('numero_grupos') || '').trim() || null,
-                formaPago: formaPagoSubmit,
-                handicapGrupo: (formData.get('handicap_grupo') || '').trim() || null
-            };
+            var usuarios = form.querySelectorAll('.usuario-form');
+            var numParticipantes = Math.max(1, parseInt((formData.get('tamanio_grupo') || '').trim(), 10) || usuarios.length);
+            var totalEuros = (typeof window.getTotalFromResumen === 'function') ? window.getTotalFromResumen() : 0;
 
-            var msg = '¡Paquete configurado! Te contactaremos pronto para confirmar tu reserva.\n\nNoches: ' + datos.noches + '\n';
-            if (count >= 2 && Object.keys(hotelPorNoche).length > 0) {
-                var partsAloj = [];
-                for (var k in hotelPorNoche) { partsAloj.push('Noche ' + k + ': ' + getHotelLabelFromValue(hotelPorNoche[k])); }
-                msg += 'Alojamiento: ' + partsAloj.join('. ') + '\n';
+            if (totalEuros <= 0) {
+                alert('Completa las opciones del paquete para ver el total y proceder al pago.');
+                return;
             }
-            if (comidaPorDia.length > 0) {
-                var partsCom = comidaPorDia.map(function (x) {
-                    var t = 'Día ' + x.dia + ':';
-                    if (x.comida) t += ' Comida ' + (x.comida === 'lerma' ? 'Lerma' : 'Burgos');
-                    if (x.cena) t += (x.comida ? ', ' : '') + 'Cena ' + (x.cena === 'lerma' ? 'Lerma' : 'Burgos');
-                    return t;
+
+            var submitBtn = document.querySelector('button[form="configuradorForm"]');
+            if (typeof window.iniciarPagoStripe === 'function') {
+                window.iniciarPagoStripe({
+                    totalEuros: totalEuros,
+                    modo: formaPagoSubmit,
+                    numParticipantes: numParticipantes,
+                    paquete: 'fin-semana',
+                    submitButton: submitBtn
                 });
-                msg += 'Comidas y cenas: ' + partsCom.join('. ') + '\n';
+            } else {
+                alert('Error: módulo de pago no cargado. Recarga la página e inténtalo de nuevo.');
             }
-            if (datos.tamanioGrupo || datos.horaSalida || datos.numeroGrupos) {
-                var extras = [];
-                if (datos.tamanioGrupo) extras.push('Tamaño grupo: ' + datos.tamanioGrupo);
-                if (datos.horaSalida) extras.push('Hora salida: ' + datos.horaSalida);
-                if (datos.numeroGrupos) extras.push('Nº grupos: ' + datos.numeroGrupos);
-                msg += '\n' + extras.join(' · ');
-            }
-            msg += '\nForma de pago: ' + (formaPagoSubmit === 'por_persona' ? 'Pago por persona (cada uno recibirá un enlace para abonar su parte)' : 'Pago único');
-            if (datos.handicapGrupo) msg += '\nHandicap del grupo (orientativo): ' + datos.handicapGrupo;
-            if (corresGrupos.length > 0) msg += '\nCorrespondencias: ' + corresGrupos.map(function (g) { return g.cantidad + ' × ' + g.label; }).join(', ');
-            alert(msg);
         });
     }
 }

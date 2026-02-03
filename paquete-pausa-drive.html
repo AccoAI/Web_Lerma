@@ -221,6 +221,7 @@
     <script src="js/precios-data.js"></script>
     <script src="js/correspondencias-data.js"></script>
     <script src="js/correspondencias.js"></script>
+    <script src="js/stripe-pago.js"></script>
     <script src="js/main.js"></script>
     <script src="js/chatbot.js"></script>
     <script src="js/calendario-dias.js"></script>
@@ -278,7 +279,14 @@
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
                     var usuarios = form.querySelectorAll('.usuario-form');
-                    alert('¡Reserva Pausa & Drive enviada! Te contactaremos pronto para confirmar.\n\nParticipantes: ' + usuarios.length);
+                    var n = Math.max(1, usuarios.length);
+                    var totalEuros = (typeof window.getTotalFromResumen === 'function') ? window.getTotalFromResumen() : precioPausa * n;
+                    if (totalEuros <= 0) { alert('Completa las opciones para proceder al pago.'); return; }
+                    var fp = (new FormData(form).get('forma_pago') || 'unico').trim() || 'unico';
+                    var btn = document.querySelector('button[form="formPausaDrive"]');
+                    if (typeof window.iniciarPagoStripe === 'function') {
+                        window.iniciarPagoStripe({ totalEuros: totalEuros, modo: fp, numParticipantes: n, paquete: 'pausa-drive', submitButton: btn });
+                    } else { alert('Error: módulo de pago no cargado.'); }
                 });
             }
         });

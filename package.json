@@ -1,0 +1,8 @@
+{
+  "name": "web-lerma-saldaña",
+  "version": "1.0.0",
+  "description": "Golf Lerma y Saldaña Golf - Web y API de pagos",
+  "dependencies": {
+    "stripe": "^14.0.0"
+  }
+}

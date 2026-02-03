@@ -448,18 +448,19 @@ img {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(255, 255, 255, 0.95);
-    transition: color 0.2s ease, transform 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .hero-instagram-link:hover {
-    color: var(--color-white);
     transform: scale(1.1);
+    opacity: 0.9;
 }
 
 .hero-instagram-icon {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    display: block;
 }
 
 .lang-selector-hero .lang-select {
@@ -1021,6 +1022,17 @@ img {
     }
 }
 
+.opciones-grid-2 .opcion-card-compact {
+    height: 100%;
+    display: flex;
+}
+
+.opciones-grid-2 .opcion-card-compact .opcion-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
 .opcion-card-compact .opcion-content {
     padding: 1rem 1.25rem;
 }
@@ -1032,6 +1044,10 @@ img {
 
 .opcion-card-compact .opcion-texto {
     font-size: 1rem;
+}
+
+.opcion-card-compact .opcion-desc {
+    min-height: 2.6em;
 }
 
 .opcion-desc {
@@ -2950,18 +2966,19 @@ img {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(255, 255, 255, 0.95);
-    transition: color 0.2s ease, transform 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .bodas-instagram-link:hover {
-    color: var(--color-white);
     transform: scale(1.1);
+    opacity: 0.9;
 }
 
 .bodas-instagram-icon {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    display: block;
 }
 
 .hazte-socio-hero-content {
@@ -6091,6 +6108,69 @@ img {
     .btn-cookie {
         width: 100%;
     }
+}
+
+/* ========== STRIPE PAGO MODAL ========== */
+.stripe-pago-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.stripe-pago-modal {
+    background: var(--color-white);
+    padding: 2rem;
+    max-width: 480px;
+    width: 100%;
+    border-radius: 0;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.stripe-pago-modal h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-family: var(--font-primary);
+}
+
+.stripe-pago-modal p {
+    margin-bottom: 1rem;
+}
+
+.stripe-pago-url-input {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 0.85rem;
+    border: 1px solid #ddd;
+    margin-bottom: 0.5rem;
+}
+
+.stripe-pago-modal-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.stripe-pago-modal-actions .btn-reservar-paquete {
+    flex: 1;
+    min-width: 120px;
+}
+
+.stripe-pago-cerrar {
+    margin-top: 1.5rem;
+    background: none;
+    border: 1px solid #999;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.stripe-pago-cerrar:hover {
+    background: #f0f0f0;
 }
 
 /* ========== ANCILLARIES CON COUNTER ========== */

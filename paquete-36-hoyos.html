@@ -268,6 +268,7 @@
     <script src="js/precios-data.js"></script>
     <script src="js/correspondencias-data.js"></script>
     <script src="js/correspondencias.js"></script>
+    <script src="js/stripe-pago.js"></script>
     <script src="js/main.js"></script>
     <script src="js/chatbot.js"></script>
     <script src="js/calendario-dias.js"></script>
@@ -441,8 +442,15 @@
                         alert('Por favor, selecciona el campo para cada día.');
                         return;
                     }
-                    alert('¡Solicitud de reserva enviada correctamente! Nos pondremos en contacto contigo pronto.');
-                    form.reset();
+                    var usuarios = form.querySelectorAll('.usuario-form');
+                    var n = Math.max(1, usuarios.length);
+                    var totalEuros = (typeof window.getTotalFromResumen === 'function') ? window.getTotalFromResumen() : 0;
+                    if (totalEuros <= 0) { alert('Completa las opciones para proceder al pago.'); return; }
+                    var fp = (formData.get('forma_pago') || 'unico').trim() || 'unico';
+                    var btn = document.querySelector('button[form="form36Hoyos"]');
+                    if (typeof window.iniciarPagoStripe === 'function') {
+                        window.iniciarPagoStripe({ totalEuros: totalEuros, modo: fp, numParticipantes: n, paquete: '36-hoyos', submitButton: btn });
+                    } else { alert('Error: módulo de pago no cargado.'); }
                 });
             }
         });
