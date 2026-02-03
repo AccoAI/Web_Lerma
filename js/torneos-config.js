@@ -230,6 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Manejar envío del formulario
     form.addEventListener('submit', function(e) {
         e.preventDefault();
+        if (!form.reportValidity()) return;
         if (typeof window.validarTelefonosForm === 'function' && !window.validarTelefonosForm(form)) return;
         const formData = new FormData(form);
         var fechas = formData.getAll('fechas[]');

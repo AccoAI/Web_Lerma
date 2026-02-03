@@ -305,6 +305,7 @@
 
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
+                    if (!form.reportValidity()) return;
                     if (typeof window.validarTelefonosForm === 'function' && !window.validarTelefonosForm(form)) return;
                     var adultos = Math.max(0, parseInt(numAdultos ? numAdultos.value : 0, 10) || 0);
                     var jovenes = Math.max(0, parseInt(numJovenes ? numJovenes.value : 0, 10) || 0);

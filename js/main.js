@@ -763,6 +763,7 @@ function initConfiguradorPaquete() {
     if (form) {
         form.addEventListener('submit', function (e) {
             e.preventDefault();
+            if (!form.reportValidity()) return;
             if (typeof window.validarTelefonosForm === 'function' && !window.validarTelefonosForm(form)) return;
             var formData = new FormData(form);
             var noches = formData.get('noches');

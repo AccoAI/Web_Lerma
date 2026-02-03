@@ -597,6 +597,7 @@
                 recalcNumeroGrupos();
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
+                    if (!form.reportValidity()) return;
                     if (typeof window.validarTelefonosForm === 'function' && !window.validarTelefonosForm(form)) return;
                     var usuarios = form.querySelectorAll('.usuario-form');
                     var n = Math.max(1, usuarios.length);
