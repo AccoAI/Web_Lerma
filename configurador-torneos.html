@@ -205,15 +205,27 @@
                         <div class="ancillaries-grid ancillaries-with-counter">
                             <div class="ancillary-item">
                                 <label for="ancillary_buggy">🛺 Buggies</label>
-                                <input type="number" id="ancillary_buggy" name="ancillary_buggy" min="0" max="20" value="0" class="ancillary-counter">
+                                <div class="ancillary-counter-wrap">
+                                    <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>
+                                    <input type="number" id="ancillary_buggy" name="ancillary_buggy" min="0" max="20" value="0" class="ancillary-counter" readonly>
+                                    <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar">+</button>
+                                </div>
                             </div>
                             <div class="ancillary-item">
                                 <label for="ancillary_carrito_mano">🛒 Carrito de mano</label>
-                                <input type="number" id="ancillary_carrito_mano" name="ancillary_carrito_mano" min="0" max="20" value="0" class="ancillary-counter">
+                                <div class="ancillary-counter-wrap">
+                                    <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>
+                                    <input type="number" id="ancillary_carrito_mano" name="ancillary_carrito_mano" min="0" max="20" value="0" class="ancillary-counter" readonly>
+                                    <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar">+</button>
+                                </div>
                             </div>
                             <div class="ancillary-item">
                                 <label for="ancillary_carrito_electrico">⚡ Carrito eléctrico</label>
-                                <input type="number" id="ancillary_carrito_electrico" name="ancillary_carrito_electrico" min="0" max="20" value="0" class="ancillary-counter">
+                                <div class="ancillary-counter-wrap">
+                                    <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>
+                                    <input type="number" id="ancillary_carrito_electrico" name="ancillary_carrito_electrico" min="0" max="20" value="0" class="ancillary-counter" readonly>
+                                    <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar">+</button>
+                                </div>
                             </div>
                         </div>
                         <div class="cubo-premium-block" style="margin-top: 1.25rem;">
@@ -296,5 +308,6 @@
     <script src="js/calendario-dias.js"></script>
     <script src="js/usuarios-form.js"></script>
     <script src="js/torneos-config.js"></script>
+    <script src="js/ancillary-counters.js"></script>
 </body>
 </html>

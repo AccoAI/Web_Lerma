@@ -857,6 +857,21 @@ function initConfiguradorPaquete() {
     });
 })();
 
+// Evitar que la barra Resumen móvil tape el selector nativo de hora/fecha (botón Establecer)
+function initNativePickerFix() {
+    var inputs = document.querySelectorAll('input[type="time"], input[type="date"], input[type="datetime-local"]');
+    inputs.forEach(function (inp) {
+        inp.addEventListener('focus', function () {
+            document.body.classList.add('native-picker-open');
+        });
+        inp.addEventListener('blur', function () {
+            setTimeout(function () {
+                document.body.classList.remove('native-picker-open');
+            }, 350);
+        });
+    });
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     highlightNavigation();
@@ -864,7 +879,8 @@ document.addEventListener('DOMContentLoaded', () => {
     updateTiempoData();
     loadCamaraLive();
     initConfiguradorPaquete();
-    
+    initNativePickerFix();
+
     // Actualizar datos del tiempo cada 5 minutos
     setInterval(updateTiempoData, 300000);
 });
