@@ -6217,7 +6217,7 @@ img {
 /* ========== ANCILLARIES CON COUNTER ========== */
 .ancillaries-with-counter {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1rem;
 }
 
@@ -6226,11 +6226,14 @@ img {
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
+    min-width: 0;
 }
 
 .ancillaries-with-counter .ancillary-item label {
     font-weight: 400;
     cursor: default;
+    flex: 1;
+    min-width: 0;
 }
 
 .ancillary-counter-wrap {
@@ -6239,7 +6242,8 @@ img {
     gap: 0;
     border: 1px solid #ddd;
     border-radius: 4px;
-    overflow: hidden;
+    flex-shrink: 0;
+    min-width: 7rem;
 }
 
 .ancillary-btn {
