@@ -1,20 +1,10 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/*.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "**",
-      "use": "@vercel/static"
+  "functions": {
+    "api/crear-pago.js": {
+      "memory": 128,
+      "maxDuration": 10
     }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ]
+  }
 }
 
