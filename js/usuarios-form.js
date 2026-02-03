@@ -93,6 +93,12 @@ function initUsuariosForm() {
         const esExtraSimplificado = (extraOpt && simplificar && numero >= 2);
         const req = (extraOpt && numero >= 2) ? '' : ' required';
 
+        var telefonoHtmlReq = '<div class="form-group-usuario form-group-telefono"><label>Móvil *</label><div class="telefono-wrapper">' +
+            '<select class="telefono-prefijo" name="usuario[' + numero + '][movil_prefijo]" aria-label="Prefijo país">' +
+            '<option value="+34" selected>+34</option><option value="+33">+33</option><option value="+44">+44</option>' +
+            '<option value="+39">+39</option><option value="+351">+351</option><option value="+49">+49</option></select>' +
+            '<input type="tel" name="usuario[' + numero + '][movil]" class="telefono-numero" placeholder="612 345 678"' + req + '></div></div>';
+        var telefonoHtmlOpt = telefonoHtmlReq.replace(' required', '');
         if (esExtraSimplificado) {
             usuarioDiv.innerHTML =
                 '<div class="usuario-form-header">' +
@@ -102,7 +108,7 @@ function initUsuariosForm() {
                 '<div class="usuario-campos">' +
                 '<div class="form-group-usuario"><label>Nombre</label><input type="text" name="usuario[' + numero + '][nombre]"></div>' +
                 '<div class="form-group-usuario"><label>Correo</label><input type="email" name="usuario[' + numero + '][correo]"></div>' +
-                '<div class="form-group-usuario"><label>Móvil</label><input type="tel" name="usuario[' + numero + '][movil]"></div>' +
+                telefonoHtmlOpt +
                 '</div>';
         } else {
             usuarioDiv.innerHTML =
@@ -113,7 +119,7 @@ function initUsuariosForm() {
                 '<div class="usuario-campos">' +
                 '<div class="form-group-usuario"><label>Nombre *</label><input type="text" name="usuario[' + numero + '][nombre]"' + req + '></div>' +
                 '<div class="form-group-usuario"><label>Correo *</label><input type="email" name="usuario[' + numero + '][correo]"' + req + '></div>' +
-                '<div class="form-group-usuario"><label>Móvil *</label><input type="tel" name="usuario[' + numero + '][movil]"' + req + '></div>' +
+                telefonoHtmlReq +
                 '<div class="form-group form-group-correspondencia" data-campo="paquete">' +
                 '<label>Club / Campo de procedencia (para tarifa correspondencia)</label>' +
                 '<select name="usuario[' + numero + '][club_correspondencia]" class="select-club-correspondencia"></select>' +
@@ -184,6 +190,44 @@ function initUsuariosForm() {
 
     actualizarContadorYBotón();
 }
+
+/**
+ * Valida todos los teléfonos del formulario.
+ * - Si el campo es obligatorio (required), debe estar rellenado.
+ * - Si prefijo es +34, el número debe tener 9 dígitos y empezar por 6 o 7.
+ * @returns {boolean} true si todos válidos
+ */
+window.validarTelefonosForm = function (form) {
+    if (!form) return true;
+    var wrappers = form.querySelectorAll('.form-group-telefono');
+    for (var i = 0; i < wrappers.length; i++) {
+        var wrap = wrappers[i];
+        var prefijoSel = wrap.querySelector('.telefono-prefijo');
+        var numInput = wrap.querySelector('.telefono-numero');
+        if (!prefijoSel || !numInput) continue;
+        var prefijo = (prefijoSel.value || '').trim();
+        var num = (numInput.value || '').replace(/\s|-|\./g, '');
+        var esRequerido = numInput.hasAttribute('required');
+
+        if (!num) {
+            if (esRequerido) {
+                alert('El móvil es obligatorio. Indica tu número de teléfono.');
+                numInput.focus();
+                return false;
+            }
+            continue;
+        }
+
+        if (prefijo === '+34') {
+            if (!/^[67]\d{8}$/.test(num)) {
+                alert('Para España (+34) el móvil debe tener 9 dígitos y empezar por 6 o 7 (ej.: 612 345 678).');
+                numInput.focus();
+                return false;
+            }
+        }
+    }
+    return true;
+};
 
 document.addEventListener('DOMContentLoaded', function () {
     initUsuariosForm();

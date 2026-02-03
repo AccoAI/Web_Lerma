@@ -109,8 +109,8 @@
                                 <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" placeholder="Ej. 4" title="Número de jugadores">
                             </div>
                             <div class="form-group-inline">
-                                <label for="hora-salida">Hora de salida</label>
-                                <input type="time" id="hora-salida" name="hora_salida" title="Hora preferida de salida">
+                                <label for="hora-salida">Hora de salida *</label>
+                                <input type="time" id="hora-salida" name="hora_salida" title="Hora preferida de salida" required>
                             </div>
                             <div class="form-group-inline">
                                 <label for="numero-grupos-output" data-i18n="label_num_grupos">Nº de grupos</label>
@@ -131,9 +131,19 @@
                                         <label>Correo *</label>
                                         <input type="email" name="usuario[1][correo]" required>
                                     </div>
-                                    <div class="form-group-usuario">
+                                    <div class="form-group-usuario form-group-telefono">
                                         <label data-i18n="label_movil">Móvil *</label>
-                                        <input type="tel" name="usuario[1][movil]" required>
+                                        <div class="telefono-wrapper">
+                                            <select class="telefono-prefijo" name="usuario[1][movil_prefijo]" aria-label="Prefijo país">
+                                                <option value="+34" selected>+34</option>
+                                                <option value="+33">+33</option>
+                                                <option value="+44">+44</option>
+                                                <option value="+39">+39</option>
+                                                <option value="+351">+351</option>
+                                                <option value="+49">+49</option>
+                                            </select>
+                                            <input type="tel" name="usuario[1][movil]" class="telefono-numero" placeholder="612 345 678" required>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

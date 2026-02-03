@@ -87,8 +87,8 @@
                         <div id="calendario-dias-bautismos" class="calendario-dias-container"></div>
                         <div class="reserva-datos-iniciales" style="margin-top: 1rem;">
                             <div class="form-group-inline">
-                                <label for="hora-bautismos">Hora preferida</label>
-                                <input type="time" id="hora-bautismos" name="hora_salida" title="Hora preferida">
+                                <label for="hora-bautismos">Hora preferida *</label>
+                                <input type="time" id="hora-bautismos" name="hora_salida" title="Hora preferida" required>
                             </div>
                         </div>
                     </div>
@@ -123,9 +123,19 @@
                                         <label>Correo *</label>
                                         <input type="email" name="usuario[1][correo]" required>
                                     </div>
-                                    <div class="form-group-usuario">
+                                    <div class="form-group-usuario form-group-telefono">
                                         <label>Móvil *</label>
-                                        <input type="tel" name="usuario[1][movil]" required>
+                                        <div class="telefono-wrapper">
+                                            <select class="telefono-prefijo" name="usuario[1][movil_prefijo]" aria-label="Prefijo país">
+                                                <option value="+34" selected>+34</option>
+                                                <option value="+33">+33</option>
+                                                <option value="+44">+44</option>
+                                                <option value="+39">+39</option>
+                                                <option value="+351">+351</option>
+                                                <option value="+49">+49</option>
+                                            </select>
+                                            <input type="tel" name="usuario[1][movil]" class="telefono-numero" placeholder="612 345 678" required>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -295,6 +305,7 @@
 
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
+                    if (typeof window.validarTelefonosForm === 'function' && !window.validarTelefonosForm(form)) return;
                     var adultos = Math.max(0, parseInt(numAdultos ? numAdultos.value : 0, 10) || 0);
                     var jovenes = Math.max(0, parseInt(numJovenes ? numJovenes.value : 0, 10) || 0);
                     if (adultos + jovenes < 1) {

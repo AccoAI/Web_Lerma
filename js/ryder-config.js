@@ -301,6 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (form) {
         form.addEventListener('submit', function (e) {
             e.preventDefault();
+            if (typeof window.validarTelefonosForm === 'function' && !window.validarTelefonosForm(form)) return;
             var formData = new FormData(form);
             var diasJuego = formData.get('dias-juego');
             if (!diasJuego || diasJuego === '0') {

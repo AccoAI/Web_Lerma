@@ -1826,6 +1826,32 @@ img {
     box-shadow: 0 0 0 3px rgba(26, 77, 58, 0.1);
 }
 
+.telefono-wrapper {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+}
+
+.telefono-prefijo {
+    flex: 0 0 auto;
+    min-width: 5rem;
+    padding: 0.75rem;
+    border: 2px solid #ddd;
+    border-radius: 0;
+    font-size: 1rem;
+    font-family: var(--font-secondary);
+}
+
+.telefono-prefijo:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.telefono-numero {
+    flex: 1;
+    min-width: 0;
+}
+
 .btn-agregar-usuario {
     background: var(--color-primary);
     color: var(--color-white);

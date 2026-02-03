@@ -96,8 +96,24 @@
       })
     })
       .then(function (r) {
-        if (!r.ok) return r.json().then(function (j) { throw new Error(j.error || 'Error'); });
-        return r.json();
+        return r.text().then(function (text) {
+          if (!r.ok) {
+            var errMsg = 'Error del servidor';
+            try {
+              var j = JSON.parse(text);
+              if (j && j.error) errMsg = j.error;
+            } catch (e) {
+              if (r.status === 404) errMsg = 'La pasarela de pago no está disponible. ¿Estás en el servidor desplegado?';
+              else if (text && text.length < 200) errMsg = text;
+            }
+            throw new Error(errMsg);
+          }
+          try {
+            return JSON.parse(text);
+          } catch (e) {
+            throw new Error('Respuesta inválida del servidor');
+          }
+        });
       })
       .then(function (data) {
         if (modo === 'por_persona') {
