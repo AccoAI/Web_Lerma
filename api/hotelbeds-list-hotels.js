@@ -25,12 +25,7 @@ function jsonResponse(obj, status = 200) {
 }
 
 function getFutureDates() {
-  const d = new Date();
-  d.setMonth(d.getMonth() + 4);
-  const checkIn = d.toISOString().slice(0, 10);
-  d.setDate(d.getDate() + 2);
-  const checkOut = d.toISOString().slice(0, 10);
-  return { checkIn, checkOut };
+  return { checkIn: '2026-06-15', checkOut: '2026-06-17' };
 }
 
 async function fetchFromAvailability(apiKey, secret, dest, checkIn, checkOut, baseUrl) {
