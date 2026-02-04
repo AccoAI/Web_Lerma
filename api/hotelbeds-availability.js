@@ -44,7 +44,7 @@ async function fetchAvailability(apiKey, secret, body) {
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
-      'Api-Key': apiKey,
+      'Api-key': apiKey,
       'X-Signature': signature,
     },
     body: JSON.stringify(payload),
@@ -75,6 +75,22 @@ function jsonResponse(obj, status = 200) {
 
 export async function GET(request) {
   const url = request?.url ? new URL(request.url) : null;
+  if (url && url.searchParams.get('status') === '1') {
+    const apiKey = process.env.API_Key || process.env.HOTELBEDS_API_KEY;
+    const secret = process.env.API_Secret || process.env.HOTELBEDS_API_SECRET;
+    if (!apiKey || !secret) return jsonResponse({ error: 'Faltan credenciales' }, 200);
+    const baseUrl = process.env.HOTELBEDS_ENV === 'production' ? 'https://api.hotelbeds.com' : 'https://api.test.hotelbeds.com';
+    const signature = getSignature(apiKey, secret);
+    try {
+      const res = await fetch(`${baseUrl}/hotel-api/1.0/status`, {
+        headers: { 'Accept': 'application/json', 'Api-key': apiKey, 'X-Signature': signature },
+      });
+      const data = await res.json().catch(() => ({}));
+      return jsonResponse({ status: res.status, ok: res.ok, hotelbeds: data });
+    } catch (e) {
+      return jsonResponse({ error: e.message }, 200);
+    }
+  }
   if (url && url.searchParams.get('diagnostic') === '1') {
     const apiKey = process.env.API_Key || process.env.HOTELBEDS_API_KEY;
     const secret = process.env.API_Secret || process.env.HOTELBEDS_API_SECRET;

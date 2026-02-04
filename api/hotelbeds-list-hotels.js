@@ -44,7 +44,7 @@ async function fetchFromAvailability(apiKey, secret, dest, checkIn, checkOut, ba
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
-      'Api-Key': apiKey,
+      'Api-key': apiKey,
       'X-Signature': getSignature(apiKey, secret),
     },
     body: JSON.stringify(payload),
@@ -80,7 +80,7 @@ async function fetchFromTransferCache(apiKey, secret, dest, country, offset, lim
     method: 'GET',
     headers: {
       'Accept': 'application/json',
-      'Api-Key': apiKey,
+      'Api-key': apiKey,
       'X-Signature': getSignature(apiKey, secret),
     },
   });
@@ -111,7 +111,7 @@ async function fetchFromContent(apiKey, secret, dest, country, from, to, lang, b
     method: 'GET',
     headers: {
       'Accept': 'application/json',
-      'Api-Key': apiKey,
+      'Api-key': apiKey,
       'X-Signature': getSignature(apiKey, secret),
     },
   });
@@ -130,14 +130,19 @@ async function fetchFromContent(apiKey, secret, dest, country, from, to, lang, b
 }
 
 export async function GET(request) {
-  const apiKey = process.env.API_Key || process.env.HOTELBEDS_API_KEY;
-  const secret = process.env.API_Secret || process.env.HOTELBEDS_API_SECRET;
-  if (!apiKey || !secret) {
-    return jsonResponse({ error: 'Faltan credenciales' }, 500);
-  }
+  try {
+    const url = request?.url ? new URL(request.url) : null;
+    if (url?.searchParams?.get('ping') === '1') {
+      return jsonResponse({ ok: true, msg: 'hotelbeds-list-hotels OK' });
+    }
 
-  const url = request?.url ? new URL(request.url) : null;
-  const dest = url?.searchParams?.get('destination') || 'BUR';
+    const apiKey = process.env.API_Key || process.env.HOTELBEDS_API_KEY;
+    const secret = process.env.API_Secret || process.env.HOTELBEDS_API_SECRET;
+    if (!apiKey || !secret) {
+      return jsonResponse({ error: 'Faltan credenciales' }, 200);
+    }
+
+    const dest = url?.searchParams?.get('destination') || 'BUR';
   const hotelCodesParam = url?.searchParams?.get('hotelCodes') || '';
   let source = url?.searchParams?.get('source') || 'content';
   if (hotelCodesParam && !url?.searchParams?.get('source')) source = 'availability';
@@ -216,5 +221,11 @@ export async function GET(request) {
   } catch (err) {
     const msg = err.message || String(err);
     return jsonResponse({ error: msg, stack: err.stack }, 200);
+  }
+  } catch (outerErr) {
+    return jsonResponse({
+      error: outerErr.message || String(outerErr),
+      stack: outerErr.stack,
+    }, 200);
   }
 }
