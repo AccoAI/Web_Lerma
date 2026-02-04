@@ -28,12 +28,16 @@ function getFutureDates() {
   return { checkIn: '2026-06-15', checkOut: '2026-06-17' };
 }
 
-async function fetchFromAvailability(apiKey, secret, dest, checkIn, checkOut, baseUrl) {
+async function fetchFromAvailability(apiKey, secret, dest, checkIn, checkOut, baseUrl, hotelCodes = null) {
   const payload = {
     stay: { checkIn, checkOut },
     occupancies: [{ rooms: 1, adults: 2, children: 0 }],
-    destination: { code: dest },
   };
+  if (hotelCodes && hotelCodes.length > 0) {
+    payload.hotels = { hotel: hotelCodes.map(String) };
+  } else {
+    payload.destination = { code: dest };
+  }
 
   const res = await fetch(`${baseUrl}/hotel-api/1.0/hotels`, {
     method: 'POST',
@@ -106,6 +110,7 @@ export async function GET(request) {
   const source = url?.searchParams?.get('source') || 'availability';
   const filterSpain = url?.searchParams?.get('filter') !== 'none';
   const raw = url?.searchParams?.get('raw') === '1';
+  const hotelCodesParam = url?.searchParams?.get('hotelCodes') || '';
   const checkIn = url?.searchParams?.get('checkIn') || '';
   const checkOut = url?.searchParams?.get('checkOut') || '';
   const country = url?.searchParams?.get('countryCode') || 'ES';
@@ -128,7 +133,8 @@ export async function GET(request) {
       result = await fetchFromContent(apiKey, secret, dest, country, from, to, lang, baseUrl);
     } else {
       const dates = checkIn && checkOut ? { checkIn, checkOut } : getFutureDates();
-      result = await fetchFromAvailability(apiKey, secret, dest, dates.checkIn, dates.checkOut, baseUrl);
+      const hotelCodes = hotelCodesParam ? hotelCodesParam.split(',').map((c) => c.trim()).filter(Boolean) : null;
+      result = await fetchFromAvailability(apiKey, secret, dest, dates.checkIn, dates.checkOut, baseUrl, hotelCodes);
     }
     let list = result.list;
 
