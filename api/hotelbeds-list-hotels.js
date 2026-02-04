@@ -215,10 +215,6 @@ export async function GET(request) {
     });
   } catch (err) {
     const msg = err.message || String(err);
-    const isDebug = url?.searchParams?.get('debug') === '1';
-    return jsonResponse(
-      { error: msg, ...(isDebug && { stack: err.stack }) },
-      isDebug ? 200 : 500
-    );
+    return jsonResponse({ error: msg, stack: err.stack }, 200);
   }
 }
