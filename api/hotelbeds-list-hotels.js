@@ -138,11 +138,11 @@ export async function GET(request) {
 
   const url = request?.url ? new URL(request.url) : null;
   const dest = url?.searchParams?.get('destination') || 'BUR';
+  const hotelCodesParam = url?.searchParams?.get('hotelCodes') || '';
   let source = url?.searchParams?.get('source') || 'content';
   if (hotelCodesParam && !url?.searchParams?.get('source')) source = 'availability';
   const filterSpain = url?.searchParams?.get('filter') !== 'none';
   const raw = url?.searchParams?.get('raw') === '1';
-  const hotelCodesParam = url?.searchParams?.get('hotelCodes') || '';
   const checkIn = url?.searchParams?.get('checkIn') || '';
   const checkOut = url?.searchParams?.get('checkOut') || '';
   const country = url?.searchParams?.get('countryCode') || 'ES';
