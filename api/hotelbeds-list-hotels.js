@@ -1,13 +1,13 @@
 /**
  * Lista hoteles por destino.
- * Por defecto usa Availability API (devuelve hoteles con precios y nombres correctos).
  *
- * GET /api/hotelbeds-list-hotels?destination=BUR
- * GET /api/hotelbeds-list-hotels?destination=BUR2
- * GET /api/hotelbeds-list-hotels?destination=BUR&checkIn=2026-03-15&checkOut=2026-03-17
+ * GET /api/hotelbeds-list-hotels?destination=BUR&source=transfer-cache
+ * GET /api/hotelbeds-list-hotels?destination=BUR&source=content
+ * GET /api/hotelbeds-list-hotels?hotelCodes=225042,1058754  (Availability por códigos)
  *
- * source=content -> Content API (puede devolver nombres vacíos en test)
- * source=availability (por defecto) -> Availability API con fechas futuras
+ * source=transfer-cache -> Transfer Cache API (campos name, city, code directos)
+ * source=content -> Hotel Content API
+ * source=availability -> Availability API (precios; BUR vacío en test)
  */
 import { createHash } from 'crypto';
 
@@ -67,6 +67,37 @@ async function fetchFromAvailability(apiKey, secret, dest, checkIn, checkOut, ba
   };
 }
 
+async function fetchFromTransferCache(apiKey, secret, dest, country, offset, limit, lang, baseUrl) {
+  const params = new URLSearchParams({
+    fields: 'ALL',
+    language: lang === 'CAS' ? 'es' : lang,
+    countryCodes: country,
+    destinationCodes: dest,
+    offset: String(offset || 0),
+    limit: String(limit || 100),
+  });
+  const res = await fetch(`${baseUrl}/transfer-cache-api/1.0/hotels?${params}`, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+      'Api-Key': apiKey,
+      'X-Signature': getSignature(apiKey, secret),
+    },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error?.message || data.message || JSON.stringify(data));
+  const hotels = Array.isArray(data.hotels) ? data.hotels : [];
+  return {
+    list: hotels.map((h) => ({
+      code: h.code,
+      name: h.name || '',
+      city: h.city || '',
+      postalCode: h.postalCode || '',
+    })),
+    rawHotels: hotels.slice(0, 3),
+  };
+}
+
 async function fetchFromContent(apiKey, secret, dest, country, from, to, lang, baseUrl) {
   const params = new URLSearchParams({
     destinationCode: dest,
@@ -107,7 +138,7 @@ export async function GET(request) {
 
   const url = request?.url ? new URL(request.url) : null;
   const dest = url?.searchParams?.get('destination') || 'BUR';
-  const source = url?.searchParams?.get('source') || 'availability';
+  const source = url?.searchParams?.get('source') || 'transfer-cache';
   const filterSpain = url?.searchParams?.get('filter') !== 'none';
   const raw = url?.searchParams?.get('raw') === '1';
   const hotelCodesParam = url?.searchParams?.get('hotelCodes') || '';
@@ -127,9 +158,14 @@ export async function GET(request) {
     return /BURGOS|LERMA|SALDAÑA|ARANDA|MIRANDA|BRIVIESCA|09\d{3}/.test(s) || s.includes('PARADOR') || s.includes('ALISA') || s.includes('SILKEN') || s.includes('LANDA');
   };
 
+  const offset = url?.searchParams?.get('offset') || '0';
+  const limit = url?.searchParams?.get('limit') || '100';
+
   try {
     let result;
-    if (source === 'content') {
+    if (source === 'transfer-cache') {
+      result = await fetchFromTransferCache(apiKey, secret, dest, country, offset, limit, lang, baseUrl);
+    } else if (source === 'content') {
       result = await fetchFromContent(apiKey, secret, dest, country, from, to, lang, baseUrl);
     } else {
       const dates = checkIn && checkOut ? { checkIn, checkOut } : getFutureDates();
