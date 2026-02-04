@@ -138,7 +138,7 @@ export async function GET(request) {
 
   const url = request?.url ? new URL(request.url) : null;
   const dest = url?.searchParams?.get('destination') || 'BUR';
-  const source = url?.searchParams?.get('source') || 'transfer-cache';
+  const source = url?.searchParams?.get('source') || 'content';
   const filterSpain = url?.searchParams?.get('filter') !== 'none';
   const raw = url?.searchParams?.get('raw') === '1';
   const hotelCodesParam = url?.searchParams?.get('hotelCodes') || '';
@@ -164,7 +164,15 @@ export async function GET(request) {
   try {
     let result;
     if (source === 'transfer-cache') {
-      result = await fetchFromTransferCache(apiKey, secret, dest, country, offset, limit, lang, baseUrl);
+      try {
+        result = await fetchFromTransferCache(apiKey, secret, dest, country, offset, limit, lang, baseUrl);
+      } catch (tcErr) {
+        return jsonResponse({
+          error: 'Transfer Cache API no disponible: ' + tcErr.message,
+          fallback: 'Usa source=content o source=availability',
+          source: 'transfer-cache',
+        }, 200);
+      }
     } else if (source === 'content') {
       result = await fetchFromContent(apiKey, secret, dest, country, from, to, lang, baseUrl);
     } else {
