@@ -4,6 +4,10 @@
     "api/crear-pago.js": {
       "memory": 128,
       "maxDuration": 10
+    },
+    "api/hotelbeds-availability.js": {
+      "memory": 128,
+      "maxDuration": 15
     }
   }
 }
