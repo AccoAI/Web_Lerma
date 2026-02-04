@@ -1,7 +1,10 @@
 /**
- * Lista hoteles disponibles en Hotelbeds para un destino/fechas.
- * GET /api/hotelbeds-list-hotels?checkIn=YYYY-MM-DD&checkOut=YYYY-MM-DD&destination=BUR
- * Usa esto para obtener los códigos de Hotelbeds y mapearlos en precios-data.js
+ * Lista hoteles por destino usando la Content API de Hotelbeds.
+ * GET /api/hotelbeds-list-hotels?destination=BUR
+ * GET /api/hotelbeds-list-hotels?destination=BUR2&from=1&to=100
+ *
+ * Destinos: BUR (Burgos ciudad), BUR2 (Lerma y provincia)
+ * Devuelve code, name, city para mapear en precios-data.js
  */
 import { createHash } from 'crypto';
 
@@ -26,52 +29,56 @@ export async function GET(request) {
   }
 
   const url = request?.url ? new URL(request.url) : null;
-  const checkIn = url?.searchParams?.get('checkIn') || '';
-  const checkOut = url?.searchParams?.get('checkOut') || '';
   const dest = url?.searchParams?.get('destination') || 'BUR';
-
-  if (!checkIn || !checkOut) {
-    return jsonResponse({
-      error: 'Usa ?checkIn=YYYY-MM-DD&checkOut=YYYY-MM-DD',
-      ejemplo: '/api/hotelbeds-list-hotels?checkIn=2026-02-15&checkOut=2026-02-17',
-    }, 400);
-  }
+  const from = url?.searchParams?.get('from') || '1';
+  const to = url?.searchParams?.get('to') || '100';
+  const lang = url?.searchParams?.get('language') || 'CAS';
 
   const baseUrl = process.env.HOTELBEDS_ENV === 'production'
     ? 'https://api.hotelbeds.com'
     : 'https://api.test.hotelbeds.com';
 
-  const payload = {
-    stay: { checkIn, checkOut },
-    occupancies: [{ rooms: 1, adults: 2, children: 0 }],
-    destination: { code: dest },
-  };
+  const params = new URLSearchParams({
+    destinationCode: dest,
+    from,
+    to,
+    fields: 'all',
+    language: lang,
+  });
+
+  const contentUrl = `${baseUrl}/hotel-content-api/1.0/hotels?${params}`;
 
   try {
-    const res = await fetch(`${baseUrl}/hotel-api/1.0/hotels`, {
-      method: 'POST',
+    const res = await fetch(contentUrl, {
+      method: 'GET',
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json',
         'Api-Key': apiKey,
         'X-Signature': getSignature(apiKey, secret),
       },
-      body: JSON.stringify(payload),
     });
 
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      return jsonResponse({ error: data.error?.message || JSON.stringify(data) }, 500);
+      return jsonResponse({
+        error: data.error?.message || data.message || JSON.stringify(data),
+      }, 500);
     }
 
-    const hotels = (data.hotels && data.hotels.hotels) || [];
+    const hotels = Array.isArray(data.hotels) ? data.hotels : [];
     const list = hotels.map((h) => ({
       code: h.code,
-      name: h.name || h.description?.content,
-      category: h.categoryCode,
+      name: h.name || h.description?.content || '',
+      city: h.city?.content || h.city || '',
+      destinationCode: h.destinationCode || dest,
     }));
 
-    return jsonResponse({ hotels: list, total: list.length });
+    return jsonResponse({
+      hotels: list,
+      total: list.length,
+      destination: dest,
+      nota: 'BUR = Burgos ciudad. BUR2 = Lerma y provincia. Usa estos code en precios-data.js (hotelbedsCode).',
+    });
   } catch (err) {
     return jsonResponse({ error: err.message }, 500);
   }

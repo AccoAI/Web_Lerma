@@ -30,15 +30,15 @@ curl -X POST https://tu-dominio.vercel.app/api/hotelbeds-availability \
 
 ## Códigos de hoteles (para ofertar hoteles específicos)
 
-1. Llama al endpoint para listar hoteles disponibles en Burgos:
-   ```
-   GET https://tu-dominio.vercel.app/api/hotelbeds-list-hotels?checkIn=2026-02-15&checkOut=2026-02-17
-   ```
-   (usa fechas futuras; check-in debe ser en el futuro)
+Usa la **Content API** para obtener el listado con códigos:
 
-2. La respuesta incluye `{ hotels: [ { code, name, ... } ] }`. Busca por nombre (Alisa, Parador, Silken, etc.) y anota el `code`.
+1. Burgos ciudad: `GET .../api/hotelbeds-list-hotels?destination=BUR`
+2. Lerma y provincia: `GET .../api/hotelbeds-list-hotels?destination=BUR2`
+3. Paginación: `?destination=BUR&from=1&to=100`
 
-3. Añade cada código en `js/precios-data.js`:
+La respuesta incluye `{ hotels: [ { code, name, city, ... } ] }`. Busca por nombre (Alisa, Parador, Silken, Landa, etc.) y anota el `code`.
+
+4. Añade cada código en `js/precios-data.js`:
    ```javascript
    { id: 'alisa', nombre: 'Hotel Alisa', precioPorNoche: 65, hotelbedsCode: '12345' },
    ```

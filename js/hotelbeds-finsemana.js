@@ -43,7 +43,7 @@
   }
 
   function renderNoConfig() {
-    renderBlock('<div class="hotelbeds-block hotelbeds-info">💡 Para ver precios en tiempo real, configura los códigos Hotelbeds en <code>precios-data.js</code> (hotelbedsCode por hotel). Usa <code>/api/hotelbeds-list-hotels?checkIn=...&checkOut=...</code> para obtener los códigos.</div>');
+    renderBlock('<div class="hotelbeds-block hotelbeds-info">💡 Para ver precios en tiempo real, configura los códigos Hotelbeds en <code>precios-data.js</code> (hotelbedsCode). Obtén los códigos con <code>/api/hotelbeds-list-hotels?destination=BUR</code> y <code>?destination=BUR2</code> (Lerma).</div>');
   }
 
   function renderResults(data, selectedHotels) {
