@@ -8,6 +8,10 @@
     "api/hotelbeds-availability.js": {
       "memory": 128,
       "maxDuration": 15
+    },
+    "api/hotelbeds-list-hotels.js": {
+      "memory": 128,
+      "maxDuration": 15
     }
   }
 }

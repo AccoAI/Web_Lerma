@@ -28,15 +28,24 @@ curl -X POST https://tu-dominio.vercel.app/api/hotelbeds-availability \
   -d '{"checkIn":"2025-03-15","checkOut":"2025-03-17","hotelCodes":["12345","67890"]}'
 ```
 
-## Códigos de hoteles
+## Códigos de hoteles (para ofertar hoteles específicos)
 
-Los códigos de Hotelbeds **no coinciden** con los IDs internos (alisa, ceres, etc.). Hay que obtenerlos:
+1. Llama al endpoint para listar hoteles disponibles en Burgos:
+   ```
+   GET https://tu-dominio.vercel.app/api/hotelbeds-list-hotels?checkIn=2026-02-15&checkOut=2026-02-17
+   ```
+   (usa fechas futuras; check-in debe ser en el futuro)
 
-1. **Content API** de Hotelbeds: lista de hoteles por destino
-2. **Portal Developer Hotelbeds**: búsqueda por nombre/ubicación
-3. **Soporte Hotelbeds**: puedes pedirles los códigos de tus hoteles
+2. La respuesta incluye `{ hotels: [ { code, name, ... } ] }`. Busca por nombre (Alisa, Parador, Silken, etc.) y anota el `code`.
 
-Cuando los tengas, edita `js/hotelbeds-config.js` y asigna cada código a su hotel.
+3. Añade cada código en `js/precios-data.js`:
+   ```javascript
+   { id: 'alisa', nombre: 'Hotel Alisa', precioPorNoche: 65, hotelbedsCode: '12345' },
+   ```
+   O en `js/hotelbeds-config.js`:
+   ```javascript
+   hotelCodes: { alisa: '12345', ceres: '67890', ... }
+   ```
 
 ## mTLS (Producción)
 

@@ -1686,6 +1686,76 @@ img {
     color: var(--color-text);
 }
 
+/* Hotelbeds precios en tiempo real */
+.hotelbeds-precios-wrap {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(26, 77, 58, 0.06);
+    border-radius: 6px;
+    border-left: 4px solid var(--color-primary);
+}
+.hotelbeds-block {
+    font-size: 0.9rem;
+    color: var(--color-text);
+}
+.hotelbeds-loading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.hotelbeds-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(26, 77, 58, 0.3);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: hotelbeds-spin 0.8s linear infinite;
+}
+@keyframes hotelbeds-spin {
+    to { transform: rotate(360deg); }
+}
+.hotelbeds-error {
+    color: #b34;
+}
+.hotelbeds-info {
+    color: var(--color-text-light);
+}
+.hotelbeds-info code {
+    font-size: 0.85em;
+    background: rgba(0,0,0,0.06);
+    padding: 0.1em 0.3em;
+    border-radius: 2px;
+}
+.hotelbeds-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: 0.75rem;
+}
+.hotelbeds-list {
+    list-style: none;
+    margin: 0 0 0.5rem;
+    padding: 0;
+}
+.hotelbeds-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.hotelbeds-item:last-child {
+    border-bottom: none;
+}
+.hotelbeds-name { flex: 1; }
+.hotelbeds-price { font-weight: 600; color: var(--color-primary); }
+.hotelbeds-selected { font-size: 0.8em; color: var(--color-primary); font-weight: 500; }
+.hotelbeds-note {
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+    margin: 0.5rem 0 0;
+}
+
 .opciones-checkbox {
     display: flex;
     flex-direction: column;

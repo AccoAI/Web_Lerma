@@ -1,49 +1,48 @@
 /**
  * Configuración para integración Hotelbeds.
- * Mapea nuestros hoteles (precios-data) a códigos de Hotelbeds.
- *
- * Para obtener códigos: usar Content API de Hotelbeds o buscar en su portal.
- * Lerma: zona / destino cercano. Burgos: código destino típico.
+ * Códigos: añade hotelbedsCode en precios-data.js o usa hotelCodes aquí.
+ * Para obtener códigos: GET /api/hotelbeds-list-hotels?checkIn=YYYY-MM-DD&checkOut=YYYY-MM-DD
  */
 window.HOTELBEDS_CONFIG = {
-  /* Códigos de hoteles en Hotelbeds (reemplazar por los reales cuando los tengas) */
   hotelCodes: {
-    /* Lerma */
-    alisa: null,       // Ej: '12345'
+    alisa: null,
     ceres: null,
     parador: null,
-    /* Burgos */
     silken: null,
     'palacio-blasones': null,
     'hotel-centro': null,
   },
 
-  /* Códigos de destino Hotelbeds para búsqueda por zona (si no usas hotelCodes) */
-  destinations: {
-    lerma: null,   // Código destino Lerma/Burgos en Hotelbeds
-    burgos: null,
+  getCode: function (hotelId) {
+    var c = this.hotelCodes[hotelId];
+    if (c) return String(c);
+    var p = (typeof getPrecios === 'function') ? getPrecios() : (window.PRECIOS_DATA || {});
+    var hl = (p.hoteles && p.hoteles.lerma) || [];
+    var hb = (p.hoteles && p.hoteles.burgos) || [];
+    for (var i = 0; i < hl.length; i++) { if (hl[i].id === hotelId && hl[i].hotelbedsCode) return String(hl[i].hotelbedsCode); }
+    for (var j = 0; j < hb.length; j++) { if (hb[j].id === hotelId && hb[j].hotelbedsCode) return String(hb[j].hotelbedsCode); }
+    return null;
   },
 
-  /* Devuelve array de códigos de Hotelbeds para nuestros hoteles de una ciudad */
-  getCodesForCity: function (city) {
-    var map = {
-      lerma: ['alisa', 'ceres', 'parador'],
-      burgos: ['silken', 'palacio-blasones', 'hotel-centro'],
-    };
-    var ids = map[city] || [];
-    var codes = [];
-    for (var i = 0; i < ids.length; i++) {
-      var c = this.hotelCodes[ids[i]];
-      if (c) codes.push(c);
+  getCodesForSelectedHotels: function (formData, numNoches) {
+    var codes = [], seen = {};
+    for (var i = 1; i <= (numNoches || 10); i++) {
+      var hv = (formData.get && formData.get('hotel-noche-' + i)) || '';
+      if (!hv || hv.indexOf('-') < 0) continue;
+      var hotelId = hv.split('-')[1];
+      var code = this.getCode(hotelId);
+      if (code && !seen[code]) { seen[code] = 1; codes.push(code); }
     }
     return codes;
   },
 
-  /* Devuelve todos los códigos configurados */
   getAllHotelCodes: function () {
+    var ids = ['alisa', 'ceres', 'parador', 'silken', 'palacio-blasones', 'hotel-centro'];
     var codes = [];
-    var h = this.hotelCodes;
-    for (var k in h) { if (h[k]) codes.push(h[k]); }
+    for (var i = 0; i < ids.length; i++) {
+      var c = this.getCode(ids[i]);
+      if (c) codes.push(c);
+    }
     return codes;
   },
 };
