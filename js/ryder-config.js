@@ -287,9 +287,100 @@ document.addEventListener('DOMContentLoaded', () => {
             resumenHTML += '<p style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.2);"><strong>Live Scoring:</strong> Web de puntuaciones en vivo durante todo el fin de semana</p>';
 
             var usuarios = form.querySelectorAll('.usuario-form');
+            var numParticipants = Math.max(1, usuarios.length);
             if (usuarios.length > 0) {
-                resumenHTML += '<p><strong>Número de participantes:</strong> ' + usuarios.length + '</p>';
+                resumenHTML += '<p><strong>Número de participantes:</strong> ' + numParticipants + '</p>';
             }
+
+            /* Cálculo de precios */
+            var precios = (typeof getPrecios === 'function') ? getPrecios() : {};
+            var gfLerma = (precios.greenFees && precios.greenFees.lerma) || { laborable: 33, finDeSemana: 44 };
+            var gfSaldana = (precios.greenFees && precios.greenFees.saldana) || { laborable: 33, finDeSemana: 44 };
+            var fechasGF = formData.getAll('fechas[]') || [];
+            var totalGF = 0;
+            var clubId = '';
+            var grupos = (typeof getCorrespondenciaGrupos === 'function') ? getCorrespondenciaGrupos(form) : [];
+            for (var gi = 0; gi < grupos.length; gi++) {
+                if (grupos[gi].club_id && grupos[gi].club_id !== 'sin') { clubId = grupos[gi].club_id; break; }
+            }
+            for (var idx = 0; idx < numDias; idx++) {
+                var iso = fechasGF[idx];
+                var p = null;
+                if (clubId && typeof getPrecioGreenFee === 'function') {
+                    var campoD = formData.get('campo-dia-' + (idx + 1));
+                    p = getPrecioGreenFee(clubId, (campoD === 'saldana') ? 'saldana' : 'lerma');
+                }
+                if (p == null && iso) {
+                    try {
+                        var d = new Date(iso + 'T12:00:00');
+                        var dow = d.getDay();
+                        var esFinDeSemana = (dow === 0 || dow === 6);
+                        var campoD = formData.get('campo-dia-' + (idx + 1));
+                        var gfc = (campoD === 'saldana') ? gfSaldana : gfLerma;
+                        p = esFinDeSemana ? (gfc.finDeSemana || 44) : (gfc.laborable || 33);
+                    } catch (e) { p = 44; }
+                }
+                if (p == null) p = 44;
+                totalGF += p;
+            }
+            var gf = Math.round(totalGF * numParticipants * 100) / 100;
+
+            var aloj = 0;
+            var opts = (typeof getHotelesOpts === 'function') ? getHotelesOpts() : {};
+            if (sectionAlojamientoShown && nNoches >= 1) {
+                for (var inx = 1; inx <= nNoches; inx++) {
+                    var hv = (formData.get('hotel-noche-' + inx) || '').trim();
+                    if (hv && hv.indexOf('-') >= 0) {
+                        var idx = hv.indexOf('-');
+                        var ciudad = hv.substring(0, idx);
+                        var hotelId = hv.substring(idx + 1);
+                        var arr = opts[ciudad] || [];
+                        for (var j = 0; j < arr.length; j++) {
+                            if (arr[j].v === hotelId && arr[j].p != null) { aloj += arr[j].p; break; }
+                        }
+                    }
+                }
+            }
+
+            var precioComida = (precios.comida && precios.comida.lerma) != null ? precios.comida.lerma : 22;
+            var precioBurgos = (precios.comida && precios.comida.burgos) != null ? precios.comida.burgos : 25;
+            var comidaVal = 0;
+            for (var iv = 1; iv <= numDiasResumen; iv++) {
+                var cv = (formData.get('comida_dia_' + iv) || '').trim();
+                var cev = (formData.get('cena_dia_' + iv) || '').trim();
+                if (cv === 'lerma') comidaVal += precioComida * numParticipants;
+                else if (cv === 'burgos') comidaVal += precioBurgos * numParticipants;
+                if (cev === 'lerma') comidaVal += precioComida * numParticipants;
+                else if (cev === 'burgos') comidaVal += precioBurgos * numParticipants;
+            }
+            comidaVal = Math.round(comidaVal * 100) / 100;
+
+            var anc = precios.ancillaries || {};
+            var ancVal = (anc.buggy || 15) * qBuggy;
+            if (cuboVal === 'champagne') ancVal += (anc.cuboChampagne || 40);
+            else if (cuboVal === 'cervezas') ancVal += (anc.cuboCervezas || 15);
+            else if (cuboVal === 'vino_blanco') ancVal += (anc.cuboVinoBlanco || 26);
+
+            var base = gf + aloj + comidaVal + ancVal;
+            var descPerc = (precios.paquetes && precios.paquetes.finSemana && precios.paquetes.finSemana.descuentoPorcentaje) != null ? precios.paquetes.finSemana.descuentoPorcentaje : 15;
+            var desc = clubId ? Math.round(base * descPerc / 100) : Math.round(base * 0.12);
+            var subtotal = base - desc;
+
+            resumenHTML += '<div class="resumen-subtotal">';
+            resumenHTML += '<table class="resumen-subtotal-tabla">';
+            resumenHTML += '<tr><td>Green fees (' + numDias + ' ' + (numDias === 1 ? 'día' : 'días') + ')</td><td>' + gf + ' €</td></tr>';
+            resumenHTML += '<tr><td>Alojamiento (' + nNoches + ' ' + (nNoches === 1 ? 'noche' : 'noches') + ')</td><td>' + (aloj > 0 ? aloj + ' €' : '—') + '</td></tr>';
+            resumenHTML += '<tr><td>Comidas y cenas</td><td>' + (comidaVal > 0 ? comidaVal + ' €' : '—') + '</td></tr>';
+            resumenHTML += '<tr><td>Servicios adicionales</td><td>' + (ancVal > 0 ? ancVal + ' €' : '—') + '</td></tr>';
+            resumenHTML += '<tr class="resumen-descuento"><td>Descuento pack (-' + descPerc + '%)</td><td>-' + desc + ' €</td></tr>';
+            resumenHTML += '<tr class="resumen-total"><td>Total</td><td>' + subtotal + ' €</td></tr>';
+            if (numParticipants > 1) {
+                resumenHTML += '<tr class="resumen-por-persona"><td>Por persona</td><td>' + (Math.round((subtotal / numParticipants) * 100) / 100) + ' €</td></tr>';
+            }
+            resumenHTML += '</table>';
+            if (clubId) resumenHTML += '<p class="resumen-subtotal-nota">Tarifa correspondencia aplicada. Descuento pack aplicado.</p>';
+            else resumenHTML += '<p class="resumen-subtotal-nota">Descuento pack aplicado.</p>';
+            resumenHTML += '</div>';
 
             resumenHTML += '</div>';
             resumenDiv.innerHTML = resumenHTML;

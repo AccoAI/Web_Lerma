@@ -1,24 +1,20 @@
+import { createHash } from 'crypto';
+
 /**
  * Proxy para Hotelbeds Availability API
  * POST /api/hotelbeds-availability
- * Body: { checkIn, checkOut, rooms, adults, children?, hotelCodes? }
+ * Body: { checkIn, checkOut, rooms, adults, children?, hotelCodes?, destinationCode? }
  *
- * Variables de entorno en Vercel: HOTELBEDS_API_KEY, HOTELBEDS_API_SECRET
- * (o API_Key y API_Secret si las nombraste así)
+ * Variables de entorno en Vercel: API_Key, API_Secret (o HOTELBEDS_API_KEY, HOTELBEDS_API_SECRET)
  */
 function getSignature(apiKey, secret) {
   const ts = Math.floor(Date.now() / 1000);
   const str = apiKey + secret + ts;
-  return { signature: sha256Hex(str), timestamp: ts };
-}
-
-function sha256Hex(str) {
-  const { createHash } = require('crypto');
   return createHash('sha256').update(str, 'utf8').digest('hex');
 }
 
 async function fetchAvailability(apiKey, secret, body) {
-  const { signature } = getSignature(apiKey, secret);
+  const signature = getSignature(apiKey, secret);
   const baseUrl = process.env.HOTELBEDS_ENV === 'production'
     ? 'https://api.hotelbeds.com'
     : 'https://api.test.hotelbeds.com';
@@ -39,6 +35,8 @@ async function fetchAvailability(apiKey, secret, body) {
     payload.hotels = { hotel: body.hotelCodes.map(String).slice(0, 20) };
   } else if (body.destinationCode) {
     payload.destination = { code: String(body.destinationCode) };
+  } else {
+    payload.destination = { code: 'BUR' };
   }
 
   const res = await fetch(`${baseUrl}/hotel-api/1.0/hotels`, {
@@ -75,7 +73,24 @@ function jsonResponse(obj, status = 200) {
   });
 }
 
-export async function GET() {
+export async function GET(request) {
+  const url = request?.url ? new URL(request.url) : null;
+  if (url && url.searchParams.get('diagnostic') === '1') {
+    const apiKey = process.env.API_Key || process.env.HOTELBEDS_API_KEY;
+    const secret = process.env.API_Secret || process.env.HOTELBEDS_API_SECRET;
+    let cryptoOk = false;
+    try {
+      getSignature(apiKey || 'x', secret || 'x');
+      cryptoOk = true;
+    } catch (e) {
+      // ignore
+    }
+    return jsonResponse({
+      credentialsOk: !!(apiKey && secret),
+      cryptoOk,
+      envVarsChecked: ['API_Key', 'API_Secret', 'HOTELBEDS_API_KEY', 'HOTELBEDS_API_SECRET'],
+    });
+  }
   return jsonResponse(
     { error: 'Usa POST con checkIn, checkOut, rooms, adults' },
     400
