@@ -71,11 +71,11 @@ async function fetchFromTransferCache(apiKey, secret, dest, country, offset, lim
   const params = new URLSearchParams({
     fields: 'ALL',
     language: lang === 'CAS' ? 'es' : lang,
-    countryCodes: country,
     destinationCodes: dest,
     offset: String(offset || 0),
     limit: String(limit || 100),
   });
+  if (country) params.set('countryCodes', country);
   const res = await fetch(`${baseUrl}/transfer-cache-api/1.0/hotels?${params}`, {
     method: 'GET',
     headers: {
@@ -99,14 +99,8 @@ async function fetchFromTransferCache(apiKey, secret, dest, country, offset, lim
 }
 
 async function fetchFromContent(apiKey, secret, dest, country, from, to, lang, baseUrl) {
-  const params = new URLSearchParams({
-    destinationCode: dest,
-    countryCode: country,
-    from,
-    to,
-    fields: 'all',
-    language: lang,
-  });
+  const params = new URLSearchParams({ destinationCode: dest, from, to, fields: 'all', language: lang });
+  if (country && country !== 'none') params.set('countryCode', country);
   const res = await fetch(`${baseUrl}/hotel-content-api/1.0/hotels?${params}`, {
     method: 'GET',
     headers: {
@@ -138,13 +132,14 @@ export async function GET(request) {
 
   const url = request?.url ? new URL(request.url) : null;
   const dest = url?.searchParams?.get('destination') || 'BUR';
-  const source = url?.searchParams?.get('source') || 'content';
+  let source = url?.searchParams?.get('source') || 'content';
+  if (hotelCodesParam && !url?.searchParams?.get('source')) source = 'availability';
   const filterSpain = url?.searchParams?.get('filter') !== 'none';
   const raw = url?.searchParams?.get('raw') === '1';
   const hotelCodesParam = url?.searchParams?.get('hotelCodes') || '';
   const checkIn = url?.searchParams?.get('checkIn') || '';
   const checkOut = url?.searchParams?.get('checkOut') || '';
-  const country = url?.searchParams?.get('countryCode') || 'ES';
+  const country = url?.searchParams?.get('countryCode') || '';
   const from = url?.searchParams?.get('from') || '1';
   const to = url?.searchParams?.get('to') || '100';
   const lang = url?.searchParams?.get('language') || 'CAS';
