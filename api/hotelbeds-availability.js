@@ -133,9 +133,11 @@ export async function POST(request) {
     return jsonResponse(data);
   } catch (err) {
     console.error('Hotelbeds error:', err.message);
-    return jsonResponse(
-      { error: err.message || 'Error al consultar disponibilidad' },
-      500
-    );
+    const errBody = {
+      error: err.message || 'Error al consultar disponibilidad',
+      ...(process.env.NODE_ENV !== 'production' && err.stack && { stack: err.stack }),
+    };
+    const isDebug = request?.url && new URL(request.url).searchParams.get('debug') === '1';
+    return jsonResponse(errBody, isDebug ? 200 : 500);
   }
 }
