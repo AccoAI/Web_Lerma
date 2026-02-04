@@ -99,8 +99,14 @@ async function fetchFromTransferCache(apiKey, secret, dest, country, offset, lim
 }
 
 async function fetchFromContent(apiKey, secret, dest, country, from, to, lang, baseUrl) {
-  const params = new URLSearchParams({ destinationCode: dest, from, to, fields: 'all', language: lang });
-  if (country && country !== 'none') params.set('countryCode', country);
+  const params = new URLSearchParams({
+    destinationCode: dest,
+    countryCode: country || 'ES',
+    from,
+    to,
+    fields: 'all',
+    language: lang,
+  });
   const res = await fetch(`${baseUrl}/hotel-content-api/1.0/hotels?${params}`, {
     method: 'GET',
     headers: {
@@ -139,7 +145,7 @@ export async function GET(request) {
   const hotelCodesParam = url?.searchParams?.get('hotelCodes') || '';
   const checkIn = url?.searchParams?.get('checkIn') || '';
   const checkOut = url?.searchParams?.get('checkOut') || '';
-  const country = url?.searchParams?.get('countryCode') || '';
+  const country = url?.searchParams?.get('countryCode') || 'ES';
   const from = url?.searchParams?.get('from') || '1';
   const to = url?.searchParams?.get('to') || '100';
   const lang = url?.searchParams?.get('language') || 'CAS';
@@ -208,6 +214,11 @@ export async function GET(request) {
       nota: 'Usa code en precios-data.js. Si BUR no devuelve Burgos ES: contacta Hotelbeds. ?filter=none muestra todos sin filtrar.',
     });
   } catch (err) {
-    return jsonResponse({ error: err.message }, 500);
+    const msg = err.message || String(err);
+    const isDebug = url?.searchParams?.get('debug') === '1';
+    return jsonResponse(
+      { error: msg, ...(isDebug && { stack: err.stack }) },
+      isDebug ? 200 : 500
+    );
   }
 }
