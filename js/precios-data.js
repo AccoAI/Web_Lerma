@@ -10,17 +10,17 @@ window.PRECIOS_DATA = {
     saldana: { laborable: 33, finDeSemana: 44 }
   },
 
-  /* Hoteles: precio por noche (€). hotelbedsCode = código en Hotelbeds (rellenar para precios en tiempo real) */
+  /* Hoteles: precio por noche (€). hotelbedsCode / amadeusHotelId = códigos para precios en tiempo real */
   hoteles: {
     lerma: [
-      { id: 'alisa', nombre: 'Hotel Alisa', precioPorNoche: 65, hotelbedsCode: null },
-      { id: 'ceres', nombre: 'Hotel CERES', precioPorNoche: 70, hotelbedsCode: null },
-      { id: 'parador', nombre: 'Parador de Lerma', precioPorNoche: 95, hotelbedsCode: null }
+      { id: 'alisa', nombre: 'Hotel Alisa', precioPorNoche: 65, hotelbedsCode: null, amadeusHotelId: null },
+      { id: 'ceres', nombre: 'Hotel CERES', precioPorNoche: 70, hotelbedsCode: null, amadeusHotelId: null },
+      { id: 'parador', nombre: 'Parador de Lerma', precioPorNoche: 95, hotelbedsCode: null, amadeusHotelId: null }
     ],
     burgos: [
-      { id: 'silken', nombre: 'Silken', precioPorNoche: 55, hotelbedsCode: null },
-      { id: 'palacio-blasones', nombre: 'Palacio de los Blasones', precioPorNoche: 60, hotelbedsCode: null },
-      { id: 'hotel-centro', nombre: 'Hotel Centro', precioPorNoche: 50, hotelbedsCode: null }
+      { id: 'silken', nombre: 'Silken', precioPorNoche: 55, hotelbedsCode: null, amadeusHotelId: null },
+      { id: 'palacio-blasones', nombre: 'Palacio de los Blasones', precioPorNoche: 60, hotelbedsCode: null, amadeusHotelId: null },
+      { id: 'hotel-centro', nombre: 'Hotel Centro', precioPorNoche: 50, hotelbedsCode: null, amadeusHotelId: null }
     ]
   },
 

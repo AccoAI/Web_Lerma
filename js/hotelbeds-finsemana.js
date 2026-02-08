@@ -1,11 +1,12 @@
 /**
- * Integración Hotelbeds en Paquete Fin de Semana.
- * Consulta precios en tiempo real cuando el usuario selecciona fechas y hoteles.
+ * Precios en tiempo real en la página (Amadeus prioritario, Hotelbeds fallback).
+ * El total del resumen usa estos precios; la reserva se hace sin salir de la web.
  */
 (function () {
   var DEBOUNCE_MS = 800;
   var containerId = 'hotelbeds-precios-block';
   var debounceTimer = null;
+  var ALL_HOTEL_IDS = ['alisa', 'ceres', 'parador', 'silken', 'palacio-blasones', 'hotel-centro'];
 
   function getContainer() {
     return document.getElementById(containerId);
@@ -34,36 +35,75 @@
     if (el) el.innerHTML = html;
   }
 
+  function setBookingWidgetVisible(visible) {
+    var w = document.getElementById('booking-com-widget');
+    if (w) w.style.display = visible ? '' : 'none';
+  }
+
   function renderLoading() {
+    window.LIVE_HOTEL_PRICES = null;
+    setBookingWidgetVisible(false);
     renderBlock('<div class="hotelbeds-block hotelbeds-loading"><span class="hotelbeds-spinner"></span> Consultando precios en tiempo real...</div>');
   }
 
   function renderError(msg) {
+    window.LIVE_HOTEL_PRICES = null;
+    setBookingWidgetVisible(true);
     renderBlock('<div class="hotelbeds-block hotelbeds-error">⚠️ ' + (msg || 'Error al cargar precios') + '</div>');
   }
 
   function renderNoConfig() {
-    renderBlock('<div class="hotelbeds-block hotelbeds-info">💡 Para ver precios en tiempo real, configura los códigos Hotelbeds en <code>precios-data.js</code> (hotelbedsCode). Obtén los códigos con <code>/api/hotelbeds-list-hotels?destination=BUR</code> y <code>?destination=BUR2</code> (Lerma).</div>');
+    window.LIVE_HOTEL_PRICES = null;
+    setBookingWidgetVisible(true);
+    renderBlock('<div class="hotelbeds-block hotelbeds-info">💡 Para ver precios en tiempo real aquí, configura Amadeus (AMADEUS_CLIENT_ID, AMADEUS_CLIENT_SECRET y AMADEUS_HOTEL_* en Vercel) o los códigos Hotelbeds en <code>precios-data.js</code>. Mientras tanto puedes usar el enlace a Booking.com debajo.</div>');
   }
 
-  function renderResults(data, selectedHotels) {
+  /** Renderiza resultados de Amadeus y actualiza LIVE_HOTEL_PRICES para el total del resumen */
+  function renderAmadeusResults(data, selectedIds) {
+    var hotels = data.hotels || [];
+    if (hotels.length === 0) {
+      window.LIVE_HOTEL_PRICES = null;
+      setBookingWidgetVisible(true);
+      renderBlock('<div class="hotelbeds-block hotelbeds-info">No hay disponibilidad para las fechas seleccionadas. Puedes usar el enlace a Booking.com debajo.</div>');
+      return;
+    }
+    var live = {};
+    var html = '<div class="hotelbeds-block hotelbeds-results"><h4 class="hotelbeds-title">Precios en tiempo real</h4><ul class="hotelbeds-list">';
+    hotels.forEach(function (h) {
+      var id = h.id || h.amadeusHotelId;
+      var name = h.name || 'Hotel';
+      var pricePerNight = h.pricePerNight != null ? h.pricePerNight : null;
+      if (id) live[id] = pricePerNight;
+      var priceStr = pricePerNight != null ? (Math.round(pricePerNight * 100) / 100) + ' €' : '—';
+      var sel = selectedIds && selectedIds.indexOf(id) >= 0 ? ' <span class="hotelbeds-selected">(elegido)</span>' : '';
+      html += '<li class="hotelbeds-item"><span class="hotelbeds-name">' + escapeHtml(name) + sel + '</span> <span class="hotelbeds-price">' + priceStr + '</span></li>';
+    });
+    html += '</ul><p class="hotelbeds-note">Precios por noche. El total del resumen usa estos importes. Reserva todo el paquete sin salir de la página.</p></div>';
+    window.LIVE_HOTEL_PRICES = live;
+    setBookingWidgetVisible(false);
+    renderBlock(html);
+    triggerResumenUpdate();
+  }
+
+  function renderHotelbedsResults(data, selectedHotels) {
     var hotels = (data.hotels && data.hotels.hotels) || [];
     if (hotels.length === 0) {
+      window.LIVE_HOTEL_PRICES = null;
+      setBookingWidgetVisible(true);
       renderBlock('<div class="hotelbeds-block hotelbeds-info">No hay disponibilidad en Hotelbeds para las fechas seleccionadas.</div>');
       return;
     }
-
     var cfg = window.HOTELBEDS_CONFIG;
     var codeToId = {};
-    var ids = ['alisa', 'ceres', 'parador', 'silken', 'palacio-blasones', 'hotel-centro'];
-    ids.forEach(function (id) {
+    ALL_HOTEL_IDS.forEach(function (id) {
       var c = cfg && cfg.getCode ? cfg.getCode(id) : null;
       if (c) codeToId[String(c)] = id;
     });
-
+    var live = {};
     var html = '<div class="hotelbeds-block hotelbeds-results"><h4 class="hotelbeds-title">Precios en tiempo real (Hotelbeds)</h4><ul class="hotelbeds-list">';
     hotels.forEach(function (h) {
       var code = String(h.code);
+      var ourId = codeToId[code];
       var name = (h.name || (h.description && h.description.content) || 'Hotel ' + code);
       var rate = h.minRate;
       if (rate == null && h.rooms && h.rooms[0]) {
@@ -72,30 +112,57 @@
         if (rr) rate = parseFloat(rr.net || rr.gross || rr.sellingRate) || null;
       }
       if (typeof rate === 'string') rate = parseFloat(rate) || null;
+      if (ourId && rate != null) live[ourId] = rate;
       var priceStr = rate != null ? (Math.round(rate * 100) / 100) + ' €' : '—';
       var sel = selectedHotels.indexOf(code) >= 0 ? ' <span class="hotelbeds-selected">(elegido)</span>' : '';
-      html += '<li class="hotelbeds-item"><span class="hotelbeds-name">' + name + sel + '</span> <span class="hotelbeds-price">' + priceStr + '</span></li>';
+      html += '<li class="hotelbeds-item"><span class="hotelbeds-name">' + escapeHtml(name) + sel + '</span> <span class="hotelbeds-price">' + priceStr + '</span></li>';
     });
-    html += '</ul><p class="hotelbeds-note">Precios por noche. Los importes del resumen usan tarifas propias; aquí se muestran referencias de Hotelbeds.</p></div>';
+    html += '</ul><p class="hotelbeds-note">Precios por noche. El total del resumen usa estos importes.</p></div>';
+    window.LIVE_HOTEL_PRICES = Object.keys(live).length ? live : null;
+    setBookingWidgetVisible(!window.LIVE_HOTEL_PRICES);
     renderBlock(html);
+    triggerResumenUpdate();
   }
 
-  function fetchAvailability(checkIn, checkOut, hotelCodes) {
-    var base = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
-    var url = base + '/api/hotelbeds-availability';
-    var body = JSON.stringify({
-      checkIn: checkIn,
-      checkOut: checkOut,
-      rooms: 1,
-      adults: 2,
-      hotelCodes: hotelCodes,
-    });
+  function escapeHtml(s) {
+    if (!s) return '';
+    var div = document.createElement('div');
+    div.textContent = s;
+    return div.innerHTML;
+  }
 
-    return fetch(url, {
+  function triggerResumenUpdate() {
+    if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
+  }
+
+  function fetchAmadeus(checkIn, checkOut, hotelIds) {
+    var base = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
+    return fetch(base + '/api/amadeus-availability', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: body,
+      body: JSON.stringify({ checkIn: checkIn, checkOut: checkOut, hotelIds: hotelIds || ALL_HOTEL_IDS }),
     }).then(function (r) { return r.json(); });
+  }
+
+  function fetchHotelbeds(checkIn, checkOut, hotelCodes) {
+    var base = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
+    return fetch(base + '/api/hotelbeds-availability', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ checkIn: checkIn, checkOut: checkOut, rooms: 1, adults: 2, hotelCodes: hotelCodes }),
+    }).then(function (r) { return r.json(); });
+  }
+
+  function getSelectedHotelIds(formData, noches) {
+    var ids = [];
+    for (var i = 1; i <= (noches || 10); i++) {
+      var hv = (formData.get && formData.get('hotel-noche-' + i)) || '';
+      if (hv && hv.indexOf('-') >= 0) {
+        var id = hv.split('-')[1];
+        if (id && ids.indexOf(id) < 0) ids.push(id);
+      }
+    }
+    return ids.length ? ids : ALL_HOTEL_IDS;
   }
 
   function run() {
@@ -104,40 +171,61 @@
 
     var range = getCheckInCheckOut(formData);
     if (!range) {
+      window.LIVE_HOTEL_PRICES = null;
+      setBookingWidgetVisible(true);
       renderBlock('');
       return;
     }
 
     var noches = parseInt(formData.get('noches') || '0', 10);
     if (noches < 2) {
+      window.LIVE_HOTEL_PRICES = null;
+      setBookingWidgetVisible(true);
       renderBlock('');
       return;
     }
 
-    var cfg = window.HOTELBEDS_CONFIG;
-    var codes = cfg && cfg.getCodesForSelectedHotels ? cfg.getCodesForSelectedHotels(formData, noches) : [];
-
-    if (codes.length === 0) {
-      var allCodes = cfg && cfg.getAllHotelCodes ? cfg.getAllHotelCodes() : [];
-      if (allCodes.length === 0) {
-        renderNoConfig();
-        return;
-      }
-      codes = allCodes;
-    }
-
+    var hotelIds = getSelectedHotelIds(formData, noches);
     renderLoading();
-    fetchAvailability(range.checkIn, range.checkOut, codes)
+
+    fetchAmadeus(range.checkIn, range.checkOut, hotelIds)
       .then(function (data) {
-        if (data.error) {
-          renderError(data.error);
-          return;
+        if (data.error) throw new Error(data.error);
+        if (data.hotels && data.hotels.length > 0) {
+          renderAmadeusResults(data, hotelIds);
+          return null;
         }
-        var selectedCodes = cfg && cfg.getCodesForSelectedHotels ? cfg.getCodesForSelectedHotels(formData, noches) : [];
-        renderResults(data, selectedCodes);
+        var cfg = window.HOTELBEDS_CONFIG;
+        var codes = cfg && cfg.getCodesForSelectedHotels ? cfg.getCodesForSelectedHotels(formData, noches) : (cfg && cfg.getAllHotelCodes ? cfg.getAllHotelCodes() : []);
+        if (codes.length === 0) {
+          renderNoConfig();
+          return null;
+        }
+        return fetchHotelbeds(range.checkIn, range.checkOut, codes);
+      })
+      .then(function (hb) {
+        if (hb == null) return;
+        if (hb.error) throw new Error(hb.error);
+        var cfg = window.HOTELBEDS_CONFIG;
+        var fd = getFormData();
+        var n = parseInt(fd.get('noches') || '0', 10);
+        var selectedCodes = cfg && cfg.getCodesForSelectedHotels ? cfg.getCodesForSelectedHotels(fd, n) : [];
+        renderHotelbedsResults(hb, selectedCodes);
       })
       .catch(function (err) {
-        renderError(err.message || 'Error de conexión');
+        var cfg = window.HOTELBEDS_CONFIG;
+        var codes = cfg && cfg.getAllHotelCodes ? cfg.getAllHotelCodes() : [];
+        if (codes.length > 0) {
+          return fetchHotelbeds(range.checkIn, range.checkOut, codes).then(function (hb) {
+            if (hb.error) { renderError(err.message); return; }
+            var fd = getFormData();
+            var n = parseInt(fd.get('noches') || '0', 10);
+            var selectedCodes = cfg && cfg.getCodesForSelectedHotels ? cfg.getCodesForSelectedHotels(fd, n) : [];
+            renderHotelbedsResults(hb, selectedCodes);
+          }).catch(function () { renderError(err.message); });
+        } else {
+          renderError(err.message);
+        }
       });
   }
 

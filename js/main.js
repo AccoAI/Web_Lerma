@@ -698,16 +698,21 @@ function initConfiguradorPaquete() {
             var aloj = 0;
             if (necesitaHotel && hotelOk) {
                 var opts = getHotelesOpts();
+                var livePrices = window.LIVE_HOTEL_PRICES;
                 for (var inx = 1; inx <= nNoches; inx++) {
                     var hv = (formData.get('hotel-noche-' + inx) || '').trim();
                     if (hv && hv.indexOf('-') >= 0) {
                         var idx = hv.indexOf('-');
                         var ciudad = hv.substring(0, idx);
                         var hotelId = hv.substring(idx + 1);
-                        var arr = opts[ciudad] || [];
-                        for (var j = 0; j < arr.length; j++) {
-                            if (arr[j].v === hotelId && arr[j].p != null) { aloj += arr[j].p; break; }
+                        var price = (livePrices && livePrices[hotelId] != null) ? livePrices[hotelId] : null;
+                        if (price == null) {
+                            var arr = opts[ciudad] || [];
+                            for (var j = 0; j < arr.length; j++) {
+                                if (arr[j].v === hotelId && arr[j].p != null) { price = arr[j].p; break; }
+                            }
                         }
+                        if (price != null) aloj += price;
                     }
                 }
             }
