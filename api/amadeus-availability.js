@@ -47,13 +47,14 @@ async function fetchOffers(accessToken, hotelIds, checkIn, checkOut) {
     d.setDate(d.getDate() + 1);
     checkOutDate = d.toISOString().slice(0, 10);
   }
-  const params = new URLSearchParams({
-    hotelIds: hotelIds.join(','),
-    adults: '2',
-    roomQuantity: '1',
-    checkInDate: checkIn,
-    checkOutDate: checkOutDate,
-  });
+  const params = new URLSearchParams();
+  params.set('hotelIds', hotelIds.join(','));
+  params.set('adults', '2');
+  params.set('checkInDate', checkIn);
+  params.set('checkOutDate', checkOutDate);
+  params.set('roomQuantity', '1');
+  params.set('currency', 'EUR');
+  params.set('countryOfResidence', 'ES');
   const url = `${base}?${params.toString()}`;
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -66,8 +67,15 @@ async function fetchOffers(accessToken, hotelIds, checkIn, checkOut) {
     throw new Error(text || `Offers ${res.status}`);
   }
   if (!res.ok) {
-    const msg = (data.errors && data.errors[0] && data.errors[0].detail) || text;
-    throw new Error(msg);
+    const err = data.errors && data.errors[0];
+    const msg = err ? (err.detail || err.title || JSON.stringify(err)) : text;
+    const code = err && err.code;
+    throw new Error(code ? `${code} - ${msg}` : msg);
+  }
+  if (data.errors && data.errors.length > 0) {
+    const err = data.errors[0];
+    const msg = err.detail || err.title || JSON.stringify(err);
+    throw new Error(err.code ? `${err.code} - ${msg}` : msg);
   }
   return data;
 }
@@ -149,6 +157,13 @@ export async function POST(request) {
     return jsonResponse({ hotels });
   } catch (err) {
     console.error('Amadeus error:', err.message);
+    const msg = err.message || '';
+    if (/INVALID OR MISSING DATA|Provider Error/i.test(msg)) {
+      return jsonResponse({
+        hotels: [],
+        note: 'Amadeus no devolvió ofertas para estas fechas/hoteles (entorno test puede tener limitaciones). Usa los precios por defecto y reserva desde aquí.',
+      });
+    }
     return jsonResponse(
       { error: err.message || 'Error al consultar disponibilidad' },
       200
