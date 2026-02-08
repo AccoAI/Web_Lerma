@@ -49,13 +49,13 @@
   function renderError(msg) {
     window.LIVE_HOTEL_PRICES = null;
     setBookingWidgetVisible(true);
-    renderBlock('<div class="hotelbeds-block hotelbeds-error">⚠️ ' + (msg || 'Error al cargar precios') + '</div>');
+    renderBlock('<div class="hotelbeds-block hotelbeds-error"><strong>No se pudieron cargar precios en tiempo real.</strong><br>' + escapeHtml(msg || 'Error de conexión') + '</div><p class="hotelbeds-block hotelbeds-info">El total del resumen usa los precios por defecto. Puedes reservar el paquete igualmente con el botón «Reservar Paquete».</p>');
   }
 
   function renderNoConfig() {
     window.LIVE_HOTEL_PRICES = null;
     setBookingWidgetVisible(true);
-    renderBlock('<div class="hotelbeds-block hotelbeds-info">💡 Para ver precios en tiempo real aquí, configura Amadeus (AMADEUS_CLIENT_ID, AMADEUS_CLIENT_SECRET y AMADEUS_HOTEL_* en Vercel) o los códigos Hotelbeds en <code>precios-data.js</code>. Mientras tanto puedes usar el enlace a Booking.com debajo.</div>');
+    renderBlock('<div class="hotelbeds-block hotelbeds-info">Precios en tiempo real no configurados. El total usa tarifas por defecto. Puedes <strong>reservar el paquete desde aquí</strong> con el botón «Reservar Paquete».</div>');
   }
 
   /** Renderiza resultados de Amadeus y actualiza LIVE_HOTEL_PRICES para el total del resumen */
@@ -64,7 +64,7 @@
     if (hotels.length === 0) {
       window.LIVE_HOTEL_PRICES = null;
       setBookingWidgetVisible(true);
-      renderBlock('<div class="hotelbeds-block hotelbeds-info">No hay disponibilidad para las fechas seleccionadas. Puedes usar el enlace a Booking.com debajo.</div>');
+      renderBlock('<div class="hotelbeds-block hotelbeds-info">No hay ofertas para estas fechas en los hoteles seleccionados. El total usa precios por defecto. Puedes <strong>reservar el paquete desde aquí</strong> con «Reservar Paquete».</div>');
       return;
     }
     var live = {};
@@ -90,7 +90,7 @@
     if (hotels.length === 0) {
       window.LIVE_HOTEL_PRICES = null;
       setBookingWidgetVisible(true);
-      renderBlock('<div class="hotelbeds-block hotelbeds-info">No hay disponibilidad en Hotelbeds para las fechas seleccionadas.</div>');
+      renderBlock('<div class="hotelbeds-block hotelbeds-info">No hay disponibilidad para las fechas seleccionadas. Puedes reservar el paquete desde aquí con precios por defecto.</div>');
       return;
     }
     var cfg = window.HOTELBEDS_CONFIG;
@@ -141,7 +141,16 @@
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ checkIn: checkIn, checkOut: checkOut, hotelIds: hotelIds || ALL_HOTEL_IDS }),
-    }).then(function (r) { return r.json(); });
+    })
+      .then(function (r) {
+        return r.text().then(function (text) {
+          try {
+            return JSON.parse(text);
+          } catch (e) {
+            throw new Error(r.status === 404 ? 'API no encontrada. Prueba en la URL desplegada (Vercel).' : (text || 'Error ' + r.status));
+          }
+        });
+      });
   }
 
   function fetchHotelbeds(checkIn, checkOut, hotelCodes) {
@@ -172,16 +181,16 @@
     var range = getCheckInCheckOut(formData);
     if (!range) {
       window.LIVE_HOTEL_PRICES = null;
-      setBookingWidgetVisible(true);
-      renderBlock('');
+      setBookingWidgetVisible(false);
+      renderBlock('<p class="hotelbeds-block hotelbeds-info">Selecciona las fechas en el calendario (arriba) para ver precios en tiempo real. Reservarás todo el paquete desde esta página.</p>');
       return;
     }
 
     var noches = parseInt(formData.get('noches') || '0', 10);
     if (noches < 2) {
       window.LIVE_HOTEL_PRICES = null;
-      setBookingWidgetVisible(true);
-      renderBlock('');
+      setBookingWidgetVisible(false);
+      renderBlock('<p class="hotelbeds-block hotelbeds-info">Selecciona 2 o más noches para ver hoteles y precios en tiempo real.</p>');
       return;
     }
 
@@ -245,6 +254,7 @@
       container.className = 'hotelbeds-precios-wrap';
       wrap.appendChild(container);
     }
+    setBookingWidgetVisible(false);
 
     var form = document.getElementById('configuradorForm');
     if (form) {

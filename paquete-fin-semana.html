@@ -88,14 +88,13 @@
                             <p class="hotel-noche-hint">Elige primero el <strong>lugar</strong> (Lerma o Burgos) y después el <strong>hotel</strong> de ese lugar.</p>
                             <div id="hoteles-por-noche-container" class="campos-dias-row"></div>
                         </div>
-                        <!-- Enlace a Booking.com: precios y disponibilidad en tiempo real (opcional: añade &aid=TU_AFFILIATE_ID a las URLs cuando tengas programa affiliate) -->
-                        <div id="booking-com-widget" class="booking-com-widget">
-                            <p class="booking-com-intro">Consulta disponibilidad y precios en tiempo real en Booking.com:</p>
-                            <div class="booking-com-links">
-                                <a id="booking-link-lerma" href="https://www.booking.com/searchresults.html?ss=Lerma%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer" class="booking-com-btn">Ver hoteles en Lerma</a>
-                                <a id="booking-link-burgos" href="https://www.booking.com/searchresults.html?ss=Burgos%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer" class="booking-com-btn">Ver hoteles en Burgos</a>
-                            </div>
-                            <p class="booking-com-note">Se abrirá Booking.com con las fechas de tu paquete si ya las has elegido arriba.</p>
+                        <!-- Precios en tiempo real: se rellena por JS (Amadeus). Reserva desde aquí, sin salir de la web. -->
+                        <div id="hotelbeds-precios-block" class="hotelbeds-precios-wrap" aria-live="polite">
+                            <p class="hotelbeds-block hotelbeds-info" id="precios-block-initial-msg">Selecciona las fechas en el calendario (arriba) para ver precios en tiempo real. Reservarás todo el paquete desde esta página.</p>
+                        </div>
+                        <!-- Enlace secundario a Booking.com (solo referencia) -->
+                        <div id="booking-com-widget" class="booking-com-widget booking-com-widget-secondary" style="display: none;">
+                            <p class="booking-com-note">Si no ves precios arriba: <a id="booking-link-lerma" href="https://www.booking.com/searchresults.html?ss=Lerma%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer">Lerma</a> · <a id="booking-link-burgos" href="https://www.booking.com/searchresults.html?ss=Burgos%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer">Burgos</a></p>
                         </div>
                     </div>
 

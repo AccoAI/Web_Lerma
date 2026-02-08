@@ -79,7 +79,7 @@ export async function POST(request) {
   if (!clientId || !clientSecret) {
     return jsonResponse(
       { error: 'Faltan credenciales Amadeus (AMADEUS_CLIENT_ID, AMADEUS_CLIENT_SECRET)' },
-      500
+      200
     );
   }
 
@@ -90,7 +90,7 @@ export async function POST(request) {
     const ourIds = Array.isArray(body.hotelIds) ? body.hotelIds : [];
 
     if (!checkIn || !checkOut) {
-      return jsonResponse({ error: 'Se requieren checkIn y checkOut (YYYY-MM-DD)' }, 400);
+      return jsonResponse({ error: 'Se requieren checkIn y checkOut (YYYY-MM-DD)' }, 200);
     }
 
     const amadeusIds = ourIds
@@ -111,34 +111,36 @@ export async function POST(request) {
       const a = OUR_ID_TO_AMADEUS[ourId];
       if (a) idToOur[a] = ourId;
     });
-    const hotels = data.map((item) => {
-      const hotel = item.hotel || {};
-      const offer = (item.offers && item.offers[0]) || {};
-      const price = offer.price || {};
-      const total = parseFloat(price.total || price.base || 0) || 0;
-      let nights = 1;
-      if (checkIn && checkOut) {
-        const a = new Date(checkIn);
-        const b = new Date(checkOut);
-        nights = Math.max(1, Math.round((b - a) / (24 * 60 * 60 * 1000)));
-      }
-      const pricePerNight = nights >= 1 ? Math.round((total / nights) * 100) / 100 : total;
-      return {
-        id: idToOur[hotel.hotelId] || hotel.hotelId,
-        amadeusHotelId: hotel.hotelId,
-        name: hotel.name || 'Hotel',
-        pricePerNight,
-        total,
-        offerId: offer.id || null,
-      };
-    });
+    let nights = 1;
+    if (checkIn && checkOut) {
+      const a = new Date(checkIn);
+      const b = new Date(checkOut);
+      nights = Math.max(1, Math.round((b - a) / (24 * 60 * 60 * 1000)));
+    }
+    const hotels = data
+      .map((item) => {
+        const hotel = item.hotel || {};
+        const offer = (item.offers && item.offers[0]) || {};
+        const price = offer.price || {};
+        const total = parseFloat(price.total || price.base || 0) || 0;
+        const pricePerNight = nights >= 1 && total > 0 ? Math.round((total / nights) * 100) / 100 : total > 0 ? total : null;
+        return {
+          id: idToOur[hotel.hotelId] || hotel.hotelId,
+          amadeusHotelId: hotel.hotelId,
+          name: hotel.name || 'Hotel',
+          pricePerNight,
+          total: total || null,
+          offerId: offer.id || null,
+        };
+      })
+      .filter((h) => h.name);
 
     return jsonResponse({ hotels });
   } catch (err) {
     console.error('Amadeus error:', err.message);
     return jsonResponse(
       { error: err.message || 'Error al consultar disponibilidad' },
-      500
+      200
     );
   }
 }

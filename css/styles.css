@@ -1763,6 +1763,15 @@ img {
     border: 1px solid rgba(0, 100, 160, 0.2);
     border-radius: 8px;
 }
+.booking-com-widget-secondary {
+    margin-top: 0.75rem;
+    padding: 0.5rem 0;
+    background: transparent;
+    border: none;
+}
+.booking-com-widget-secondary .booking-com-note {
+    margin: 0;
+}
 .booking-com-intro {
     font-size: 0.95rem;
     margin: 0 0 0.75rem;
