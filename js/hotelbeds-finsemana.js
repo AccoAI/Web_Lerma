@@ -173,9 +173,33 @@
     schedule();
   }
 
+  /** Actualiza enlaces a Booking.com con check-in/check-out del formulario */
+  function updateBookingLinks() {
+    var range = getCheckInCheckOut(getFormData());
+    var baseLerma = 'https://www.booking.com/searchresults.html?ss=Lerma%2C+Espa%C3%B1a';
+    var baseBurgos = 'https://www.booking.com/searchresults.html?ss=Burgos%2C+Espa%C3%B1a';
+    var suffix = '';
+    if (range && range.checkIn && range.checkOut) {
+      suffix = '&checkin=' + range.checkIn + '&checkout=' + range.checkOut;
+    }
+    var linkLerma = document.getElementById('booking-link-lerma');
+    var linkBurgos = document.getElementById('booking-link-burgos');
+    if (linkLerma) linkLerma.href = baseLerma + suffix;
+    if (linkBurgos) linkBurgos.href = baseBurgos + suffix;
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
     setTimeout(init, 100);
   }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var form = document.getElementById('configuradorForm');
+    if (form) {
+      form.addEventListener('change', updateBookingLinks);
+      form.addEventListener('input', updateBookingLinks);
+    }
+    setTimeout(updateBookingLinks, 300);
+  });
 })();

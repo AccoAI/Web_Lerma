@@ -1753,7 +1753,46 @@ img {
 .hotelbeds-note {
     font-size: 0.8rem;
     color: var(--color-text-light);
-    margin: 0.5rem 0 0;
+}
+
+/* Bloque Booking.com (precios en tiempo real mientras tanto) */
+.booking-com-widget {
+    margin-top: 1.5rem;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(135deg, rgba(0, 100, 160, 0.06) 0%, rgba(0, 80, 120, 0.04) 100%);
+    border: 1px solid rgba(0, 100, 160, 0.2);
+    border-radius: 8px;
+}
+.booking-com-intro {
+    font-size: 0.95rem;
+    margin: 0 0 0.75rem;
+    color: var(--color-text);
+}
+.booking-com-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+.booking-com-btn {
+    display: inline-block;
+    padding: 0.6rem 1.1rem;
+    background: #003580;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: background 0.2s, transform 0.15s;
+}
+.booking-com-btn:hover {
+    background: #004694;
+    color: #fff;
+    transform: translateY(-1px);
+}
+.booking-com-note {
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+    margin: 0.75rem 0 0;
 }
 
 .opciones-checkbox {
@@ -6638,4 +6677,3 @@ img {
         bottom: 5rem;
     }
 }
-
