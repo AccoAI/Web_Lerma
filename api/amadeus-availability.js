@@ -41,13 +41,19 @@ async function getToken() {
 
 async function fetchOffers(accessToken, hotelIds, checkIn, checkOut) {
   const base = process.env.AMADEUS_ENV === 'production' ? AMADEUS_OFFERS_URL_PROD : AMADEUS_OFFERS_URL;
+  let checkOutDate = (checkOut || '').trim();
+  if (!checkOutDate || checkOutDate <= checkIn) {
+    const d = new Date(checkIn + 'T12:00:00');
+    d.setDate(d.getDate() + 1);
+    checkOutDate = d.toISOString().slice(0, 10);
+  }
   const params = new URLSearchParams({
     hotelIds: hotelIds.join(','),
     adults: '2',
     roomQuantity: '1',
     checkInDate: checkIn,
+    checkOutDate: checkOutDate,
   });
-  if (checkOut) params.set('checkOutDate', checkOut);
   const url = `${base}?${params.toString()}`;
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -85,12 +91,17 @@ export async function POST(request) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const checkIn = (body.checkIn || '').trim();
-    const checkOut = (body.checkOut || '').trim();
+    let checkIn = (body.checkIn || '').trim();
+    let checkOut = (body.checkOut || '').trim();
     const ourIds = Array.isArray(body.hotelIds) ? body.hotelIds : [];
 
-    if (!checkIn || !checkOut) {
-      return jsonResponse({ error: 'Se requieren checkIn y checkOut (YYYY-MM-DD)' }, 200);
+    if (!checkIn) {
+      return jsonResponse({ error: 'Se requiere checkIn (YYYY-MM-DD)' }, 200);
+    }
+    if (!checkOut || checkOut <= checkIn) {
+      const d = new Date(checkIn + 'T12:00:00');
+      d.setDate(d.getDate() + 1);
+      checkOut = d.toISOString().slice(0, 10);
     }
 
     const amadeusIds = ourIds
