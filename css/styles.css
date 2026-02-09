@@ -795,7 +795,7 @@ body.fondo-golf-lerma-estandar::before {
     left: 0;
     right: 0;
     height: 420px;
-    background-image: linear-gradient(to bottom, rgba(15, 51, 36, 0.25), rgba(26, 77, 58, 0.5)), url('../FOTOS/GolfLermaEstandar.jpg');
+    background-image: linear-gradient(to bottom, rgba(15, 51, 36, 0.25), rgba(26, 77, 58, 0.5)), url('/FOTOS/GolfLermaEstandar.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
