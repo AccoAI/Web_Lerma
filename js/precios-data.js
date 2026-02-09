@@ -34,7 +34,11 @@ window.PRECIOS_DATA = {
     carritoElectrico: 5,
     cuboChampagne: 40,
     cuboCervezas: 15,
-    cuboVinoBlanco: 26
+    cuboVinoBlanco: 26,
+    bolasPersonalizadas: 25,
+    equipacionEquipos: 35,
+    gestionTrofeos: 50,
+    premioEconomico: 0
   },
 
   /* Parámetros por paquete */
@@ -44,6 +48,7 @@ window.PRECIOS_DATA = {
     pausaDrive: { precioCerrado: 50 },
     golfVino: { descuentoPorcentaje: 10 },
     tourBoogie: { precioBasePorPersona: 20 },
-    bautismos: { adultos: 15, jovenes: 10 }
+    bautismos: { adultos: 15, jovenes: 10 },
+    ryder: { transporteDesdeMadrid: 400 }
   }
 };

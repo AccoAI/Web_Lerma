@@ -58,6 +58,13 @@
     renderBlock('<div class="hotelbeds-block hotelbeds-info">Precios en tiempo real no configurados. El total usa tarifas por defecto. Puedes <strong>reservar el paquete desde aquí</strong> con el botón «Reservar Paquete».</div>');
   }
 
+  function renderNoOffers(note) {
+    window.LIVE_HOTEL_PRICES = null;
+    setBookingWidgetVisible(true);
+    var text = (note && typeof note === 'string') ? escapeHtml(note) : 'No hay ofertas para estas fechas.';
+    renderBlock('<div class="hotelbeds-block hotelbeds-info">' + text + ' El total usa las tarifas por defecto. Puedes <strong>reservar el paquete desde aquí</strong> con el botón «Reservar Paquete».</div>');
+  }
+
   /** Renderiza resultados de Amadeus y actualiza LIVE_HOTEL_PRICES para el total del resumen */
   function renderAmadeusResults(data, selectedIds) {
     var hotels = data.hotels || [];
@@ -202,6 +209,10 @@
         if (data.error) throw new Error(data.error);
         if (data.hotels && data.hotels.length > 0) {
           renderAmadeusResults(data, hotelIds);
+          return null;
+        }
+        if (data.note) {
+          renderNoOffers(data.note);
           return null;
         }
         var cfg = window.HOTELBEDS_CONFIG;

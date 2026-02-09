@@ -877,6 +877,20 @@ function initNativePickerFix() {
     });
 }
 
+// Rellenar precios en servicios adicionales (todos los configuradores)
+function fillAncillaryPrices() {
+    var precios = (typeof getPrecios === 'function') ? getPrecios() : (window.PRECIOS_DATA || {});
+    var anc = precios.ancillaries || {};
+    document.querySelectorAll('.ancillary-precio[data-ancillary]').forEach(function (span) {
+        var key = span.getAttribute('data-ancillary');
+        var val = anc[key];
+        if (val != null && val !== '') {
+            span.textContent = '· ' + (Number(val) === 0 ? 'Consultar' : val + ' €');
+            span.style.visibility = 'visible';
+        }
+    });
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     highlightNavigation();
@@ -884,6 +898,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateTiempoData();
     loadCamaraLive();
     initConfiguradorPaquete();
+    fillAncillaryPrices();
     initNativePickerFix();
 
     // Actualizar datos del tiempo cada 5 minutos

@@ -107,7 +107,7 @@
                     <!-- Transporte -->
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo">4. Transporte desde Madrid hasta 12 personas</h3>
-                        <p class="info-text" style="margin-bottom: 1.5rem;">Incluye servicio fin de semana total</p>
+                        <p class="info-text transporte-precio-text">Incluye servicio fin de semana total. <strong class="transporte-precio-label">Precio: <span id="transporte-precio-ryder">—</span> €</strong></p>
                         <div class="opciones-grid">
                             <label class="opcion-card">
                                 <input type="radio" name="transporte" value="si" required>
@@ -177,27 +177,33 @@
                     </div>
 
                     <!-- Servicios Adicionales -->
-                    <div class="configurador-seccion">
+                    <div class="configurador-seccion servicios-adicionales-section">
                         <h3 class="configurador-titulo">Servicios adicionales</h3>
-                        <div class="ancillaries-grid ancillaries-with-counter" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
-                            <label class="ancillary-item" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <p class="info-text">Todos los servicios tienen precio; se suman al total del resumen.</p>
+                        <div class="ancillaries-grid ancillaries-with-counter ancillaries-cards">
+                            <label class="ancillary-card ancillary-item">
                                 <input type="checkbox" name="ancillary_bolas_personalizadas" value="1">
-                                <span>⛳ Bolas personalizadas</span>
+                                <span class="ancillary-nombre">⛳ Bolas personalizadas</span>
+                                <span class="ancillary-precio" data-ancillary="bolasPersonalizadas">— €</span>
                             </label>
-                            <label class="ancillary-item" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <label class="ancillary-card ancillary-item">
                                 <input type="checkbox" name="ancillary_equipacion_equipos" value="1">
-                                <span>👕 Equipación por equipos personalizada</span>
+                                <span class="ancillary-nombre">👕 Equipación por equipos</span>
+                                <span class="ancillary-precio" data-ancillary="equipacionEquipos">— €</span>
                             </label>
-                            <label class="ancillary-item" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <label class="ancillary-card ancillary-item">
                                 <input type="checkbox" name="ancillary_gestion_trofeos" value="1">
-                                <span>🏆 Gestión de trofeos</span>
+                                <span class="ancillary-nombre">🏆 Gestión de trofeos</span>
+                                <span class="ancillary-precio" data-ancillary="gestionTrofeos">— €</span>
                             </label>
-                            <label class="ancillary-item" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <label class="ancillary-card ancillary-item">
                                 <input type="checkbox" name="ancillary_premio_economico" value="1">
-                                <span>💰 Premio económico</span>
+                                <span class="ancillary-nombre">💰 Premio económico</span>
+                                <span class="ancillary-precio" data-ancillary="premioEconomico">— €</span>
                             </label>
-                            <div class="ancillary-item">
-                                <label for="ancillary_buggy">🛺 Buggies</label>
+                            <div class="ancillary-card ancillary-item ancillary-item-counter">
+                                <label for="ancillary_buggy" class="ancillary-nombre">🛺 Buggies</label>
+                                <span class="ancillary-precio" data-ancillary="buggy">15 €/ud</span>
                                 <div class="ancillary-counter-wrap">
                                     <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>
                                     <input type="number" id="ancillary_buggy" name="ancillary_buggy" min="0" max="20" value="0" class="ancillary-counter" readonly>
@@ -205,14 +211,16 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="cubo-premium-block" style="margin-top: 1.25rem;">
-                            <label for="cubo-premium-ryder">🫙 Cubo premium para boogies</label>
-                            <select id="cubo-premium-ryder" name="ancillary_cubo_premium_boogie" class="cubo-premium-select">
-                                <option value="">Sin</option>
-                                <option value="champagne">Champagne</option>
-                                <option value="cervezas">Cubo de cervezas</option>
-                                <option value="vino_blanco">Vino blanco</option>
-                            </select>
+                        <div class="ancillaries-grid ancillaries-cards ancillaries-cubo-row">
+                            <div class="ancillary-card ancillary-item ancillary-item-select">
+                                <label for="cubo-premium-ryder" class="ancillary-nombre">🫙 Cubo premium</label>
+                                <select id="cubo-premium-ryder" name="ancillary_cubo_premium_boogie" class="cubo-premium-select">
+                                    <option value="">Sin (0 €)</option>
+                                    <option value="champagne">Champagne (40 €)</option>
+                                    <option value="cervezas">Cubo cervezas (15 €)</option>
+                                    <option value="vino_blanco">Vino blanco (26 €)</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </form>

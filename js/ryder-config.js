@@ -1,6 +1,16 @@
 // Configurador de Ryder Cup
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('configuradorRyderForm');
+    var precios = (typeof getPrecios === 'function') ? getPrecios() : (window.PRECIOS_DATA || {});
+    var ryderPkg = (precios.paquetes && precios.paquetes.ryder) ? precios.paquetes.ryder : {};
+    var anc = precios.ancillaries || {};
+    var transporteEl = document.getElementById('transporte-precio-ryder');
+    if (transporteEl && ryderPkg.transporteDesdeMadrid != null) transporteEl.textContent = ryderPkg.transporteDesdeMadrid;
+    document.querySelectorAll('.ancillary-precio[data-ancillary]').forEach(function (span) {
+        var key = span.getAttribute('data-ancillary');
+        var val = anc[key];
+        if (val != null && val !== '') span.textContent = (Number(val) === 0 ? 'Consultar' : val + ' €' + (key === 'buggy' ? '/ud' : ''));
+    });
     const resumenDiv = document.getElementById('resumen-ryder');
     const camposDiasContainer = document.getElementById('campos-dias-ryder');
     const diasCamposContainer = document.getElementById('dias-campos-container-ryder');
@@ -355,13 +365,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             comidaVal = Math.round(comidaVal * 100) / 100;
 
+            var transporteVal = 0;
+            if (transporte === 'si') {
+                var ryderPkg = (precios.paquetes && precios.paquetes.ryder) ? precios.paquetes.ryder : {};
+                transporteVal = ryderPkg.transporteDesdeMadrid != null ? Number(ryderPkg.transporteDesdeMadrid) : 400;
+            }
+
             var anc = precios.ancillaries || {};
             var ancVal = (anc.buggy || 15) * qBuggy;
             if (cuboVal === 'champagne') ancVal += (anc.cuboChampagne || 40);
             else if (cuboVal === 'cervezas') ancVal += (anc.cuboCervezas || 15);
             else if (cuboVal === 'vino_blanco') ancVal += (anc.cuboVinoBlanco || 26);
+            if (formData.get('ancillary_bolas_personalizadas')) ancVal += (anc.bolasPersonalizadas || 0);
+            if (formData.get('ancillary_equipacion_equipos')) ancVal += (anc.equipacionEquipos || 0);
+            if (formData.get('ancillary_gestion_trofeos')) ancVal += (anc.gestionTrofeos || 0);
+            if (formData.get('ancillary_premio_economico')) ancVal += (anc.premioEconomico || 0);
 
-            var base = gf + aloj + comidaVal + ancVal;
+            var base = gf + aloj + comidaVal + transporteVal + ancVal;
             var descPerc = (precios.paquetes && precios.paquetes.finSemana && precios.paquetes.finSemana.descuentoPorcentaje) != null ? precios.paquetes.finSemana.descuentoPorcentaje : 15;
             var desc = clubId ? Math.round(base * descPerc / 100) : Math.round(base * 0.12);
             var subtotal = base - desc;
@@ -371,6 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
             resumenHTML += '<tr><td>Green fees (' + numDias + ' ' + (numDias === 1 ? 'día' : 'días') + ')</td><td>' + gf + ' €</td></tr>';
             resumenHTML += '<tr><td>Alojamiento (' + nNoches + ' ' + (nNoches === 1 ? 'noche' : 'noches') + ')</td><td>' + (aloj > 0 ? aloj + ' €' : '—') + '</td></tr>';
             resumenHTML += '<tr><td>Comidas y cenas</td><td>' + (comidaVal > 0 ? comidaVal + ' €' : '—') + '</td></tr>';
+            resumenHTML += '<tr><td>Transporte desde Madrid</td><td>' + (transporteVal > 0 ? transporteVal + ' €' : '—') + '</td></tr>';
             resumenHTML += '<tr><td>Servicios adicionales</td><td>' + (ancVal > 0 ? ancVal + ' €' : '—') + '</td></tr>';
             resumenHTML += '<tr class="resumen-descuento"><td>Descuento pack (-' + descPerc + '%)</td><td>-' + desc + ' €</td></tr>';
             resumenHTML += '<tr class="resumen-total"><td>Total</td><td>' + subtotal + ' €</td></tr>';

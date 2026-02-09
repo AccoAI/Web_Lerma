@@ -2683,8 +2683,6 @@ img {
     overflow: hidden;
     box-shadow: var(--shadow-lg);
     transition: var(--transition);
-    position: sticky;
-    top: 90px;
 }
 
 .campo-imagen-lateral:hover {
@@ -6406,6 +6404,11 @@ img {
     flex: 1;
     min-width: 0;
 }
+.ancillaries-with-counter .ancillary-item label .ancillary-precio {
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-left: 0.25rem;
+}
 
 .ancillary-counter-wrap {
     display: flex;
@@ -6474,6 +6477,74 @@ img {
 
 .ancillaries-with-counter .ancillary-counter:focus {
     outline: none;
+}
+
+/* Servicios adicionales: cards con precio visible */
+.servicios-adicionales-section .info-text {
+    margin-bottom: 1rem;
+}
+.ancillaries-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+}
+.ancillary-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: var(--color-bg-light, #f8f9fa);
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 8px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ancillary-card:hover {
+    border-color: var(--color-primary, #2d5a27);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.ancillary-card.ancillary-item label,
+.ancillary-card.ancillary-item .ancillary-nombre {
+    flex: 1;
+    margin: 0;
+    font-weight: 500;
+    cursor: pointer;
+}
+.ancillary-card input[type="checkbox"] {
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+}
+.ancillary-card .ancillary-precio {
+    flex-shrink: 0;
+    font-weight: 600;
+    color: var(--color-primary, #2d5a27);
+    font-size: 0.95rem;
+}
+.ancillary-card.ancillary-item-counter {
+    flex-wrap: wrap;
+}
+.ancillary-card.ancillary-item-counter .ancillary-counter-wrap {
+    margin-left: auto;
+}
+.ancillary-item-select {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.ancillary-item-select .ancillary-nombre {
+    flex: 0 0 auto;
+}
+.ancillary-item-select .cubo-premium-select {
+    flex: 1;
+    min-width: 0;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-family: inherit;
+}
+.ancillaries-cubo-row {
+    margin-top: 0.5rem;
 }
 
 .bautismos-counter {
