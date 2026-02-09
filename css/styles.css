@@ -1487,6 +1487,66 @@ img {
     color: rgba(255, 255, 255, 0.9);
 }
 
+/* Resumen más compacto en PC para que quepa en pantalla (todos los paquetes) */
+@media (min-width: 900px) {
+    .configurador-resumen {
+        padding: 1.25rem 1.5rem;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+    .resumen-content h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+    }
+    .resumen-detalle,
+    #resumen-paquete,
+    #resumen-detalle,
+    #resumen-pausadrive,
+    #resumen-ryder {
+        padding: 0.85rem 1rem;
+        margin-bottom: 1rem;
+        line-height: 1.45;
+    }
+    .resumen-detalle p,
+    .resumen-items p,
+    #resumen-paquete p,
+    #resumen-detalle p,
+    #resumen-pausadrive p,
+    #resumen-ryder p {
+        margin: 0.3rem 0;
+        font-size: 0.9rem;
+    }
+    .resumen-subtotal {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+    }
+    .resumen-subtotal-tabla {
+        font-size: 0.875rem;
+    }
+    .resumen-subtotal-tabla td {
+        padding: 0.2rem 0;
+    }
+    .resumen-subtotal-tabla tr.resumen-total td {
+        padding-top: 0.5rem;
+        font-size: 1rem;
+    }
+    .resumen-subtotal-tabla tr.resumen-total td:last-child {
+        font-size: 1.1rem;
+    }
+    .resumen-subtotal-tabla tr.resumen-por-persona td {
+        padding-top: 0.25rem;
+    }
+    .resumen-subtotal-nota {
+        margin-top: 0.35rem;
+        font-size: 0.75rem;
+    }
+    .resumen-detalle .resumen-subtotal,
+    #resumen-ryder .resumen-subtotal {
+        margin-top: 0.6rem;
+        padding-top: 0.6rem;
+    }
+}
+
 .btn-reservar-paquete {
     width: 100%;
     background: var(--color-white);
