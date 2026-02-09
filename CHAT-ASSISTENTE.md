@@ -45,10 +45,20 @@ Con `vercel dev`:
 2. Añade: `GEMINI_API_KEY=tu_api_key`
 3. Opcional: `CHAT_SYSTEM_PROMPT=Tu texto de instrucciones aquí`
 
-## 5. Endpoint
+## 5. Si ves "No se pudo obtener respuesta del asistente"
+
+- **En Vercel**: Comprueba que `GEMINI_API_KEY` esté bien configurada (Settings → Environment Variables) y que hayas hecho **Redeploy** después de añadirla.
+- **API key**: Debe ser de [Google AI Studio](https://aistudio.google.com/apikey), no de Google Cloud. Cópiala sin espacios.
+- **Detalle del error**: Abre la consola del navegador (F12 → pestaña Consola). Si la API devuelve un error de Gemini, verás ahí el mensaje exacto (por ejemplo clave inválida, cuota, etc.).
+
+## 6. Endpoint
 
 - **POST** `/api/chat-assistente`
 - **Body**: `{ "message": "texto del usuario", "history": [ { "role": "user", "content": "..." }, { "role": "model", "content": "..." } ] }`
 - **Respuesta**: `{ "reply": "texto de la IA" }` o `{ "error": "mensaje" }`
 
 El frontend (`js/chatbot.js`) mantiene el historial de la conversación y lo envía en cada petición para que el modelo tenga contexto.
+
+---
+
+**Nota**: Si pruebas en local sin `vercel dev`, la ruta `/api/chat-assistente` no existirá y verás un error de red. Ejecuta `vercel dev` y abre la web desde la URL que indique (por ejemplo `http://localhost:3000`) para que el chat llame al API correctamente.

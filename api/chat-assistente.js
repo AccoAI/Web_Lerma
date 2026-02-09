@@ -85,17 +85,30 @@ export async function POST(request) {
       },
     };
 
-    const res = await fetch(`${GEMINI_URL}?key=${encodeURIComponent(apiKey)}`, {
+    const res = await fetch(GEMINI_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
+      },
       body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
       const errText = await res.text();
       console.error('Gemini API error', res.status, errText);
+      let userMessage = 'No se pudo obtener respuesta del asistente. Inténtalo más tarde.';
+      let errorDetail = null;
+      try {
+        const errJson = JSON.parse(errText);
+        const msg = errJson?.error?.message || errJson?.message || errText.slice(0, 200);
+        errorDetail = msg;
+        if (res.status === 400 || res.status === 403 || res.status === 401) {
+          userMessage = 'Configuración del asistente incorrecta. Comprueba la API key de Gemini en Vercel (GEMINI_API_KEY).';
+        }
+      } catch (_) {}
       return jsonResponse(
-        { error: 'No se pudo obtener respuesta del asistente. Inténtalo más tarde.' },
+        { error: userMessage, errorDetail: errorDetail || undefined },
         502
       );
     }

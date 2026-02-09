@@ -108,6 +108,9 @@
                 .then(function (res) { return res.json(); })
                 .then(function (data) {
                     loadingEl.remove();
+                    if (data && data.errorDetail) {
+                        console.warn('Chat asistente:', data.errorDetail);
+                    }
                     var reply = (data && data.reply) ? data.reply : (data && data.error) ? data.error : FALLBACK_MSG;
                     addMsg(messages, reply, false);
                     conversationHistory.push({ role: 'model', content: reply });
