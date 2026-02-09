@@ -83,7 +83,8 @@
         var wrap = document.getElementById('lang-selector');
         if (!wrap) return;
         var lang = getLang();
-        wrap.innerHTML = '<select id="lang-select" class="lang-select" aria-label="Idioma">' +
+        wrap.innerHTML = '<img src="FOTOS/globepng.png" alt="" class="lang-globe-icon" aria-hidden="true">' +
+            '<select id="lang-select" class="lang-select" aria-label="Idioma">' +
             '<option value="es"' + (lang === 'es' ? ' selected' : '') + '>ES</option>' +
             '<option value="fr"' + (lang === 'fr' ? ' selected' : '') + '>FR</option>' +
             '<option value="en"' + (lang === 'en' ? ' selected' : '') + '>EN</option>' +

@@ -66,6 +66,40 @@
             <div class="configurador-paquete">
                 <div class="configurador-layout">
                 <form id="configuradorTorneosForm" class="configurador-form">
+                    <!-- Tipo de torneo: público o privado -->
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo">Tipo de torneo</h3>
+                        <p class="configurador-hint" style="margin-bottom: 1rem;">Elija si el torneo es solo para su grupo (privado) o si desea que, tras aprobación del club, se publique en la web para que otros puedan inscribirse.</p>
+                        <div class="tipo-torneo-grid">
+                            <label class="tipo-torneo-card">
+                                <input type="radio" name="tipo_torneo" value="privado" required checked>
+                                <div class="tipo-torneo-content">
+                                    <span class="tipo-torneo-icono" aria-hidden="true">👥</span>
+                                    <span class="tipo-torneo-titulo">Privado</span>
+                                    <span class="tipo-torneo-desc">Usted es el organizador y gestiona el torneo para sus amigos. No se publica en la web.</span>
+                                </div>
+                            </label>
+                            <label class="tipo-torneo-card">
+                                <input type="radio" name="tipo_torneo" value="publico" required>
+                                <div class="tipo-torneo-content">
+                                    <span class="tipo-torneo-icono" aria-hidden="true">🌐</span>
+                                    <span class="tipo-torneo-titulo">Público</span>
+                                    <span class="tipo-torneo-desc">Tras revisión y aprobación del club, el torneo se publicará en la web del club para que cualquiera pueda inscribirse.</span>
+                                </div>
+                            </label>
+                        </div>
+                        <div id="torneo-publico-campos" class="torneo-publico-campos" style="display: none;">
+                            <div class="form-group-usuario" style="margin-bottom: 1rem;">
+                                <label for="nombre-torneo-publico">Nombre del torneo (para la web) *</label>
+                                <input type="text" id="nombre-torneo-publico" name="nombre_torneo_publico" placeholder="Ej. I Open de Primavera Golf Lerma" maxlength="120">
+                            </div>
+                            <div class="form-group-usuario">
+                                <label for="descripcion-torneo-publico">Descripción breve (opcional)</label>
+                                <textarea id="descripcion-torneo-publico" name="descripcion_torneo_publico" rows="3" placeholder="Una línea para aparecer en la agenda del club." maxlength="300"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Fechas / noches (calendario) -->
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo">1. Selecciona tus fechas</h3>
