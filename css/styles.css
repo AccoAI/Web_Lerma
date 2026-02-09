@@ -783,7 +783,7 @@ img {
     background-repeat: no-repeat !important;
 }
 
-/* Hero superior con GolfLermaEstandar (misma estética que simulador: foto apaisada solo arriba, contenido opaco abajo) */
+/* Hero superior con GolfLermaEstandar: foto más transparente y texto superpuesto */
 body.fondo-golf-lerma-estandar {
     background: var(--color-bg-light);
 }
@@ -792,7 +792,7 @@ body.fondo-golf-lerma-estandar {
     position: relative;
     width: 100%;
     height: 420px;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .pagina-hero-foto-img {
@@ -801,6 +801,7 @@ body.fondo-golf-lerma-estandar {
     object-fit: cover;
     object-position: center center;
     display: block;
+    opacity: 0.88;
 }
 
 .pagina-hero-foto-overlay {
@@ -809,18 +810,51 @@ body.fondo-golf-lerma-estandar {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(to bottom, rgba(15, 51, 36, 0.25), rgba(26, 77, 58, 0.5));
+    background: linear-gradient(to bottom, rgba(15, 51, 36, 0.35), rgba(26, 77, 58, 0.65));
 }
 
 body.fondo-golf-lerma-estandar .paquete-detalle,
 body.fondo-golf-lerma-estandar .el-campo {
-    background: var(--color-white);
+    margin-top: -200px;
+    position: relative;
+    z-index: 2;
     padding-top: calc(var(--header-height) + 1.5rem);
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.92) 120px, var(--color-white) 200px);
+}
+
+body.fondo-golf-lerma-estandar .paquete-detalle .section-title,
+body.fondo-golf-lerma-estandar .el-campo .section-title,
+body.fondo-golf-lerma-estandar .paquete-detalle .paquete-intro,
+body.fondo-golf-lerma-estandar .el-campo .paquete-intro {
+    text-shadow: 0 1px 3px rgba(255, 255, 255, 0.9);
+}
+
+/* Área socio: misma foto y superposición */
+body.fondo-golf-lerma-estandar .area-socio-login.area-socio-con-hero,
+body.fondo-golf-lerma-estandar .area-socio-dashboard.area-socio-con-hero {
+    margin-top: -200px;
+    position: relative;
+    z-index: 2;
+    padding-top: calc(var(--header-height) + 1.5rem);
+    padding-bottom: 4rem;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.92) 120px, var(--color-white) 200px);
+}
+
+body.fondo-golf-lerma-estandar .area-socio-login .section-title {
+    text-shadow: 0 1px 3px rgba(255, 255, 255, 0.9);
 }
 
 @media (max-width: 768px) {
     .pagina-hero-foto {
         height: 320px;
+    }
+    body.fondo-golf-lerma-estandar .paquete-detalle,
+    body.fondo-golf-lerma-estandar .el-campo {
+        margin-top: -140px;
+    }
+    body.fondo-golf-lerma-estandar .area-socio-login.area-socio-con-hero,
+    body.fondo-golf-lerma-estandar .area-socio-dashboard.area-socio-con-hero {
+        margin-top: -140px;
     }
 }
 
@@ -4279,6 +4313,23 @@ body.fondo-golf-lerma-estandar .el-campo {
 
 .empresa-bautismos-ref .empresa-bautismos-link:hover {
     text-decoration: underline;
+}
+
+.empresa-form-feedback {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    border-radius: 0;
+}
+.empresa-form-feedback-ok {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+.empresa-form-feedback-error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
 }
 
 /* Bodas: redirección a Finca Andaya */

@@ -66,7 +66,7 @@
                 </p>
             </div>
             <h2 class="section-title" data-i18n="empresa_envie_titulo">Envíenos su consulta</h2>
-            <p class="hazte-socio-form-intro" data-i18n="empresa_envie_intro">Indique su email corporativo y su mensaje. Se abrirá su cliente de correo con los datos rellenados; solo tiene que pulsar enviar.</p>
+            <p class="hazte-socio-form-intro" data-i18n="empresa_envie_intro_directo">Indique su email corporativo y su mensaje. La consulta se enviará directamente a eventos@golflerma.com; le responderemos lo antes posible.</p>
             <form id="formEmpresa" class="hazte-socio-form configurador-form">
                 <div class="form-group">
                     <label data-i18n="label_email_corporativo">Email corporativo *</label>
@@ -80,7 +80,8 @@
                     <label data-i18n="label_mensaje">Mensaje</label>
                     <textarea name="mensaje" rows="4" data-i18n-placeholder="placeholder_mensaje_empresa" placeholder="Cuéntenos qué tipo de evento o actividad le interesa (torneo, reunión, incentivo, fechas aproximadas...)."></textarea>
                 </div>
-                <button type="submit" class="btn-reservar-paquete" data-i18n="btn_abrir_correo">Abrir correo para enviar</button>
+                <p id="formEmpresaFeedback" class="empresa-form-feedback" aria-live="polite" hidden></p>
+                <button type="submit" class="btn-reservar-paquete" id="formEmpresaBtn" data-i18n="btn_enviar_consulta">Enviar consulta</button>
             </form>
 
             <div class="empresa-contacto-directo">
@@ -136,18 +137,52 @@
     <script src="js/main.js"></script>
     <script src="js/chatbot.js"></script>
     <script>
-        document.getElementById('formEmpresa').addEventListener('submit', function(e) {
-            e.preventDefault();
-            var email = (this.querySelector('[name="email"]').value || '').trim();
-            var empresa = (this.querySelector('[name="empresa"]').value || '').trim();
-            var mensaje = (this.querySelector('[name="mensaje"]').value || '').trim();
-            var sujeto = 'Consulta evento empresa' + (empresa ? ' - ' + empresa : '');
-            var cuerpo = 'Email corporativo: ' + email + '\n';
-            if (empresa) cuerpo += 'Empresa: ' + empresa + '\n';
-            if (mensaje) cuerpo += 'Mensaje: ' + mensaje;
-            var mailto = 'mailto:eventos@golflerma.com?subject=' + encodeURIComponent(sujeto) + '&body=' + encodeURIComponent(cuerpo);
-            window.location.href = mailto;
-        });
+        (function() {
+            var form = document.getElementById('formEmpresa');
+            var btn = document.getElementById('formEmpresaBtn');
+            var feedback = document.getElementById('formEmpresaFeedback');
+            if (!form || !btn) return;
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                var email = (form.querySelector('[name="email"]').value || '').trim();
+                var empresa = (form.querySelector('[name="empresa"]').value || '').trim();
+                var mensaje = (form.querySelector('[name="mensaje"]').value || '').trim();
+
+                feedback.hidden = true;
+                feedback.className = 'empresa-form-feedback';
+                var textoOriginal = btn.textContent;
+                btn.disabled = true;
+                btn.textContent = 'Enviando…';
+
+                fetch('/api/contacto-empresa', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, empresa: empresa, mensaje: mensaje })
+                })
+                .then(function(r) { return r.json().catch(function() { return {}; }); })
+                .then(function(data) {
+                    if (data.ok) {
+                        feedback.textContent = 'Consulta enviada correctamente. Le responderemos a ' + email + ' lo antes posible.';
+                        feedback.className = 'empresa-form-feedback empresa-form-feedback-ok';
+                        form.reset();
+                    } else {
+                        feedback.textContent = data.error || 'No se pudo enviar. Inténtelo de nuevo o contacte por teléfono.';
+                        feedback.className = 'empresa-form-feedback empresa-form-feedback-error';
+                    }
+                    feedback.hidden = false;
+                })
+                .catch(function() {
+                    feedback.textContent = 'Error de conexión. Inténtelo de nuevo o contacte por teléfono (947 56 46 30).';
+                    feedback.className = 'empresa-form-feedback empresa-form-feedback-error';
+                    feedback.hidden = false;
+                })
+                .finally(function() {
+                    btn.disabled = false;
+                    btn.textContent = textoOriginal;
+                });
+            });
+        })();
     </script>
 </body>
 </html>
