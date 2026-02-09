@@ -5171,8 +5171,34 @@ img {
 }
 
 .newsletter-form {
-    max-width: 500px;
+    max-width: 640px;
     margin: 0 auto;
+}
+
+@media (min-width: 520px) {
+    .newsletter-form {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        gap: 0.6rem 1rem;
+        align-items: end;
+    }
+    .newsletter-form .form-group:first-of-type {
+        grid-column: 1;
+        grid-row: 1;
+        margin-bottom: 0;
+    }
+    .newsletter-form .checkbox-group {
+        grid-column: 1;
+        grid-row: 2;
+        margin-bottom: 0;
+    }
+    .newsletter-form .btn-submit {
+        grid-column: 2;
+        grid-row: 1 / -1;
+        align-self: end;
+        white-space: nowrap;
+    }
 }
 
 .form-group {
