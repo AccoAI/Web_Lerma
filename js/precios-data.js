@@ -45,7 +45,7 @@ window.PRECIOS_DATA = {
   paquetes: {
     finSemana: { descuentoPorcentaje: 15, greenFeesIncluidos: 2 },
     cochinillo: { precioBasePorPersona: 55 },
-    pausaDrive: { precioCerrado: 50 },
+    pausaDrive: { precioCerrado: 50, recargaZunder: 15 },
     golfVino: { descuentoPorcentaje: 10 },
     tourBoogie: { precioBasePorPersona: 20 },
     bautismos: { adultos: 15, jovenes: 10 },

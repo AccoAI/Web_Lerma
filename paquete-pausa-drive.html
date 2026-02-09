@@ -139,6 +139,18 @@
                         </div>
                     </div>
 
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo">3. Servicios adicionales</h3>
+                        <p class="info-text">Recarga para coches eléctricos en el club (red Zunder).</p>
+                        <div class="ancillaries-grid ancillaries-cards" style="max-width: 400px;">
+                            <label class="ancillary-card ancillary-item">
+                                <input type="checkbox" name="ancillary_recarga_zunder" value="1">
+                                <span class="ancillary-nombre">🔌 Recarga Zunder</span>
+                                <span class="ancillary-precio" id="pausadrive-recarga-zunder-precio">— €</span>
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="forma-pago-block">
                         <p class="forma-pago-label">Forma de pago</p>
                         <div class="opciones-grid opciones-grid-2">
@@ -243,7 +255,12 @@
             var cal = document.getElementById('calendario-dias-pausadrive');
 
             var campoLabels = { 'lerma': 'Golf Lerma', 'saldana': 'Saldaña Golf' };
-            var precioPausa = (window.PRECIOS_DATA && window.PRECIOS_DATA.paquetes && window.PRECIOS_DATA.paquetes.pausaDrive && window.PRECIOS_DATA.paquetes.pausaDrive.precioCerrado) || 50;
+            var pausaPkg = (window.PRECIOS_DATA && window.PRECIOS_DATA.paquetes && window.PRECIOS_DATA.paquetes.pausaDrive) || {};
+            var precioPausa = pausaPkg.precioCerrado != null ? pausaPkg.precioCerrado : 50;
+            var precioRecargaZunder = pausaPkg.recargaZunder != null ? pausaPkg.recargaZunder : 15;
+
+            var precioZunderEl = document.getElementById('pausadrive-recarga-zunder-precio');
+            if (precioZunderEl) precioZunderEl.textContent = precioRecargaZunder + ' €';
 
             window.actualizarResumen = function() {
                 if (!form || !resumenDiv) return;
@@ -254,20 +271,25 @@
                 var n = Math.max(1, usuarios.length);
                 var fp = (fd.get('forma_pago') || 'unico').trim() || 'unico';
                 var hora = (fd.get('hora_salida') || '').trim();
-                var total = precioPausa * n;
+                var recargaZunder = fd.get('ancillary_recarga_zunder') === '1';
+                var totalBase = precioPausa * n;
+                var totalRecarga = recargaZunder ? precioRecargaZunder : 0;
+                var total = totalBase + totalRecarga;
 
                 var html = '<div class="resumen-items">';
                 html += '<p><strong>Fecha:</strong> ' + (fechas.length ? fechas[0] : '—') + '</p>';
                 if (hora) html += '<p><strong>Hora preferida:</strong> ' + hora + '</p>';
                 html += '<p><strong>9 hoyos con buggy</strong> – Menú Castellano Express, vestuarios premium.</p>';
+                if (recargaZunder) html += '<p><strong>Recarga Zunder:</strong> Sí (coches eléctricos)</p>';
                 if (campo) html += '<p><strong>Campo:</strong> ' + (campoLabels[campo] || campo) + '</p>';
                 html += '<p><strong>Participantes:</strong> ' + n + '</p>';
                 html += '<p><strong>Forma de pago:</strong> ' + (fp === 'por_persona' ? 'Por persona' : 'Único') + '</p>';
                 html += '</div>';
                 html += '<div class="resumen-subtotal"><table class="resumen-subtotal-tabla">';
-                html += '<tr><td>Pausa & Drive (' + n + ' ' + (n === 1 ? 'persona' : 'personas') + ')</td><td>' + total + ' €</td></tr>';
+                html += '<tr><td>Pausa & Drive (' + n + ' ' + (n === 1 ? 'persona' : 'personas') + ')</td><td>' + totalBase + ' €</td></tr>';
+                if (recargaZunder) html += '<tr><td>Recarga Zunder</td><td>' + totalRecarga + ' €</td></tr>';
                 html += '<tr class="resumen-total"><td>Total</td><td>' + total + ' €</td></tr>';
-                if (n > 1) html += '<tr class="resumen-por-persona"><td>Por persona</td><td>' + precioPausa + ' €</td></tr>';
+                if (n > 1) html += '<tr class="resumen-por-persona"><td>Por persona (base)</td><td>' + precioPausa + ' €</td></tr>';
                 html += '</table></div>';
                 resumenDiv.innerHTML = html;
             };
@@ -292,7 +314,9 @@
                     if (typeof window.validarTelefonosForm === 'function' && !window.validarTelefonosForm(form)) return;
                     var usuarios = form.querySelectorAll('.usuario-form');
                     var n = Math.max(1, usuarios.length);
-                    var totalEuros = (typeof window.getTotalFromResumen === 'function') ? window.getTotalFromResumen() : precioPausa * n;
+                    var fd = new FormData(form);
+                    var recargaZunder = fd.get('ancillary_recarga_zunder') === '1';
+                    var totalEuros = (typeof window.getTotalFromResumen === 'function') ? window.getTotalFromResumen() : (precioPausa * n + (recargaZunder ? precioRecargaZunder : 0));
                     if (totalEuros <= 0) { alert('Completa las opciones para proceder al pago.'); return; }
                     var fp = (new FormData(form).get('forma_pago') || 'unico').trim() || 'unico';
                     var btn = document.querySelector('button[form="formPausaDrive"]');
