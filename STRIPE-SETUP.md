@@ -28,10 +28,37 @@ Para probar el API localmente con `vercel dev`:
 - **Pago único**: el usuario es redirigido a Stripe Checkout para pagar el total.
 - **Pago por persona**: se muestra un modal con un enlace para compartir; cada participante usa el mismo enlace para pagar su parte.
 
-## 5. Webhooks (recomendado para producción)
+## 5. Webhook + notificación WhatsApp
 
-Para registrar pagos exitosos y actualizar reservas, configura un webhook en Stripe:
+Cuando un cliente **completa el pago** (checkout.session.completed), el webhook envía un mensaje de WhatsApp al número que configures (por ejemplo el del club) con: paquete, importe, participantes y forma de pago.
 
-1. Stripe Dashboard > **Developers > Webhooks**
-2. Añade endpoint: `https://tu-dominio.vercel.app/api/webhook-stripe` (crear esta función si se necesita)
-3. Eventos: `checkout.session.completed` o `payment_intent.succeeded`
+### 5.1 Webhook en Stripe
+
+1. Stripe Dashboard > **Developers > Webhooks** > **Add endpoint**
+2. **Endpoint URL**: `https://tu-dominio.vercel.app/api/webhook-stripe`
+3. **Eventos**: marca `checkout.session.completed`
+4. Guarda y copia el **Signing secret** (empieza por `whsec_...`)
+
+### 5.2 Variables de entorno en Vercel
+
+Añade estas variables (además de `STRIPE_SECRET_KEY`):
+
+| Nombre | Descripción |
+|--------|-------------|
+| `STRIPE_WEBHOOK_SECRET` | El Signing secret del webhook (whsec_...) |
+| `TWILIO_ACCOUNT_SID` | Account SID de Twilio (Console) |
+| `TWILIO_AUTH_TOKEN` | Auth Token de Twilio |
+| `TWILIO_WHATSAPP_FROM` | Número origen WhatsApp: `whatsapp:+34XXXXXXXXX` (producción) o `whatsapp:+14155238886` (sandbox Twilio) |
+| `WHATSAPP_NOTIFY_TO` | Número al que enviar la notificación: `whatsapp:+34947564630` (ej. teléfono del club) |
+| `RESEND_API_KEY` | API key de Resend (para enviar correo de confirmación al cliente) |
+| `RESEND_EMAIL_FROM` | Remitente del correo (ej: `Golf Lerma <reservas@tudominio.com>`) |
+| `RESEND_EMAIL_TO` | **(Opcional)** Copia de cada reserva a este correo (ej. del club). La confirmación va al email del cliente (el que introduce en Stripe). |
+
+Después de guardar, haz **Redeploy**. Ver **RESEND-SETUP.md** para configurar Resend.
+
+### 5.3 Configurar WhatsApp (Twilio)
+
+- **Pruebas**: en [Twilio Console](https://console.twilio.com) > **Messaging** > **Try it out** > **Send a WhatsApp message** puedes activar el **Sandbox**. Sigues las instrucciones para unir tu número de prueba al sandbox. Usa como `TWILIO_WHATSAPP_FROM` el número del sandbox (ej. `whatsapp:+14155238886`).
+- **Producción**: contrata un número de WhatsApp Business a través de Twilio y úsalo en `TWILIO_WHATSAPP_FROM`. `WHATSAPP_NOTIFY_TO` es el móvil del club (con prefijo país, ej. `whatsapp:+34947564630`).
+
+Ver también **WHATSAPP-NOTIFICACIONES.md** para más detalle.

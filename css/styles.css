@@ -6386,16 +6386,18 @@ img {
 /* ========== ANCILLARIES CON COUNTER ========== */
 .ancillaries-with-counter {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.25rem;
 }
 
 .ancillaries-with-counter .ancillary-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.75rem;
+    gap: 1rem;
     min-width: 0;
+    padding: 0.5rem 0;
+    line-height: 1.45;
 }
 
 .ancillaries-with-counter .ancillary-item label {
@@ -6403,11 +6405,14 @@ img {
     cursor: default;
     flex: 1;
     min-width: 0;
+    line-height: 1.45;
 }
+
 .ancillaries-with-counter .ancillary-item label .ancillary-precio {
     font-weight: 600;
     color: var(--color-primary);
-    margin-left: 0.25rem;
+    margin-left: 0.35rem;
+    white-space: nowrap;
 }
 
 .ancillary-counter-wrap {
@@ -6479,62 +6484,114 @@ img {
     outline: none;
 }
 
-/* Servicios adicionales: cards con precio visible */
-.servicios-adicionales-section .info-text {
+/* ========== SERVICIOS ADICIONALES: sección y lectura ========== */
+.servicios-adicionales-section {
+    padding-top: 0.5rem;
+}
+
+.servicios-adicionales-section .configurador-titulo {
     margin-bottom: 1rem;
 }
+
+.servicios-adicionales-section .info-text,
+.servicios-adicionales-section .configurador-hint,
+.servicios-adicionales-section .servicios-adicionales-intro {
+    margin: 0 0 1.25rem;
+    padding: 1rem 1.25rem;
+    line-height: 1.55;
+    max-width: 42rem;
+    background: var(--color-bg-light);
+    border-radius: 6px;
+    color: var(--color-text);
+    font-style: normal;
+    text-align: left;
+}
+
+.servicios-adicionales-section .info-text {
+    padding: 1rem 1.25rem;
+}
+
+.servicios-adicionales-section .configurador-hint.servicios-adicionales-intro {
+    margin-bottom: 1rem;
+}
+
+/* Grid de servicios: más espacio entre filas y columnas */
+.servicios-adicionales-section .ancillaries-cards,
+.servicios-adicionales-section .ancillaries-with-counter {
+    gap: 1.25rem;
+}
+
+.servicios-adicionales-section .ancillaries-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
 .ancillaries-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1rem;
+    gap: 1.25rem;
 }
+
 .ancillary-card {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 1rem 1.25rem;
+    gap: 1rem;
+    padding: 1.15rem 1.35rem;
     background: var(--color-bg-light, #f8f9fa);
     border: 1px solid rgba(0,0,0,0.08);
     border-radius: 8px;
     transition: border-color 0.2s, box-shadow 0.2s;
+    line-height: 1.4;
 }
+
 .ancillary-card:hover {
     border-color: var(--color-primary, #2d5a27);
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
+
 .ancillary-card.ancillary-item label,
 .ancillary-card.ancillary-item .ancillary-nombre {
     flex: 1;
     margin: 0;
     font-weight: 500;
     cursor: pointer;
+    line-height: 1.4;
+    min-width: 0;
 }
+
 .ancillary-card input[type="checkbox"] {
     flex-shrink: 0;
     width: 1.25rem;
     height: 1.25rem;
     cursor: pointer;
 }
+
 .ancillary-card .ancillary-precio {
     flex-shrink: 0;
     font-weight: 600;
     color: var(--color-primary, #2d5a27);
     font-size: 0.95rem;
+    white-space: nowrap;
 }
+
 .ancillary-card.ancillary-item-counter {
     flex-wrap: wrap;
 }
+
 .ancillary-card.ancillary-item-counter .ancillary-counter-wrap {
     margin-left: auto;
 }
+
 .ancillary-item-select {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 1rem;
 }
+
 .ancillary-item-select .ancillary-nombre {
     flex: 0 0 auto;
 }
+
 .ancillary-item-select .cubo-premium-select {
     flex: 1;
     min-width: 0;
@@ -6543,8 +6600,9 @@ img {
     border-radius: 6px;
     font-family: inherit;
 }
+
 .ancillaries-cubo-row {
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
 }
 
 .bautismos-counter {
@@ -6636,6 +6694,14 @@ img {
     font-size: 0.95rem;
     font-weight: 500;
     letter-spacing: 0.05em;
+}
+
+.chatbot-header-badge {
+    margin: 0.25rem 0 0;
+    font-size: 0.7rem;
+    opacity: 0.9;
+    font-weight: 400;
+    letter-spacing: 0.02em;
 }
 
 .chatbot-close {

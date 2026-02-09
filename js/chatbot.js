@@ -45,6 +45,7 @@
             '<div class="chatbot-window" id="chatbotWindow" role="dialog" aria-label="Chat de consultas">' +
             '  <div class="chatbot-header">' +
             '    <h3>¿En qué podemos ayudarte?</h3>' +
+            '    <p class="chatbot-header-badge" aria-hidden="true">Respuestas en tiempo real con IA</p>' +
             '    <button type="button" class="chatbot-close" aria-label="Cerrar chat">×</button>' +
             '  </div>' +
             '  <div class="chatbot-messages" id="chatbotMessages"></div>' +
