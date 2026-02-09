@@ -61,6 +61,7 @@ export async function POST(request) {
       bautismos: 'Bautismos de golf',
       ryder: 'Ryder Cup',
       torneos: 'Configurador Torneos',
+      'primera-cuota': 'Primera cuota socio - Golf Lerma',
     };
 
     const nombreProducto = nombresPaquete[paquete] || paquete || 'Reserva Golf Lerma';

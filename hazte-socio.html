@@ -146,7 +146,7 @@
     <section class="area-pago-simulada hazte-socio-formulario" id="pagar-cuota">
         <div class="container">
             <h2 class="section-title">Pagar primera cuota o solicitar impresos</h2>
-            <p class="area-pago-intro">Puede <strong>abonar la primera mensualidad</strong> en línea (simulación) o <strong>solicitar los impresos de inscripción</strong> para formalizar el alta en oficinas. Contacto inscripción socios: 947 17 12 14 · 947 40 42 81.</p>
+            <p class="area-pago-intro">Puede <strong>abonar la primera mensualidad</strong> en línea con tarjeta (pago seguro con Stripe) o <strong>solicitar los impresos de inscripción</strong> para formalizar el alta en oficinas. Contacto inscripción socios: 947 17 12 14 · 947 40 42 81.</p>
 
             <div class="alta-socio-opciones" role="group" aria-label="Qué desea hacer">
                 <label class="alta-socio-opcion">
@@ -183,34 +183,15 @@
                         </div>
                     </div>
                     <div class="area-pago-tarjeta">
-                        <h3 class="area-pago-subtitulo">Datos de pago</h3>
-                        <div class="form-group">
-                            <label for="pago-nombre">Nombre en la tarjeta *</label>
-                            <input type="text" id="pago-nombre" name="nombre_tarjeta" required placeholder="Como aparece en la tarjeta" autocomplete="cc-name">
-                        </div>
-                        <div class="form-group">
-                            <label for="pago-numero">Número de tarjeta *</label>
-                            <input type="text" id="pago-numero" name="numero_tarjeta" required placeholder="1234 5678 9012 3456" maxlength="19" autocomplete="cc-number">
-                        </div>
-                        <div class="area-pago-fila">
-                            <div class="form-group">
-                                <label for="pago-caducidad">Caducidad (MM/AA) *</label>
-                                <input type="text" id="pago-caducidad" name="caducidad" required placeholder="MM/AA" maxlength="5" autocomplete="cc-exp">
-                            </div>
-                            <div class="form-group">
-                                <label for="pago-cvv">CVV *</label>
-                                <input type="text" id="pago-cvv" name="cvv" required placeholder="123" maxlength="4" autocomplete="cc-csc">
-                            </div>
-                        </div>
                         <div class="form-group">
                             <label class="area-pago-check">
-                                <input type="checkbox" name="acepto_domiciliacion" id="pago-domiciliacion">
+                                <input type="checkbox" name="acepto_domiciliacion" id="pago-domiciliacion" required>
                                 <span>Acepto la domiciliación bancaria para las cuotas sucesivas</span>
                             </label>
                         </div>
                     </div>
                     <button type="submit" class="btn-pago-socio">Pagar primera cuota</button>
-                    <p class="area-pago-nota">Simulación de pago. No se realizará ningún cargo real.</p>
+                    <p class="area-pago-nota">Será redirigido a la pasarela de pago segura de Stripe para abonar la primera cuota. Tras el pago, nos pondremos en contacto para formalizar su alta como socio.</p>
                 </form>
             </div>
 
@@ -295,6 +276,7 @@
     <script src="js/i18n.js"></script>
     <script src="js/main.js"></script>
     <script src="js/chatbot.js"></script>
+    <script src="js/stripe-pago.js"></script>
     <script>
         (function() {
             var radios = document.querySelectorAll('input[name="alta_socio_accion"]');
@@ -385,13 +367,23 @@
 
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
-                var imp = importeEl.textContent || '0';
-                var ts = (tipoSocio.options[tipoSocio.selectedIndex] || {}).text || '';
-                alert('Pago simulado correctamente.\n\nSe ha registrado el pago de ' + imp + ' € por la primera cuota' + (ts ? ' (' + ts + ').' : '.') + ' En un proceso real se completaría el cobro y el alta como socio. Nos pondremos en contacto para formalizar tu alta.');
-                form.reset();
-                tipoCuota.disabled = true;
-                tipoCuota.innerHTML = '<option value="">Primero elija el tipo de socio</option>';
-                importeEl.textContent = '0';
+                var impStr = (importeEl.textContent || '0').replace(',', '.');
+                var totalEuros = parseFloat(impStr) || 0;
+                if (totalEuros <= 0) {
+                    alert('Seleccione el tipo de socio y el tipo de cuota para ver el importe a pagar.');
+                    return;
+                }
+                if (typeof window.iniciarPagoStripe !== 'function') {
+                    alert('La pasarela de pago no está disponible. Por favor, contacte con nosotros (947 17 12 14 / 947 40 42 81).');
+                    return;
+                }
+                window.iniciarPagoStripe({
+                    totalEuros: totalEuros,
+                    modo: 'unico',
+                    numParticipantes: 1,
+                    paquete: 'primera-cuota',
+                    submitButton: form.querySelector('button[type="submit"]')
+                });
             });
         })();
     </script>
