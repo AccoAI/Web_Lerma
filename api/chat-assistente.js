@@ -8,7 +8,8 @@
  *   CHAT_SYSTEM_PROMPT (opcional) - Instrucciones del asistente; si no existe se usa un prompt por defecto
  */
 
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI_MODEL = 'gemini-2.5-flash';
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 const DEFAULT_SYSTEM_PROMPT = `Eres el asistente de Golf Lerma (y Saldaña Golf). Respondes en el mismo idioma que el usuario.
 Ayudas con: horarios, reservas, precios, paquetes, torneos, cómo hacerte socio, ubicación y contacto.
