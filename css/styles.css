@@ -815,11 +815,11 @@ body.fondo-golf-lerma-estandar {
 
 body.fondo-golf-lerma-estandar .paquete-detalle,
 body.fondo-golf-lerma-estandar .el-campo {
-    margin-top: -200px;
+    margin-top: -420px;
     position: relative;
     z-index: 2;
     padding-top: calc(var(--header-height) + 1.5rem);
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.92) 120px, var(--color-white) 200px);
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.9) 80px, var(--color-white) 180px);
 }
 
 body.fondo-golf-lerma-estandar .paquete-detalle .section-title,
@@ -832,12 +832,12 @@ body.fondo-golf-lerma-estandar .el-campo .paquete-intro {
 /* Área socio: misma foto y superposición */
 body.fondo-golf-lerma-estandar .area-socio-login.area-socio-con-hero,
 body.fondo-golf-lerma-estandar .area-socio-dashboard.area-socio-con-hero {
-    margin-top: -200px;
+    margin-top: -420px;
     position: relative;
     z-index: 2;
     padding-top: calc(var(--header-height) + 1.5rem);
     padding-bottom: 4rem;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.92) 120px, var(--color-white) 200px);
+    background: transparent;
 }
 
 body.fondo-golf-lerma-estandar .area-socio-login .section-title {
@@ -850,11 +850,11 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     }
     body.fondo-golf-lerma-estandar .paquete-detalle,
     body.fondo-golf-lerma-estandar .el-campo {
-        margin-top: -140px;
+        margin-top: -320px;
     }
     body.fondo-golf-lerma-estandar .area-socio-login.area-socio-con-hero,
     body.fondo-golf-lerma-estandar .area-socio-dashboard.area-socio-con-hero {
-        margin-top: -140px;
+        margin-top: -320px;
     }
 }
 
