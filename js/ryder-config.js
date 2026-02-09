@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData(form);
         const diasJuego = formData.get('dias-juego');
         const noches = formData.get('noches');
-        const transporte = formData.get('transporte');
+        const transporte = formData.get('transporte') || 'no';
 
         var nNoches = parseInt(noches || '0', 10);
         var sectionAlojamientoShown = formData.get('hotel-noche-1') !== null;
@@ -235,6 +235,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!formData.get('hotel-noche-' + i)) { hotelOk = false; break; }
             }
         }
+
+        var tieneDias = diasJuego && diasJuego !== '0' && parseInt(diasJuego, 10) >= 1;
 
         const ancillaries = [];
         if (formData.get('ancillary_bolas_personalizadas')) ancillaries.push('Bolas personalizadas');
@@ -248,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (cuboVal === 'cervezas') ancillaries.push('Cubo premium: Cubo de cervezas');
         else if (cuboVal === 'vino_blanco') ancillaries.push('Cubo premium: Vino blanco');
 
-        if (diasJuego && hotelOk && transporte) {
+        if (tieneDias) {
             var resumenHTML = '<div class="resumen-items">';
 
             resumenHTML += '<p><strong>Días de juego:</strong> ' + diasJuego + ' ' + (diasJuego === '1' ? 'día' : 'días') + '</p>';
@@ -267,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 var parts = [];
                 for (var k = 1; k <= nNoches; k++) {
                     var v = formData.get('hotel-noche-' + k);
-                    if (v) parts.push('Noche ' + k + ': ' + getHotelLabelFromValueRyder(v));
+                    parts.push('Noche ' + k + ': ' + (v ? getHotelLabelFromValueRyder(v) : '—'));
                 }
                 if (parts.length) resumenHTML += '<p><strong>Alojamiento:</strong> ' + parts.join('. ') + '</p>';
             }
