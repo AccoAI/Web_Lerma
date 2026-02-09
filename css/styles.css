@@ -783,18 +783,40 @@ img {
     background-repeat: no-repeat !important;
 }
 
-/* Fondo común GolfLermaEstandar para El Campo y paquetes */
+/* Hero superior con GolfLermaEstandar (misma estética que simulador: foto apaisada solo arriba, contenido opaco abajo) */
 body.fondo-golf-lerma-estandar {
-    background-image: url('../FOTOS/GolfLermaEstandar.jpg');
+    position: relative;
+    background: var(--color-bg-light);
+}
+body.fondo-golf-lerma-estandar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 420px;
+    background-image: linear-gradient(to bottom, rgba(15, 51, 36, 0.25), rgba(26, 77, 58, 0.5)), url('../FOTOS/GolfLermaEstandar.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-attachment: fixed;
-    min-height: 100vh;
+    z-index: 0;
 }
 body.fondo-golf-lerma-estandar .paquete-detalle,
 body.fondo-golf-lerma-estandar .el-campo {
-    background: rgba(255, 255, 255, 0.92);
+    position: relative;
+    z-index: 1;
+    margin-top: 420px !important;
+    background: var(--color-white);
+    padding-top: calc(var(--header-height) + 1.5rem);
+}
+@media (max-width: 768px) {
+    body.fondo-golf-lerma-estandar::before {
+        height: 320px;
+    }
+    body.fondo-golf-lerma-estandar .paquete-detalle,
+    body.fondo-golf-lerma-estandar .el-campo {
+        margin-top: 320px !important;
+    }
 }
 
 .paquete-card::before {

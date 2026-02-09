@@ -186,22 +186,45 @@
     if (!form) return;
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      var user = (form.querySelector('[name="usuario"]') || {}).value || '';
+      var user = ((form.querySelector('[name="usuario"]') || {}).value || '').trim();
       var pass = (form.querySelector('[name="password"]') || {}).value || '';
       if (user === DEMO_USER && pass === DEMO_PASS) {
         setLoggedIn(true);
-        window.location.reload();
-      } else {
-        var err = form.querySelector('.area-socio-error');
-        if (!err) {
-          err = document.createElement('p');
-          err.className = 'area-socio-error';
-          form.insertBefore(err, form.querySelector('button'));
-        }
-        err.textContent = 'Usuario o contraseña incorrectos. Prueba con socio / golf2024.';
-        err.hidden = false;
+        showDashboard();
+        return;
       }
+      var err = form.querySelector('.area-socio-error');
+      if (!err) {
+        err = document.createElement('p');
+        err.className = 'area-socio-error';
+        form.insertBefore(err, form.querySelector('button'));
+      }
+      err.textContent = 'Usuario o contraseña incorrectos. Use usuario: socio y contraseña: golf2024 para acceder al área de demostración.';
+      err.removeAttribute('hidden');
+      err.style.display = '';
     });
+  }
+
+  function showLogin() {
+    var loginSection = document.getElementById('area-socio-login-section');
+    var dashboardSection = document.getElementById('area-socio-dashboard-section');
+    if (loginSection) { loginSection.removeAttribute('hidden'); loginSection.style.display = ''; }
+    if (dashboardSection) { dashboardSection.setAttribute('hidden', ''); dashboardSection.style.display = 'none'; }
+  }
+
+  function showDashboard() {
+    var loginSection = document.getElementById('area-socio-login-section');
+    var dashboardSection = document.getElementById('area-socio-dashboard-section');
+    if (loginSection) { loginSection.setAttribute('hidden', ''); loginSection.style.display = 'none'; }
+    if (dashboardSection) {
+      dashboardSection.removeAttribute('hidden');
+      dashboardSection.style.display = '';
+      initDashboard();
+      var hash = (window.location.hash || '').trim().slice(1);
+      if (hash && /^vista-(dashboard|hall|amigos|perfil)$/.test(hash)) {
+        showSection(hash);
+      }
+    }
   }
 
   function init() {
@@ -209,18 +232,9 @@
     var dashboardSection = document.getElementById('area-socio-dashboard-section');
 
     if (isLoggedIn()) {
-      if (loginSection) loginSection.hidden = true;
-      if (dashboardSection) {
-        dashboardSection.hidden = false;
-        initDashboard();
-        var hash = (window.location.hash || '').trim().slice(1);
-        if (hash && /^vista-(dashboard|hall|amigos|perfil)$/.test(hash)) {
-          showSection(hash);
-        }
-      }
+      showDashboard();
     } else {
-      if (loginSection) loginSection.hidden = false;
-      if (dashboardSection) dashboardSection.hidden = true;
+      showLogin();
       initLogin();
     }
   }
