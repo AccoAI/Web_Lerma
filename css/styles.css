@@ -5195,8 +5195,8 @@ img {
     }
     .newsletter-form .btn-submit {
         grid-column: 2;
-        grid-row: 1 / -1;
-        align-self: end;
+        grid-row: 1;
+        align-self: center;
         white-space: nowrap;
     }
 }
