@@ -209,7 +209,7 @@
   "config_comida_intro": "Indiquez pour chaque jour si vous réservez le déjeuner et/ou le dîner, et où.",
   "config_comida_sin_fechas": "Sélectionnez les dates dans le calendrier pour indiquer déjeuners et dîners par jour.",
   "config_datos_participantes": "4. Données des participants",
-  "label_tamanio_grupo": "Taille du groupe",
+  "label_tamanio_grupo": "Taille du groupe *",
   "label_hora_salida": "Heure de départ",
   "label_num_grupos": "Nº de groupes",
   "config_hint": "Seules les données de réservation sont obligatoires. Vous pouvez ajouter plus de participants si vous le souhaitez.",

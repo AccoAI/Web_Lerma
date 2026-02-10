@@ -209,7 +209,7 @@
   "config_comida_intro": "Indicate for each day whether you are booking lunch and/or dinner, and where.",
   "config_comida_sin_fechas": "Select dates in the calendar to indicate meals and dinners per day.",
   "config_datos_participantes": "4. Participant details",
-  "label_tamanio_grupo": "Group size",
+  "label_tamanio_grupo": "Group size *",
   "label_hora_salida": "Departure time",
   "label_num_grupos": "No. of groups",
   "config_hint": "Only booking details are required. You can add more participants if you wish.",

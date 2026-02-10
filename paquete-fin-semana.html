@@ -82,48 +82,24 @@
                             <span class="campos-dias-label" data-i18n="config_campo_dia">Campo para cada día *</span>
                             <div id="dias-campos-container-finsemana" class="campos-dias-row"></div>
                         </div>
-                    </div>
-
-                    <!-- Selección de Hotel (solo si 2+ días) -->
-                    <div class="configurador-seccion" id="configurador-hotel-wrap" style="display: none;">
-                        <h3 class="configurador-titulo">2. Alojamiento</h3>
-                        <p class="hotel-ciudad-label">Elige el hotel para cada noche. Puedes combinar Lerma y Burgos (ej.: una noche en Lerma y otra en Burgos).</p>
-                        <div id="hotel-por-noche-block" class="hotel-por-noche-block">
-                            <span class="campos-dias-label">Hotel para cada noche:</span>
-                            <p class="hotel-noche-hint">Elige primero el <strong>lugar</strong> (Lerma o Burgos) y después el <strong>hotel</strong> de ese lugar.</p>
-                            <div id="hoteles-por-noche-container" class="campos-dias-row"></div>
-                        </div>
-                        <!-- Precios en tiempo real: se rellena por JS (Amadeus). Reserva desde aquí, sin salir de la web. -->
-                        <div id="hotelbeds-precios-block" class="hotelbeds-precios-wrap" aria-live="polite">
-                            <p class="hotelbeds-block hotelbeds-info" id="precios-block-initial-msg">Selecciona las fechas en el calendario (arriba) para ver precios en tiempo real. Reservarás todo el paquete desde esta página.</p>
-                        </div>
-                        <!-- Enlace secundario a Booking.com (solo referencia) -->
-                        <div id="booking-com-widget" class="booking-com-widget booking-com-widget-secondary" style="display: none;">
-                            <p class="booking-com-note">Si no ves precios arriba: <a id="booking-link-lerma" href="https://www.booking.com/searchresults.html?ss=Lerma%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer">Lerma</a> · <a id="booking-link-burgos" href="https://www.booking.com/searchresults.html?ss=Burgos%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer">Burgos</a></p>
+                        <div class="hora-salida-en-fechas-wrap" style="margin-top: 1rem;">
+                            <div id="hora-salida-por-dia-finsemana" class="hora-salida-por-dia-container" style="display: none;"></div>
+                            <div id="hora-salida-unica-finsemana" class="reserva-datos-iniciales">
+                                <div class="form-group-inline">
+                                    <label for="hora-salida">Hora de salida *</label>
+                                    <input type="time" id="hora-salida" name="hora_salida" title="Hora preferida de salida" required>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Opciones de Comida -->
+                    <!-- Datos de Usuarios (siempre segundo) -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo" data-i18n="config_comida">3. Opciones para comer</h3>
-                        <p class="comida-intro" data-i18n="config_comida_intro">Indica para cada día si reservas <strong>comida</strong> (almuerzo) y/o <strong>cena</strong>, y dónde.</p>
-                        <div id="comida-por-dia-wrap">
-                            <p class="comida-sin-fechas" id="comida-sin-fechas">Selecciona las fechas en el calendario para indicar comidas y cenas por día.</p>
-                            <div id="comida-por-dia-container" class="comida-por-dia-container" style="display:none;"></div>
-                        </div>
-                    </div>
-
-                    <!-- Datos de Usuarios -->
-                    <div class="configurador-seccion">
-                        <h3 class="configurador-titulo" data-i18n="config_datos_participantes">4. Datos de los participantes</h3>
+                        <h3 class="configurador-titulo" data-i18n="config_datos_participantes">2. Datos de los participantes</h3>
                         <div class="reserva-datos-iniciales">
                             <div class="form-group-inline">
-                                <label for="tamanio-grupo" data-i18n="label_tamanio_grupo">Tamaño del grupo</label>
-                                <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" placeholder="Ej. 4" title="Número de jugadores">
-                            </div>
-                            <div class="form-group-inline">
-                                <label for="hora-salida">Hora de salida *</label>
-                                <input type="time" id="hora-salida" name="hora_salida" title="Hora preferida de salida" required>
+                                <label for="tamanio-grupo" data-i18n="label_tamanio_grupo">Tamaño del grupo *</label>
+                                <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" required placeholder="Ej. 4" title="Número de jugadores">
                             </div>
                             <div class="form-group-inline">
                                 <label for="numero-grupos-output" data-i18n="label_num_grupos">Nº de grupos</label>
@@ -173,6 +149,35 @@
                                 <span>+</span> Añadir participante
                             </button>
                             <span id="participantes-contador" class="participantes-contador" aria-live="polite"></span>
+                        </div>
+                    </div>
+
+                    <!-- Selección de Hotel (solo si 2+ días) -->
+                    <div class="configurador-seccion" id="configurador-hotel-wrap" style="display: none;">
+                        <h3 class="configurador-titulo">3. Alojamiento</h3>
+                        <p class="hotel-ciudad-label">Elige el hotel para cada noche. Puedes combinar Lerma y Burgos (ej.: una noche en Lerma y otra en Burgos).</p>
+                        <div id="hotel-por-noche-block" class="hotel-por-noche-block">
+                            <span class="campos-dias-label">Hotel para cada noche:</span>
+                            <p class="hotel-noche-hint">Elige primero el <strong>lugar</strong> (Lerma o Burgos) y después el <strong>hotel</strong> de ese lugar.</p>
+                            <div id="hoteles-por-noche-container" class="campos-dias-row"></div>
+                        </div>
+                        <!-- Precios en tiempo real: se rellena por JS (Amadeus). Reserva desde aquí, sin salir de la web. -->
+                        <div id="hotelbeds-precios-block" class="hotelbeds-precios-wrap" aria-live="polite">
+                            <p class="hotelbeds-block hotelbeds-info" id="precios-block-initial-msg">Selecciona las fechas en el calendario (arriba) para ver precios en tiempo real. Reservarás todo el paquete desde esta página.</p>
+                        </div>
+                        <!-- Enlace secundario a Booking.com (solo referencia) -->
+                        <div id="booking-com-widget" class="booking-com-widget booking-com-widget-secondary" style="display: none;">
+                            <p class="booking-com-note">Si no ves precios arriba: <a id="booking-link-lerma" href="https://www.booking.com/searchresults.html?ss=Lerma%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer">Lerma</a> · <a id="booking-link-burgos" href="https://www.booking.com/searchresults.html?ss=Burgos%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer">Burgos</a></p>
+                        </div>
+                    </div>
+
+                    <!-- Opciones de Comida -->
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo" data-i18n="config_comida">4. Opciones para comer</h3>
+                        <p class="comida-intro" data-i18n="config_comida_intro">Indica para cada día si reservas <strong>comida</strong> (almuerzo) y/o <strong>cena</strong>, y dónde.</p>
+                        <div id="comida-por-dia-wrap">
+                            <p class="comida-sin-fechas" id="comida-sin-fechas">Selecciona las fechas en el calendario para indicar comidas y cenas por día.</p>
+                            <div id="comida-por-dia-container" class="comida-por-dia-container" style="display:none;"></div>
                         </div>
                     </div>
 

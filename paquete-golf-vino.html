@@ -118,30 +118,24 @@
                             <span class="campos-dias-label">Campo para cada día *</span>
                             <div id="dias-campos-container-vino" class="campos-dias-row"></div>
                         </div>
-                    </div>
-
-                    <!-- Selección de Hotel (solo si 2+ días) -->
-                    <div class="configurador-seccion" id="configurador-hotel-wrap-vino" style="display: none;">
-                        <h3 class="configurador-titulo">2. Alojamiento</h3>
-                        <p class="hotel-ciudad-label">Elige el hotel para cada noche. Puedes combinar Lerma y Burgos (ej.: una noche en Lerma y otra en Burgos).</p>
-                        <div id="hotel-por-noche-block-vino" class="hotel-por-noche-block">
-                            <span class="campos-dias-label">Hotel para cada noche:</span>
-                            <p class="hotel-noche-hint">Elige primero el <strong>lugar</strong> (Lerma o Burgos) y después el <strong>hotel</strong> de ese lugar.</p>
-                            <div id="hoteles-por-noche-container-vino" class="campos-dias-row"></div>
+                        <div class="hora-salida-en-fechas-wrap" style="margin-top: 1rem;">
+                            <div id="hora-salida-por-dia-vino" class="hora-salida-por-dia-container" style="display: none;"></div>
+                            <div id="hora-salida-unica-vino" class="reserva-datos-iniciales">
+                                <div class="form-group-inline">
+                                    <label for="hora-salida">Hora de salida *</label>
+                                    <input type="time" id="hora-salida" name="hora_salida" title="Hora preferida de salida" required>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Datos de Usuarios -->
+                    <!-- Datos de Usuarios (siempre segundo) -->
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo">2. Datos de los participantes</h3>
                         <div class="reserva-datos-iniciales">
                             <div class="form-group-inline">
-                                <label for="tamanio-grupo">Tamaño del grupo</label>
-                                <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" placeholder="Ej. 4" title="Número de jugadores">
-                            </div>
-                            <div class="form-group-inline">
-                                <label for="hora-salida">Hora de salida *</label>
-                                <input type="time" id="hora-salida" name="hora_salida" title="Hora preferida de salida" required>
+                                <label for="tamanio-grupo">Tamaño del grupo *</label>
+                                <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" required placeholder="Ej. 4" title="Número de jugadores">
                             </div>
                             <div class="form-group-inline">
                                 <label for="numero-grupos-output">Nº de grupos</label>
@@ -187,6 +181,17 @@
                         <div class="agregar-usuario-line">
                             <button type="button" class="btn-agregar-usuario" id="agregar-usuario"><span>+</span> Añadir participante</button>
                             <span id="participantes-contador" class="participantes-contador" aria-live="polite"></span>
+                        </div>
+                    </div>
+
+                    <!-- Selección de Hotel (solo si 2+ días) -->
+                    <div class="configurador-seccion" id="configurador-hotel-wrap-vino" style="display: none;">
+                        <h3 class="configurador-titulo">3. Alojamiento</h3>
+                        <p class="hotel-ciudad-label">Elige el hotel para cada noche. Puedes combinar Lerma y Burgos (ej.: una noche en Lerma y otra en Burgos).</p>
+                        <div id="hotel-por-noche-block-vino" class="hotel-por-noche-block">
+                            <span class="campos-dias-label">Hotel para cada noche:</span>
+                            <p class="hotel-noche-hint">Elige primero el <strong>lugar</strong> (Lerma o Burgos) y después el <strong>hotel</strong> de ese lugar.</p>
+                            <div id="hoteles-por-noche-container-vino" class="campos-dias-row"></div>
                         </div>
                     </div>
 
@@ -329,6 +334,35 @@
             var configuradorHotelWrapVino = document.getElementById('configurador-hotel-wrap-vino');
             var hotelPorNocheBlockVino = document.getElementById('hotel-por-noche-block-vino');
             var hotelesPorNocheContainerVino = document.getElementById('hoteles-por-noche-container-vino');
+            var horaPorDiaWrapVino = document.getElementById('hora-salida-por-dia-vino');
+            var horaUnicaWrapVino = document.getElementById('hora-salida-unica-vino');
+
+            function generarHoraSalidaPorDiaVino(numDias) {
+                if (!horaPorDiaWrapVino || !horaUnicaWrapVino) return;
+                var singleInput = form && form.querySelector('input[name="hora_salida"]');
+                if (numDias > 1) {
+                    var prev = {};
+                    for (var i = 1; i <= numDias; i++) {
+                        var inp = form && form.querySelector('input[name="hora_salida_dia_' + i + '"]');
+                        if (inp && inp.value) prev[i] = inp.value;
+                    }
+                    horaPorDiaWrapVino.innerHTML = '';
+                    horaPorDiaWrapVino.style.display = 'block';
+                    horaUnicaWrapVino.style.display = 'none';
+                    if (singleInput) singleInput.removeAttribute('required');
+                    for (var i = 1; i <= numDias; i++) {
+                        var item = document.createElement('div');
+                        item.className = 'campos-dias-item';
+                        item.innerHTML = '<label for="hora-salida-dia-' + i + '-vino">Hora de salida día ' + i + ' *</label><input type="time" id="hora-salida-dia-' + i + '-vino" name="hora_salida_dia_' + i + '" title="Hora día ' + i + '" required value="' + (prev[i] || '') + '">';
+                        horaPorDiaWrapVino.appendChild(item);
+                    }
+                } else {
+                    horaPorDiaWrapVino.style.display = 'none';
+                    horaPorDiaWrapVino.innerHTML = '';
+                    horaUnicaWrapVino.style.display = 'block';
+                    if (singleInput) singleInput.setAttribute('required', 'required');
+                }
+            }
 
             function getHotelLabelFromValue(val) {
                 if (!val || val.indexOf('-') < 0) return val || 'Sin reserva';
@@ -591,6 +625,7 @@
                                 if (hotelPorNocheBlockVino) hotelPorNocheBlockVino.style.display = 'none';
                             }
                         }
+                        generarHoraSalidaPorDiaVino(count);
                         if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
                     }
                 });

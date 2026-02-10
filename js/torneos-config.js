@@ -11,6 +11,35 @@ document.addEventListener('DOMContentLoaded', function() {
     var hotelesPorNocheContainerTorneos = document.getElementById('hoteles-por-noche-container-torneos');
     var comidaSinFechasTorneos = document.getElementById('comida-sin-fechas-torneos');
     var comidaPorDiaContainerTorneos = document.getElementById('comida-por-dia-container-torneos');
+    var horaPorDiaWrapTorneos = document.getElementById('hora-salida-por-dia-torneos');
+    var horaUnicaWrapTorneos = document.getElementById('hora-salida-unica-torneos');
+
+    function generarHoraSalidaPorDiaTorneos(numDias) {
+        if (!horaPorDiaWrapTorneos || !horaUnicaWrapTorneos) return;
+        var singleInput = form && form.querySelector('input[name="hora_salida"]');
+        if (numDias > 1) {
+            var prev = {};
+            for (var i = 1; i <= numDias; i++) {
+                var inp = form && form.querySelector('input[name="hora_salida_dia_' + i + '"]');
+                if (inp && inp.value) prev[i] = inp.value;
+            }
+            horaPorDiaWrapTorneos.innerHTML = '';
+            horaPorDiaWrapTorneos.style.display = 'block';
+            horaUnicaWrapTorneos.style.display = 'none';
+            if (singleInput) singleInput.removeAttribute('required');
+            for (var i = 1; i <= numDias; i++) {
+                var item = document.createElement('div');
+                item.className = 'campos-dias-item';
+                item.innerHTML = '<label for="hora-salida-dia-' + i + '-torneos">Hora de salida día ' + i + ' *</label><input type="time" id="hora-salida-dia-' + i + '-torneos" name="hora_salida_dia_' + i + '" title="Hora día ' + i + '" required value="' + (prev[i] || '') + '">';
+                horaPorDiaWrapTorneos.appendChild(item);
+            }
+        } else {
+            horaPorDiaWrapTorneos.style.display = 'none';
+            horaPorDiaWrapTorneos.innerHTML = '';
+            horaUnicaWrapTorneos.style.display = 'block';
+            if (singleInput) singleInput.setAttribute('required', 'required');
+        }
+    }
 
     function getHotelLabelFromValueTorneos(val) {
         if (!val || val.indexOf('-') < 0) return val || 'Sin reserva';
@@ -199,6 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
                 actualizarBloqueComidaTorneos(count, fechas || []);
+                generarHoraSalidaPorDiaTorneos(count);
                 actualizarResumenTorneo();
             }
         });
@@ -369,6 +399,14 @@ function actualizarResumenTorneo() {
 
     var tg = (formData.get('tamanio_grupo') || '').trim();
     var hs = (formData.get('hora_salida') || '').trim();
+    if (!hs && count >= 1) {
+        var horasDia = [];
+        for (var hd = 1; hd <= count; hd++) {
+            var v = (formData.get('hora_salida_dia_' + hd) || '').trim();
+            if (v) horasDia.push('Día ' + hd + ': ' + v);
+        }
+        if (horasDia.length) hs = horasDia.join(' · ');
+    }
     var ng = (formData.get('numero_grupos') || '').trim();
     if (tg || hs || ng) {
         var partsInit = [];

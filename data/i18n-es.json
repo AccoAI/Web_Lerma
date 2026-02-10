@@ -209,7 +209,7 @@
   "config_comida_intro": "Indica para cada día si reservas comida (almuerzo) y/o cena, y dónde.",
   "config_comida_sin_fechas": "Selecciona las fechas en el calendario para indicar comidas y cenas por día.",
   "config_datos_participantes": "4. Datos de los participantes",
-  "label_tamanio_grupo": "Tamaño del grupo",
+  "label_tamanio_grupo": "Tamaño del grupo *",
   "label_hora_salida": "Hora de salida",
   "label_num_grupos": "Nº de grupos",
   "config_hint": "Solo los datos de la reserva son obligatorios. Puedes añadir más participantes si lo deseas.",

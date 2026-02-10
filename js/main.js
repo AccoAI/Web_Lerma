@@ -403,6 +403,35 @@ function initConfiguradorPaquete() {
     var hotelesPorNocheContainer = document.getElementById('hoteles-por-noche-container');
     var comidaSinFechas = document.getElementById('comida-sin-fechas');
     var comidaPorDiaContainer = document.getElementById('comida-por-dia-container');
+    var horaPorDiaWrapFS = document.getElementById('hora-salida-por-dia-finsemana');
+    var horaUnicaWrapFS = document.getElementById('hora-salida-unica-finsemana');
+
+    function generarHoraSalidaPorDiaFinSemana(numDias) {
+        if (!horaPorDiaWrapFS || !horaUnicaWrapFS) return;
+        var singleInput = form && form.querySelector('input[name="hora_salida"]');
+        if (numDias > 1) {
+            var prev = {};
+            for (var i = 1; i <= numDias; i++) {
+                var inp = form && form.querySelector('input[name="hora_salida_dia_' + i + '"]');
+                if (inp && inp.value) prev[i] = inp.value;
+            }
+            horaPorDiaWrapFS.innerHTML = '';
+            horaPorDiaWrapFS.style.display = 'block';
+            horaUnicaWrapFS.style.display = 'none';
+            if (singleInput) singleInput.removeAttribute('required');
+            for (var i = 1; i <= numDias; i++) {
+                var item = document.createElement('div');
+                item.className = 'campos-dias-item';
+                item.innerHTML = '<label for="hora-salida-dia-' + i + '-fs">Hora de salida día ' + i + ' *</label><input type="time" id="hora-salida-dia-' + i + '-fs" name="hora_salida_dia_' + i + '" title="Hora día ' + i + '" required value="' + (prev[i] || '') + '">';
+                horaPorDiaWrapFS.appendChild(item);
+            }
+        } else {
+            horaPorDiaWrapFS.style.display = 'none';
+            horaPorDiaWrapFS.innerHTML = '';
+            horaUnicaWrapFS.style.display = 'block';
+            if (singleInput) singleInput.setAttribute('required', 'required');
+        }
+    }
 
     function generarCamposPorDiaFinSemana(numDias) {
         if (!diasCamposContainerFinSemana) return;
@@ -575,6 +604,7 @@ function initConfiguradorPaquete() {
                     }
                 }
                 actualizarBloqueComida(count, fechas || []);
+                generarHoraSalidaPorDiaFinSemana(count);
                 if (typeof actualizarResumen === 'function') actualizarResumen();
             }
         });
@@ -594,7 +624,7 @@ function initConfiguradorPaquete() {
         form.addEventListener('input', function (e) {
             var t = e.target;
             if (t && t.id === 'tamanio-grupo') recalcNumeroGrupos();
-            if (t && t.matches && t.matches('#tamanio-grupo, #hora-salida, #handicap-grupo, .ancillary-counter')) actualizarResumen();
+            if (t && t.matches && t.matches('#tamanio-grupo, #hora-salida, #handicap-grupo, .ancillary-counter, input[name^="hora_salida"]')) actualizarResumen();
         });
         window.actualizarResumen = actualizarResumen;
         document.addEventListener('i18n:changed', function () { if (typeof actualizarResumen === 'function') actualizarResumen(); });

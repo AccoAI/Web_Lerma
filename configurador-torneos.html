@@ -108,79 +108,24 @@
                             <span class="campos-dias-label">Campo para cada día *</span>
                             <div id="dias-campos-container-torneos" class="campos-dias-row"></div>
                         </div>
-                    </div>
-
-                    <!-- Selección de Hotel (solo si 2+ días) -->
-                    <div class="configurador-seccion" id="configurador-hotel-wrap-torneos" style="display: none;">
-                        <h3 class="configurador-titulo">2. Alojamiento</h3>
-                        <p class="hotel-ciudad-label">Elige el hotel para cada noche. Puedes combinar Lerma y Burgos (ej.: una noche en Lerma y otra en Burgos).</p>
-                        <div id="hotel-por-noche-block-torneos" class="hotel-por-noche-block">
-                            <span class="campos-dias-label">Hotel para cada noche:</span>
-                            <p class="hotel-noche-hint">Elige primero el <strong>lugar</strong> (Lerma o Burgos) y después el <strong>hotel</strong> de ese lugar.</p>
-                            <div id="hoteles-por-noche-container-torneos" class="campos-dias-row"></div>
+                        <div class="hora-salida-en-fechas-wrap" style="margin-top: 1rem;">
+                            <div id="hora-salida-por-dia-torneos" class="hora-salida-por-dia-container" style="display: none;"></div>
+                            <div id="hora-salida-unica-torneos" class="reserva-datos-iniciales">
+                                <div class="form-group-inline">
+                                    <label for="hora-salida-torneos">Hora de salida *</label>
+                                    <input type="time" id="hora-salida-torneos" name="hora_salida" title="Hora preferida de salida" required>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Opciones de Comida -->
+                    <!-- Datos de Usuarios (siempre segundo) -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">3. Opciones para comer</h3>
-                        <p class="comida-intro">Indica para cada día si reservas <strong>comida</strong> (almuerzo) y/o <strong>cena</strong>, y dónde.</p>
-                        <div id="comida-por-dia-wrap-torneos">
-                            <p class="comida-sin-fechas" id="comida-sin-fechas-torneos">Selecciona las fechas en el calendario para indicar comidas y cenas por día.</p>
-                            <div id="comida-por-dia-container-torneos" class="comida-por-dia-container" style="display:none;"></div>
-                        </div>
-                    </div>
-
-                    <!-- Modalidad -->
-                    <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">4. Modalidad</h3>
-                        <div class="modalidad-grid">
-                            <label class="modalidad-card">
-                                <input type="radio" name="modalidad" value="golf" required>
-                                <div class="modalidad-content">
-                                    <div class="modalidad-img-wrap"><img src="FOTOS/golfsaldaña.jpg" alt="Golf" class="modalidad-img"></div>
-                                    <span class="modalidad-titulo">Golf</span>
-                                    <span class="modalidad-desc">La modalidad tradicional, la esencia pura.</span>
-                                </div>
-                            </label>
-                            <label class="modalidad-card">
-                                <input type="radio" name="modalidad" value="pitch-putt" required>
-                                <div class="modalidad-content">
-                                    <div class="modalidad-img-wrap"><img src="FOTOS/pitch.jpg" alt="Pitch and Putt" class="modalidad-img"></div>
-                                    <span class="modalidad-titulo">Pitch and Putt</span>
-                                    <span class="modalidad-desc">Recortamos el campo a hoyos de entre 60 y 100 metros y proveemos buggies. 18 hoyos en menos de 1h 30.</span>
-                                </div>
-                            </label>
-                            <label class="modalidad-card">
-                                <input type="radio" name="modalidad" value="disc-golf" required>
-                                <div class="modalidad-content">
-                                    <div class="modalidad-img-wrap"><img src="FOTOS/discgolf.webp" alt="Disc Golf" class="modalidad-img"></div>
-                                    <span class="modalidad-titulo">Disc Golf</span>
-                                    <span class="modalidad-desc">Para los amantes del frisbee, una experiencia única. Disfruta de la naturaleza sin necesidad de saber golf.</span>
-                                </div>
-                            </label>
-                            <label class="modalidad-card">
-                                <input type="radio" name="modalidad" value="foot-golf" required>
-                                <div class="modalidad-content">
-                                    <div class="modalidad-img-wrap"><img src="FOTOS/footgolf.jpg" alt="Foot Golf" class="modalidad-img"></div>
-                                    <span class="modalidad-titulo">Foot Golf</span>
-                                    <span class="modalidad-desc">El deporte rey, una manera distinta de echar una pachanga. Cuenta tiros y no goles.</span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Datos de Usuarios -->
-                    <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">5. Datos de los participantes</h3>
+                        <h3 class="configurador-titulo">2. Datos de los participantes</h3>
                         <div class="reserva-datos-iniciales">
                             <div class="form-group-inline">
-                                <label for="tamanio-grupo-torneos">Tamaño del grupo</label>
-                                <input type="number" id="tamanio-grupo-torneos" name="tamanio_grupo" min="1" placeholder="Ej. 4" title="Número de jugadores">
-                            </div>
-                            <div class="form-group-inline">
-                                <label for="hora-salida-torneos">Hora de salida *</label>
-                                <input type="time" id="hora-salida-torneos" name="hora_salida" title="Hora preferida de salida" required>
+                                <label for="tamanio-grupo-torneos">Tamaño del grupo *</label>
+                                <input type="number" id="tamanio-grupo-torneos" name="tamanio_grupo" min="1" required placeholder="Ej. 4" title="Número de jugadores">
                             </div>
                             <div class="form-group-inline">
                                 <label for="numero-grupos-output-torneos">Nº de grupos</label>
@@ -230,6 +175,66 @@
                                 <span>+</span> Añadir participante
                             </button>
                             <span id="participantes-contador" class="participantes-contador" aria-live="polite"></span>
+                        </div>
+                    </div>
+
+                    <!-- Selección de Hotel (solo si 2+ días) -->
+                    <div class="configurador-seccion" id="configurador-hotel-wrap-torneos" style="display: none;">
+                        <h3 class="configurador-titulo">3. Alojamiento</h3>
+                        <p class="hotel-ciudad-label">Elige el hotel para cada noche. Puedes combinar Lerma y Burgos (ej.: una noche en Lerma y otra en Burgos).</p>
+                        <div id="hotel-por-noche-block-torneos" class="hotel-por-noche-block">
+                            <span class="campos-dias-label">Hotel para cada noche:</span>
+                            <p class="hotel-noche-hint">Elige primero el <strong>lugar</strong> (Lerma o Burgos) y después el <strong>hotel</strong> de ese lugar.</p>
+                            <div id="hoteles-por-noche-container-torneos" class="campos-dias-row"></div>
+                        </div>
+                    </div>
+
+                    <!-- Opciones de Comida -->
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo">4. Opciones para comer</h3>
+                        <p class="comida-intro">Indica para cada día si reservas <strong>comida</strong> (almuerzo) y/o <strong>cena</strong>, y dónde.</p>
+                        <div id="comida-por-dia-wrap-torneos">
+                            <p class="comida-sin-fechas" id="comida-sin-fechas-torneos">Selecciona las fechas en el calendario para indicar comidas y cenas por día.</p>
+                            <div id="comida-por-dia-container-torneos" class="comida-por-dia-container" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Modalidad -->
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo">5. Modalidad</h3>
+                        <div class="modalidad-grid">
+                            <label class="modalidad-card">
+                                <input type="radio" name="modalidad" value="golf" required>
+                                <div class="modalidad-content">
+                                    <div class="modalidad-img-wrap"><img src="FOTOS/golfsaldaña.jpg" alt="Golf" class="modalidad-img"></div>
+                                    <span class="modalidad-titulo">Golf</span>
+                                    <span class="modalidad-desc">La modalidad tradicional, la esencia pura.</span>
+                                </div>
+                            </label>
+                            <label class="modalidad-card">
+                                <input type="radio" name="modalidad" value="pitch-putt" required>
+                                <div class="modalidad-content">
+                                    <div class="modalidad-img-wrap"><img src="FOTOS/pitch.jpg" alt="Pitch and Putt" class="modalidad-img"></div>
+                                    <span class="modalidad-titulo">Pitch and Putt</span>
+                                    <span class="modalidad-desc">Recortamos el campo a hoyos de entre 60 y 100 metros y proveemos buggies. 18 hoyos en menos de 1h 30.</span>
+                                </div>
+                            </label>
+                            <label class="modalidad-card">
+                                <input type="radio" name="modalidad" value="disc-golf" required>
+                                <div class="modalidad-content">
+                                    <div class="modalidad-img-wrap"><img src="FOTOS/discgolf.webp" alt="Disc Golf" class="modalidad-img"></div>
+                                    <span class="modalidad-titulo">Disc Golf</span>
+                                    <span class="modalidad-desc">Para los amantes del frisbee, una experiencia única. Disfruta de la naturaleza sin necesidad de saber golf.</span>
+                                </div>
+                            </label>
+                            <label class="modalidad-card">
+                                <input type="radio" name="modalidad" value="foot-golf" required>
+                                <div class="modalidad-content">
+                                    <div class="modalidad-img-wrap"><img src="FOTOS/footgolf.jpg" alt="Foot Golf" class="modalidad-img"></div>
+                                    <span class="modalidad-titulo">Foot Golf</span>
+                                    <span class="modalidad-desc">El deporte rey, una manera distinta de echar una pachanga. Cuenta tiros y no goles.</span>
+                                </div>
+                            </label>
                         </div>
                     </div>
 

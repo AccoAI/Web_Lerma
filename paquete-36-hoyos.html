@@ -112,18 +112,23 @@
                             <span class="campos-dias-label">Campo para cada día *</span>
                             <div id="dias-campos-container-36h" class="campos-dias-row"></div>
                         </div>
+                        <div class="hora-salida-en-fechas-wrap" style="margin-top: 1rem;">
+                            <div id="hora-salida-por-dia-36h" class="hora-salida-por-dia-container" style="display: none;"></div>
+                            <div id="hora-salida-unica-36h" class="reserva-datos-iniciales">
+                                <div class="form-group-inline">
+                                    <label for="hora-salida">Hora de salida *</label>
+                                    <input type="time" id="hora-salida" name="hora_salida" title="Hora preferida de salida" required>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">3. Datos de los participantes</h3>
+                        <h3 class="configurador-titulo">2. Datos de los participantes</h3>
                         <div class="reserva-datos-iniciales">
                             <div class="form-group-inline">
-                                <label for="tamanio-grupo">Tamaño del grupo</label>
-                                <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" placeholder="Ej. 4" title="Número de jugadores">
-                            </div>
-                            <div class="form-group-inline">
-                                <label for="hora-salida">Hora de salida *</label>
-                                <input type="time" id="hora-salida" name="hora_salida" title="Hora preferida de salida" required>
+                                <label for="tamanio-grupo">Tamaño del grupo *</label>
+                                <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" required placeholder="Ej. 4" title="Número de jugadores">
                             </div>
                             <div class="form-group-inline">
                                 <label for="numero-grupos-output">Nº de grupos</label>
@@ -308,6 +313,35 @@
             var cal = document.getElementById('calendario-dias-36h');
             var camposDias36h = document.getElementById('campos-dias-36h');
             var diasCamposContainer36h = document.getElementById('dias-campos-container-36h');
+            var horaPorDiaWrap36h = document.getElementById('hora-salida-por-dia-36h');
+            var horaUnicaWrap36h = document.getElementById('hora-salida-unica-36h');
+
+            function generarHoraSalidaPorDia36h(numDias) {
+                if (!horaPorDiaWrap36h || !horaUnicaWrap36h) return;
+                var singleInput = form && form.querySelector('input[name="hora_salida"]');
+                if (numDias > 1) {
+                    var prev = {};
+                    for (var i = 1; i <= numDias; i++) {
+                        var inp = form && form.querySelector('input[name="hora_salida_dia_' + i + '"]');
+                        if (inp && inp.value) prev[i] = inp.value;
+                    }
+                    horaPorDiaWrap36h.innerHTML = '';
+                    horaPorDiaWrap36h.style.display = 'block';
+                    horaUnicaWrap36h.style.display = 'none';
+                    if (singleInput) singleInput.removeAttribute('required');
+                    for (var i = 1; i <= numDias; i++) {
+                        var item = document.createElement('div');
+                        item.className = 'campos-dias-item';
+                        item.innerHTML = '<label for="hora-salida-dia-' + i + '-36h">Hora de salida día ' + i + ' *</label><input type="time" id="hora-salida-dia-' + i + '-36h" name="hora_salida_dia_' + i + '" title="Hora día ' + i + '" required value="' + (prev[i] || '') + '">';
+                        horaPorDiaWrap36h.appendChild(item);
+                    }
+                } else {
+                    horaPorDiaWrap36h.style.display = 'none';
+                    horaPorDiaWrap36h.innerHTML = '';
+                    horaUnicaWrap36h.style.display = 'block';
+                    if (singleInput) singleInput.setAttribute('required', 'required');
+                }
+            }
 
             function generarCamposPorDia36h(numDias) {
                 if (!diasCamposContainer36h) return;
@@ -441,6 +475,7 @@
                                 camposDias36h.style.display = 'none';
                             }
                         }
+                        generarHoraSalidaPorDia36h(count);
                         if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
                     }
                 });
