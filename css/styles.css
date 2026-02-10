@@ -4220,18 +4220,28 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 .area-pago-check {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     cursor: pointer;
     font-weight: 500;
     color: var(--color-text);
+    margin-bottom: 0;
+    line-height: 1.4;
 }
 
-.area-pago-check input {
-    width: auto;
+.area-pago-check input[type="checkbox"] {
+    width: 1.125rem;
+    height: 1.125rem;
     margin: 0;
     flex-shrink: 0;
+    vertical-align: middle;
+    align-self: center;
+}
+
+.area-pago-check span {
+    line-height: 1.4;
+    display: inline-block;
 }
 
 .btn-pago-socio {
