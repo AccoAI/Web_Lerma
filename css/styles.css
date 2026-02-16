@@ -1865,21 +1865,23 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 .hora-salida-por-dia-container {
     display: flex;
     flex-wrap: wrap;
-    align-items: stretch;
-    gap: 1rem 1.5rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem 1rem;
 }
 
 .hora-salida-por-dia-container .campos-dias-item {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.4rem;
-    min-width: 140px;
-    padding: 0.75rem 1rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    padding: 0.5rem 0.75rem;
     background: var(--color-white);
     border: 1px solid rgba(26, 77, 58, 0.15);
     border-radius: 8px;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    flex-shrink: 0;
 }
 
 .hora-salida-por-dia-container .campos-dias-item:hover {
@@ -1892,14 +1894,16 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     font-weight: 600;
     color: var(--color-primary);
     flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .hora-salida-por-dia-container .campos-dias-item input[type="time"] {
-    width: 100%;
-    padding: 0.55rem 0.75rem;
+    width: auto;
+    min-width: 5.5rem;
+    padding: 0.4rem 0.5rem;
     border: 2px solid #e5e5e5;
     border-radius: 6px;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-family: inherit;
     color: var(--color-text);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
