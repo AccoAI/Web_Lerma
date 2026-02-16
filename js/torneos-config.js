@@ -127,11 +127,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 '<span class="hotel-noche-num">Noche ' + i + '</span>',
                 '<div class="hotel-noche-par">',
                 '<label for="lugar-noche-' + i + '-torneos">Lugar</label>',
-                '<select id="lugar-noche-' + i + '-torneos" name="lugar-noche-' + i + '" required aria-label="Lugar noche ' + i + '">' + lugarOpts + '</select>',
+                '<select id="lugar-noche-' + i + '-torneos" name="lugar-noche-' + i + '" aria-label="Lugar noche ' + i + '">' + lugarOpts + '</select>',
                 '</div>',
                 '<div class="hotel-noche-par">',
                 '<label for="hotel-noche-' + i + '-torneos">Hotel</label>',
-                '<select id="hotel-noche-' + i + '-torneos" name="hotel-noche-' + i + '" required aria-label="Hotel noche ' + i + '">' + hotelOptHtml + '</select>',
+                '<select id="hotel-noche-' + i + '-torneos" name="hotel-noche-' + i + '" aria-label="Hotel noche ' + i + '">' + hotelOptHtml + '</select>',
                 '</div>'
             ].join('');
             hotelesPorNocheContainerTorneos.appendChild(item);
@@ -332,8 +332,8 @@ function actualizarResumenTorneo() {
     var necesitaHotel = count >= 2;
     var hotelOk = !necesitaHotel || (function () {
         var n = parseInt((formData.get('noches') || '0'), 10);
-        for (var i = 1; i <= n; i++) { if (!formData.get('hotel-noche-' + i)) return false; }
-        return true;
+        for (var i = 1; i <= n; i++) { if ((formData.get('hotel-noche-' + i) || '').trim()) return true; }
+        return false;
     })();
 
     var nNoches = parseInt((formData.get('noches') || '0'), 10);

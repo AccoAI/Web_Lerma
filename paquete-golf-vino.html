@@ -118,7 +118,7 @@
                             <span class="campos-dias-label">Campo para cada día *</span>
                             <div id="dias-campos-container-vino" class="campos-dias-row"></div>
                         </div>
-                        <div class="hora-salida-en-fechas-wrap" style="margin-top: 1rem;">
+                        <div class="hora-salida-en-fechas-wrap">
                             <div id="hora-salida-por-dia-vino" class="hora-salida-por-dia-container" style="display: none;"></div>
                             <div id="hora-salida-unica-vino" class="reserva-datos-iniciales">
                                 <div class="form-group-inline">
@@ -450,11 +450,11 @@
                         '<span class="hotel-noche-num">Noche ' + i + '</span>',
                         '<div class="hotel-noche-par">',
                         '<label for="lugar-noche-' + i + '-vino">Lugar</label>',
-                        '<select id="lugar-noche-' + i + '-vino" name="lugar-noche-' + i + '" required aria-label="Lugar noche ' + i + '">' + lugarOpts + '</select>',
+                        '<select id="lugar-noche-' + i + '-vino" name="lugar-noche-' + i + '" aria-label="Lugar noche ' + i + '">' + lugarOpts + '</select>',
                         '</div>',
                         '<div class="hotel-noche-par">',
                         '<label for="hotel-noche-' + i + '-vino">Hotel</label>',
-                        '<select id="hotel-noche-' + i + '-vino" name="hotel-noche-' + i + '" required aria-label="Hotel noche ' + i + '">' + hotelOptHtml + '</select>',
+                        '<select id="hotel-noche-' + i + '-vino" name="hotel-noche-' + i + '" aria-label="Hotel noche ' + i + '">' + hotelOptHtml + '</select>',
                         '</div>'
                     ].join('');
                     hotelesPorNocheContainerVino.appendChild(item);
@@ -495,8 +495,8 @@
                 var necesitaHotel = count >= 2;
                 var hotelOk = !necesitaHotel || (function () {
                     var n = parseInt((fd.get('noches') || '0'), 10);
-                    for (var i = 1; i <= n; i++) { if (!fd.get('hotel-noche-' + i)) return false; }
-                    return true;
+                    for (var i = 1; i <= n; i++) { if ((fd.get('hotel-noche-' + i) || '').trim()) return true; }
+                    return false;
                 })();
                 
                 var nNoches = parseInt((fd.get('noches') || '0'), 10);
@@ -571,8 +571,13 @@
                 if (numGF === 0) totalGF = 50; // dummy: 50€ base
                 var gf = totalGF * numParticipants;
                 
-                // DUMMY: Alojamiento
-                var aloj = (necesitaHotel && hotelOk) ? (nNoches * 75) : 0; // dummy: 75€/noche
+                // DUMMY: Alojamiento (solo noches con hotel seleccionado)
+                var aloj = 0;
+                if (necesitaHotel && nNoches >= 1) {
+                    for (var inx = 1; inx <= nNoches; inx++) {
+                        if ((fd.get('hotel-noche-' + inx) || '').trim()) aloj += 75; // 75€/noche
+                    }
+                }
                 
                 // DUMMY: Cata de vinos y transporte
                 var vinoVal = 40 * numParticipants; // dummy: 40€/persona (cata + transporte)

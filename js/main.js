@@ -519,11 +519,11 @@ function initConfiguradorPaquete() {
                 '<span class="hotel-noche-num">Noche ' + i + '</span>',
                 '<div class="hotel-noche-par">',
                 '<label for="lugar-noche-' + i + '">Lugar</label>',
-                '<select id="lugar-noche-' + i + '" name="lugar-noche-' + i + '" required aria-label="Lugar noche ' + i + '">' + lugarOpts + '</select>',
+                '<select id="lugar-noche-' + i + '" name="lugar-noche-' + i + '" aria-label="Lugar noche ' + i + '">' + lugarOpts + '</select>',
                 '</div>',
                 '<div class="hotel-noche-par">',
                 '<label for="hotel-noche-' + i + '">Hotel</label>',
-                '<select id="hotel-noche-' + i + '" name="hotel-noche-' + i + '" required aria-label="Hotel noche ' + i + '">' + hotelOptHtml + '</select>',
+                '<select id="hotel-noche-' + i + '" name="hotel-noche-' + i + '" aria-label="Hotel noche ' + i + '">' + hotelOptHtml + '</select>',
                 '</div>'
             ].join('');
             hotelesPorNocheContainer.appendChild(item);
@@ -652,8 +652,8 @@ function initConfiguradorPaquete() {
         var necesitaHotel = count >= 2;
         var hotelOk = !necesitaHotel || (function () {
             var n = parseInt(noches || '0', 10);
-            for (var i = 1; i <= n; i++) { if (!formData.get('hotel-noche-' + i)) return false; }
-            return true;
+            for (var i = 1; i <= n; i++) { if ((formData.get('hotel-noche-' + i) || '').trim()) return true; }
+            return false;
         })();
 
         var nNoches = parseInt(noches || '0', 10);
@@ -808,16 +808,6 @@ function initConfiguradorPaquete() {
             }
             var fechas = formData.getAll('fechas[]');
             var count = (fechas || []).length;
-            if (count >= 2) {
-                var n = parseInt(noches, 10);
-                for (var i = 1; i <= n; i++) {
-                    if (!formData.get('hotel-noche-' + i)) {
-                        alert('Selecciona un hotel para cada noche.');
-                        return;
-                    }
-                }
-            }
-
             var camposPorDia = {};
             if (fechas) for (var i = 1; i <= fechas.length; i++) {
                 var c = formData.get('campo-dia-' + i);

@@ -83,11 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 '<span class="hotel-noche-num">Noche ' + i + '</span>',
                 '<div class="hotel-noche-par">',
                 '<label for="lugar-noche-' + i + '-ryder">Lugar</label>',
-                '<select id="lugar-noche-' + i + '-ryder" name="lugar-noche-' + i + '" required aria-label="Lugar noche ' + i + '">' + lugarOpts + '</select>',
+                '<select id="lugar-noche-' + i + '-ryder" name="lugar-noche-' + i + '" aria-label="Lugar noche ' + i + '">' + lugarOpts + '</select>',
                 '</div>',
                 '<div class="hotel-noche-par">',
                 '<label for="hotel-noche-' + i + '-ryder">Hotel</label>',
-                '<select id="hotel-noche-' + i + '-ryder" name="hotel-noche-' + i + '" required aria-label="Hotel noche ' + i + '">' + hotelOptHtml + '</select>',
+                '<select id="hotel-noche-' + i + '-ryder" name="hotel-noche-' + i + '" aria-label="Hotel noche ' + i + '">' + hotelOptHtml + '</select>',
                 '</div>'
             ].join('');
             hotelesPorNocheContainerRyder.appendChild(item);
@@ -229,10 +229,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         var nNoches = parseInt(noches || '0', 10);
         var sectionAlojamientoShown = formData.get('hotel-noche-1') !== null;
-        var hotelOk = true;
+        var hotelOk = false;
         if (nNoches >= 1 && sectionAlojamientoShown) {
             for (var i = 1; i <= nNoches; i++) {
-                if (!formData.get('hotel-noche-' + i)) { hotelOk = false; break; }
+                if ((formData.get('hotel-noche-' + i) || '').trim()) { hotelOk = true; break; }
             }
         }
 

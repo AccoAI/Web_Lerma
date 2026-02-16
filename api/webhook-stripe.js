@@ -8,6 +8,7 @@
  * Variables de entorno en Vercel:
  *   STRIPE_SECRET_KEY      - ya usada en crear-pago
  *   STRIPE_WEBHOOK_SECRET  - Signing secret del webhook (whsec_...)
+ *   STRIPE_WEBHOOK_SECRET_LOCAL - (opcional) Para desarrollo: secret del CLI (stripe listen). Si está definida, se usa en lugar de STRIPE_WEBHOOK_SECRET.
  *   TWILIO_* / WHATSAPP_*  - Para WhatsApp (ver STRIPE-SETUP.md)
  *   RESEND_API_KEY         - API key de Resend
  *   RESEND_EMAIL_FROM      - Remitente (ej: Golf Lerma <reservas@tudominio.com>)
@@ -16,7 +17,24 @@
  */
 
 import Stripe from 'stripe';
+import { readFileSync, existsSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 import { sendEmail } from '../lib/resend.js';
+
+function loadLocalWebhookSecret() {
+  if (process.env.STRIPE_WEBHOOK_SECRET_LOCAL) return process.env.STRIPE_WEBHOOK_SECRET_LOCAL;
+  try {
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    const envPath = join(__dirname, '..', '.env.local');
+    if (!existsSync(envPath)) return '';
+    const content = readFileSync(envPath, 'utf8');
+    const match = content.match(/STRIPE_WEBHOOK_SECRET_LOCAL\s*=\s*([^\r\n#]+)/m);
+    return match ? match[1].trim().replace(/^["']|["']$/g, '') : '';
+  } catch {
+    return '';
+  }
+}
 
 const nombresPaquete = {
   'fin-semana': 'Fin de Semana Golf Burgos',
@@ -80,7 +98,9 @@ export async function GET() {
 
 export async function POST(request) {
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const localSecretRaw = loadLocalWebhookSecret();
+  const mainSecretRaw = process.env.STRIPE_WEBHOOK_SECRET || '';
+  const webhookSecret = (localSecretRaw.trim() || mainSecretRaw).trim().replace(/^["']|["']$/g, '');
 
   if (!stripeSecretKey) {
     console.error('STRIPE_SECRET_KEY no configurada');
@@ -93,13 +113,20 @@ export async function POST(request) {
   }
 
   let event;
+  const rawBody = await request.text();
+  const signature = request.headers.get('stripe-signature') || '';
   try {
-    const rawBody = await request.text();
-    const signature = request.headers.get('stripe-signature') || '';
     const stripe = new Stripe(stripeSecretKey);
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
   } catch (err) {
-    console.error('Webhook Stripe signature error:', err.message);
+    console.error(
+      'Webhook Stripe signature error:',
+      err.message,
+      '| bodyLength:',
+      rawBody.length,
+      '| usingLocalSecret:',
+      !!localSecretRaw.trim()
+    );
     return jsonResponse({ error: 'Firma inválida' }, 400);
   }
 
