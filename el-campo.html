@@ -152,15 +152,135 @@
             <div id="panel-recorrido" class="campo-tab-panel" role="tabpanel" aria-labelledby="tab-recorrido" hidden>
                 <div class="campo-seccion">
                     <h3 class="campo-titulo" data-i18n="recorrido_title">Recorrido de 18 hoyos</h3>
-                    <div class="campo-restaurante-layout">
-                        <div class="campo-imagen-lateral">
-                            <img src="FOTOS/Vista-Aérea-Golf-Lerma-1170x780.jpg" alt="Vista aérea del recorrido Golf Lerma">
-                        </div>
-                        <div class="campo-contenido-lateral">
-                            <p data-i18n="recorrido_text1">El campo de Golf Lerma dispone de 18 hoyos distribuidos en 5.900 metros de recorrido. Diseñado por Pepe Gancedo sobre el paraje natural de La Andaya, combina calles amplias con retos técnicos en los greenes.</p>
-                            <p data-i18n="recorrido_text2">Ocho lagos y dos riachuelos acompañan el juego, añadiendo emoción a varios hoyos. El viento, habitual en la meseta castellana, convierte cada partida en un desafío distinto.</p>
-                            <p data-i18n="recorrido_par">Par 72 · 5.900 m · Campo de amplios horizontes con encinas, sabinas y robles.</p>
-                        </div>
+                    <p class="recorrido-intro" data-i18n="recorrido_text1">El campo de Golf Lerma dispone de 18 hoyos distribuidos en 5.900 metros de recorrido. Diseñado por Pepe Gancedo sobre el paraje natural de La Andaya, combina calles amplias con retos técnicos en los greenes.</p>
+                    <p class="recorrido-intro" data-i18n="recorrido_text2">Ocho lagos y dos riachuelos acompañan el juego, añadiendo emoción a varios hoyos. El viento, habitual en la meseta castellana, convierte cada partida en un desafío distinto.</p>
+                    <p class="recorrido-intro recorrido-par" data-i18n="recorrido_par">Par 72 · 5.900 m · Campo de amplios horizontes con encinas, sabinas y robles.</p>
+                    <div class="recorrido-tabla-wrap">
+                        <table class="recorrido-tabla" aria-label="Tarjeta de recorrido: distancias por tees, par y handicap">
+                            <caption class="recorrido-tabla-caption">Tarjeta de recorrido</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Tees</th>
+                                    <th scope="col">1</th><th scope="col">2</th><th scope="col">3</th><th scope="col">4</th><th scope="col">5</th><th scope="col">6</th><th scope="col">7</th><th scope="col">8</th><th scope="col">9</th>
+                                    <th scope="col" class="recorrido-tabla-ida">IDA</th>
+                                    <th scope="col">10</th><th scope="col">11</th><th scope="col">12</th><th scope="col">13</th><th scope="col">14</th><th scope="col">15</th><th scope="col">16</th><th scope="col">17</th><th scope="col">18</th>
+                                    <th scope="col" class="recorrido-tabla-vta">VTA</th>
+                                    <th scope="col">TOT</th>
+                                    <th scope="col">VC</th><th scope="col">VS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><th scope="row">Blancas</th><td>559</td><td>410</td><td>365</td><td>327</td><td>156</td><td>359</td><td>285</td><td>483</td><td>204</td><td>3148</td><td>498</td><td>398</td><td>202</td><td>382</td><td>342</td><td>190</td><td>383</td><td>530</td><td>305</td><td>3230</td><td>6378</td><td>73.5</td><td>138</td></tr>
+                                <tr><th scope="row">Amarillas</th><td>518</td><td>377</td><td>335</td><td>309</td><td>138</td><td>343</td><td>277</td><td>436</td><td>170</td><td>2903</td><td>484</td><td>378</td><td>193</td><td>358</td><td>327</td><td>179</td><td>368</td><td>507</td><td>277</td><td>3071</td><td>5974</td><td>71.6</td><td>133</td></tr>
+                                <tr><th scope="row">Azules</th><td>483</td><td>342</td><td>294</td><td>252</td><td>126</td><td>290</td><td>239</td><td>407</td><td>136</td><td>2569</td><td>437</td><td>342</td><td>166</td><td>310</td><td>302</td><td>147</td><td>338</td><td>470</td><td>257</td><td>2769</td><td>5338</td><td>73.2</td><td>137</td></tr>
+                                <tr><th scope="row">Rojas</th><td>454</td><td>336</td><td>280</td><td>245</td><td>111</td><td>279</td><td>231</td><td>379</td><td>122</td><td>2437</td><td>419</td><td>320</td><td>161</td><td>298</td><td>285</td><td>121</td><td>330</td><td>448</td><td>237</td><td>2619</td><td>5056</td><td>71.6</td><td>134</td></tr>
+                                <tr class="recorrido-tabla-par"><th scope="row">Par</th><td>5</td><td>4</td><td>4</td><td>4</td><td>3</td><td>4</td><td>4</td><td>5</td><td>3</td><td>36</td><td>5</td><td>4</td><td>3</td><td>4</td><td>4</td><td>3</td><td>4</td><td>5</td><td>4</td><td>36</td><td>72</td><td></td><td></td></tr>
+                                <tr class="recorrido-tabla-hcp"><th scope="row">Handicap</th><td>4</td><td>2</td><td>12</td><td>6</td><td>14</td><td>18</td><td>10</td><td>16</td><td>8</td><td></td><td>5</td><td>11</td><td>9</td><td>17</td><td>7</td><td>15</td><td>1</td><td>13</td><td>3</td><td></td><td></td><td></td><td></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <section class="recorrido-reglas-locales" aria-labelledby="reglas-locales-title">
+                        <h4 id="reglas-locales-title" class="recorrido-reglas-titulo">REGLAS LOCALES</h4>
+                        <p class="recorrido-reglas-enlace">Reglas locales permanentes y condiciones de la competición <a href="https://www.rfegolf.es/normativa/reglas-y-reglamentos" target="_blank" rel="noopener noreferrer">pinchar aquí</a>.</p>
+                        <p class="recorrido-reglas-intro">Serán de aplicación las condiciones de la competición y las reglas locales permanentes de la R.F.E.G. AM y las siguientes:</p>
+                        <ol class="recorrido-reglas-lista">
+                            <li><strong>Obstrucciones (regla 24)</strong> a) Todos los caminos, independientemente de la constitución de su superficie, se considera parte integrante del campo, no pudiéndose obtener alivio sin penalidad.</li>
+                            <li><strong>Zonas de dropaje.</strong> Obstrucciones de agua de los hoyos 9 y 18. Durante el juego de los hoyos 9 y 18 se establece una zona de dropaje, según nota, pto 2 secc. A de las reglas locales permanentes.</li>
+                            <li><strong>Dispositivos artificiales (regla 14-3)</strong> Un jugador puede obtener información sobre distancia utilizando un dispositivo de medición de distancia. Si durante una vuelta un jugador utiliza un dispositivo para calcular o medir otra condición que pudiera afectar al juego (ej: cambios de elevación, velocidad del viento, etc.) el jugador infringirá la Regla 14-3.</li>
+                        </ol>
+                        <p class="recorrido-reglas-penalidad">Penalidad por infracción de regla local: Match Play – Pérdida de hoyo. Stroke Play – Dos golpes.</p>
+                    </section>
+                    <div class="recorrido-hoyos-grid" aria-label="Mapas de los 18 hoyos del campo">
+                        <figure class="recorrido-hoyo-card">
+                            <img src="FOTOS/hoyo1.jpg" alt="Hoyo 1 - Par 5, Hcp 4" loading="lazy">
+                            <figcaption><strong>Hoyo 1</strong> Par 5 · Hcp 4</figcaption>
+                            <p class="recorrido-hoyo-desc">Para comenzar el recorrido nos enfrentamos a un hoyo tranquilo, en el cual debemos evitar el agua de la izquierda de la calle para tener mejor entrada a green. Existe fuera de límites por la derecha, eso sí, bastante alejado.</p>
+                        </figure>
+                        <figure class="recorrido-hoyo-card">
+                            <img src="FOTOS/hoyo2.jpg" alt="Hoyo 2 - Par 4, Hcp 4" loading="lazy">
+                            <figcaption><strong>Hoyo 2</strong> Par 4 · Hcp 4</figcaption>
+                            <p class="recorrido-hoyo-desc">En el tee nos encontramos con agua a la izquierda. Los jugadores con handicap alto deberán jugar por la derecha en salida. Los que posean handicap bajo podrán sobrevolar el primer lago. Es recomendable apoyar tiro a green por la derecha.</p>
+                        </figure>
+                        <figure class="recorrido-hoyo-card">
+                            <img src="FOTOS/hoyo3.jpg" alt="Hoyo 3 - Par 4, Hcp 12" loading="lazy">
+                            <figcaption><strong>Hoyo 3</strong> Par 4 · Hcp 12</figcaption>
+                            <p class="recorrido-hoyo-desc">Importante no fallar a la salida por la derecha. Nos encontraremos con un green complicado, estructurado en dos plataformas y protegido por un bunker a la izquierda.</p>
+                        </figure>
+                        <figure class="recorrido-hoyo-card">
+                            <img src="FOTOS/hoyo4.jpg" alt="Hoyo 4 - Par 4, Hcp 6" loading="lazy">
+                            <figcaption><strong>Hoyo 4</strong> Par 4 · Hcp 6</figcaption>
+                            <p class="recorrido-hoyo-desc">Para evitar problemas, apoyar el golpe de salida a la izquierda. Los pegadores deben intentar sobrevolar el bunker derecho. Encontarán un green en alto, rodeado por un gran bunker. Cuidado con pasarse de green en el aproach.</p>
+                        </figure>
+                        <figure class="recorrido-hoyo-card">
+                            <img src="FOTOS/hoyo5.jpg" alt="Hoyo 5 - Par 3, Hcp 14" loading="lazy">
+                            <figcaption><strong>Hoyo 5</strong> Par 3 · Hcp 14</figcaption>
+                            <p class="recorrido-hoyo-desc">Este par tres nos recibirá con un green muy grande, aunque tiene, claro, su pero. La dificultad para llegar a él reside en que la línea de la calle se encuentra totalmente rodeada de árboles.</p>
+                        </figure>
+                        <figure class="recorrido-hoyo-card">
+                            <img src="FOTOS/hoyo6.jpg" alt="Hoyo 6 - Par 4" loading="lazy">
+                            <figcaption><strong>Hoyo 6</strong> Par 4</figcaption>
+                            <p class="recorrido-hoyo-desc">Este hoyo, de par cuatro, presenta en su amplia calle un ligero dog-leg hacia la izquierda. Conviene apoyar hacia este lado el golpe de salida. A la hora de negociar el segundo golpe debemos tener en cuenta que el green se encuentra cuesta abajo.</p>
+                        </figure>
+                        <figure class="recorrido-hoyo-card">
+                            <img src="FOTOS/hoyo7.jpg" alt="Hoyo 7 - Par 4" loading="lazy">
+                            <figcaption><strong>Hoyo 7</strong> Par 4</figcaption>
+                            <p class="recorrido-hoyo-desc">Par cuatro con obstáculo de agua. Excepto osados, el golpe de salida debería jugarse corto y por la derecha, incluso con un hierro, para no encontrarnos la bola en el lago. La bandera se nos ofrece en un green con dos plataformas.</p>
+                        </figure>
+                        <figure class="recorrido-hoyo-card">
+                            <img src="FOTOS/hoyo8.jpg" alt="Hoyo 8 - Par 5, Hcp 16" loading="lazy">
+                            <figcaption><strong>Hoyo 8</strong> Par 5 · Hcp 16</figcaption>
+                            <p class="recorrido-hoyo-desc">Hoyo de recuperación, de par cinco, en el que los pegadores pueden alcanzar el green en dos golpes. Al llegar al green nos encontraremos que éste se encuentra fuertemente protegido por bunkers.</p>
+                        </figure>
+                        <figure class="recorrido-hoyo-card">
+                            <img src="FOTOS/hoyo9.jpg" alt="Hoyo 9 - Par 3, Hcp 8" loading="lazy">
+                            <figcaption><strong>Hoyo 9</strong> Par 3 · Hcp 8</figcaption>
+                            <p class="recorrido-hoyo-desc">Para terminar la primera vuelta, impresionante par tres, cuyo green se encuentra protegido, tanto por la derecha como por delante, por un lago. Tras sobrevolar el agua la bola será recibida en un green de 50 metros, con tres plataformas y bunker a la izquierda.</p>
+                        </figure>
+                        <figure class="recorrido-hoyo-card">
+                            <img src="FOTOS/hoyo10.jpg" alt="Hoyo 10 - Par 5, Hcp 5" loading="lazy">
+                            <figcaption><strong>Hoyo 10</strong> Par 5 · Hcp 5</figcaption>
+                            <p class="recorrido-hoyo-desc">Sólo con viento a favor, amén de un buen brazo, se consigue sobrevolar el agua en el golpe de salida. Conviene colocar el segundo golpe a la izquierda de la calle. El green, muy definido, se protege con un gran bunker que lo rodea.</p>
+                        </figure>
+                        <figure class="recorrido-hoyo-card">
+                            <img src="FOTOS/hoyo11.jpg" alt="Hoyo 11 - Par 4, Hcp 11" loading="lazy">
+                            <figcaption><strong>Hoyo 11</strong> Par 4 · Hcp 11</figcaption>
+                            <p class="recorrido-hoyo-desc">Tres sabinas centenarias dividen la calle de este par cuatro haciendo que en el golpe de salida debamos elegir jugar a un lado u otro de estos árboles. El green, con tres plataformas, nos espera en alto.</p>
+                        </figure>
+                        <figure class="recorrido-hoyo-card">
+                            <img src="FOTOS/hoyo12.jpg" alt="Hoyo 12 - Par 3, Hcp 9" loading="lazy">
+                            <figcaption><strong>Hoyo 12</strong> Par 3 · Hcp 9</figcaption>
+                            <p class="recorrido-hoyo-desc">Largo par tres en el que, desde el tee situado en alto, divisamos fácilmente la bandera en línea recta. Con el primer golpe debemos alcanzar su enorme green, que se encuentra defendido por bunkers a izquierda y derecha.</p>
+                        </figure>
+                        <figure class="recorrido-hoyo-card">
+                            <img src="FOTOS/hoyo13.jpg" alt="Hoyo 13 - Par 4, Hcp 17" loading="lazy">
+                            <figcaption><strong>Hoyo 13</strong> Par 4 · Hcp 17</figcaption>
+                            <p class="recorrido-hoyo-desc">Este par cuatro presenta un ajustado fuera de límites a la izquierda de la calle y un gran bunker ubicado a la derecha de la misma que los buenos pegadores pueden sobrepasar sin complicaciones en su golpe de salida. El green, amplio y protegido por un bunker a la izquierda, no ofrece complicaciones.</p>
+                        </figure>
+                        <figure class="recorrido-hoyo-card">
+                            <img src="FOTOS/hoyo14.jpg" alt="Hoyo 14 - Par 4, Hcp 7" loading="lazy">
+                            <figcaption><strong>Hoyo 14</strong> Par 4 · Hcp 7</figcaption>
+                            <p class="recorrido-hoyo-desc">Si queremos evitar el rough, debemos apoyar el golpe de salida hacia la izquierda de la calle. Solventado el primer golpe, nos encontraremos un green en alto, distribuido en dos plataformas y defendido con bunkers a ambos lados.</p>
+                        </figure>
+                        <figure class="recorrido-hoyo-card">
+                            <img src="FOTOS/hoyo15.jpg" alt="Hoyo 15 - Par 3, Hcp 15" loading="lazy">
+                            <figcaption><strong>Hoyo 15</strong> Par 3 · Hcp 15</figcaption>
+                            <p class="recorrido-hoyo-desc">El green del último par tres al que nos enfrentaremos en el recorrido está defendido por un bunker a la izquierda y un bello y antiguo ejemplar de sabina en el borde derecho. Conviene apoyar el golpe de salida a la derecha para evitar encuentros con la arena.</p>
+                        </figure>
+                        <figure class="recorrido-hoyo-card">
+                            <img src="FOTOS/hoyo16.jpg" alt="Hoyo 16 - Par 4, Hcp 1" loading="lazy">
+                            <figcaption><strong>Hoyo 16</strong> Par 4 · Hcp 1</figcaption>
+                            <p class="recorrido-hoyo-desc">Probablemente sea éste el hoyo más complicado del campo. ¿Que por qué?: Dog-Leg hacia la izquierda y un espeso bosque por ese lado que hacen que la salida deba ser conservadora hacia la derecha. El Handicap alto debería jugarlo como par cinco por la derecha. El Handicap bajo puede acortar por encima de los árboles. Green sin complicaciones, protegido por un bunker corto con gran talud.</p>
+                        </figure>
+                        <figure class="recorrido-hoyo-card">
+                            <img src="FOTOS/hoyo17.jpg" alt="Hoyo 17 - Par 5, Hcp 13" loading="lazy">
+                            <figcaption><strong>Hoyo 17</strong> Par 5 · Hcp 13</figcaption>
+                            <p class="recorrido-hoyo-desc">Es un hoyo muy largo, de par cinco, que debemos jugar por la derecha si queremos evitar obstáculos. Los pegadores pueden acortar por encima de los bunkers que se entrometen en el discurrir de la calle tanto en el primer golpe, bunker a la izquierda, como en el segundo golpe, bunker a la derecha. Como recompensa, el green nos recibirá sin sorpresas de arena.</p>
+                        </figure>
+                        <figure class="recorrido-hoyo-card">
+                            <img src="FOTOS/hoyo18.jpg" alt="Hoyo 18 - Par 4, Hcp 3" loading="lazy">
+                            <figcaption><strong>Hoyo 18</strong> Par 4 · Hcp 3</figcaption>
+                            <p class="recorrido-hoyo-desc">Emocionante hoyo para acabar el recorrido, en el que el jugador debe elegir entre ser conservador, la mejor elección para un handicap alto, y jugar a la calle por la derecha o tirar directo al green en la salida. Los valientes que opten por la segunda opción deben sobrevolar un gran lago. Se puede hacer hoyo en uno o arruinar una vuelta. Esa es la cuestión. El último green nos recibirá con pequeñas caídas.</p>
+                        </figure>
                     </div>
                 </div>
             </div>
