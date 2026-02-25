@@ -196,8 +196,14 @@
                     </section>
                     <section id="slope-guia-block" class="slope-guia" aria-labelledby="slope-guia-title">
                         <h4 id="slope-guia-title" class="slope-guia-titulo">Guía de slope</h4>
-                        <p class="slope-guia-desc">Tabla de equivalencia Sistema Mundial de Hándicap (recorrido válido desde 04/12/2018). Indica tu handicap, tu tee de salida y la modalidad de juego para obtener el valor correspondiente.</p>
+                        <p class="slope-guia-desc">Tabla de equivalencia Sistema Mundial de Hándicap (recorrido válido desde 04/12/2018). Indica hombre o mujer, tu handicap, tu tee de salida y la modalidad de juego para obtener el valor correspondiente.</p>
                         <div class="slope-guia-form">
+                            <label for="slope-genero" class="slope-guia-label">Hombre / Mujer</label>
+                            <select id="slope-genero" class="slope-guia-select" data-slope-genero aria-label="Selecciona hombre o mujer">
+                                <option value="">—</option>
+                                <option value="HOMBRES">Hombre</option>
+                                <option value="MUJERES">Mujer</option>
+                            </select>
                             <label for="slope-hdcp" class="slope-guia-label">Tu handicap (puntos)</label>
                             <select id="slope-hdcp" class="slope-guia-select" data-slope-hdcp="" aria-label="Selecciona tu handicap">
                                 <option value="">Cargando…</option>

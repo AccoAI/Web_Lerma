@@ -1,14 +1,18 @@
 /**
  * Guía de slope - Tabla de equivalencia Sistema Mundial de Hándicap (Golf Lerma).
- * Carga data/slope-equivalencia.csv, permite elegir handicap, tee y modalidad y muestra el valor.
+ * Hoja 2: Hombre/Mujer (fila 1), tee (fila 2), modalidad (fila 3), handicap (columna A).
  */
 (function () {
   'use strict';
 
-  var CSV_URL = 'data/slope-equivalencia.csv';
-  var TEES = [
+  var CSV_URL = 'data/slope-equivalencia-hoja2.csv';
+  var TEES_HOMBRE = [
     { id: 'BLANCAS', label: 'Blancas' },
     { id: 'AMARILLAS', label: 'Amarillas' },
+    { id: 'AZULES', label: 'Azules' },
+    { id: 'ROJAS', label: 'Rojas' }
+  ];
+  var TEES_MUJER = [
     { id: 'AZULES', label: 'Azules' },
     { id: 'ROJAS', label: 'Rojas' }
   ];
@@ -24,7 +28,7 @@
     var hdcp = parseInt(numMatch[1], 10);
     var quoted = line.match(/"[^"]*"/g);
     var values = quoted ? quoted.map(function (s) { return s.slice(1, -1).trim(); }) : [];
-    while (values.length < 12) values.push('');
+    while (values.length < 18) values.push('');
     return { hdcp: hdcp, values: values };
   }
 
@@ -50,11 +54,15 @@
     return out.sort(function (a, b) { return a - b; });
   }
 
-  function findValue(rows, hdcp, teeId, modId) {
-    var teeIndex = TEES.findIndex(function (t) { return t.id === teeId; });
+  function findValue(rows, hdcp, genero, teeId, modId) {
     var modIndex = MODALIDADES.findIndex(function (m) { return m.id === modId; });
-    if (teeIndex < 0 || modIndex < 0) return null;
-    var colIndex = teeIndex * 3 + modIndex;
+    if (modIndex < 0) return null;
+    var teeList = genero === 'HOMBRES' ? TEES_HOMBRE : TEES_MUJER;
+    var teeIndex = teeList.findIndex(function (t) { return t.id === teeId; });
+    if (teeIndex < 0) return null;
+    var colIndex = genero === 'HOMBRES'
+      ? teeIndex * 3 + modIndex
+      : 12 + teeIndex * 3 + modIndex;
     var row = rows.find(function (r) { return r.hdcp === hdcp; });
     if (!row || colIndex >= row.values.length) return null;
     var val = row.values[colIndex];
@@ -65,23 +73,25 @@
     var block = document.getElementById('slope-guia-block');
     if (!block) return;
 
+    var selectGenero = block.querySelector('[data-slope-genero]');
     var selectHdcp = block.querySelector('[data-slope-hdcp]');
     var selectTee = block.querySelector('[data-slope-tee]');
     var selectMod = block.querySelector('[data-slope-modalidad]');
     var resultEl = block.querySelector('[data-slope-result]');
     var resultValue = block.querySelector('[data-slope-result-value]');
 
-    if (!selectHdcp || !selectTee || !selectMod || !resultValue) return;
+    if (!selectGenero || !selectHdcp || !selectTee || !selectMod || !resultValue) return;
 
     function showResult() {
+      var genero = selectGenero.value;
       var hdcp = parseInt(selectHdcp.value, 10);
       var tee = selectTee.value;
       var mod = selectMod.value;
-      if (isNaN(hdcp) || !tee || !mod) {
+      if (!genero || isNaN(hdcp) || !tee || !mod) {
         resultEl.style.display = 'none';
         return;
       }
-      var val = findValue(window.SLOPE_EQUIVALENCIA_DATA || [], hdcp, tee, mod);
+      var val = findValue(window.SLOPE_EQUIVALENCIA_DATA || [], hdcp, genero, tee, mod);
       if (val) {
         resultValue.textContent = val;
         resultEl.style.display = 'block';
@@ -97,9 +107,10 @@
         opts.map(function (n) { return '<option value="' + n + '">' + n + '</option>'; }).join('');
     }
 
-    function fillTees() {
+    function fillTees(genero) {
+      var list = genero === 'HOMBRES' ? TEES_HOMBRE : genero === 'MUJERES' ? TEES_MUJER : [];
       selectTee.innerHTML = '<option value="">Color de tee</option>' +
-        TEES.map(function (t) { return '<option value="' + t.id + '">' + t.label + '</option>'; }).join('');
+        list.map(function (t) { return '<option value="' + t.id + '">' + t.label + '</option>'; }).join('');
     }
 
     function fillModalidades() {
@@ -107,9 +118,17 @@
         MODALIDADES.map(function (m) { return '<option value="' + m.id + '">' + m.label + '</option>'; }).join('');
     }
 
-    fillTees();
+    fillTees('');
     fillModalidades();
     resultEl.style.display = 'none';
+
+    selectGenero.addEventListener('change', function () {
+      fillTees(selectGenero.value);
+      showResult();
+    });
+    selectHdcp.addEventListener('change', showResult);
+    selectTee.addEventListener('change', showResult);
+    selectMod.addEventListener('change', showResult);
 
     fetch(CSV_URL)
       .then(function (r) { return r.text(); })
@@ -117,9 +136,6 @@
         var rows = parseCSV(text);
         window.SLOPE_EQUIVALENCIA_DATA = rows;
         fillHandicaps(rows);
-        selectHdcp.addEventListener('change', showResult);
-        selectTee.addEventListener('change', showResult);
-        selectMod.addEventListener('change', showResult);
       })
       .catch(function () {
         selectHdcp.innerHTML = '<option value="">Error al cargar datos</option>';
