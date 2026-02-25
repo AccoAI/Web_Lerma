@@ -3144,6 +3144,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     object-fit: contain;
     object-position: center;
     background: var(--color-bg-light);
+    cursor: pointer;
 }
 
 .recorrido-hoyo-card figcaption {
@@ -3166,6 +3167,74 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     color: var(--color-text);
     background: var(--color-bg-light);
     text-align: justify;
+}
+
+/* Lightbox: ampliar foto del hoyo al hacer clic (PC y móvil) */
+.recorrido-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.92);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.recorrido-lightbox.activo {
+    display: flex;
+}
+
+.recorrido-lightbox-inner {
+    max-width: 100%;
+    max-height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.recorrido-lightbox-img {
+    max-width: 100%;
+    max-height: calc(100vh - 4rem);
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    pointer-events: auto;
+}
+
+.recorrido-lightbox-cerrar {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10001;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 1.75rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.recorrido-lightbox-cerrar:hover,
+.recorrido-lightbox-cerrar:focus {
+    background: rgba(255, 255, 255, 0.35);
+    color: #fff;
+}
+
+.recorrido-lightbox-cerrar:focus {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
 }
 
 /* Tabla tarjeta de recorrido: todo el ancho necesario, sin barra de scroll */

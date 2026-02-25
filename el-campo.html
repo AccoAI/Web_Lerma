@@ -363,6 +363,14 @@
         </div>
     </footer>
 
+    <!-- Lightbox foto del hoyo -->
+    <div id="recorrido-lightbox" class="recorrido-lightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Foto del hoyo ampliada">
+        <button type="button" class="recorrido-lightbox-cerrar" aria-label="Cerrar">&times;</button>
+        <div class="recorrido-lightbox-inner">
+            <img src="" alt="" class="recorrido-lightbox-img">
+        </div>
+    </div>
+
     <script src="js/i18n.js"></script>
     <script src="js/main.js"></script>
     <script src="js/chatbot.js"></script>
@@ -385,6 +393,47 @@
                 }
             });
         });
+
+        // Lightbox: clic en foto del hoyo para ampliar (PC y móvil)
+        (function () {
+            var lightbox = document.getElementById('recorrido-lightbox');
+            var lightboxImg = lightbox && lightbox.querySelector('.recorrido-lightbox-img');
+            var btnCerrar = lightbox && lightbox.querySelector('.recorrido-lightbox-cerrar');
+            var holeImgs = document.querySelectorAll('.recorrido-hoyo-card img');
+
+            function abrirLightbox(src, alt) {
+                if (!lightbox || !lightboxImg) return;
+                lightboxImg.src = src;
+                lightboxImg.alt = alt || 'Foto del hoyo';
+                lightbox.classList.add('activo');
+                lightbox.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function cerrarLightbox() {
+                if (!lightbox) return;
+                lightbox.classList.remove('activo');
+                lightbox.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+            }
+
+            holeImgs.forEach(function (img) {
+                img.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    abrirLightbox(img.src, img.alt);
+                });
+            });
+
+            if (btnCerrar) btnCerrar.addEventListener('click', cerrarLightbox);
+            if (lightbox) {
+                lightbox.addEventListener('click', function (e) {
+                    if (e.target === lightbox) cerrarLightbox();
+                });
+            }
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && lightbox && lightbox.classList.contains('activo')) cerrarLightbox();
+            });
+        })();
     })();
     </script>
 </body>
