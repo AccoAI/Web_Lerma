@@ -3163,16 +3163,14 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 /* Tabla tarjeta de recorrido */
 .recorrido-tabla-wrap {
-    overflow-x: auto;
     margin: 2rem 0;
-    -webkit-overflow-scrolling: touch;
 }
 
 .recorrido-tabla {
     width: 100%;
-    min-width: 720px;
+    table-layout: fixed;
     border-collapse: collapse;
-    font-size: 0.85rem;
+    font-size: clamp(0.6rem, 1.8vw, 0.85rem);
     font-family: var(--font-primary);
     background: var(--color-white);
     box-shadow: var(--shadow-md);
@@ -3189,7 +3187,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 .recorrido-tabla th,
 .recorrido-tabla td {
     border: 1px solid #e0e0e0;
-    padding: 0.4rem 0.5rem;
+    padding: 0.25rem 0.15rem;
     text-align: center;
 }
 
@@ -3204,7 +3202,8 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     color: var(--color-text);
     font-weight: 500;
     text-align: left;
-    padding-left: 0.75rem;
+    padding-left: 0.35rem;
+    font-size: clamp(0.55rem, 1.5vw, 0.8rem);
 }
 
 .recorrido-tabla tbody tr:nth-child(even) {
@@ -3287,12 +3286,9 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 @media (max-width: 640px) {
-    .recorrido-tabla {
-        font-size: 0.75rem;
-    }
     .recorrido-tabla th,
     .recorrido-tabla td {
-        padding: 0.3rem 0.35rem;
+        padding: 0.2rem 0.1rem;
     }
     .recorrido-hoyos-grid {
         grid-template-columns: 1fr;
