@@ -3139,7 +3139,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 /* Misma altura de imagen en todas las tarjetas; imagen completa sin recortar */
 .recorrido-hoyo-card img {
     width: 100%;
-    height: 260px;
+    height: 360px;
     display: block;
     object-fit: contain;
     object-position: center;
