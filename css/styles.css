@@ -3169,11 +3169,11 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     text-align: justify;
 }
 
-/* Lightbox: ampliar foto del hoyo al hacer clic (PC y móvil) */
+/* Lightbox: ampliar foto del hoyo al hacer clic (PC y móvil); por encima del header/menú */
 .recorrido-lightbox {
     position: fixed;
     inset: 0;
-    z-index: 10000;
+    z-index: 10100;
     display: none;
     align-items: center;
     justify-content: center;
@@ -3208,7 +3208,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     position: absolute;
     top: 1rem;
     right: 1rem;
-    z-index: 10001;
+    z-index: 10101;
     width: 2.75rem;
     height: 2.75rem;
     padding: 0;
