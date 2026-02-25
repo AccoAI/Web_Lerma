@@ -7811,9 +7811,9 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     }
 }
 
-/* En móvil, subir el chatbot para que no tape el subtotal del resumen de paquetes */
-@media (max-width: 640px) {
+/* En móvil/tablet, subir WhatsApp y bot para que no tapen el precio ni el botón de la barra Resumen en paquetes */
+@media (max-width: 768px) {
     .chatbot-wrapper {
-        bottom: 5rem;
+        bottom: 8.5rem;
     }
 }
