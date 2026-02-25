@@ -1633,6 +1633,9 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     display: none;
 }
 
+.resumen-mobile-btn-wrap {
+    display: none;
+}
 
 .resumen-content h3 {
     font-family: var(--font-primary);
@@ -7024,7 +7027,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     }
 
     .configurador-paquete .configurador-layout {
-        padding-bottom: 80px;
+        padding-bottom: 160px;
     }
 
     .configurador-paquete .configurador-resumen {
@@ -7036,15 +7039,21 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         padding: 2rem 1.5rem;
     }
 
-    /* Resumen móvil: pestaña desplegable fija en la parte inferior */
+    /* Resumen móvil: barra fija abajo (Resumen + precio + botón Reservar siempre visibles), siempre pegada */
     .resumen-mobile-wrapper {
         position: fixed;
         bottom: 0;
         left: 0;
         right: 0;
+        width: 100%;
+        max-width: 100vw;
+        box-sizing: border-box;
         z-index: 900;
         box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
         transition: transform 0.25s ease, opacity 0.25s ease;
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        backface-visibility: hidden;
     }
     /* Ocultar barra y chatbot cuando el selector nativo de hora/fecha está abierto (evita que corten "Establecer" en Android) */
     body.native-picker-open .resumen-mobile-wrapper {
@@ -7087,6 +7096,26 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
     .resumen-mobile-wrapper.expanded .resumen-mobile-chevron {
         transform: rotate(180deg);
+    }
+
+    /* Botón "Reservar paquete" siempre visible en la barra, sin desplegar */
+    .resumen-mobile-btn-wrap {
+        display: block;
+        width: 100%;
+        padding: 0 1rem 1rem;
+        padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0));
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    }
+
+    .resumen-mobile-btn-wrap .btn-reservar-paquete-mobile {
+        width: 100%;
+        margin: 0;
+        box-sizing: border-box;
+    }
+
+    /* En móvil ocultar el botón duplicado dentro del desplegable */
+    .resumen-mobile-wrapper .configurador-resumen .btn-reservar-paquete {
+        display: none !important;
     }
 
     .resumen-mobile-wrapper .configurador-resumen {

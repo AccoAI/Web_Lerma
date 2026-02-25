@@ -851,7 +851,7 @@ function initConfiguradorPaquete() {
     }
 }
 
-// Resumen móvil: pestaña desplegable
+// Resumen móvil: pestaña desplegable y botón "Reservar" siempre visible en la barra
 (function () {
     function updateMobileTotal() {
         var mobileTotal = document.getElementById('resumen-total-mobile');
@@ -859,7 +859,19 @@ function initConfiguradorPaquete() {
         var totalCell = document.querySelector('#resumen-paquete .resumen-total td:last-child, #resumen-detalle .resumen-total td:last-child, #resumen-pausadrive .resumen-total td:last-child, #resumen-ryder .resumen-total td:last-child, .resumen-detalle .resumen-total td:last-child');
         mobileTotal.textContent = totalCell ? totalCell.textContent.trim() : '';
     }
+    function cloneReservarIntoBar(wrapper) {
+        var btnWrap = wrapper.querySelector('.resumen-mobile-btn-wrap');
+        var btn = wrapper.querySelector('.configurador-resumen .btn-reservar-paquete');
+        if (!btnWrap || !btn || btnWrap.querySelector('.btn-reservar-paquete')) return;
+        var clone = btn.cloneNode(true);
+        clone.classList.add('btn-reservar-paquete-mobile');
+        clone.removeAttribute('id');
+        btnWrap.appendChild(clone);
+    }
     document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.resumen-mobile-wrapper').forEach(function (wrapper) {
+            cloneReservarIntoBar(wrapper);
+        });
         var tab = document.getElementById('resumen-mobile-tab');
         var wrapper = tab && tab.closest('.resumen-mobile-wrapper');
         if (tab && wrapper) {
