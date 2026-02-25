@@ -7039,7 +7039,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         padding: 2rem 1.5rem;
     }
 
-    /* Resumen móvil: barra fija abajo (Resumen + precio + botón Reservar siempre visibles), siempre pegada */
+    /* Resumen móvil: barra fija abajo (Resumen + precio + botón Reservar siempre visibles), siempre pegada sin margen blanco */
     .resumen-mobile-wrapper {
         position: fixed;
         bottom: 0;
@@ -7054,6 +7054,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         -webkit-transform: translateZ(0);
         transform: translateZ(0);
         backface-visibility: hidden;
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     }
     /* Ocultar barra y chatbot cuando el selector nativo de hora/fecha está abierto (evita que corten "Establecer" en Android) */
     body.native-picker-open .resumen-mobile-wrapper {
@@ -7071,7 +7072,8 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         display: flex !important;
         align-items: center;
         justify-content: space-between;
-        padding: 1rem 1.25rem;
+        padding: 0.75rem 1rem 0.75rem 1.25rem;
+        padding-right: 7rem;
         background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
         color: var(--color-white);
         cursor: pointer;
@@ -7086,7 +7088,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         font-weight: 600;
         color: var(--color-accent);
         margin-left: auto;
-        margin-right: 0.5rem;
+        margin-right: 0.25rem;
     }
 
     .resumen-mobile-chevron {
@@ -7098,19 +7100,36 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         transform: rotate(180deg);
     }
 
-    /* Botón "Reservar paquete" siempre visible en la barra, sin desplegar */
+    /* Botón "Reservar paquete" siempre visible en la barra, sin desplegar; gama dorada y fino */
     .resumen-mobile-btn-wrap {
         display: block;
         width: 100%;
-        padding: 0 1rem 1rem;
-        padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0));
+        padding: 0 1rem;
+        padding-right: 7rem;
+        padding-bottom: env(safe-area-inset-bottom, 0.5rem);
         background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     }
 
     .resumen-mobile-btn-wrap .btn-reservar-paquete-mobile {
         width: 100%;
         margin: 0;
+        padding: 0.65rem 1rem;
         box-sizing: border-box;
+        background: var(--color-accent);
+        color: var(--color-primary-dark);
+        font-weight: 600;
+        font-size: 0.95rem;
+        border: none;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .resumen-mobile-btn-wrap .btn-reservar-paquete-mobile:hover {
+        background: #d4b872;
+        color: var(--color-primary-dark);
     }
 
     /* En móvil ocultar el botón duplicado dentro del desplegable */
