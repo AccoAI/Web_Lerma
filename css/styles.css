@@ -7073,8 +7073,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         display: flex !important;
         align-items: center;
         justify-content: space-between;
-        padding: 0.75rem 1rem 0.75rem 1.25rem;
-        padding-right: 7rem;
+        padding: 0.75rem 1.25rem;
         background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
         color: var(--color-white);
         cursor: pointer;
@@ -7089,7 +7088,6 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         font-weight: 600;
         color: var(--color-accent);
         margin-left: auto;
-        margin-right: 0.25rem;
     }
 
     .resumen-mobile-chevron {
@@ -7101,12 +7099,11 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         transform: rotate(180deg);
     }
 
-    /* Botón "Reservar paquete" siempre visible en la barra, sin desplegar; gama dorada y fino */
+    /* Botón "Reservar paquete" siempre visible en la barra, sin desplegar; gama dorada y fino; todo el ancho */
     .resumen-mobile-btn-wrap {
         display: block;
         width: 100%;
-        padding: 0 1rem 0.5rem;
-        padding-right: 7rem;
+        padding: 0 1.25rem 0.5rem;
         background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     }
 
