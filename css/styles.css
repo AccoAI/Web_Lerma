@@ -2982,6 +2982,11 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     margin-right: auto;
 }
 
+/* Panel Recorrido: más ancho para que la tarjeta de recorrido quepa sin scroll */
+#panel-recorrido .campo-seccion {
+    max-width: 960px;
+}
+
 .campo-seccion:last-child {
     margin-bottom: 0;
 }
@@ -3161,11 +3166,10 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     text-align: justify;
 }
 
-/* Tabla tarjeta de recorrido: ancha, sin saltos de línea; scroll horizontal si hace falta */
+/* Tabla tarjeta de recorrido: todo el ancho necesario, sin barra de scroll */
 .recorrido-tabla-wrap {
     margin: 2rem 0;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
 }
 
 .recorrido-tabla {
@@ -3372,6 +3376,21 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     font-size: 1.15rem;
     font-weight: 600;
     color: var(--color-text);
+}
+
+.slope-guia-manual {
+    margin: 1.25rem 0 0;
+    font-size: 0.95rem;
+    color: var(--color-text);
+}
+
+.slope-guia-manual a {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.slope-guia-manual a:hover {
+    text-decoration: underline;
 }
 
 @media (max-width: 640px) {
