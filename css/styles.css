@@ -3140,8 +3140,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     width: 100%;
     height: auto;
     display: block;
-    object-fit: contain;
-    object-position: center;
+    vertical-align: middle;
 }
 
 .recorrido-hoyo-card figcaption {
