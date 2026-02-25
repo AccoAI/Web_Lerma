@@ -194,6 +194,26 @@
                         </ol>
                         <p class="recorrido-reglas-penalidad">Penalidad por infracción de regla local: Match Play – Pérdida de hoyo. Stroke Play – Dos golpes.</p>
                     </section>
+                    <section id="slope-guia-block" class="slope-guia" aria-labelledby="slope-guia-title">
+                        <h4 id="slope-guia-title" class="slope-guia-titulo">Guía de slope</h4>
+                        <p class="slope-guia-desc">Tabla de equivalencia Sistema Mundial de Hándicap (recorrido válido desde 04/12/2018). Indica tu handicap, tu tee de salida y la modalidad de juego para obtener el valor correspondiente.</p>
+                        <div class="slope-guia-form">
+                            <label for="slope-hdcp" class="slope-guia-label">Tu handicap (puntos)</label>
+                            <select id="slope-hdcp" class="slope-guia-select" data-slope-hdcp="" aria-label="Selecciona tu handicap">
+                                <option value="">Cargando…</option>
+                            </select>
+                            <label for="slope-tee" class="slope-guia-label">Color de tee de salida</label>
+                            <select id="slope-tee" class="slope-guia-select" data-slope-tee="" aria-label="Selecciona color de tee">
+                            </select>
+                            <label for="slope-modalidad" class="slope-guia-label">Modalidad de juego</label>
+                            <select id="slope-modalidad" class="slope-guia-select" data-slope-modalidad="" aria-label="Selecciona modalidad">
+                            </select>
+                        </div>
+                        <div class="slope-guia-result" data-slope-result="" style="display: none;">
+                            <p class="slope-guia-result-label">Resultado (rango de golpes recibidos):</p>
+                            <p class="slope-guia-result-value" data-slope-result-value="">—</p>
+                        </div>
+                    </section>
                     <div class="recorrido-hoyos-grid" aria-label="Mapas de los 18 hoyos del campo">
                         <figure class="recorrido-hoyo-card">
                             <img src="FOTOS/hoyo1.jpg" alt="Hoyo 1 - Par 5, Hcp 4" loading="lazy">
@@ -339,6 +359,7 @@
     <script src="js/i18n.js"></script>
     <script src="js/main.js"></script>
     <script src="js/chatbot.js"></script>
+    <script src="js/slope-guia.js"></script>
     <script>
     (function () {
         var tabs = document.querySelectorAll('.campo-tab-btn');
