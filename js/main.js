@@ -882,12 +882,16 @@ function initConfiguradorPaquete() {
     });
 })();
 
-// Evitar que la barra Resumen móvil tape el selector nativo de hora/fecha (botón Establecer)
+// Evitar que la barra Resumen o el chatbot tapen el selector nativo de hora/fecha (botón "Establecer" en Android)
 function initNativePickerFix() {
     var inputs = document.querySelectorAll('input[type="time"], input[type="date"], input[type="datetime-local"]');
     inputs.forEach(function (inp) {
         inp.addEventListener('focus', function () {
             document.body.classList.add('native-picker-open');
+            // Dejar espacio abajo para el modal nativo: llevar el campo hacia arriba
+            if (inp.scrollIntoView) {
+                inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         });
         inp.addEventListener('blur', function () {
             setTimeout(function () {

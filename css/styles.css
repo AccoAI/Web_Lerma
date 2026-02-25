@@ -7046,10 +7046,16 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
         transition: transform 0.25s ease, opacity 0.25s ease;
     }
-    /* Ocultar barra cuando el selector nativo de hora/fecha está abierto (evita que tape Establecer) */
+    /* Ocultar barra y chatbot cuando el selector nativo de hora/fecha está abierto (evita que corten "Establecer" en Android) */
     body.native-picker-open .resumen-mobile-wrapper {
         transform: translateY(100%);
         pointer-events: none;
+        visibility: hidden;
+    }
+    body.native-picker-open .chatbot-wrapper {
+        transform: translateY(100%);
+        pointer-events: none;
+        visibility: hidden;
     }
 
     .resumen-mobile-tab {
@@ -7085,13 +7091,27 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
     .resumen-mobile-wrapper .configurador-resumen {
         display: none;
+        flex-direction: column;
         max-height: 70vh;
-        overflow-y: auto;
+        overflow: hidden;
         margin: 0;
     }
 
     .resumen-mobile-wrapper.expanded .configurador-resumen {
-        display: block;
+        display: flex;
+    }
+
+    /* Contenido del resumen con scroll; precio y botón quedan siempre visibles abajo */
+    .resumen-mobile-wrapper.expanded .configurador-resumen .resumen-content {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .resumen-mobile-wrapper.expanded .configurador-resumen .btn-reservar-paquete {
+        flex: 0 0 auto;
+        margin-top: 1rem;
     }
 
     .campos-dias-selector {
