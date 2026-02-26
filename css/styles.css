@@ -3241,6 +3241,28 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 /* Tabla tarjeta de recorrido: todo el ancho necesario, sin barra de scroll */
+/* Mapa del recorrido (vista general 18 hoyos) */
+.recorrido-mapa-figure {
+    margin: 2rem 0;
+    max-width: 100%;
+}
+
+.recorrido-mapa-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 4px;
+    box-shadow: var(--shadow-md);
+}
+
+.recorrido-mapa-caption {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+    text-align: center;
+    font-style: italic;
+}
+
 .recorrido-tabla-wrap {
     margin: 2rem 0;
     overflow: visible;
