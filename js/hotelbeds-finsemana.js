@@ -310,10 +310,7 @@
           renderAmadeusResults(data, hotelIds);
           return null;
         }
-        if (data.note) {
-          renderNoOffers(data.note);
-          return null;
-        }
+        /* Si Amadeus no tiene ofertas (data.note), probamos Hotelbeds en lugar de mostrar solo el mensaje */
         if (codes.length > 0) {
           return fetchHotelbeds(range.checkIn, range.checkOut, codes);
         }
