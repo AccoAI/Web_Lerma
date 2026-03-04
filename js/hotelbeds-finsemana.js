@@ -183,7 +183,11 @@
     var merged = { hotels: { hotels: [] } };
     var byCode = {};
     function addHotels(list) {
-      var arr = (list && list.hotels && list.hotels.hotels) ? list.hotels.hotels : [];
+      var arr = [];
+      if (list && list.hotels) {
+        if (Array.isArray(list.hotels)) arr = list.hotels;
+        else if (list.hotels.hotels && Array.isArray(list.hotels.hotels)) arr = list.hotels.hotels;
+      }
       arr.forEach(function (h) {
         var code = String(h.code);
         if (!byCode[code]) {
@@ -222,7 +226,7 @@
       window.LIVE_HOTEL_PRICES = null;
       window.HOTELBEDS_DYNAMIC_OPTS = null;
       setBookingWidgetVisible(true);
-      renderBlock('<div class="hotelbeds-block hotelbeds-info">No hay disponibilidad para estas fechas en Lerma/Burgos. Puedes reservar el paquete con precios por defecto.</div>');
+      renderBlock('<div class="hotelbeds-block hotelbeds-info">No hay disponibilidad en tiempo real para estas fechas. Elige <strong>Lerma</strong> o <strong>Burgos</strong> y un hotel en los desplegables de arriba; el total usará los precios por defecto y podrás reservar el paquete con «Reservar Paquete».</div>');
       document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
       return;
     }
