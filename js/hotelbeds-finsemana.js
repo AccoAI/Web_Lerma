@@ -214,20 +214,79 @@
   /** Asigna ciudad para desplegable: Lerma si el nombre/ciudad contiene Lerma, si no Burgos */
   function cityForHotel(h) {
     var name = (h.name && (typeof h.name === 'string' ? h.name : h.name.content)) || '';
-    var city = (h.destinationName && (typeof h.destinationName === 'string' ? h.destinationName : h.destinationName.content)) || (h.city || '');
-    var s = (name + ' ' + city).toUpperCase();
+    var city = (h.destinationName && (typeof h.destinationName === 'string' ? h.destinationName : h.destinationName.content)) || (h.city || (h.name && typeof h.name === 'string' ? '' : ''));
+    var s = (name + ' ' + (city || '')).toUpperCase();
     return /LERMA/.test(s) ? 'lerma' : 'burgos';
+  }
+
+  /** Precio por noche por defecto cuando no hay tarifa en tiempo real (listado desde Content API) */
+  var DEFAULT_PRICE_PER_NIGHT = 75;
+
+  /** Obtiene el listado completo de hoteles de la zona desde Content API (BUR + BUR2) */
+  function fetchHotelbedsListHotels() {
+    var base = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
+    var all = [];
+    var byCode = {};
+    function addFromResponse(data) {
+      var list = (data && data.hotels) ? data.hotels : [];
+      if (!Array.isArray(list)) return;
+      list.forEach(function (h) {
+        var code = String(h.code || h);
+        if (!byCode[code]) {
+          byCode[code] = true;
+          all.push({ code: code, name: h.name || ('Hotel ' + code), city: h.city || '' });
+        }
+      });
+    }
+    return Promise.all(DESTINATIONS_LERMA_BURGOS.map(function (dest) {
+      return fetch(base + '/api/hotelbeds-list-hotels?destination=' + encodeURIComponent(dest) + '&source=content&filter=none&from=1&to=200')
+        .then(function (r) { return r.json(); })
+        .then(function (data) { if (!data.error) addFromResponse(data); return data; })
+        .catch(function () { return {}; });
+    })).then(function () { return all; });
+  }
+
+  /** Rellena HOTELBEDS_DYNAMIC_OPTS con todos los hoteles de la zona (sin precio en vivo) y refresca desplegables */
+  function renderFullHotelListFromContent(hotelList) {
+    if (!hotelList || hotelList.length === 0) {
+      window.LIVE_HOTEL_PRICES = null;
+      window.HOTELBEDS_DYNAMIC_OPTS = null;
+      setBookingWidgetVisible(true);
+      renderBlock('<div class="hotelbeds-block hotelbeds-info">No se pudo cargar el listado de hoteles. Elige Lerma o Burgos y un hotel en los desplegables; si no aparecen opciones, usa el enlace a Booking.com debajo.</div>');
+      document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
+      return;
+    }
+    window.LIVE_HOTEL_PRICES = null;
+    var lerma = [];
+    var burgos = [];
+    hotelList.forEach(function (h) {
+      var name = (typeof h.name === 'string' ? h.name : (h.name && h.name.content) ? h.name.content : '') || ('Hotel ' + h.code);
+      var ciudad = cityForHotel(h);
+      var opt = { v: 'hb-' + h.code, l: name, p: DEFAULT_PRICE_PER_NIGHT };
+      if (ciudad === 'lerma') lerma.push(opt); else burgos.push(opt);
+    });
+    window.HOTELBEDS_DYNAMIC_OPTS = { lerma: lerma, burgos: burgos };
+    setBookingWidgetVisible(true);
+    var totalHotels = lerma.length + burgos.length;
+    renderBlock(
+      '<div class="hotelbeds-block hotelbeds-results">' +
+      '<h4 class="hotelbeds-title">Hoteles en Lerma y Burgos (Hotelbeds)</h4>' +
+      '<p class="hotelbeds-note">Se muestran <strong>' + totalHotels + ' hoteles</strong> en la zona. Elige <strong>Lugar</strong> y <strong>Hotel</strong> en los desplegables de arriba. Precio orientativo ' + DEFAULT_PRICE_PER_NIGHT + ' €/noche (a confirmar según disponibilidad). Reserva el paquete con «Reservar Paquete».</p>' +
+      '</div>'
+    );
+    document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
+    triggerResumenUpdate();
   }
 
   /** Renderiza resultados por destino, rellena LIVE_HOTEL_PRICES (hb-{code}) y HOTELBEDS_DYNAMIC_OPTS para los desplegables */
   function renderHotelbedsResultsByDestination(data) {
     var hotels = (data.hotels && data.hotels.hotels) || [];
     if (hotels.length === 0) {
-      window.LIVE_HOTEL_PRICES = null;
-      window.HOTELBEDS_DYNAMIC_OPTS = null;
-      setBookingWidgetVisible(true);
-      renderBlock('<div class="hotelbeds-block hotelbeds-info">No hay disponibilidad en tiempo real para estas fechas. Elige <strong>Lerma</strong> o <strong>Burgos</strong> y un hotel en los desplegables de arriba; el total usará los precios por defecto y podrás reservar el paquete con «Reservar Paquete».</div>');
-      document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
+      fetchHotelbedsListHotels().then(function (list) {
+        renderFullHotelListFromContent(list);
+      }).catch(function () {
+        renderFullHotelListFromContent([]);
+      });
       return;
     }
     var live = {};

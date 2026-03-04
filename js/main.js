@@ -753,7 +753,7 @@ function initConfiguradorPaquete() {
                         if (price == null) {
                             var arr = opts[ciudad] || [];
                             for (var j = 0; j < arr.length; j++) {
-                                if (arr[j].v === hotelId && arr[j].p != null) { price = arr[j].p; break; }
+                                if (arr[j].v === hotelId) { price = arr[j].p != null ? arr[j].p : 75; break; }
                             }
                         }
                         if (price != null) aloj += price;
