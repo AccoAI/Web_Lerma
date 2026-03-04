@@ -290,10 +290,10 @@
     }
 
     var noches = parseInt(formData.get('noches') || '0', 10);
-    if (noches < 2) {
+    if (noches < 1) {
       window.LIVE_HOTEL_PRICES = null;
       setBookingWidgetVisible(false);
-      renderBlock('<p class="hotelbeds-block hotelbeds-info">Selecciona 2 o más noches para ver hoteles y precios en tiempo real.</p>');
+      renderBlock('<p class="hotelbeds-block hotelbeds-info">Selecciona las fechas de tu estancia en el calendario (arriba) para ver hoteles y precios en tiempo real.</p>');
       return;
     }
 
@@ -353,6 +353,10 @@
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(run, DEBOUNCE_MS);
   }
+
+  window.actualizarPreciosHotelbeds = function () {
+    schedule();
+  };
 
   function init() {
     var wrap = document.getElementById('configurador-hotel-wrap');

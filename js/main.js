@@ -607,6 +607,7 @@ function initConfiguradorPaquete() {
                     if (count >= 2) {
                         configuradorHotelWrap.style.display = 'block';
                         actualizarBloqueHotel();
+                        if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
                     } else {
                         configuradorHotelWrap.style.display = 'none';
                         if (hotelPorNocheBlock) hotelPorNocheBlock.style.display = 'none';
