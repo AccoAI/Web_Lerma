@@ -1,12 +1,14 @@
 /**
- * Precios en tiempo real en la página (Amadeus prioritario, Hotelbeds fallback).
- * El total del resumen usa estos precios; la reserva se hace sin salir de la web.
+ * Precios en tiempo real en la página (Amadeus prioritario, Hotelbeds por destino o por códigos).
+ * Hotelbeds ofrece hoteles de Lerma y Burgos por destino; el total del resumen usa estos precios y se puede reservar desde aquí.
  */
 (function () {
   var DEBOUNCE_MS = 800;
   var containerId = 'hotelbeds-precios-block';
   var debounceTimer = null;
   var ALL_HOTEL_IDS = ['alisa', 'ceres', 'parador', 'silken', 'palacio-blasones', 'hotel-centro'];
+  /** Destinos Hotelbeds: BUR (Burgos provincia), BUR2 (Lerma/zona) */
+  var DESTINATIONS_LERMA_BURGOS = ['BUR', 'BUR2'];
 
   function getContainer() {
     return document.getElementById(containerId);
@@ -54,8 +56,10 @@
 
   function renderNoConfig() {
     window.LIVE_HOTEL_PRICES = null;
+    window.HOTELBEDS_DYNAMIC_OPTS = null;
     setBookingWidgetVisible(true);
     renderBlock('<div class="hotelbeds-block hotelbeds-info">Precios en tiempo real no configurados. El total usa tarifas por defecto. Puedes <strong>reservar el paquete desde aquí</strong> con el botón «Reservar Paquete».</div>');
+    document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
   }
 
   function renderNoOffers(note) {
@@ -67,11 +71,13 @@
 
   /** Renderiza resultados de Amadeus y actualiza LIVE_HOTEL_PRICES para el total del resumen */
   function renderAmadeusResults(data, selectedIds) {
+    window.HOTELBEDS_DYNAMIC_OPTS = null;
     var hotels = data.hotels || [];
     if (hotels.length === 0) {
       window.LIVE_HOTEL_PRICES = null;
       setBookingWidgetVisible(true);
       renderBlock('<div class="hotelbeds-block hotelbeds-info">No hay ofertas para estas fechas en los hoteles seleccionados. El total usa precios por defecto. Puedes <strong>reservar el paquete desde aquí</strong> con «Reservar Paquete».</div>');
+      document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
       return;
     }
     var live = {};
@@ -93,11 +99,13 @@
   }
 
   function renderHotelbedsResults(data, selectedHotels) {
+    window.HOTELBEDS_DYNAMIC_OPTS = null;
     var hotels = (data.hotels && data.hotels.hotels) || [];
     if (hotels.length === 0) {
       window.LIVE_HOTEL_PRICES = null;
       setBookingWidgetVisible(true);
       renderBlock('<div class="hotelbeds-block hotelbeds-info">No hay disponibilidad para las fechas seleccionadas. Puedes reservar el paquete desde aquí con precios por defecto.</div>');
+      document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
       return;
     }
     var cfg = window.HOTELBEDS_CONFIG;
@@ -169,6 +177,94 @@
     }).then(function (r) { return r.json(); });
   }
 
+  /** Llama a la API por destino (BUR, BUR2) y fusiona hoteles sin duplicados por code */
+  function fetchHotelbedsByDestination(checkIn, checkOut) {
+    var base = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
+    var merged = { hotels: { hotels: [] } };
+    var byCode = {};
+    function addHotels(list) {
+      var arr = (list && list.hotels && list.hotels.hotels) ? list.hotels.hotels : [];
+      arr.forEach(function (h) {
+        var code = String(h.code);
+        if (!byCode[code]) {
+          byCode[code] = h;
+          merged.hotels.hotels.push(h);
+        }
+      });
+    }
+    var seq = DESTINATIONS_LERMA_BURGOS.reduce(function (promise, dest) {
+      return promise.then(function () {
+        return fetch(base + '/api/hotelbeds-availability', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ checkIn: checkIn, checkOut: checkOut, rooms: 1, adults: 2, destinationCode: dest }),
+        }).then(function (r) { return r.json(); }).then(function (data) {
+          if (!data.error) addHotels(data.hotels || data);
+          return data;
+        }).catch(function () { return {}; });
+      });
+    }, Promise.resolve());
+    return seq.then(function () { return merged; });
+  }
+
+  /** Asigna ciudad para desplegable: Lerma si el nombre/ciudad contiene Lerma, si no Burgos */
+  function cityForHotel(h) {
+    var name = (h.name && (typeof h.name === 'string' ? h.name : h.name.content)) || '';
+    var city = (h.destinationName && (typeof h.destinationName === 'string' ? h.destinationName : h.destinationName.content)) || (h.city || '');
+    var s = (name + ' ' + city).toUpperCase();
+    return /LERMA/.test(s) ? 'lerma' : 'burgos';
+  }
+
+  /** Renderiza resultados por destino, rellena LIVE_HOTEL_PRICES (hb-{code}) y HOTELBEDS_DYNAMIC_OPTS para los desplegables */
+  function renderHotelbedsResultsByDestination(data) {
+    var hotels = (data.hotels && data.hotels.hotels) || [];
+    if (hotels.length === 0) {
+      window.LIVE_HOTEL_PRICES = null;
+      window.HOTELBEDS_DYNAMIC_OPTS = null;
+      setBookingWidgetVisible(true);
+      renderBlock('<div class="hotelbeds-block hotelbeds-info">No hay disponibilidad para estas fechas en Lerma/Burgos. Puedes reservar el paquete con precios por defecto.</div>');
+      document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
+      return;
+    }
+    var live = {};
+    var lerma = [];
+    var burgos = [];
+    function getStr(v) { return (typeof v === 'string' ? v : (v && v.content) ? v.content : '') || ''; }
+    hotels.forEach(function (h) {
+      var code = String(h.code);
+      var name = getStr(h.name) || getStr(h.description) || ('Hotel ' + code);
+      var rate = h.minRate;
+      if (rate == null && h.rooms && h.rooms[0]) {
+        var r0 = h.rooms[0];
+        var rr = (r0.rates && r0.rates[0]) ? r0.rates[0] : null;
+        if (rr) rate = parseFloat(rr.net || rr.gross || rr.sellingRate) || null;
+      }
+      if (typeof rate === 'string') rate = parseFloat(rate) || null;
+      var ciudad = cityForHotel(h);
+      var key = 'hb-' + code;
+      live[key] = rate != null ? rate : null;
+      var opt = { v: key, l: name, p: rate };
+      if (ciudad === 'lerma') lerma.push(opt); else burgos.push(opt);
+    });
+    window.LIVE_HOTEL_PRICES = live;
+    window.HOTELBEDS_DYNAMIC_OPTS = { lerma: lerma, burgos: burgos };
+
+    var html = '<div class="hotelbeds-block hotelbeds-results"><h4 class="hotelbeds-title">Precios en tiempo real (Hotelbeds) · Lerma y Burgos</h4><ul class="hotelbeds-list">';
+    hotels.forEach(function (h) {
+      var code = String(h.code);
+      var name = getStr(h.name) || getStr(h.description) || ('Hotel ' + code);
+      var key = 'hb-' + code;
+      var rate = live[key];
+      var priceStr = rate != null ? (Math.round(rate * 100) / 100) + ' €' : '—';
+      html += '<li class="hotelbeds-item"><span class="hotelbeds-name">' + escapeHtml(name) + '</span> <span class="hotelbeds-price">' + priceStr + '</span></li>';
+    });
+    html += '</ul><p class="hotelbeds-note">Elige el hotel para cada noche en los desplegables de arriba. El total usa estos precios. Reserva todo el paquete con «Reservar Paquete».</p></div>';
+    setBookingWidgetVisible(false);
+    renderBlock(html);
+    document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
+    triggerResumenUpdate();
+  }
+
   function getSelectedHotelIds(formData, noches) {
     var ids = [];
     for (var i = 1; i <= (noches || 10); i++) {
@@ -204,6 +300,9 @@
     var hotelIds = getSelectedHotelIds(formData, noches);
     renderLoading();
 
+    var cfg = window.HOTELBEDS_CONFIG;
+    var codes = cfg && cfg.getCodesForSelectedHotels ? cfg.getCodesForSelectedHotels(formData, noches) : (cfg && cfg.getAllHotelCodes ? cfg.getAllHotelCodes() : []);
+
     fetchAmadeus(range.checkIn, range.checkOut, hotelIds)
       .then(function (data) {
         if (data.error) throw new Error(data.error);
@@ -215,26 +314,24 @@
           renderNoOffers(data.note);
           return null;
         }
-        var cfg = window.HOTELBEDS_CONFIG;
-        var codes = cfg && cfg.getCodesForSelectedHotels ? cfg.getCodesForSelectedHotels(formData, noches) : (cfg && cfg.getAllHotelCodes ? cfg.getAllHotelCodes() : []);
-        if (codes.length === 0) {
-          renderNoConfig();
-          return null;
+        if (codes.length > 0) {
+          return fetchHotelbeds(range.checkIn, range.checkOut, codes);
         }
-        return fetchHotelbeds(range.checkIn, range.checkOut, codes);
+        return fetchHotelbedsByDestination(range.checkIn, range.checkOut);
       })
       .then(function (hb) {
         if (hb == null) return;
         if (hb.error) throw new Error(hb.error);
-        var cfg = window.HOTELBEDS_CONFIG;
-        var fd = getFormData();
-        var n = parseInt(fd.get('noches') || '0', 10);
-        var selectedCodes = cfg && cfg.getCodesForSelectedHotels ? cfg.getCodesForSelectedHotels(fd, n) : [];
-        renderHotelbedsResults(hb, selectedCodes);
+        if (codes.length > 0) {
+          var fd = getFormData();
+          var n = parseInt(fd.get('noches') || '0', 10);
+          var selectedCodes = cfg && cfg.getCodesForSelectedHotels ? cfg.getCodesForSelectedHotels(fd, n) : [];
+          renderHotelbedsResults(hb, selectedCodes);
+        } else {
+          renderHotelbedsResultsByDestination(hb);
+        }
       })
       .catch(function (err) {
-        var cfg = window.HOTELBEDS_CONFIG;
-        var codes = cfg && cfg.getAllHotelCodes ? cfg.getAllHotelCodes() : [];
         if (codes.length > 0) {
           return fetchHotelbeds(range.checkIn, range.checkOut, codes).then(function (hb) {
             if (hb.error) { renderError(err.message); return; }
@@ -244,7 +341,10 @@
             renderHotelbedsResults(hb, selectedCodes);
           }).catch(function () { renderError(err.message); });
         } else {
-          renderError(err.message);
+          return fetchHotelbedsByDestination(range.checkIn, range.checkOut).then(function (hb) {
+            if (hb.error) { renderError(typeof hb.error === 'string' ? hb.error : (hb.error && hb.error.message) || 'Error de Hotelbeds'); return; }
+            renderHotelbedsResultsByDestination(hb);
+          }).catch(function () { renderError(err.message); });
         }
       });
   }

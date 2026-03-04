@@ -354,6 +354,9 @@ function getPrecios() {
     return window.PRECIOS_DATA || {};
 }
 function getHotelesOpts() {
+    if (window.HOTELBEDS_DYNAMIC_OPTS && window.HOTELBEDS_DYNAMIC_OPTS.lerma && window.HOTELBEDS_DYNAMIC_OPTS.burgos) {
+        return window.HOTELBEDS_DYNAMIC_OPTS;
+    }
     var p = getPrecios();
     var hl = (p.hoteles && p.hoteles.lerma) || [];
     var hb = (p.hoteles && p.hoteles.burgos) || [];
@@ -462,6 +465,12 @@ function initConfiguradorPaquete() {
         var idx = val.indexOf('-');
         var c = val.substring(0, idx);
         var h = val.substring(idx + 1);
+        var opts = getHotelesOpts();
+        if (opts[c]) {
+            for (var j = 0; j < opts[c].length; j++) {
+                if (opts[c][j].v === h) return (opts[c][j].l || h) + ' (' + (c === 'lerma' ? 'Lerma' : 'Burgos') + ')';
+            }
+        }
         var lbl = (HOTELES_LABELS[c] || {})[h];
         return lbl ? lbl + ' (' + (c === 'lerma' ? 'Lerma' : 'Burgos') + ')' : val;
     }
@@ -472,7 +481,7 @@ function initConfiguradorPaquete() {
         var kept = sel.value;
         var opts = [{ v: '', l: 'Sin reserva' }];
         if (ciudad === 'lerma' || ciudad === 'burgos') {
-            var arr = HOTELES_OPTS[ciudad] || [];
+            var arr = getHotelesOpts()[ciudad] || [];
             for (var j = 0; j < arr.length; j++) {
                 opts.push({ v: ciudad + '-' + arr[j].v, l: arr[j].l, p: arr[j].p });
             }
@@ -504,7 +513,7 @@ function initConfiguradorPaquete() {
             var lugarOpts = '<option value="">Sin reserva</option><option value="lerma"' + (savedL === 'lerma' ? ' selected' : '') + '>Lerma</option><option value="burgos"' + (savedL === 'burgos' ? ' selected' : '') + '>Burgos</option>';
             var hotelOpts = [{ v: '', l: 'Sin reserva' }];
             if (savedL === 'lerma' || savedL === 'burgos') {
-                var arr = HOTELES_OPTS[savedL] || [];
+                var arr = getHotelesOpts()[savedL] || [];
                 for (var j = 0; j < arr.length; j++) {
                     hotelOpts.push({ v: savedL + '-' + arr[j].v, l: arr[j].l, p: arr[j].p });
                 }
@@ -609,6 +618,10 @@ function initConfiguradorPaquete() {
             }
         });
     }
+
+    document.addEventListener('hotelbeds-dynamic-ready', function () {
+        actualizarBloqueHotel();
+    });
 
     if (form) {
         form.addEventListener('change', function (e) {
