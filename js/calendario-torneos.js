@@ -81,7 +81,8 @@
         var mes = new Date();
         var torneosPorFecha = {};
 
-        fetch('data/torneos-popup.json')
+        var dataUrl = (typeof window !== 'undefined' && window.TORNEOS_POPUP_DATA_URL) ? window.TORNEOS_POPUP_DATA_URL : 'data/torneos-popup.json';
+        fetch(dataUrl)
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (data) {
                 var torneos = [];

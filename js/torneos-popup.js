@@ -7,8 +7,7 @@
     'use strict';
 
     var STORAGE_KEY = 'torneosPopupCerrado';
-    var DATA_URL = 'data/torneos-popup.json';
-    var DELAY_MS = 0;
+    var DATA_URL = (typeof window !== 'undefined' && window.TORNEOS_POPUP_DATA_URL) ? window.TORNEOS_POPUP_DATA_URL : 'data/torneos-popup.json';
 
     function isPortada() {
         var p = (window.location.pathname || '').replace(/\/$/, '');
