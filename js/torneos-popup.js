@@ -104,36 +104,41 @@
             textoEl.textContent = '';
         }
 
-        if (linkEl) {
-            var lt = (config.linkTexto || '').trim();
-            var lu = config.linkUrl != null ? String(config.linkUrl).trim() : '';
-            if (lt && lu) {
-                linkEl.textContent = lt;
-                linkEl.href = safeHref(lu);
-                linkEl.removeAttribute('hidden');
-            } else {
-                linkEl.setAttribute('hidden', '');
-                linkEl.href = '#';
-                linkEl.textContent = '';
-            }
-        }
-
         if (list) {
             list.innerHTML = '';
             var torneos = config.torneos || [];
             if (torneos.length) {
                 list.removeAttribute('hidden');
+                if (linkEl) linkEl.setAttribute('hidden', '');
                 torneos.forEach(function (t) {
-                    var a = document.createElement('a');
-                    a.href = safeHref(t.enlace);
-                    a.className = 'torneos-popup-item';
-                    a.innerHTML = '<strong>' + esc(t.titulo || 'Torneo') + '</strong>' +
+                    var item = document.createElement('div');
+                    item.className = 'torneos-popup-item';
+                    var info = '<strong>' + esc(t.titulo || 'Torneo') + '</strong>' +
                         (t.fechas ? '<span>' + esc(t.fechas) + '</span>' : '') +
-                        (t.descripcion ? '<span style="display:block;margin-top:0.35rem;">' + esc(t.descripcion) + '</span>' : '');
-                    list.appendChild(a);
+                        (t.descripcion ? '<span class="torneos-popup-item-desc">' + esc(t.descripcion) + '</span>' : '');
+                    var btn = document.createElement('a');
+                    btn.href = safeHref(t.enlace);
+                    btn.className = 'torneos-popup-item-btn';
+                    btn.textContent = 'Más información';
+                    item.innerHTML = info;
+                    item.appendChild(btn);
+                    list.appendChild(item);
                 });
             } else {
                 list.setAttribute('hidden', '');
+                if (linkEl) {
+                    var lt = (config.linkTexto || 'Más información').trim();
+                    var lu = config.linkUrl != null ? String(config.linkUrl).trim() : '';
+                    if (lt && lu) {
+                        linkEl.textContent = lt;
+                        linkEl.href = safeHref(lu);
+                        linkEl.removeAttribute('hidden');
+                    } else {
+                        linkEl.setAttribute('hidden', '');
+                        linkEl.href = '#';
+                        linkEl.textContent = '';
+                    }
+                }
             }
         }
 
