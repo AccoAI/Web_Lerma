@@ -1,9 +1,19 @@
 /**
  * Calendario de Torneos - página dedicada.
- * Mini calendario mensual + lista de torneos (data/torneos-popup.json).
+ * Mini calendario mensual + lista de torneos desde la plataforma o data/torneos-popup.json.
+ * URL por defecto en DEFAULT_PLATFORM_URL; se puede sobrescribir con window.TORNEOS_POPUP_DATA_URL.
  */
 (function () {
     'use strict';
+
+    var DEFAULT_PLATFORM_URL = 'https://plataforma-torneos-lerma-salda-a.vercel.app/api/torneos.json';
+
+    function getDataUrl() {
+        if (typeof window !== 'undefined' && typeof window.TORNEOS_POPUP_DATA_URL === 'string' && window.TORNEOS_POPUP_DATA_URL.trim()) {
+            return window.TORNEOS_POPUP_DATA_URL.trim();
+        }
+        return DEFAULT_PLATFORM_URL;
+    }
 
     var MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
@@ -81,7 +91,7 @@
         var mes = new Date();
         var torneosPorFecha = {};
 
-        var dataUrl = (typeof window !== 'undefined' && window.TORNEOS_POPUP_DATA_URL) ? window.TORNEOS_POPUP_DATA_URL : 'data/torneos-popup.json';
+        var dataUrl = getDataUrl();
         fetch(dataUrl)
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (data) {

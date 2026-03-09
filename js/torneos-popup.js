@@ -1,13 +1,23 @@
 /**
  * Popup de torneos en portada.
- * Lee data/torneos-popup.json. Si popupActivo y hay torneos, muestra el modal.
+ * Si popupActivo y hay contenido, muestra el modal.
  * "No volver a mostrar hoy" se guarda en sessionStorage.
+ * URL por defecto de la plataforma de torneos; se puede sobrescribir con window.TORNEOS_POPUP_DATA_URL en el HTML.
  */
 (function () {
     'use strict';
 
     var STORAGE_KEY = 'torneosPopupCerrado';
-    var DATA_URL = (typeof window !== 'undefined' && window.TORNEOS_POPUP_DATA_URL) ? window.TORNEOS_POPUP_DATA_URL : 'data/torneos-popup.json';
+    var DEFAULT_PLATFORM_URL = 'https://plataforma-torneos-lerma-salda-a.vercel.app/api/torneos.json';
+
+    function getDataUrl() {
+        if (typeof window !== 'undefined' && typeof window.TORNEOS_POPUP_DATA_URL === 'string' && window.TORNEOS_POPUP_DATA_URL.trim()) {
+            return window.TORNEOS_POPUP_DATA_URL.trim();
+        }
+        return DEFAULT_PLATFORM_URL;
+    }
+
+    var DATA_URL = getDataUrl();
 
     function isPortada() {
         var p = (window.location.pathname || '').replace(/\/$/, '');
