@@ -64,7 +64,6 @@
         var imgWrap = document.getElementById('torneosPopupImagenWrap');
         var textoWrap = document.getElementById('torneosPopupTextoWrap');
         var textoEl = document.getElementById('torneosPopupTexto');
-        var linkEl = document.getElementById('torneosPopupLink');
         var closeBtn = document.getElementById('torneosPopupClose');
         var noHoy = document.getElementById('torneosPopupNoHoy');
 
@@ -109,7 +108,6 @@
             var torneos = config.torneos || [];
             if (torneos.length) {
                 list.removeAttribute('hidden');
-                if (linkEl) linkEl.setAttribute('hidden', '');
                 torneos.forEach(function (t) {
                     var item = document.createElement('div');
                     item.className = 'torneos-popup-item';
@@ -126,19 +124,6 @@
                 });
             } else {
                 list.setAttribute('hidden', '');
-                if (linkEl) {
-                    var lt = (config.linkTexto || 'Más información').trim();
-                    var lu = config.linkUrl != null ? String(config.linkUrl).trim() : '';
-                    if (lt && lu) {
-                        linkEl.textContent = lt;
-                        linkEl.href = safeHref(lu);
-                        linkEl.removeAttribute('hidden');
-                    } else {
-                        linkEl.setAttribute('hidden', '');
-                        linkEl.href = '#';
-                        linkEl.textContent = '';
-                    }
-                }
             }
         }
 
