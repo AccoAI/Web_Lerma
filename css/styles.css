@@ -6573,7 +6573,6 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 .torneos-popup-list {
-    display: none !important;
     display: flex;
     flex-direction: column;
     gap: 1rem;
