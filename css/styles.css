@@ -6593,6 +6593,21 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     box-shadow: 0 4px 12px rgba(26, 77, 58, 0.15);
 }
 
+.torneos-popup-item-imagen-wrap {
+    margin: -1rem -1.25rem 1rem;
+    border-radius: 0;
+    overflow: hidden;
+    background: #f0f0f0;
+}
+
+.torneos-popup-item-imagen {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 120px;
+    object-fit: cover;
+}
+
 .torneos-popup-item strong {
     display: block;
     font-size: 1.05rem;

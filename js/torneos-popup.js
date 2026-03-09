@@ -56,6 +56,12 @@
         return href;
     }
 
+    function safeImgSrc(src) {
+        var s = (src || '').trim();
+        if (!s || /^\s*javascript\s*:/i.test(s) || /^\s*data\s*:/i.test(s)) return '';
+        return s;
+    }
+
     function showPopup(config) {
         var overlay = document.getElementById('torneosPopup');
         var list = document.getElementById('torneosPopupList');
@@ -111,6 +117,17 @@
                 torneos.forEach(function (t) {
                     var item = document.createElement('div');
                     item.className = 'torneos-popup-item';
+                    var imgUrl = safeImgSrc(t.imagen);
+                    if (imgUrl) {
+                        var imgWrap = document.createElement('div');
+                        imgWrap.className = 'torneos-popup-item-imagen-wrap';
+                        var img = document.createElement('img');
+                        img.src = imgUrl;
+                        img.alt = t.titulo || 'Torneo';
+                        img.className = 'torneos-popup-item-imagen';
+                        imgWrap.appendChild(img);
+                        item.appendChild(imgWrap);
+                    }
                     var info = '<strong>' + esc(t.titulo || 'Torneo') + '</strong>' +
                         (t.fechas ? '<span>' + esc(t.fechas) + '</span>' : '') +
                         (t.descripcion ? '<span class="torneos-popup-item-desc">' + esc(t.descripcion) + '</span>' : '');
@@ -118,7 +135,7 @@
                     btn.href = safeHref(t.enlace);
                     btn.className = 'torneos-popup-item-btn';
                     btn.textContent = 'Más información';
-                    item.innerHTML = info;
+                    item.innerHTML += info;
                     item.appendChild(btn);
                     list.appendChild(item);
                 });
