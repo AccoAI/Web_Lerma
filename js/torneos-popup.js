@@ -1,8 +1,8 @@
 /**
- * Popup de torneos en portada.
+ * Popup de torneos en portada (izquierda de pantalla).
  * Si popupActivo y hay contenido, muestra el modal.
  * "No volver a mostrar hoy" se guarda en sessionStorage.
- * URL por defecto de la plataforma de torneos; se puede sobrescribir con window.TORNEOS_POPUP_DATA_URL en el HTML.
+ * URL por defecto: plataforma de torneos; se puede sobrescribir con window.TORNEOS_POPUP_DATA_URL en el HTML.
  */
 (function () {
     'use strict';
