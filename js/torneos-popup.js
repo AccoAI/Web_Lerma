@@ -89,7 +89,7 @@
         }
 
         if (imgWrap) {
-            var imgUrl = (config.imagen || '').trim();
+            var imgUrl = (config.foto || config.imagen || '').trim();
             if (imgUrl && !/^\s*javascript\s*:/i.test(imgUrl) && !/^\s*data\s*:/i.test(imgUrl)) {
                 var img = document.createElement('img');
                 img.src = imgUrl;
@@ -117,7 +117,7 @@
                 torneos.forEach(function (t) {
                     var item = document.createElement('div');
                     item.className = 'torneos-popup-item';
-                    var imgUrl = safeImgSrc(t.imagen);
+                    var imgUrl = safeImgSrc(t.foto || t.imagen);
                     if (imgUrl) {
                         var imgWrap = document.createElement('div');
                         imgWrap.className = 'torneos-popup-item-imagen-wrap';
