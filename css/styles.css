@@ -4165,17 +4165,30 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 .agenda-cal-dia.tiene-torneo {
     position: relative;
+    background: rgba(26, 77, 58, 0.15);
+    color: var(--color-primary-dark);
+    font-weight: 500;
+}
+.agenda-cal-dia.tiene-torneo.hoy {
+    background: var(--color-primary);
+    color: var(--color-white);
 }
 .agenda-cal-dia.tiene-torneo::after {
     content: '';
     position: absolute;
-    bottom: 2px;
+    bottom: 3px;
     left: 50%;
     transform: translateX(-50%);
-    width: 4px;
-    height: 4px;
+    width: 5px;
+    height: 5px;
     background: var(--color-accent);
     border-radius: 50%;
+}
+.agenda-cal-dia.tiene-torneo.hoy::after {
+    background: var(--color-accent);
+}
+.agenda-cal-dia.tiene-torneo.otro-mes {
+    background: rgba(26, 77, 58, 0.08);
 }
 .agenda-cal-dia.tiene-torneo.otro-mes::after {
     background: var(--color-primary);
@@ -4317,10 +4330,10 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         display: flex;
         flex-direction: column;
     }
-    .calendario-torneos-main {
+    .calendario-torneos-sidebar {
         order: -1;
     }
-    .calendario-torneos-sidebar {
+    .calendario-torneos-main {
         order: 0;
     }
 }
