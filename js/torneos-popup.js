@@ -119,9 +119,9 @@
             if (w) {
                 var cards = w.querySelectorAll('.torneos-popup-cards .torneos-popup');
                 var n = cards.length;
-                w.style.setProperty('--torneos-popup-no-hoy-delay', (n * 0.3) + 's');
+                w.style.setProperty('--torneos-popup-no-hoy-delay', (n * 0.1) + 's');
                 overlay.classList.add('torneos-popup-closing');
-                var totalMs = (n + 1) * 300 + 50;
+                var totalMs = Math.round((n * 0.1 + 0.3) * 1000) + 50;
                 setTimeout(function () {
                     overlay.setAttribute('hidden', '');
                     overlay.classList.remove('torneos-popup-closing');
