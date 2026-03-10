@@ -21,16 +21,45 @@
         return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     }
 
-    function parseFechaSubtitulo(sub) {
-        if (!sub || typeof sub !== 'string') return null;
-        var m = sub.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
-        if (m) {
-            var dia = parseInt(m[1], 10);
-            var mes = parseInt(m[2], 10) - 1;
-            var year = parseInt(m[3], 10);
-            return year + '-' + String(mes + 1).padStart(2, '0') + '-' + String(dia).padStart(2, '0');
+    var MESES_NOMBRE = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+    /** Parsea una cadena de fecha y devuelve YYYY-MM-DD o null. Prueba varios formatos. */
+    function parseFechaToISO(str) {
+        if (!str || typeof str !== 'string') return null;
+        var s = str.trim();
+        var m;
+        if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))) {
+            return m[1] + '-' + m[2].padStart(2, '0') + '-' + m[3].padStart(2, '0');
+        }
+        if ((m = s.match(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{4})/))) {
+            return m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0');
+        }
+        if ((m = s.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/))) {
+            return m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0');
+        }
+        for (var i = 0; i < MESES_NOMBRE.length; i++) {
+            var nombre = MESES_NOMBRE[i];
+            var regex = new RegExp('(\\d{1,2})\\s*(?:de\\s*)?' + nombre + '\\s*(?:de\\s*)?(\\d{4})', 'i');
+            if ((m = s.match(regex))) {
+                return m[2] + '-' + String(i + 1).padStart(2, '0') + '-' + m[1].padStart(2, '0');
+            }
+        }
+        if ((m = s.match(/(\d{1,2})\s+(\d{1,2})\s+(\d{4})/))) {
+            return m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0');
         }
         return null;
+    }
+
+    /** Extrae todas las fechas encontradas en un texto (una por torneo) y las añade a torneosPorFecha. */
+    function addFechasFromTexto(texto, torneosPorFecha) {
+        if (!texto || !torneosPorFecha) return;
+        var iso = parseFechaToISO(texto);
+        if (iso) torneosPorFecha[iso] = true;
+        var partes = texto.split(/[\s,;]+(?:y|y\/o|\-)\s*|(?:\s+-\s+)/);
+        for (var j = 0; j < partes.length; j++) {
+            iso = parseFechaToISO(partes[j]);
+            if (iso) torneosPorFecha[iso] = true;
+        }
     }
 
     function renderCalendario(mes, torneosPorFecha) {
@@ -106,19 +135,17 @@
                                 descripcion: t.descripcion,
                                 enlace: t.enlace
                             });
-                            var iso = parseFechaSubtitulo(t.fechas);
-                            if (iso) torneosPorFecha[iso] = true;
+                            addFechasFromTexto(t.fechas, torneosPorFecha);
                         });
                     }
                     if (data.titulo && data.subtitulo) {
-                        var iso = parseFechaSubtitulo(data.subtitulo);
+                        addFechasFromTexto(data.subtitulo, torneosPorFecha);
                         torneos.unshift({
                             titulo: data.titulo,
                             fechas: data.subtitulo,
                             descripcion: '',
                             enlace: data.linkUrl || 'configurador-torneos.html'
                         });
-                        if (iso) torneosPorFecha[iso] = true;
                     }
                 }
 

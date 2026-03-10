@@ -146,8 +146,12 @@
         }
 
         var wrapper = overlay.querySelector('.torneos-popup-wrapper');
+        var tab = document.getElementById('torneosPopupTab');
         if (closeBtn) {
-            closeBtn.addEventListener('click', close);
+            closeBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                close();
+            });
             closeBtn.addEventListener('touchend', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -158,24 +162,28 @@
             if (e.target === overlay) close();
         });
 
-        if (wrapper && isMobile()) {
+        if (wrapper && tab && isMobile()) {
             overlay.classList.remove('torneos-popup-expanded');
-            wrapper.addEventListener('click', function (e) {
-                if (!overlay.classList.contains('torneos-popup-expanded')) {
+            function toggleSheet(e) {
+                if (e.target.closest && e.target.closest('.torneos-popup-close')) return;
+                e.preventDefault();
+                var expanded = overlay.classList.toggle('torneos-popup-expanded');
+                if (tab) tab.setAttribute('aria-expanded', expanded);
+            }
+            tab.addEventListener('click', toggleSheet);
+            tab.addEventListener('touchend', function (e) {
+                if (e.target.closest && e.target.closest('.torneos-popup-close')) return;
+                e.preventDefault();
+                var expanded = overlay.classList.toggle('torneos-popup-expanded');
+                if (tab) tab.setAttribute('aria-expanded', expanded);
+            }, { passive: false });
+            tab.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    overlay.classList.add('torneos-popup-expanded');
+                    var expanded = overlay.classList.toggle('torneos-popup-expanded');
+                    if (tab) tab.setAttribute('aria-expanded', expanded);
                 }
             });
-            var touchStartX = 0;
-            wrapper.addEventListener('touchstart', function (e) {
-                touchStartX = e.touches[0].clientX;
-            }, { passive: true });
-            wrapper.addEventListener('touchend', function (e) {
-                var touchEndX = e.changedTouches[0].clientX;
-                var delta = touchEndX - touchStartX;
-                if (delta > 50) overlay.classList.add('torneos-popup-expanded');
-                else if (delta < -50) overlay.classList.remove('torneos-popup-expanded');
-            }, { passive: true });
         }
     }
 

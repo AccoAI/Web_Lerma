@@ -281,14 +281,16 @@
     <!-- Popup torneos (portada, lado izquierdo): datos desde API plataforma o data/torneos-popup.json -->
     <div class="torneos-popup-overlay" id="torneosPopup" role="dialog" aria-labelledby="torneosPopupTitulo" aria-modal="true" hidden>
         <div class="torneos-popup-wrapper">
-            <div class="torneos-popup-header">
+            <div class="torneos-popup-header" id="torneosPopupTab" role="button" tabindex="0" aria-expanded="false" aria-label="Próximos torneos">
                 <h2 class="torneos-popup-titulo" id="torneosPopupTitulo" data-i18n="popup_torneos_titulo">Próximos torneos</h2>
                 <button type="button" class="torneos-popup-close" id="torneosPopupClose" aria-label="Cerrar">×</button>
             </div>
-            <div class="torneos-popup-cards" id="torneosPopupCards"></div>
-            <label class="torneos-popup-no-hoy" data-i18n="popup_no_hoy">
-                <input type="checkbox" id="torneosPopupNoHoy" /> No volver a mostrar hoy
-            </label>
+            <div class="torneos-popup-sheet-body">
+                <div class="torneos-popup-cards" id="torneosPopupCards"></div>
+                <label class="torneos-popup-no-hoy" data-i18n="popup_no_hoy">
+                    <input type="checkbox" id="torneosPopupNoHoy" /> No volver a mostrar hoy
+                </label>
+            </div>
         </div>
     </div>
 
