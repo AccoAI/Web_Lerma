@@ -6849,10 +6849,11 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     .torneos-popup-overlay {
         padding: 0;
         align-items: flex-end;
-        justify-content: center;
+        justify-content: flex-end;
         width: 100%;
         left: 0;
         right: 0;
+        top: 0;
         bottom: 0;
     }
 
@@ -6872,7 +6873,10 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     }
 
     .torneos-popup-overlay .torneos-popup-wrapper {
-        position: relative;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
         width: 100%;
         max-width: 100vw;
         box-sizing: border-box;
@@ -7940,6 +7944,12 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     align-items: center;
     justify-content: flex-end;
     gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+    .chatbot-fab-group {
+        flex-direction: column;
+    }
 }
 
 .chatbot-whatsapp {
