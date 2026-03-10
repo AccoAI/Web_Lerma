@@ -128,15 +128,18 @@
                         imgWrap.appendChild(img);
                         item.appendChild(imgWrap);
                     }
-                    var info = '<strong>' + esc(t.titulo || 'Torneo') + '</strong>' +
-                        (t.fechas ? '<span>' + esc(t.fechas) + '</span>' : '') +
+                    var info = (t.fechas ? '<span class="torneos-popup-item-fecha">' + esc(t.fechas) + '</span>' : '') +
+                        '<strong class="torneos-popup-item-titulo">' + esc(t.titulo || 'Torneo') + '</strong>' +
                         (t.descripcion ? '<span class="torneos-popup-item-desc">' + esc(t.descripcion) + '</span>' : '');
+                    var contentWrap = document.createElement('div');
+                    contentWrap.className = 'torneos-popup-item-content';
+                    contentWrap.innerHTML = info;
                     var btn = document.createElement('a');
                     btn.href = safeHref(t.enlace);
                     btn.className = 'torneos-popup-item-btn';
                     btn.textContent = 'Más información';
-                    item.innerHTML += info;
-                    item.appendChild(btn);
+                    contentWrap.appendChild(btn);
+                    item.appendChild(contentWrap);
                     list.appendChild(item);
                 });
             } else {

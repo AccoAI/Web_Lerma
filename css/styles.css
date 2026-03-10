@@ -6485,13 +6485,14 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 .torneos-popup {
-    background: var(--color-white);
-    width: 280px;
-    max-width: calc(100% - 2rem);
-    padding: 1.5rem 1.25rem;
+    background: linear-gradient(135deg, var(--color-white) 0%, rgba(26, 77, 58, 0.04) 100%);
+    width: 380px;
+    max-width: calc(100vw - 2rem);
+    padding: 0;
     border-radius: 0;
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 8px 32px rgba(15, 51, 36, 0.2);
     position: relative;
+    border-left: 4px solid var(--color-accent);
 }
 
 .torneos-popup-close {
@@ -6510,36 +6511,36 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 2;
 }
 
 .torneos-popup-close:hover {
-    color: var(--color-text);
+    color: var(--color-accent);
 }
 
 .torneos-popup-titulo {
     font-family: var(--font-primary);
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 300;
     letter-spacing: 1px;
     text-transform: uppercase;
     color: var(--color-primary);
-    margin: 0 0 0.5rem;
-    padding-right: 1.5rem;
+    margin: 0;
+    padding: 1rem 2.5rem 0.75rem 1.25rem;
     white-space: nowrap;
+    border-bottom: 1px solid rgba(201, 169, 97, 0.3);
 }
 
 .torneos-popup-subtitulo {
     font-size: 0.85rem;
     color: var(--color-text-light);
-    margin: 0 0 1rem;
-    padding-right: 1.5rem;
+    margin: 0;
+    padding: 0 1.25rem 0.75rem;
+    padding-right: 2.5rem;
 }
 
 .torneos-popup-imagen-wrap {
-    margin-bottom: 1rem;
-    border-radius: 0;
-    overflow: hidden;
-    background: #f0f0f0;
+    display: none;
 }
 
 .torneos-popup-imagen {
@@ -6569,91 +6570,124 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 .torneos-popup-link:hover {
-    background: var(--color-primary-dark);
-    color: var(--color-white);
+    background: var(--color-accent);
+    color: var(--color-primary-dark);
 }
 
 .torneos-popup-list {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0;
+    padding: 0.5rem 0;
 }
 
 .torneos-popup-item {
-    display: block;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 1rem;
     padding: 1rem 1.25rem;
-    border: 1px solid #e0e0e0;
+    border: none;
+    border-bottom: 1px solid rgba(26, 77, 58, 0.12);
     border-radius: 0;
     color: var(--color-text);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: background 0.2s ease;
+}
+
+.torneos-popup-item:last-of-type {
+    border-bottom: none;
 }
 
 .torneos-popup-item:hover {
-    border-color: var(--color-primary);
-    box-shadow: 0 4px 12px rgba(26, 77, 58, 0.15);
+    background: rgba(201, 169, 97, 0.08);
 }
 
 .torneos-popup-item-imagen-wrap {
-    margin: -1rem -1.25rem 1rem;
-    border-radius: 0;
+    flex-shrink: 0;
+    width: 72px;
+    height: 72px;
     overflow: hidden;
-    background: #f0f0f0;
+    border: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
 }
 
 .torneos-popup-item-imagen {
     display: block;
-    width: 100%;
-    height: auto;
-    max-height: 120px;
+    width: 72px;
+    height: 72px;
     object-fit: cover;
 }
 
-.torneos-popup-item strong {
-    display: block;
-    font-size: 1.05rem;
-    color: var(--color-primary-dark);
-    margin-bottom: 0.25rem;
+.torneos-popup-item .torneos-popup-item-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 
-.torneos-popup-item span {
-    font-size: 0.9rem;
+.torneos-popup-item-fecha {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    letter-spacing: 0.5px;
+    margin-bottom: 0.15rem;
+}
+
+.torneos-popup-item-titulo,
+.torneos-popup-item strong {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-primary-dark);
+    margin-bottom: 0.15rem;
+}
+
+.torneos-popup-item span:not(.torneos-popup-item-fecha) {
+    font-size: 0.85rem;
     color: var(--color-text-light);
 }
 
 .torneos-popup-item-desc {
     display: block;
-    margin-top: 0.35rem;
+    margin-top: 0.2rem;
+    line-height: 1.4;
 }
 
 .torneos-popup-item-btn {
     display: inline-block;
-    margin-top: 0.75rem;
-    padding: 0.5rem 1rem;
+    margin-top: 0.5rem;
+    padding: 0.4rem 0.9rem;
     background: var(--color-primary);
     color: var(--color-white);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 300;
     letter-spacing: 1px;
     text-transform: uppercase;
     text-decoration: none;
     border-radius: 0;
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, color 0.2s ease;
     white-space: nowrap;
 }
 
 .torneos-popup-item-btn:hover {
-    background: var(--color-primary-dark);
-    color: var(--color-white);
+    background: var(--color-accent);
+    color: var(--color-primary-dark);
 }
 
 .torneos-popup-no-hoy {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-top: 1rem;
+    margin: 0;
+    padding: 0.75rem 1.25rem 1rem;
     font-size: 0.8rem;
     color: var(--color-text-light);
     cursor: pointer;
+    border-top: 1px solid rgba(201, 169, 97, 0.25);
 }
 
 .torneos-popup-no-hoy input {
