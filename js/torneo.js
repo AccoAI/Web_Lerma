@@ -73,9 +73,9 @@
             html += '<div class="torneo-detalle-descripcion">' + esc((t.descripcion || '').trim()) + '</div>';
         }
         var enlace = safeHref(t.enlace);
-        if (enlace) {
-            html += '<p class="torneo-detalle-cta"><a href="' + esc(enlace) + '" class="torneo-detalle-btn">Inscribirse / Más información</a></p>';
-        }
+        var ctaHref = enlace || 'index.html#contacto';
+        var ctaText = enlace ? 'Reservar tu plaza en el torneo' : 'Reservar tu plaza – Contactar';
+        html += '<p class="torneo-detalle-cta"><a href="' + esc(ctaHref) + '" class="torneo-detalle-btn">' + esc(ctaText) + '</a></p>';
 
         contenedor.innerHTML = html;
     }

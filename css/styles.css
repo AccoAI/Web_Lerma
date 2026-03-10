@@ -6806,17 +6806,19 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 .torneo-detalle-cta {
-    margin: 1.5rem 0 0;
+    margin: 2.5rem 0 0;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .torneo-detalle-btn {
     display: inline-block;
-    padding: 0.75rem 1.5rem;
+    padding: 0.9rem 1.75rem;
     background: var(--color-primary);
     color: var(--color-white);
     font-family: var(--font-primary);
-    font-size: 0.9rem;
-    font-weight: 300;
+    font-size: 0.95rem;
+    font-weight: 400;
     letter-spacing: 1px;
     text-transform: uppercase;
     text-decoration: none;

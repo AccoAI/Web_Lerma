@@ -75,7 +75,7 @@
 
         if (cardsContainer) {
             cardsContainer.innerHTML = '';
-            var torneos = config.torneos || [];
+            var torneos = (config.torneos || []).slice(0, 3);
             torneos.forEach(function (t) {
                 var card = document.createElement('div');
                 card.className = 'torneos-popup';
@@ -146,7 +146,14 @@
         }
 
         var wrapper = overlay.querySelector('.torneos-popup-wrapper');
-        if (closeBtn) closeBtn.addEventListener('click', close);
+        if (closeBtn) {
+            closeBtn.addEventListener('click', close);
+            closeBtn.addEventListener('touchend', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                close();
+            }, { passive: false });
+        }
         overlay.addEventListener('click', function (e) {
             if (e.target === overlay) close();
         });
