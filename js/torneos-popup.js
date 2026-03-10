@@ -120,8 +120,7 @@
                     var item = document.createElement('div');
                     item.className = 'torneos-popup-item';
                     var info = (t.fechas ? '<span class="torneos-popup-item-fecha">' + esc(t.fechas) + '</span>' : '') +
-                        '<strong class="torneos-popup-item-titulo">' + esc(t.titulo || 'Torneo') + '</strong>' +
-                        (t.descripcion ? '<span class="torneos-popup-item-desc">' + esc(t.descripcion) + '</span>' : '');
+                        '<strong class="torneos-popup-item-titulo">' + esc(t.titulo || 'Torneo') + '</strong>';
                     var contentWrap = document.createElement('div');
                     contentWrap.className = 'torneos-popup-item-content';
                     contentWrap.innerHTML = info;
