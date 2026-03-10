@@ -117,6 +117,11 @@
         function close() {
             var w = overlay.querySelector('.torneos-popup-wrapper');
             var mobile = isMobile && isMobile();
+            var cerrarTodo = mobile ? (noHoy && noHoy.checked) : true;
+            if (mobile && !cerrarTodo) {
+                overlay.classList.remove('torneos-popup-expanded');
+                return;
+            }
             if (w) {
                 var cards = w.querySelectorAll('.torneos-popup-cards .torneos-popup');
                 var n = cards.length;
