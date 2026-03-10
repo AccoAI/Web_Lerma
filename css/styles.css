@@ -6512,13 +6512,13 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 .torneos-popup-close {
     position: absolute;
-    top: -0.5rem;
-    right: -0.5rem;
-    background: var(--color-white);
+    top: -1.25rem;
+    right: 0;
+    background: transparent;
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
-    color: #000;
+    color: var(--color-white);
     line-height: 1;
     padding: 0;
     width: 28px;
@@ -6527,23 +6527,22 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     align-items: center;
     justify-content: center;
     z-index: 2;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .torneos-popup-close:hover {
-    color: #333;
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .torneos-popup-titulo {
     font-family: var(--font-primary);
-    font-size: 0.75rem;
+    font-size: 1.1rem;
     font-weight: 300;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
     text-transform: uppercase;
-    color: #000;
-    background: var(--color-white);
-    margin: 0;
-    padding: 0.35rem 2rem 0.35rem 0.75rem;
+    color: var(--color-white);
+    background: transparent;
+    margin: 0 0 0.5rem 0;
+    padding: 0;
     white-space: nowrap;
     flex-shrink: 0;
 }
@@ -6734,11 +6733,10 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     font-size: 0.65rem;
     font-weight: 300;
     text-transform: uppercase;
-    color: #000;
-    background: var(--color-white);
+    color: var(--color-white);
+    background: transparent;
     cursor: pointer;
     flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .torneos-popup-no-hoy input {
