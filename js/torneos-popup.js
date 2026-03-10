@@ -142,13 +142,59 @@
 
         function close() {
             overlay.setAttribute('hidden', '');
+            overlay.classList.remove('torneos-popup-expanded');
             if (noHoy && noHoy.checked) marcarCerradoHoy();
         }
 
+        function isMobile() {
+            return window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+        }
+
+        var wrapper = overlay.querySelector('.torneos-popup-wrapper');
         if (closeBtn) closeBtn.addEventListener('click', close);
         overlay.addEventListener('click', function (e) {
             if (e.target === overlay) close();
         });
+
+        if (wrapper && isMobile()) {
+            overlay.classList.remove('torneos-popup-expanded');
+            wrapper.addEventListener('click', function (e) {
+                if (!overlay.classList.contains('torneos-popup-expanded')) {
+                    e.preventDefault();
+                    overlay.classList.add('torneos-popup-expanded');
+                }
+            });
+            var touchStartX = 0;
+            wrapper.addEventListener('touchstart', function (e) {
+                touchStartX = e.touches[0].clientX;
+            }, { passive: true });
+            wrapper.addEventListener('touchend', function (e) {
+                var touchEndX = e.changedTouches[0].clientX;
+                var delta = touchEndX - touchStartX;
+                if (delta > 50) overlay.classList.add('torneos-popup-expanded');
+                else if (delta < -50) overlay.classList.remove('torneos-popup-expanded');
+            }, { passive: true });
+        }
+    }
+
+    function setupScrollHide() {
+        var overlay = document.getElementById('torneosPopup');
+        var paquetes = document.getElementById('paquetes');
+        if (!overlay || !paquetes) return;
+
+        function onScroll() {
+            if (overlay.hasAttribute('hidden')) return;
+            var rect = paquetes.getBoundingClientRect();
+            var threshold = window.innerHeight * 0.6;
+            if (rect.top < threshold) {
+                overlay.classList.add('torneos-popup-scroll-hidden');
+            } else {
+                overlay.classList.remove('torneos-popup-scroll-hidden');
+            }
+        }
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
     }
 
     function init() {
@@ -164,6 +210,7 @@
                 var hasContent = (data.torneos && data.torneos.length) || (data.imagen && data.imagen.trim()) || (data.texto && data.texto.trim()) || (data.linkUrl && data.linkTexto);
                 if (!hasContent) return;
                 showPopup(data);
+                setupScrollHide();
             })
             .catch(function () {});
     }

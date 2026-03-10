@@ -6489,6 +6489,13 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     display: none !important;
 }
 
+.torneos-popup-overlay.torneos-popup-scroll-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
 .torneos-popup {
     display: flex;
     flex-direction: row;
@@ -6751,6 +6758,47 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 .torneos-popup-no-hoy input {
     width: 1rem;
     height: 1rem;
+}
+
+/* Popup torneos – móvil: pestaña colapsable */
+@media (max-width: 768px) {
+    .torneos-popup-overlay {
+        padding: 0;
+        align-items: center;
+    }
+
+    .torneos-popup-overlay .torneos-popup-wrapper {
+        transform: translateX(calc(-100% + 48px));
+        transition: transform 0.3s ease;
+        border-radius: 0 8px 8px 0;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        position: relative;
+    }
+
+    .torneos-popup-overlay .torneos-popup-wrapper::before {
+        content: 'Torneos';
+        position: absolute;
+        right: 0;
+        left: auto;
+        top: 50%;
+        transform: translateY(-50%);
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        font-family: var(--font-primary);
+        font-size: 0.7rem;
+        font-weight: 300;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--color-white);
+        padding: 0.5rem 0;
+        pointer-events: none;
+        width: 48px;
+        text-align: center;
+    }
+
+    .torneos-popup-overlay.torneos-popup-expanded .torneos-popup-wrapper {
+        transform: translateX(0);
+    }
 }
 
 /* Responsive - Header usa valores fluidos (clamp) en base */
