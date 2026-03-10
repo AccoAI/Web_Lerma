@@ -6483,11 +6483,30 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     flex-direction: column;
     align-items: flex-start;
     gap: 0;
+    overflow: hidden;
+}
+
+.torneos-popup-overlay .torneos-popup-header,
+.torneos-popup-overlay .torneos-popup-cards .torneos-popup,
+.torneos-popup-overlay .torneos-popup-no-hoy {
     transition: transform 0.3s ease;
 }
 
-.torneos-popup-overlay.torneos-popup-closing .torneos-popup-wrapper {
-    transform: translateX(-100%) !important;
+.torneos-popup-overlay.torneos-popup-closing .torneos-popup-header {
+    transform: translateX(-100%);
+    transition-delay: 0s;
+}
+
+.torneos-popup-overlay.torneos-popup-closing .torneos-popup-cards .torneos-popup:nth-child(1) { transform: translateX(-100%); transition-delay: 0.3s; }
+.torneos-popup-overlay.torneos-popup-closing .torneos-popup-cards .torneos-popup:nth-child(2) { transform: translateX(-100%); transition-delay: 0.6s; }
+.torneos-popup-overlay.torneos-popup-closing .torneos-popup-cards .torneos-popup:nth-child(3) { transform: translateX(-100%); transition-delay: 0.9s; }
+.torneos-popup-overlay.torneos-popup-closing .torneos-popup-cards .torneos-popup:nth-child(4) { transform: translateX(-100%); transition-delay: 1.2s; }
+.torneos-popup-overlay.torneos-popup-closing .torneos-popup-cards .torneos-popup:nth-child(5) { transform: translateX(-100%); transition-delay: 1.5s; }
+.torneos-popup-overlay.torneos-popup-closing .torneos-popup-cards .torneos-popup:nth-child(n+6) { transform: translateX(-100%); transition-delay: 1.8s; }
+
+.torneos-popup-overlay.torneos-popup-closing .torneos-popup-no-hoy {
+    transform: translateX(-100%);
+    transition-delay: var(--torneos-popup-no-hoy-delay, 0.6s);
 }
 
 .torneos-popup-overlay[hidden] {

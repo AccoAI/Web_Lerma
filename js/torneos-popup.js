@@ -117,13 +117,17 @@
         function close() {
             var w = overlay.querySelector('.torneos-popup-wrapper');
             if (w) {
+                var cards = w.querySelectorAll('.torneos-popup-cards .torneos-popup');
+                var n = cards.length;
+                w.style.setProperty('--torneos-popup-no-hoy-delay', (n * 0.3) + 's');
                 overlay.classList.add('torneos-popup-closing');
-                w.addEventListener('transitionend', function once() {
-                    w.removeEventListener('transitionend', once);
+                var totalMs = (n + 1) * 300 + 50;
+                setTimeout(function () {
                     overlay.setAttribute('hidden', '');
                     overlay.classList.remove('torneos-popup-closing');
                     overlay.classList.remove('torneos-popup-expanded');
-                });
+                    w.style.removeProperty('--torneos-popup-no-hoy-delay');
+                }, totalMs);
             } else {
                 overlay.setAttribute('hidden', '');
                 overlay.classList.remove('torneos-popup-expanded');
