@@ -6471,14 +6471,13 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     pointer-events: none;
     z-index: 100;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: flex-start;
     padding: 1.5rem;
 }
 
 .torneos-popup-overlay .torneos-popup {
     pointer-events: auto;
-    align-self: flex-start;
 }
 
 .torneos-popup-overlay[hidden] {
