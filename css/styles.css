@@ -6834,6 +6834,18 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     .torneos-popup-overlay {
         padding: 0;
         align-items: center;
+        width: auto;
+    }
+
+    .torneos-popup-overlay.torneos-popup-expanded {
+        width: 100%;
+        left: 0;
+        right: 0;
+        pointer-events: auto;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        transition: background 0.25s ease;
     }
 
     .torneos-popup-overlay .torneos-popup-wrapper {
@@ -6842,6 +6854,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         border-radius: 0 8px 8px 0;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         position: relative;
+        background: var(--color-white);
     }
 
     .torneos-popup-overlay .torneos-popup-wrapper::before {
@@ -6867,6 +6880,15 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
     .torneos-popup-overlay.torneos-popup-expanded .torneos-popup-wrapper {
         transform: translateX(0);
+    }
+
+    .torneos-popup-overlay .torneos-popup-header {
+        background: var(--color-primary-dark);
+        padding: 0.5rem 0.75rem;
+    }
+
+    .torneos-popup-overlay .torneos-popup-no-hoy {
+        background: var(--color-primary-dark);
     }
 }
 
