@@ -6610,7 +6610,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     margin: 0;
     padding: 0;
     background: transparent;
-    align-self: center;
+    align-self: stretch;
 }
 
 .torneos-popup-item-imagen {

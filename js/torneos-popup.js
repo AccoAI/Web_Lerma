@@ -118,16 +118,6 @@
                     var item = document.createElement('div');
                     item.className = 'torneos-popup-item';
                     var imgUrl = safeImgSrc(t.foto || t.imagen);
-                    if (imgUrl) {
-                        var imgWrap = document.createElement('div');
-                        imgWrap.className = 'torneos-popup-item-imagen-wrap';
-                        var img = document.createElement('img');
-                        img.src = imgUrl;
-                        img.alt = t.titulo || 'Torneo';
-                        img.className = 'torneos-popup-item-imagen';
-                        imgWrap.appendChild(img);
-                        item.appendChild(imgWrap);
-                    }
                     var info = (t.fechas ? '<span class="torneos-popup-item-fecha">' + esc(t.fechas) + '</span>' : '') +
                         '<strong class="torneos-popup-item-titulo">' + esc(t.titulo || 'Torneo') + '</strong>' +
                         (t.descripcion ? '<span class="torneos-popup-item-desc">' + esc(t.descripcion) + '</span>' : '');
@@ -140,6 +130,16 @@
                     btn.textContent = 'Más información';
                     contentWrap.appendChild(btn);
                     item.appendChild(contentWrap);
+                    if (imgUrl) {
+                        var imgWrap = document.createElement('div');
+                        imgWrap.className = 'torneos-popup-item-imagen-wrap';
+                        var img = document.createElement('img');
+                        img.src = imgUrl;
+                        img.alt = t.titulo || 'Torneo';
+                        img.className = 'torneos-popup-item-imagen';
+                        imgWrap.appendChild(img);
+                        item.appendChild(imgWrap);
+                    }
                     list.appendChild(item);
                 });
             } else {
