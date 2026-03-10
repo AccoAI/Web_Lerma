@@ -6831,8 +6831,8 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 /* Popup torneos – móvil: pestañita colapsable */
 @keyframes torneos-tab-respira {
-    0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
-    50% { opacity: 0.92; transform: translateY(-50%) scale(1.03); }
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.94; transform: scale(1.02); }
 }
 
 @media (max-width: 768px) {
@@ -6866,9 +6866,9 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         left: 0;
         top: 50%;
         transform: translateY(-50%);
-        transition: width 0.3s ease, height 0.3s ease, max-height 0.3s ease, transform 0.3s ease;
-        border-radius: 0 6px 6px 0;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+        transition: width 0.3s ease, height 0.3s ease, max-height 0.3s ease, transform 0.3s ease, padding 0.3s ease;
+        border-radius: 0 8px 8px 0;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
         background: var(--color-white);
         overflow: hidden;
         z-index: 101;
@@ -6881,37 +6881,40 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         max-height: 5rem;
     }
 
+    /* Pestaña fija a la izquierda: misma franja al abrir/cerrar, sin flotar encima */
     .torneos-popup-overlay .torneos-popup-wrapper::before {
         content: 'TORNEOS';
         position: absolute;
         left: 0;
-        right: 0;
-        top: 50%;
-        transform: translateY(-50%);
+        top: 0;
+        bottom: 0;
+        width: var(--torneos-tab-w);
         writing-mode: vertical-rl;
         text-orientation: mixed;
         font-family: var(--font-primary);
-        font-size: 0.6rem;
-        font-weight: 300;
-        letter-spacing: 0.5px;
+        font-size: 0.58rem;
+        font-weight: 400;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         color: var(--color-white);
-        padding: 0.35rem 0;
-        pointer-events: none;
-        width: var(--torneos-tab-w);
-        min-height: 4rem;
-        margin: 0 auto;
-        text-align: center;
         background: var(--color-primary-dark);
         border-radius: 0 6px 6px 0;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
         animation: torneos-tab-respira 2.5s ease-in-out infinite;
+        z-index: 1;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
+    /* Contenido del panel a la derecha de la pestaña, sin solaparse */
     .torneos-popup-overlay.torneos-popup-expanded .torneos-popup-wrapper {
         width: min(320px, 90vw);
         min-width: 0;
         height: auto;
         max-height: 85vh;
+        padding-left: var(--torneos-tab-w);
     }
 
     .torneos-popup-overlay .torneos-popup-header {
