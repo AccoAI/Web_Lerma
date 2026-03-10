@@ -23,10 +23,14 @@
 
     var MESES_NOMBRE = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
+    /** Meses en abreviatura 3 letras (API devuelve "12 MAR '26") */
+    var MESES_ABREV = { ene: 1, feb: 2, mar: 3, abr: 4, may: 5, jun: 6, jul: 7, ago: 8, sep: 9, oct: 10, nov: 11, dic: 12 };
+
     /** Parsea una cadena de fecha y devuelve YYYY-MM-DD o null. Prueba varios formatos. */
     function parseFechaToISO(str) {
         if (!str || typeof str !== 'string') return null;
         var s = str.trim();
+        if (/próximamente|pendiente|tbd/i.test(s)) return null;
         var m;
         if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))) {
             return m[1] + '-' + m[2].padStart(2, '0') + '-' + m[3].padStart(2, '0');
@@ -36,6 +40,13 @@
         }
         if ((m = s.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/))) {
             return m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0');
+        }
+        if ((m = s.match(/(\d{1,2})\s+(ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|OCT|NOV|DIC)\s+'(\d{2})/i))) {
+            var mesNum = MESES_ABREV[m[2].toLowerCase().substring(0, 3)];
+            if (!mesNum) return null;
+            var yy = parseInt(m[3], 10);
+            var year = yy >= 0 && yy <= 99 ? 2000 + yy : yy;
+            return year + '-' + String(mesNum).padStart(2, '0') + '-' + m[1].padStart(2, '0');
         }
         for (var i = 0; i < MESES_NOMBRE.length; i++) {
             var nombre = MESES_NOMBRE[i];
