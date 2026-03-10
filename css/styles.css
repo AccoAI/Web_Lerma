@@ -6625,16 +6625,15 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 .torneos-popup-cards {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: 0.5rem;
     max-height: 70vh;
     overflow: auto;
 }
 
-.torneos-popup-cards .torneos-popup:nth-child(1) { margin-left: 0; }
-.torneos-popup-cards .torneos-popup:nth-child(2) { margin-left: 10px; }
-.torneos-popup-cards .torneos-popup:nth-child(3) { margin-left: 20px; }
-.torneos-popup-cards .torneos-popup:nth-child(4) { margin-left: 30px; }
-.torneos-popup-cards .torneos-popup:nth-child(5) { margin-left: 40px; }
+.torneos-popup-cards .torneos-popup {
+    margin: 0;
+}
 
 .torneos-popup .torneos-popup-content {
     flex: 1;
