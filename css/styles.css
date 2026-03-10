@@ -6760,6 +6760,81 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     height: 1rem;
 }
 
+/* Página detalle torneo (torneo.html) */
+.torneo-detalle-content {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.torneo-detalle-cargando {
+    text-align: center;
+    color: var(--color-text-light);
+}
+
+.torneo-detalle-imagen-wrap {
+    margin-bottom: 1.5rem;
+    border-radius: 0;
+    overflow: hidden;
+    background: #f0f0f0;
+}
+
+.torneo-detalle-imagen {
+    display: block;
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+}
+
+.torneo-detalle-titulo {
+    font-family: var(--font-primary);
+    font-size: 1.75rem;
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--color-primary-dark);
+    margin: 0 0 1rem;
+}
+
+.torneo-detalle-fecha,
+.torneo-detalle-modalidad,
+.torneo-detalle-premios {
+    font-size: 1rem;
+    color: var(--color-text);
+    margin: 0 0 0.75rem;
+}
+
+.torneo-detalle-descripcion {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--color-text);
+    margin: 1.5rem 0;
+    white-space: pre-wrap;
+}
+
+.torneo-detalle-cta {
+    margin: 1.5rem 0 0;
+}
+
+.torneo-detalle-btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-primary);
+    color: var(--color-white);
+    font-family: var(--font-primary);
+    font-size: 0.9rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 0;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.torneo-detalle-btn:hover {
+    background: var(--color-primary-dark);
+    color: var(--color-white);
+}
+
 /* Popup torneos – móvil: pestaña colapsable */
 @media (max-width: 768px) {
     .torneos-popup-overlay {

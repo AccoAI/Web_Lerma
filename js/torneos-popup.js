@@ -126,9 +126,16 @@
                     contentWrap.className = 'torneos-popup-item-content';
                     contentWrap.innerHTML = info;
                     var btn = document.createElement('a');
-                    btn.href = safeHref(t.enlace);
+                    btn.href = 'torneo.html';
                     btn.className = 'torneos-popup-item-btn';
                     btn.textContent = 'Más información';
+                    btn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        try {
+                            sessionStorage.setItem('torneoSeleccionado', JSON.stringify(t));
+                        } catch (err) {}
+                        window.location.href = 'torneo.html';
+                    });
                     contentWrap.appendChild(btn);
                     item.appendChild(contentWrap);
                     list.appendChild(item);
