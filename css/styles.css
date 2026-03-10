@@ -6471,13 +6471,15 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     pointer-events: none;
     z-index: 100;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: flex-start;
     padding: 1.5rem;
 }
 
 .torneos-popup-overlay .torneos-popup {
     pointer-events: auto;
+    align-self: flex-start;
+    height: fit-content;
 }
 
 .torneos-popup-overlay[hidden] {
@@ -6550,7 +6552,8 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 .torneos-popup-imagen-wrap {
     flex-shrink: 0;
-    height: 100%;
+    align-self: stretch;
+    width: auto;
     aspect-ratio: 1 / 1;
     overflow: hidden;
     background: #f0f0f0;
