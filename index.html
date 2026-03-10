@@ -281,8 +281,10 @@
     <!-- Popup torneos (portada, lado izquierdo): datos desde API plataforma o data/torneos-popup.json -->
     <div class="torneos-popup-overlay" id="torneosPopup" role="dialog" aria-labelledby="torneosPopupTitulo" aria-modal="true" hidden>
         <div class="torneos-popup-wrapper">
-            <h2 class="torneos-popup-titulo" id="torneosPopupTitulo" data-i18n="popup_torneos_titulo">Próximos torneos</h2>
-            <button type="button" class="torneos-popup-close" id="torneosPopupClose" aria-label="Cerrar">×</button>
+            <div class="torneos-popup-header">
+                <h2 class="torneos-popup-titulo" id="torneosPopupTitulo" data-i18n="popup_torneos_titulo">Próximos torneos</h2>
+                <button type="button" class="torneos-popup-close" id="torneosPopupClose" aria-label="Cerrar">×</button>
+            </div>
             <div class="torneos-popup">
                 <div class="torneos-popup-content">
                     <p class="torneos-popup-subtitulo" id="torneosPopupSubtitulo" hidden></p>
