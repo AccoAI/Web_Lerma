@@ -6483,6 +6483,11 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     flex-direction: column;
     align-items: flex-start;
     gap: 0;
+    transition: transform 0.3s ease;
+}
+
+.torneos-popup-overlay.torneos-popup-closing .torneos-popup-wrapper {
+    transform: translateX(-100%) !important;
 }
 
 .torneos-popup-overlay[hidden] {
@@ -6617,57 +6622,21 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     color: var(--color-primary-dark);
 }
 
-.torneos-popup-list {
-    flex: 1;
-    min-height: 0;
+.torneos-popup-cards {
     display: flex;
     flex-direction: column;
-    gap: 0;
-    padding: 0.2rem 0;
+    gap: 0.5rem;
+    max-height: 70vh;
     overflow: auto;
 }
 
-.torneos-popup-item {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0;
-    padding: 0.25rem 0.5rem;
-    min-height: 0;
-    border: none;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 0;
-    color: #000;
-    transition: background 0.2s ease;
-}
+.torneos-popup-cards .torneos-popup:nth-child(1) { margin-left: 0; }
+.torneos-popup-cards .torneos-popup:nth-child(2) { margin-left: 10px; }
+.torneos-popup-cards .torneos-popup:nth-child(3) { margin-left: 20px; }
+.torneos-popup-cards .torneos-popup:nth-child(4) { margin-left: 30px; }
+.torneos-popup-cards .torneos-popup:nth-child(5) { margin-left: 40px; }
 
-.torneos-popup-item:last-of-type {
-    border-bottom: none;
-}
-
-.torneos-popup-item:hover {
-    background: rgba(0, 0, 0, 0.03);
-}
-
-.torneos-popup-item-imagen-wrap {
-    flex-shrink: 0;
-    width: 100px;
-    height: 100px;
-    overflow: hidden;
-    margin: 0;
-    padding: 0;
-    background: transparent;
-    align-self: stretch;
-}
-
-.torneos-popup-item-imagen {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.torneos-popup-item .torneos-popup-item-content {
+.torneos-popup .torneos-popup-content {
     flex: 1;
     min-width: 0;
     display: flex;
@@ -6681,20 +6650,20 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 .torneos-popup-item-fecha {
     display: block;
     font-family: var(--font-primary);
-    font-size: 0.65rem;
+    font-size: 0.95rem;
     font-weight: 300;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 0;
-    line-height: 1.1;
-    color: #000;
+    line-height: 1.2;
+    color: var(--color-accent);
 }
 
 .torneos-popup-item-titulo,
 .torneos-popup-item strong {
     display: block;
     font-family: var(--font-primary);
-    font-size: 0.75rem;
+    font-size: 1.05rem;
     font-weight: 300;
     text-transform: uppercase;
     margin-bottom: 0;
@@ -6719,9 +6688,9 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 .torneos-popup-item-btn {
     display: inline-block;
-    margin-top: 0.2rem;
-    padding: 0.2rem 0.5rem;
-    font-size: 0.6rem;
+    margin-top: 0.35rem;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.85rem;
     background: var(--color-primary);
     color: var(--color-white);
     font-weight: 300;
