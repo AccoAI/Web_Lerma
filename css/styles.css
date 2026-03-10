@@ -6890,6 +6890,19 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     .torneos-popup-overlay .torneos-popup-no-hoy {
         background: var(--color-primary-dark);
     }
+
+    /* Cierre en móvil: slide-out del panel completo (no por hijos) */
+    .torneos-popup-overlay.torneos-popup-closing .torneos-popup-wrapper {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .torneos-popup-overlay.torneos-popup-closing .torneos-popup-header,
+    .torneos-popup-overlay.torneos-popup-closing .torneos-popup-cards .torneos-popup,
+    .torneos-popup-overlay.torneos-popup-closing .torneos-popup-no-hoy {
+        transform: none;
+        transition-delay: 0s;
+    }
 }
 
 /* Responsive - Header usa valores fluidos (clamp) en base */
