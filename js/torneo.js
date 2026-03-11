@@ -26,11 +26,17 @@
         return s;
     }
 
-    function val(v) { return (v != null && String(v).trim() !== '') ? String(v).trim() : ''; }
+    function val(v) {
+        if (v == null) return '';
+        if (typeof v === 'boolean') return v ? 'Sí' : 'No';
+        var s = String(v).trim();
+        return s !== '' ? s : '';
+    }
 
     function row(label, value) {
-        if (!value) return '';
-        return '<p class="torneo-detalle-campo"><strong>' + esc(label) + '</strong> ' + esc(value) + '</p>';
+        if (value == null || value === '') return '';
+        if (typeof value === 'boolean') value = value ? 'Sí' : 'No';
+        return '<p class="torneo-detalle-campo"><strong>' + esc(label) + '</strong> ' + esc(String(value)) + '</p>';
     }
 
     function block(title, content) {
@@ -87,8 +93,8 @@
 
         var config = '';
         config += row('Tipo de salida', t.tipoSalida);
-        config += row('Hándicap limitado', t.handicapLimitado ? 'Sí' : (val(t.handicapLimite) ? 'Máx. ' + t.handicapLimite : ''));
-        if (!config && val(t.handicapLimite)) config += row('Límite hándicap', t.handicapLimite);
+        if (t.handicapLimitado === true || t.handicapLimitado === false) config += row('Hándicap limitado', t.handicapLimitado ? 'Sí' : 'No');
+        config += row('Límite hándicap', t.handicapLimite != null && t.handicapLimite !== '' ? (typeof t.handicapLimite === 'number' ? 'Máx. ' + t.handicapLimite : t.handicapLimite) : '');
         config += row('Categorías de juego', t.categoriasJuego);
         config += row('Comité de competición', t.comiteCompeticion);
         if (config) html += block('Configuración deportiva', config);
@@ -117,7 +123,7 @@
 
         var inscripciones = '';
         inscripciones += row('Fecha límite inscripción', t.fechaLimiteInscripcion);
-        inscripciones += row('Nº máximo jugadores', t.numeroMaxJugadores);
+        inscripciones += row('Nº máximo jugadores', t.numeroMaxJugadores != null && t.numeroMaxJugadores !== '' ? String(t.numeroMaxJugadores) : '');
         if (val(t.linkPago)) inscripciones += '<p class="torneo-detalle-campo"><strong>Link de pago</strong> <a href="' + esc(safeHref(t.linkPago)) + '" target="_blank" rel="noopener noreferrer">' + esc(t.linkPago) + '</a></p>';
         inscripciones += row('Política de cancelación', t.politicaCancelacion);
         if (inscripciones) html += block('Inscripciones', inscripciones);
@@ -140,6 +146,18 @@
                 html += block('Galería', gal);
             }
         }
+
+        var keysMostrados = { titulo: 1, foto: 1, imagen: 1, fechas: 1, fechaInicio: 1, fechaFin: 1, modalidad: 1, premios: 1, jornadas: 1, tipoEvento: 1, descripcion: 1, tipoSalida: 1, handicapLimitado: 1, handicapLimite: 1, categoriasJuego: 1, comiteCompeticion: 1, welcomePack: 1, picnicCarpa: 1, coctelEntregaPremios: 1, precioSocio: 1, precioNoSocio: 1, precioCorrespondencia: 1, patrocinadorPrincipal: 1, patrocinadorPrincipalLogo: 1, colaboradores: 1, galeriaImagenes: 1, fechaLimiteInscripcion: 1, linkPago: 1, politicaCancelacion: 1, sede: 1, ofertaAlojamiento: 1, urlReglamentoPdf: 1, enlace: 1, numeroMaxJugadores: 1 };
+        var resto = '';
+        Object.keys(t).forEach(function (key) {
+            if (keysMostrados[key]) return;
+            var v = t[key];
+            if (v == null || v === '') return;
+            if (typeof v === 'object') return;
+            var label = key.replace(/([A-Z])/g, ' $1').replace(/^./, function (c) { return c.toUpperCase(); }).trim();
+            resto += row(label, typeof v === 'boolean' ? (v ? 'Sí' : 'No') : String(v));
+        });
+        if (resto) html += block('Más información', resto);
 
         var enlace = safeHref(t.enlace || t.linkPago);
         var ctaHref = enlace || 'index.html#contacto';
