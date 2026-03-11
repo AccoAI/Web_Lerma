@@ -6831,6 +6831,43 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     white-space: pre-wrap;
 }
 
+.torneo-detalle-bloque {
+    margin: 1.5rem 0;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.torneo-detalle-bloque-titulo {
+    font-family: var(--font-primary);
+    font-size: 1rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--color-primary);
+    margin: 0 0 0.75rem;
+}
+
+.torneo-detalle-campo {
+    font-size: 1rem;
+    color: var(--color-text);
+    margin: 0 0 0.5rem;
+}
+
+.torneo-detalle-galeria {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.torneo-detalle-galeria-img {
+    display: block;
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
 .torneo-detalle-cta {
     margin: 2.5rem 0 0;
     padding-top: 1.5rem;

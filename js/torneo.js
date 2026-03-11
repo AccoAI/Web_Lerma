@@ -1,6 +1,6 @@
 /**
  * Página de detalle de torneo (torneo.html).
- * Lee el torneo guardado en sessionStorage (torneoSeleccionado) y muestra título, fecha, modalidad, premios, descripción, imagen y enlace.
+ * Lee el torneo guardado en sessionStorage (torneoSeleccionado) y muestra todos los campos recibidos de la plataforma.
  */
 (function () {
     'use strict';
@@ -24,6 +24,18 @@
         var s = (src || '').trim();
         if (!s || /^\s*javascript\s*:/i.test(s) || /^\s*data\s*:/i.test(s)) return '';
         return s;
+    }
+
+    function val(v) { return (v != null && String(v).trim() !== '') ? String(v).trim() : ''; }
+
+    function row(label, value) {
+        if (!value) return '';
+        return '<p class="torneo-detalle-campo"><strong>' + esc(label) + '</strong> ' + esc(value) + '</p>';
+    }
+
+    function block(title, content) {
+        if (!content) return '';
+        return '<div class="torneo-detalle-bloque"><h3 class="torneo-detalle-bloque-titulo">' + esc(title) + '</h3>' + content + '</div>';
     }
 
     function init() {
@@ -51,7 +63,7 @@
 
         if (cargando) cargando.remove();
 
-        var titulo = (t.titulo || '').trim() || 'Torneo';
+        var titulo = val(t.titulo) || 'Torneo';
         if (document.title) document.title = titulo + ' - Golf Lerma';
 
         var html = '';
@@ -60,19 +72,76 @@
             html += '<div class="torneo-detalle-imagen-wrap"><img src="' + esc(imgUrl) + '" alt="' + esc(titulo) + '" class="torneo-detalle-imagen"></div>';
         }
         html += '<h1 class="torneo-detalle-titulo">' + esc(titulo) + '</h1>';
-        if ((t.fechas || '').trim()) {
-            html += '<p class="torneo-detalle-fecha"><strong>Fecha:</strong> ' + esc((t.fechas || '').trim()) + '</p>';
+
+        html += row('Fecha', t.fechas);
+        if (val(t.fechaInicio)) html += row('Fecha inicio', t.fechaInicio);
+        if (val(t.fechaFin)) html += row('Fecha fin', t.fechaFin);
+        html += row('Modalidad', t.modalidad);
+        html += row('Premios', t.premios);
+        if (val(t.jornadas)) html += row('Jornadas', t.jornadas);
+        if (val(t.tipoEvento)) html += row('Tipo de evento', t.tipoEvento);
+
+        if (val(t.descripcion)) {
+            html += '<div class="torneo-detalle-descripcion">' + esc(t.descripcion) + '</div>';
         }
-        if ((t.modalidad || '').trim()) {
-            html += '<p class="torneo-detalle-modalidad"><strong>Modalidad:</strong> ' + esc((t.modalidad || '').trim()) + '</p>';
+
+        var config = '';
+        config += row('Tipo de salida', t.tipoSalida);
+        config += row('Hándicap limitado', t.handicapLimitado ? 'Sí' : (val(t.handicapLimite) ? 'Máx. ' + t.handicapLimite : ''));
+        if (!config && val(t.handicapLimite)) config += row('Límite hándicap', t.handicapLimite);
+        config += row('Categorías de juego', t.categoriasJuego);
+        config += row('Comité de competición', t.comiteCompeticion);
+        if (config) html += block('Configuración deportiva', config);
+
+        var logistica = '';
+        logistica += row('Welcome Pack', t.welcomePack);
+        logistica += row('Picnic / Carpa hoyo 9', t.picnicCarpa);
+        logistica += row('Cóctel / Entrega de premios', t.coctelEntregaPremios);
+        if (logistica) html += block('Logística y hospitality', logistica);
+
+        var precios = '';
+        precios += row('Precio Socio', t.precioSocio);
+        precios += row('Precio No Socio', t.precioNoSocio);
+        precios += row('Precio Correspondencia', t.precioCorrespondencia);
+        if (precios) html += block('Precios', precios);
+
+        var patrocinio = '';
+        patrocinio += row('Patrocinador principal', t.patrocinadorPrincipal);
+        if (val(t.patrocinadorPrincipalLogo)) {
+            var logoUrl = safeImgSrc(t.patrocinadorPrincipalLogo);
+            if (logoUrl) patrocinio += '<p class="torneo-detalle-campo"><strong>Logo patrocinador</strong> <img src="' + esc(logoUrl) + '" alt="" style="max-width:120px;height:auto;"></p>';
+            else patrocinio += row('Logo patrocinador', t.patrocinadorPrincipalLogo);
         }
-        if ((t.premios || '').trim()) {
-            html += '<p class="torneo-detalle-premios"><strong>Premios:</strong> ' + esc((t.premios || '').trim()) + '</p>';
+        patrocinio += row('Colaboradores', t.colaboradores);
+        if (patrocinio) html += block('Marketing y patrocinio', patrocinio);
+
+        var inscripciones = '';
+        inscripciones += row('Fecha límite inscripción', t.fechaLimiteInscripcion);
+        inscripciones += row('Nº máximo jugadores', t.numeroMaxJugadores);
+        if (val(t.linkPago)) inscripciones += '<p class="torneo-detalle-campo"><strong>Link de pago</strong> <a href="' + esc(safeHref(t.linkPago)) + '" target="_blank" rel="noopener noreferrer">' + esc(t.linkPago) + '</a></p>';
+        inscripciones += row('Política de cancelación', t.politicaCancelacion);
+        if (inscripciones) html += block('Inscripciones', inscripciones);
+
+        var otros = '';
+        otros += row('Sede', t.sede);
+        otros += row('Oferta de alojamiento', t.ofertaAlojamiento);
+        if (val(t.urlReglamentoPdf)) otros += '<p class="torneo-detalle-campo"><strong>Reglamento (PDF)</strong> <a href="' + esc(safeHref(t.urlReglamentoPdf)) + '" target="_blank" rel="noopener noreferrer">Descargar</a></p>';
+        if (otros) html += block('Otros', otros);
+
+        if (val(t.galeriaImagenes)) {
+            var urls = t.galeriaImagenes.split(/\r?\n/).filter(function (u) { return u.trim(); });
+            if (urls.length) {
+                var gal = '<div class="torneo-detalle-galeria">';
+                urls.forEach(function (u) {
+                    var src = safeImgSrc(u.trim());
+                    if (src) gal += '<img src="' + esc(src) + '" alt="" class="torneo-detalle-galeria-img">';
+                });
+                gal += '</div>';
+                html += block('Galería', gal);
+            }
         }
-        if ((t.descripcion || '').trim()) {
-            html += '<div class="torneo-detalle-descripcion">' + esc((t.descripcion || '').trim()) + '</div>';
-        }
-        var enlace = safeHref(t.enlace);
+
+        var enlace = safeHref(t.enlace || t.linkPago);
         var ctaHref = enlace || 'index.html#contacto';
         var ctaText = enlace ? 'Reservar tu plaza en el torneo' : 'Reservar tu plaza – Contactar';
         html += '<p class="torneo-detalle-cta"><a href="' + esc(ctaHref) + '" class="torneo-detalle-btn">' + esc(ctaText) + '</a></p>';

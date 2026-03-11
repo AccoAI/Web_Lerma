@@ -115,16 +115,30 @@
         }
 
         var html = '';
-        torneos.forEach(function (t) {
-            var enlace = (t.enlace || '').trim();
-            var href = enlace && !/^\s*javascript\s*:/i.test(enlace) ? enlace : '#';
-            html += '<a href="' + href + '" class="calendario-torneo-item">';
+        torneos.forEach(function (t, i) {
+            html += '<a href="torneo.html" class="calendario-torneo-item" data-torneo-index="' + i + '">';
             html += '<span class="calendario-torneo-fecha">' + (t.fechas || '') + '</span>';
             html += '<strong class="calendario-torneo-titulo">' + (t.titulo || 'Torneo') + '</strong>';
             if (t.descripcion) html += '<span class="calendario-torneo-desc">' + t.descripcion + '</span>';
             html += '</a>';
         });
         lista.innerHTML = html;
+    }
+
+    function setupListClicks(lista, torneos) {
+        if (!lista || !torneos || !torneos.length) return;
+        lista.addEventListener('click', function (e) {
+            var item = e.target.closest('.calendario-torneo-item');
+            if (!item) return;
+            var idx = item.getAttribute('data-torneo-index');
+            if (idx == null) return;
+            var t = torneos[parseInt(idx, 10)];
+            if (t) {
+                e.preventDefault();
+                try { sessionStorage.setItem('torneoSeleccionado', JSON.stringify(t)); } catch (err) {}
+                window.location.href = 'torneo.html';
+            }
+        });
     }
 
     function init() {
@@ -140,13 +154,10 @@
                 if (data) {
                     if (data.torneos && data.torneos.length) {
                         data.torneos.forEach(function (t) {
-                            torneos.push({
-                                titulo: t.titulo,
-                                fechas: t.fechas,
-                                descripcion: t.descripcion,
-                                enlace: t.enlace
-                            });
+                            torneos.push(t);
                             addFechasFromTexto(t.fechas, torneosPorFecha);
+                            if ((t.fechaInicio || '').trim()) addFechasFromTexto(t.fechaInicio, torneosPorFecha);
+                            if ((t.fechaFin || '').trim()) addFechasFromTexto(t.fechaFin, torneosPorFecha);
                         });
                     }
                     if (data.titulo && data.subtitulo) {
@@ -162,6 +173,7 @@
 
                 renderLista(torneos);
                 renderCalendario(mes, torneosPorFecha);
+                setupListClicks(document.getElementById('calendario-torneos-lista'), torneos);
             })
             .catch(function () {
                 renderLista([]);
