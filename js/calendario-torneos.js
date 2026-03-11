@@ -73,6 +73,45 @@
         }
     }
 
+    /** Dado un string ISO YYYY-MM-DD, devuelve Date a las 00:00:00 en hora local. */
+    function isoToDate(iso) {
+        if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+        var p = iso.split('-').map(Number);
+        var d = new Date(p[0], p[1] - 1, p[2]);
+        return isNaN(d.getTime()) ? null : d;
+    }
+
+    /** Marca en torneosPorFecha todos los días entre fechaInicio y fechaFin (inclusive). Solo usa fechaInicio y fechaFin. */
+    function addRangoFechas(fechaInicioStr, fechaFinStr, torneosPorFecha) {
+        if (!torneosPorFecha) return;
+        var inicioISO = parseFechaToISO(String(fechaInicioStr || '').trim());
+        var finISO = parseFechaToISO(String(fechaFinStr || '').trim());
+        if (inicioISO && finISO) {
+            var dInicio = isoToDate(inicioISO);
+            var dFin = isoToDate(finISO);
+            if (dInicio && dFin && dInicio.getTime() <= dFin.getTime()) {
+                var d = new Date(dInicio);
+                while (d.getTime() <= dFin.getTime()) {
+                    torneosPorFecha[toISO(d)] = true;
+                    d.setDate(d.getDate() + 1);
+                }
+                return;
+            }
+        }
+        if (inicioISO) torneosPorFecha[inicioISO] = true;
+        if (finISO) torneosPorFecha[finISO] = true;
+    }
+
+    /** Formatea rango para lista: "DD/MM/YYYY - DD/MM/YYYY" o "DD/MM/YYYY" si es un solo día. */
+    function formatearRango(fechaInicioStr, fechaFinStr) {
+        var inicioISO = parseFechaToISO(String(fechaInicioStr || '').trim());
+        var finISO = parseFechaToISO(String(fechaFinStr || '').trim());
+        if (!inicioISO && !finISO) return '';
+        if (!inicioISO) return finISO.split('-').reverse().join('/');
+        if (!finISO || inicioISO === finISO) return inicioISO.split('-').reverse().join('/');
+        return inicioISO.split('-').reverse().join('/') + ' – ' + finISO.split('-').reverse().join('/');
+    }
+
     function renderCalendario(mes, torneosPorFecha) {
         var grid = document.getElementById('calTorneosGrid');
         var mesEl = document.getElementById('calTorneosMes');
@@ -116,8 +155,9 @@
 
         var html = '';
         torneos.forEach(function (t, i) {
+            var fechaDisplay = (t.fechas && t.fechas.trim()) ? t.fechas : formatearRango(t.fechaInicio, t.fechaFin) || 'Próximamente';
             html += '<a href="torneo.html" class="calendario-torneo-item" data-torneo-index="' + i + '">';
-            html += '<span class="calendario-torneo-fecha">' + (t.fechas || '') + '</span>';
+            html += '<span class="calendario-torneo-fecha">' + (fechaDisplay || '') + '</span>';
             html += '<strong class="calendario-torneo-titulo">' + (t.titulo || 'Torneo') + '</strong>';
             if (t.descripcion) html += '<span class="calendario-torneo-desc">' + t.descripcion + '</span>';
             html += '</a>';
@@ -155,9 +195,8 @@
                     if (data.torneos && data.torneos.length) {
                         data.torneos.forEach(function (t) {
                             torneos.push(t);
+                            addRangoFechas(t.fechaInicio, t.fechaFin, torneosPorFecha);
                             addFechasFromTexto(t.fechas, torneosPorFecha);
-                            if ((t.fechaInicio || '').trim()) addFechasFromTexto(t.fechaInicio, torneosPorFecha);
-                            if ((t.fechaFin || '').trim()) addFechasFromTexto(t.fechaFin, torneosPorFecha);
                         });
                     }
                     if (data.titulo && data.subtitulo) {
