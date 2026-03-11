@@ -6814,8 +6814,17 @@ body.page-torneo {
 }
 
 body.page-torneo .torneo-detalle-section {
-    background: var(--color-white);
     position: relative;
+    margin-top: -420px;
+    padding-top: calc(var(--header-height, 80px) + 1.5rem);
+    padding-bottom: 3rem;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.9) 80px, var(--color-white) 180px);
+}
+
+@media (min-width: 769px) {
+    body.page-torneo .torneo-detalle-section {
+        margin-top: -620px;
+    }
 }
 
 .torneo-detalle-content {
