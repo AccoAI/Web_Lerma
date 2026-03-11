@@ -6781,6 +6781,20 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 /* Página detalle torneo (torneo.html) */
+body.page-torneo {
+    background-image: url('../FOTOS/torneos_golf_fondo.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 100vh;
+}
+
+body.page-torneo .torneo-detalle-section {
+    background: rgba(255, 255, 255, 0.92);
+    min-height: calc(100vh - var(--header-height, 80px));
+}
+
 .torneo-detalle-content {
     max-width: 720px;
     margin: 0 auto;
