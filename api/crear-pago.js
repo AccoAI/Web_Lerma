@@ -30,7 +30,7 @@ export async function POST(request) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const { amountCents, modo, numParticipantes, paquete } = body;
+    const { amountCents, modo, numParticipantes, paquete, tituloTorneo } = body;
 
     if (!amountCents || amountCents < 50) {
       return jsonResponse({ error: 'Importe inválido (mínimo 0,50 €)' }, 400);
@@ -64,7 +64,10 @@ export async function POST(request) {
       'primera-cuota': 'Primera cuota socio - Golf Lerma',
     };
 
-    const nombreProducto = nombresPaquete[paquete] || paquete || 'Reserva Golf Lerma';
+    const nombreProducto =
+      paquete === 'torneo' && tituloTorneo
+        ? 'Inscripción torneo: ' + String(tituloTorneo).trim().slice(0, 200)
+        : nombresPaquete[paquete] || paquete || 'Reserva Golf Lerma';
     const descripcion =
       modoPago === 'por_persona'
         ? `Pago por persona (${numPart} participantes)`
@@ -88,6 +91,7 @@ export async function POST(request) {
         paquete: String(paquete || ''),
         modo: modoPago,
         numParticipantes: String(numPart),
+        ...(tituloTorneo ? { torneoTitulo: String(tituloTorneo).slice(0, 200) } : {}),
       },
     });
 

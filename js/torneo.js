@@ -44,6 +44,22 @@
         return '<div class="torneo-detalle-bloque"><h3 class="torneo-detalle-bloque-titulo">' + esc(title) + '</h3>' + content + '</div>';
     }
 
+    function parsePrecio(v) {
+        if (v == null) return null;
+        if (typeof v === 'number' && !isNaN(v) && v >= 0) return v;
+        var s = String(v).replace(/[^\d,.]/g, '').replace(',', '.');
+        var n = parseFloat(s);
+        return isNaN(n) || n < 0 ? null : n;
+    }
+
+    function isSocioLoggedIn() {
+        try {
+            return sessionStorage.getItem('areaSocioLoggedIn') === '1';
+        } catch (e) {
+            return false;
+        }
+    }
+
     function init() {
         var contenedor = document.getElementById('torneoDetalleContenido');
         var cargando = document.getElementById('torneoDetalleCargando');
@@ -159,12 +175,88 @@
         });
         if (resto) html += block('Más información', resto);
 
-        var enlace = safeHref(t.enlace || t.linkPago);
-        var ctaHref = enlace || 'index.html#contacto';
-        var ctaText = enlace ? 'Reservar tu plaza en el torneo' : 'Reservar tu plaza – Contactar';
-        html += '<p class="torneo-detalle-cta"><a href="' + esc(ctaHref) + '" class="torneo-detalle-btn">' + esc(ctaText) + '</a></p>';
+        var precioSocio = parsePrecio(t.precioSocio);
+        var precioNoSocio = parsePrecio(t.precioNoSocio);
+        var tienePrecio = (precioSocio != null && precioSocio > 0) || (precioNoSocio != null && precioNoSocio > 0);
+        var esSocio = isSocioLoggedIn();
+        var precioEuros = null;
+        if (tienePrecio) {
+            precioEuros = esSocio
+                ? (precioSocio != null && precioSocio > 0 ? precioSocio : precioNoSocio)
+                : (precioNoSocio != null && precioNoSocio > 0 ? precioNoSocio : precioSocio);
+        }
+
+        if (tienePrecio && precioEuros != null && precioEuros > 0) {
+            var ctaText = 'Reservar tu plaza' + (esSocio ? ' (tarifa socio)' : '');
+            html += '<p class="torneo-detalle-cta"><button type="button" class="torneo-detalle-btn torneo-detalle-btn-pago" data-precio="' + esc(String(precioEuros)) + '" data-titulo="' + esc(t.titulo || 'Torneo') + '">' + esc(ctaText) + '</button></p>';
+        } else {
+            var ctaHref = 'index.html?asunto=Inscripcion%20torneo%20' + encodeURIComponent(t.titulo || 'Torneo') + '#contacto';
+            html += '<p class="torneo-detalle-cta"><a href="' + esc(ctaHref) + '" class="torneo-detalle-btn">Reservar tu plaza – Contactar</a></p>';
+        }
 
         contenedor.innerHTML = html;
+
+        var btnPago = contenedor.querySelector('.torneo-detalle-btn-pago');
+        if (btnPago) {
+            btnPago.addEventListener('click', function () {
+                var precio = parseFloat(btnPago.getAttribute('data-precio'), 10);
+                var tituloTorneo = btnPago.getAttribute('data-titulo') || 'Torneo';
+                if (!precio || precio < 0.5) {
+                    alert('Importe no válido. Contacte con el club.');
+                    return;
+                }
+                var amountCents = Math.round(precio * 100);
+                if (amountCents < 50) {
+                    alert('El importe mínimo es 0,50 €.');
+                    return;
+                }
+                btnPago.disabled = true;
+                btnPago.textContent = 'Procesando…';
+                var base = window.location.origin || '';
+                fetch(base + '/api/crear-pago', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        amountCents: amountCents,
+                        modo: 'unico',
+                        numParticipantes: 1,
+                        paquete: 'torneo',
+                        tituloTorneo: tituloTorneo
+                    })
+                })
+                    .then(function (r) {
+                        return r.text().then(function (text) {
+                            if (!r.ok) {
+                                var errMsg = 'Error al crear el pago';
+                                try {
+                                    var j = JSON.parse(text);
+                                    if (j && j.error) errMsg = j.error;
+                                } catch (e) {
+                                    if (text && text.length < 200) errMsg = text;
+                                }
+                                throw new Error(errMsg);
+                            }
+                            try {
+                                return JSON.parse(text);
+                            } catch (e) {
+                                throw new Error('Respuesta inválida del servidor');
+                            }
+                        });
+                    })
+                    .then(function (data) {
+                        if (data && data.url) {
+                            window.location.href = data.url;
+                        } else {
+                            throw new Error('No se recibió enlace de pago');
+                        }
+                    })
+                    .catch(function (err) {
+                        alert('Error: ' + (err.message || 'No se pudo iniciar el pago. Contacte con el club.'));
+                        btnPago.disabled = false;
+                        btnPago.textContent = esSocio ? 'Reservar tu plaza (tarifa socio)' : 'Reservar tu plaza';
+                    });
+            });
+        }
     }
 
     if (document.readyState === 'loading') {
