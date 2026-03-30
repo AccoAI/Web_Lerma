@@ -2486,6 +2486,153 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     border-color: var(--color-primary);
 }
 
+/* Restaurantes asociados (reserva online / iframe) — paquete fin de semana */
+.restaurantes-paquete-widget {
+    margin-top: 1.75rem;
+    padding-top: 1.35rem;
+    border-top: 1px solid rgba(26, 77, 58, 0.18);
+}
+
+.restaurantes-paquete-widget > .restaurantes-paquete-intro {
+    font-size: 0.92rem;
+    color: var(--color-text);
+    margin: 0 0 1rem;
+    line-height: 1.5;
+}
+
+.restaurantes-paquete-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-bottom: 1rem;
+}
+
+.restaurantes-paquete-tab {
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.45rem 0.65rem;
+    border: 2px solid rgba(26, 77, 58, 0.35);
+    background: #fff;
+    color: var(--color-text);
+    border-radius: 0;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    line-height: 1.2;
+    text-align: left;
+}
+
+.restaurantes-paquete-tab:hover {
+    border-color: var(--color-primary);
+    background: rgba(26, 77, 58, 0.06);
+}
+
+.restaurantes-paquete-tab[aria-selected="true"] {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+}
+
+.restaurantes-paquete-tab:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.restaurantes-paquete-panel-host {
+    min-height: 4rem;
+}
+
+.restaurantes-paquete-panel {
+    padding: 1rem 1.1rem;
+    background: rgba(139, 69, 19, 0.06);
+    border: 1px solid rgba(139, 69, 19, 0.2);
+    border-radius: 0;
+}
+
+.restaurante-paquete-meta {
+    margin: 0 0 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+    opacity: 0.9;
+}
+
+.restaurante-paquete-desc {
+    margin: 0 0 0.75rem;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    color: var(--color-text);
+}
+
+.restaurante-paquete-tel {
+    margin: 0 0 0.75rem;
+    font-size: 0.95rem;
+}
+
+.restaurante-paquete-tel a {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.restaurante-paquete-actions {
+    margin-bottom: 0.75rem;
+}
+
+.btn-restaurante-paquete-reserva {
+    display: inline-block;
+    padding: 0.55rem 1.1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    background: var(--color-primary);
+    color: #fff !important;
+    border: none;
+    border-radius: 0;
+    transition: opacity 0.15s ease, transform 0.1s ease;
+}
+
+.btn-restaurante-paquete-reserva:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+}
+
+.restaurante-paquete-iframe-wrap {
+    width: 100%;
+    max-width: 480px;
+    margin: 0.5rem auto 0;
+    padding: 0.5rem 0;
+}
+
+.restaurante-paquete-iframe-wrap iframe {
+    width: 100%;
+    max-width: 450px;
+    margin: 0 auto;
+    display: block;
+    border: none;
+    background: #fafafa;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.restaurante-paquete-iframe-nota {
+    font-size: 0.8rem;
+    color: var(--color-text-light, #555);
+    margin: 0.65rem 0 0;
+    font-style: italic;
+    text-align: center;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (min-width: 768px) {
+    .restaurantes-paquete-tab {
+        font-size: 0.82rem;
+        padding: 0.5rem 0.85rem;
+    }
+}
+
 .reserva-datos-iniciales {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));

@@ -385,20 +385,29 @@
     (function () {
         var tabs = document.querySelectorAll('.campo-tab-btn');
         var panels = document.querySelectorAll('.campo-tab-panel');
+        function activarTabCampo(btn) {
+            if (!btn) return;
+            var targetId = btn.getAttribute('aria-controls');
+            tabs.forEach(function (b) { b.classList.remove('activo'); b.setAttribute('aria-selected', 'false'); });
+            panels.forEach(function (p) { p.classList.remove('activo'); p.setAttribute('hidden', ''); });
+            btn.classList.add('activo');
+            btn.setAttribute('aria-selected', 'true');
+            var panel = document.getElementById(targetId);
+            if (panel) {
+                panel.classList.add('activo');
+                panel.removeAttribute('hidden');
+            }
+        }
         tabs.forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                var targetId = btn.getAttribute('aria-controls');
-                tabs.forEach(function (b) { b.classList.remove('activo'); b.setAttribute('aria-selected', 'false'); });
-                panels.forEach(function (p) { p.classList.remove('activo'); p.setAttribute('hidden', ''); });
-                btn.classList.add('activo');
-                btn.setAttribute('aria-selected', 'true');
-                var panel = document.getElementById(targetId);
-                if (panel) {
-                    panel.classList.add('activo');
-                    panel.removeAttribute('hidden');
-                }
-            });
+            btn.addEventListener('click', function () { activarTabCampo(btn); });
         });
+        (function abrirTabSegunHash() {
+            var h = (location.hash || '').replace(/^#/, '');
+            if (h === 'restaurante' || h === 'panel-restaurante' || h === 'tab-restaurante') {
+                var b = document.getElementById('tab-restaurante');
+                activarTabCampo(b);
+            }
+        })();
 
         // Lightbox: clic en foto del hoyo para ampliar (PC y móvil)
         (function () {
