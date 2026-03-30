@@ -4,8 +4,8 @@
  */
 (function () {
     var RESTAURANTES = [
-        { id: 'parador', nombre: 'Parador de Lerma', zona: 'Lerma', area: 'lerma', precioPack: 'lerma', texto: 'Reserva con el widget oficial de TheFork.', url: 'https://widgets.thefork.com/es/restaurant/28130/default', iframeAlto: 650 },
-        { id: 'lali', nombre: 'Restaurante Golf Lerma (Lali)', zona: 'Lerma', area: 'lerma', precioPack: 'lerma', texto: 'Club social en el campo. Teléfono de reservas y ficha en El Campo.', url: 'el-campo.html#restaurante', telefono: '947171215', iframeAlto: 640 },
+        { id: 'parador', nombre: 'Parador de Lerma', zona: 'Lerma', area: 'lerma', precioPack: 'lerma', texto: 'Reserva con el widget oficial de TheFork.', url: 'https://widget.thefork.com/en-GB/e1f7b394-0e58-4166-9eef-3b5ba2f1c529?step=date', iframeAlto: 650 },
+        { id: 'lali', nombre: 'Restaurante Golf Lerma (Lali)', zona: 'Lerma', area: 'lerma', precioPack: 'lerma', texto: 'Restaurante del club. Reserva por teléfono; abajo tienes la fecha y los comensales según tu paquete.', reservaInhouse: true, telefono: '947171215', urlInfo: 'el-campo.html#restaurante', iframeAlto: 640 },
         { id: 'alfoz', nombre: 'El Alfoz', zona: 'Saldaña', area: 'saldana', precioPack: 'burgos', texto: 'Cocina de mercado. Reserva en CoverManager.', url: 'https://www.covermanager.com/reserve/module_restaurant/restaurante-alfoz-de-burgos/spanish', iframeAlto: 720 },
         { id: 'cobo', nombre: 'Cobo Estratos', zona: 'Burgos', area: 'burgos', precioPack: 'burgos', texto: 'Alta cocina. Reserva en CoverManager.', url: 'https://www.covermanager.com/reservation/module_restaurant/restaurante-coboestratos/spanish', iframeAlto: 720 },
         { id: 'fabrica', nombre: 'La Fábrica', zona: 'Burgos', area: 'burgos', precioPack: 'burgos', texto: 'Reserva con TheFork.', url: 'https://widget.thefork.com/en-GB/d8abb8d7-ecfa-4db4-8aff-089ed282986d?step=date', iframeAlto: 620 },
@@ -34,6 +34,17 @@
         var div = document.createElement('div');
         div.textContent = s;
         return div.innerHTML;
+    }
+
+    function formatFechaReservaPaquete(iso) {
+        if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(String(iso))) return '—';
+        try {
+            var d = new Date(iso + 'T12:00:00');
+            var t = d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            return t.charAt(0).toUpperCase() + t.slice(1);
+        } catch (e) {
+            return '—';
+        }
     }
 
     function urlIframe(r) {
@@ -117,6 +128,11 @@
         telP.className = 'restaurante-paquete-tel';
         telP.style.display = 'none';
 
+        var inhouseEl = document.createElement('div');
+        inhouseEl.className = 'restaurante-paquete-inhouse';
+        inhouseEl.style.display = 'none';
+        inhouseEl.setAttribute('hidden', '');
+
         var wrap = document.createElement('div');
         wrap.className = 'restaurante-paquete-iframe-wrap';
         var ifr = document.createElement('iframe');
@@ -130,6 +146,7 @@
 
         panel.appendChild(meta);
         panel.appendChild(pDesc);
+        panel.appendChild(inhouseEl);
         panel.appendChild(telP);
         panel.appendChild(wrap);
         panel.appendChild(nota);
@@ -146,25 +163,67 @@
             meta.textContent = r.zona || '';
             pDesc.textContent = r.texto || '';
 
-            if (r.telefono) {
-                var digits = String(r.telefono).replace(/\D/g, '');
-                var disp = digits.length === 9
-                    ? digits.replace(/^(\d{3})(\d{2})(\d{2})(\d{2})$/, '$1 $2 $3 $4')
-                    : r.telefono;
-                telP.style.display = '';
-                telP.innerHTML = '<strong>Teléfono:</strong> <a href="tel:+34' + escapeHtml(digits) + '">' + escapeHtml(disp) + '</a>';
-            } else {
+            if (r.reservaInhouse) {
                 telP.style.display = 'none';
                 telP.innerHTML = '';
-            }
+                wrap.style.display = 'none';
+                nota.style.display = 'none';
+                inhouseEl.style.display = 'block';
+                inhouseEl.removeAttribute('hidden');
+                ifr.removeAttribute('src');
 
-            var srcEmbed = urlIframe(r);
-            var alto = r.iframeAlto != null ? r.iframeAlto : 700;
-            ifr.style.height = alto + 'px';
-            ifr.setAttribute('title', 'Reserva — ' + r.nombre);
-            var raw = absolutizarUrl(srcEmbed);
-            var syncCtx = typeof window.getPaqueteEmbedContext === 'function' ? window.getPaqueteEmbedContext() : null;
-            ifr.src = applyPaqueteEmbedSyncToUrl(raw, syncCtx);
+                var ctxIH = typeof window.getPaqueteEmbedContext === 'function' ? window.getPaqueteEmbedContext() : null;
+                var fechaLbl = formatFechaReservaPaquete(ctxIH && ctxIH.dateISO);
+                var paxNum = ctxIH && ctxIH.partySize != null ? ctxIH.partySize : null;
+                var paxLbl = paxNum == null ? '—' : (paxNum === 1 ? '1 persona' : paxNum + ' personas');
+                var digIH = r.telefono ? String(r.telefono).replace(/\D/g, '') : '';
+                var dispIH = digIH.length === 9
+                    ? digIH.replace(/^(\d{3})(\d{2})(\d{2})(\d{2})$/, '$1 $2 $3 $4')
+                    : (r.telefono || '');
+                var infoHref = r.urlInfo ? absolutizarUrl(r.urlInfo) : '';
+                var partsIH = [
+                    '<p class="restaurante-paquete-inhouse-intro">Datos para tu llamada (tomados de este formulario):</p>',
+                    '<ul class="restaurante-paquete-inhouse-datos" role="list">',
+                    '<li><span class="restaurante-paquete-inhouse-k">Fecha</span> <span class="restaurante-paquete-inhouse-v">' + escapeHtml(fechaLbl) + '</span></li>',
+                    '<li><span class="restaurante-paquete-inhouse-k">Comensales</span> <span class="restaurante-paquete-inhouse-v">' + escapeHtml(paxLbl) + '</span></li>',
+                    '</ul>',
+                    '<p class="restaurante-paquete-inhouse-cta-wrap">',
+                    digIH
+                        ? ('<a class="btn-restaurante-paquete-reservar" href="tel:+34' + escapeHtml(digIH) + '">Llamar para reservar · ' + escapeHtml(dispIH) + '</a>')
+                        : '<span class="restaurante-paquete-inhouse-sintel">Añade un teléfono de contacto en datos del restaurante.</span>',
+                    '</p>'
+                ];
+                if (infoHref) {
+                    partsIH.push('<p class="restaurante-paquete-inhouse-mas"><a href="' + escapeHtml(infoHref) + '">Horarios y ficha del restaurante</a></p>');
+                }
+                inhouseEl.innerHTML = partsIH.join('');
+            } else {
+                inhouseEl.style.display = 'none';
+                inhouseEl.setAttribute('hidden', '');
+                inhouseEl.innerHTML = '';
+                wrap.style.display = '';
+                nota.style.display = '';
+
+                if (r.telefono) {
+                    var digits = String(r.telefono).replace(/\D/g, '');
+                    var disp = digits.length === 9
+                        ? digits.replace(/^(\d{3})(\d{2})(\d{2})(\d{2})$/, '$1 $2 $3 $4')
+                        : r.telefono;
+                    telP.style.display = '';
+                    telP.innerHTML = '<strong>Teléfono:</strong> <a href="tel:+34' + escapeHtml(digits) + '">' + escapeHtml(disp) + '</a>';
+                } else {
+                    telP.style.display = 'none';
+                    telP.innerHTML = '';
+                }
+
+                var srcEmbed = urlIframe(r);
+                var alto = r.iframeAlto != null ? r.iframeAlto : 700;
+                ifr.style.height = alto + 'px';
+                ifr.setAttribute('title', 'Reserva — ' + r.nombre);
+                var raw = absolutizarUrl(srcEmbed);
+                var syncCtx = typeof window.getPaqueteEmbedContext === 'function' ? window.getPaqueteEmbedContext() : null;
+                ifr.src = applyPaqueteEmbedSyncToUrl(raw, syncCtx);
+            }
         }
 
         function selectTab(index) {

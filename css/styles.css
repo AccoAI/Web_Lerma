@@ -2882,6 +2882,100 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     margin-right: auto;
 }
 
+/* Reserva in-house (teléfono + datos del pack, sin iframe) */
+.restaurante-paquete-inhouse {
+    margin: 0 0 1rem;
+    padding: 1rem 1.1rem;
+    background: #fff;
+    border: 1px solid rgba(26, 77, 58, 0.22);
+    max-width: 26rem;
+}
+
+.restaurante-paquete-inhouse-intro {
+    margin: 0 0 0.75rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--color-text);
+    line-height: 1.4;
+}
+
+.restaurante-paquete-inhouse-datos {
+    margin: 0 0 1rem;
+    padding: 0;
+    list-style: none;
+}
+
+.restaurante-paquete-inhouse-datos li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.75rem;
+    align-items: baseline;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid rgba(26, 77, 58, 0.1);
+    font-size: 0.95rem;
+}
+
+.restaurante-paquete-inhouse-datos li:last-child {
+    border-bottom: none;
+}
+
+.restaurante-paquete-inhouse-k {
+    font-weight: 700;
+    color: var(--color-primary);
+    min-width: 6.5rem;
+}
+
+.restaurante-paquete-inhouse-v {
+    color: var(--color-text);
+}
+
+.restaurante-paquete-inhouse-cta-wrap {
+    margin: 0.25rem 0 0;
+}
+
+.restaurante-paquete-inhouse-mas {
+    margin: 0.85rem 0 0;
+    font-size: 0.85rem;
+}
+
+.restaurante-paquete-inhouse-mas a {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.restaurante-paquete-inhouse-sintel {
+    font-size: 0.85rem;
+    color: var(--color-text-light, #555);
+}
+
+a.btn-restaurante-paquete-reservar {
+    display: inline-block;
+    margin: 0;
+    padding: 0.65rem 1.15rem;
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-align: center;
+    text-decoration: none;
+    color: #fff !important;
+    background: var(--color-primary);
+    border: 2px solid var(--color-primary);
+    border-radius: 0;
+    cursor: pointer;
+    transition: opacity 0.15s ease, filter 0.15s ease;
+}
+
+a.btn-restaurante-paquete-reservar:hover {
+    opacity: 0.93;
+    filter: brightness(1.03);
+}
+
+a.btn-restaurante-paquete-reservar:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
 @media (min-width: 768px) {
     .restaurantes-paquete-tab {
         font-size: 0.82rem;
