@@ -1,73 +1,16 @@
 /**
- * Bloque "Reservar mesa" en paquete fin de semana: zona, pestañas e iframe incrustado.
+ * Datos y UI del selector de restaurantes (zonas + pestañas + iframe).
+ * Se monta dentro de #comida-restaurante-picker-root al elegir una comida/cena del paquete.
  */
 (function () {
-    /** area: lerma | saldana | burgos — agrupa el contexto del viaje */
     var RESTAURANTES = [
-        {
-            id: 'parador',
-            nombre: 'Parador de Lerma',
-            zona: 'Lerma',
-            area: 'lerma',
-            texto: 'Reserva con el widget oficial de TheFork.',
-            url: 'https://widgets.thefork.com/es/restaurant/28130/default',
-            iframeAlto: 650
-        },
-        {
-            id: 'lali',
-            nombre: 'Restaurante Golf Lerma (Lali)',
-            zona: 'Lerma',
-            area: 'lerma',
-            texto: 'Club social en el campo. Teléfono de reservas y ficha del restaurante (misma web).',
-            url: 'el-campo.html#restaurante',
-            telefono: '947171215',
-            iframeAlto: 640
-        },
-        {
-            id: 'alfoz',
-            nombre: 'El Alfoz',
-            zona: 'Saldaña',
-            area: 'saldana',
-            texto: 'Cocina de mercado en el entorno del Arlanzón. Completa la reserva en el marco inferior.',
-            url: 'https://www.covermanager.com/reserve/module_restaurant/restaurante-alfoz-de-burgos/spanish',
-            iframeAlto: 720
-        },
-        {
-            id: 'cobo',
-            nombre: 'Cobo Estratos',
-            zona: 'Burgos',
-            area: 'burgos',
-            texto: 'Alta cocina. Reserva online en el visor de CoverManager.',
-            url: 'https://www.covermanager.com/reservation/module_restaurant/restaurante-coboestratos/spanish',
-            iframeAlto: 720
-        },
-        {
-            id: 'fabrica',
-            nombre: 'La Fábrica',
-            zona: 'Burgos',
-            area: 'burgos',
-            texto: 'Reserva con el widget de TheFork.',
-            url: 'https://widget.thefork.com/en-GB/d8abb8d7-ecfa-4db4-8aff-089ed282986d?step=date',
-            iframeAlto: 620
-        },
-        {
-            id: 'favorita',
-            nombre: 'La Favorita',
-            zona: 'Burgos',
-            area: 'burgos',
-            texto: 'Tapeo y cocina castellana. Reserva en CoverManager.',
-            url: 'https://www.covermanager.com/reservation/module_restaurant/restaurante-lafavoritadeburgos/spanish',
-            iframeAlto: 720
-        },
-        {
-            id: 'onirica',
-            nombre: 'Onírica',
-            zona: 'Burgos',
-            area: 'burgos',
-            texto: 'Experiencia gastronómica. Reserva en CoverManager.',
-            url: 'https://www.covermanager.com/reservation/module_restaurant/restaurante-onirica/spanish',
-            iframeAlto: 720
-        }
+        { id: 'parador', nombre: 'Parador de Lerma', zona: 'Lerma', area: 'lerma', precioPack: 'lerma', texto: 'Reserva con el widget oficial de TheFork.', url: 'https://widgets.thefork.com/es/restaurant/28130/default', iframeAlto: 650 },
+        { id: 'lali', nombre: 'Restaurante Golf Lerma (Lali)', zona: 'Lerma', area: 'lerma', precioPack: 'lerma', texto: 'Club social en el campo. Teléfono de reservas y ficha en El Campo.', url: 'el-campo.html#restaurante', telefono: '947171215', iframeAlto: 640 },
+        { id: 'alfoz', nombre: 'El Alfoz', zona: 'Saldaña', area: 'saldana', precioPack: 'burgos', texto: 'Cocina de mercado. Reserva en CoverManager.', url: 'https://www.covermanager.com/reserve/module_restaurant/restaurante-alfoz-de-burgos/spanish', iframeAlto: 720 },
+        { id: 'cobo', nombre: 'Cobo Estratos', zona: 'Burgos', area: 'burgos', precioPack: 'burgos', texto: 'Alta cocina. Reserva en CoverManager.', url: 'https://www.covermanager.com/reservation/module_restaurant/restaurante-coboestratos/spanish', iframeAlto: 720 },
+        { id: 'fabrica', nombre: 'La Fábrica', zona: 'Burgos', area: 'burgos', precioPack: 'burgos', texto: 'Reserva con TheFork.', url: 'https://widget.thefork.com/en-GB/d8abb8d7-ecfa-4db4-8aff-089ed282986d?step=date', iframeAlto: 620 },
+        { id: 'favorita', nombre: 'La Favorita', zona: 'Burgos', area: 'burgos', precioPack: 'burgos', texto: 'Tapeo y cocina castellana. CoverManager.', url: 'https://www.covermanager.com/reservation/module_restaurant/restaurante-lafavoritadeburgos/spanish', iframeAlto: 720 },
+        { id: 'onirica', nombre: 'Onírica', zona: 'Burgos', area: 'burgos', precioPack: 'burgos', texto: 'Experiencia gastronómica. CoverManager.', url: 'https://www.covermanager.com/reservation/module_restaurant/restaurante-onirica/spanish', iframeAlto: 720 }
     ];
 
     var AREAS = [
@@ -76,6 +19,16 @@
         { id: 'burgos', label: 'Burgos' }
     ];
 
+    window.RESTAURANTES_PAQUETE_DATA = RESTAURANTES;
+
+    window.getRestaurantePaqueteById = function (id) {
+        if (!id) return null;
+        for (var i = 0; i < RESTAURANTES.length; i++) {
+            if (RESTAURANTES[i].id === id) return RESTAURANTES[i];
+        }
+        return null;
+    };
+
     function escapeHtml(s) {
         if (!s) return '';
         var div = document.createElement('div');
@@ -83,7 +36,6 @@
         return div.innerHTML;
     }
 
-    /** URL que cargamos en el iframe (misma que la reserva salvo que en el futuro haya un embed dedicado). */
     function urlIframe(r) {
         return (r.iframe != null ? r.iframe : r.url) || '';
     }
@@ -97,33 +49,35 @@
         }
     }
 
-    function init() {
-        var root = document.getElementById('restaurantes-paquete-widget');
-        if (!root) return;
+    /**
+     * @param {HTMLElement} container - vacío; aquí se pinta categorías + tabs + panel
+     * @returns {{ setCategoria: function(string), getCurrentRestaurant: function(): object|null, getSelectedIndex: function(): number }}
+     */
+    window.mountRestaurantePaquetePicker = function (container) {
+        if (!container) return null;
 
-        var intro = document.createElement('p');
-        intro.className = 'restaurantes-paquete-intro';
-        intro.innerHTML = 'Opcional: elige <strong>zona</strong> y restaurante; reserva en el visor embebido. Las opciones <strong>Comida / Cena</strong> de arriba siguen sirviendo para el importe del paquete.';
+        container.innerHTML = '';
+        container.className = (container.className + ' restaurantes-paquete-picker-inner').trim();
 
         var catRow = document.createElement('div');
         catRow.className = 'restaurantes-paquete-categorias';
         catRow.setAttribute('role', 'group');
-        catRow.setAttribute('aria-label', 'Zona del paquete');
+        catRow.setAttribute('aria-label', 'Zona');
 
         var tablist = document.createElement('div');
         tablist.className = 'restaurantes-paquete-tabs';
         tablist.setAttribute('role', 'tablist');
-        tablist.setAttribute('aria-label', 'Restaurantes para reservar');
+        tablist.setAttribute('aria-label', 'Restaurantes');
 
         var visibleList = [];
         var tabs = [];
         var categoryButtons = [];
+        var currentVisibleIndex = 0;
 
         var panel = document.createElement('div');
         panel.className = 'restaurantes-paquete-panel restaurantes-paquete-panel-unica';
-        panel.id = 'restaurantes-paquete-panel';
+        panel.id = 'restaurantes-paquete-panel-picker';
         panel.setAttribute('role', 'tabpanel');
-        panel.setAttribute('aria-labelledby', 'tab-rp-parador');
 
         var meta = document.createElement('p');
         meta.className = 'restaurante-paquete-meta';
@@ -138,14 +92,13 @@
         var wrap = document.createElement('div');
         wrap.className = 'restaurante-paquete-iframe-wrap';
         var ifr = document.createElement('iframe');
-        ifr.id = 'restaurantes-paquete-iframe';
         ifr.className = 'restaurante-paquete-iframe';
         ifr.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
         wrap.appendChild(ifr);
 
         var nota = document.createElement('p');
         nota.className = 'restaurante-paquete-iframe-nota';
-        nota.textContent = '¿Pantalla en blanco? Algunos proveedores bloquean el visor embebido; prueba otro navegador o dispositivo.';
+        nota.textContent = '¿Pantalla en blanco? Algunos proveedores bloquean el visor embebido.';
 
         panel.appendChild(meta);
         panel.appendChild(pDesc);
@@ -153,15 +106,14 @@
         panel.appendChild(wrap);
         panel.appendChild(nota);
 
-        root.appendChild(intro);
-        root.appendChild(catRow);
-        root.appendChild(tablist);
-        root.appendChild(panel);
+        container.appendChild(catRow);
+        container.appendChild(tablist);
+        container.appendChild(panel);
 
         function aplicarRestaurante(index) {
             var r = visibleList[index];
             if (!r) return;
-
+            currentVisibleIndex = index;
             panel.setAttribute('aria-labelledby', 'tab-rp-' + r.id);
             meta.textContent = r.zona || '';
             pDesc.textContent = r.texto || '';
@@ -210,7 +162,7 @@
                 tab.className = 'restaurantes-paquete-tab';
                 tab.setAttribute('role', 'tab');
                 tab.id = 'tab-rp-' + r.id;
-                tab.setAttribute('aria-controls', 'restaurantes-paquete-panel');
+                tab.setAttribute('aria-controls', 'restaurantes-paquete-panel-picker');
                 tab.setAttribute('aria-selected', idx === 0 ? 'true' : 'false');
                 tab.setAttribute('tabindex', idx === 0 ? '0' : '-1');
                 tab.textContent = r.nombre;
@@ -238,8 +190,6 @@
             if (aid) setCategoria(aid);
         });
 
-        setCategoria('lerma');
-
         tablist.addEventListener('click', function (e) {
             var btn = e.target.closest('.restaurantes-paquete-tab');
             if (!btn || !tablist.contains(btn)) return;
@@ -261,11 +211,15 @@
             tabs[next].focus();
             selectTab(next);
         });
-    }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
+        setCategoria('lerma');
+
+        return {
+            setCategoria: setCategoria,
+            getCurrentRestaurant: function () {
+                return visibleList[currentVisibleIndex] || null;
+            },
+            getSelectedIndex: function () { return currentVisibleIndex; }
+        };
+    };
 })();

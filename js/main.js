@@ -559,19 +559,11 @@ function initConfiguradorPaquete() {
         } catch (e) { return ''; }
     }
 
-    function syncComidaCenaSelectFromCheckbox(cb) {
-        if (!cb || !form) return;
-        var dia = cb.getAttribute('data-dia');
-        var meal = cb.getAttribute('data-meal');
-        if (!dia || !meal) return;
-        var sel = form.querySelector('select[name="' + meal + '_dia_' + dia + '"]');
-        if (!sel) return;
-        if (!cb.checked) {
-            sel.value = '';
-            sel.disabled = true;
-        } else {
-            sel.disabled = false;
-        }
+    function escapeHtmlComida(s) {
+        if (s == null || s === '') return '';
+        var d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
     }
 
     function actualizarBloqueComida(count, fechas) {
@@ -581,57 +573,140 @@ function initConfiguradorPaquete() {
         if (count < 1) {
             comidaPorDiaContainer.style.display = 'none';
             comidaPorDiaContainer.innerHTML = '';
+            var pp = document.getElementById('comida-restaurante-picker-panel');
+            if (pp) {
+                pp.hidden = true;
+                pp.style.display = 'none';
+            }
             return;
         }
-        var prevComida = {}, prevCena = {};
-        var prevComAct = {}, prevCenAct = {};
-        for (var i = 1; i <= count; i++) {
-            var sc = form && form.querySelector('select[name="comida_dia_' + i + '"]');
-            var sv = form && form.querySelector('select[name="cena_dia_' + i + '"]');
-            if (sc && sc.value) prevComida[i] = sc.value;
-            if (sv && sv.value) prevCena[i] = sv.value;
-            var ac = form && form.querySelector('input[name="comida_activa_' + i + '"]');
-            var ace = form && form.querySelector('input[name="cena_activa_' + i + '"]');
-            if (ac) prevComAct[i] = ac.checked;
-            if (ace) prevCenAct[i] = ace.checked;
+        var prev = {};
+        for (var pi = 1; pi <= count; pi++) {
+            var hc = form && form.querySelector('input[name="comida_dia_' + pi + '"]');
+            var hn = form && form.querySelector('input[name="cena_dia_' + pi + '"]');
+            var hcr = form && form.querySelector('input[name="comida_rest_id_' + pi + '"]');
+            var hnr = form && form.querySelector('input[name="cena_rest_id_' + pi + '"]');
+            prev[pi] = {
+                comida: (hc && hc.value) ? hc.value.trim() : '',
+                cena: (hn && hn.value) ? hn.value.trim() : '',
+                comRest: (hcr && hcr.value) ? hcr.value.trim() : '',
+                cenRest: (hnr && hnr.value) ? hnr.value.trim() : ''
+            };
         }
         comidaPorDiaContainer.style.display = 'block';
         comidaPorDiaContainer.innerHTML = '';
         for (var i = 1; i <= count; i++) {
             var iso = fechas[i - 1];
             var titulo = formatearEtiquetaDiaComida(iso) || ('Día ' + i);
-            var comidaChecked = !!(prevComida[i] && prevComida[i] !== '') || prevComAct[i] === true;
-            var cenaChecked = !!(prevCena[i] && prevCena[i] !== '') || prevCenAct[i] === true;
-            var pvCom = comidaChecked ? (prevComida[i] || '') : '';
-            var pvCen = cenaChecked ? (prevCena[i] || '') : '';
-            var optComida = '<option value="">Sin reserva</option><option value="lerma"' + (pvCom === 'lerma' ? ' selected' : '') + '>Lerma · Club Social Golf Lerma · ' + PRECIO_COMIDA + ' €</option><option value="burgos"' + (pvCom === 'burgos' ? ' selected' : '') + '>Burgos · Restaurantes · ' + PRECIO_SERVICIO_BURGOS + ' €</option>';
-            var optCena = '<option value="">Sin reserva</option><option value="lerma"' + (pvCen === 'lerma' ? ' selected' : '') + '>Lerma · Club Social Golf Lerma · ' + PRECIO_COMIDA + ' €</option><option value="burgos"' + (pvCen === 'burgos' ? ' selected' : '') + '>Burgos · Restaurantes · ' + PRECIO_SERVICIO_BURGOS + ' €</option>';
-            var comChk = comidaChecked ? ' checked' : '';
-            var cenChk = cenaChecked ? ' checked' : '';
+            var p = prev[i] || { comida: '', cena: '', comRest: '', cenRest: '' };
+            var hasCom = !!(p.comida);
+            var hasCen = !!(p.cena);
+            var nomCom = '';
+            var nomCen = '';
+            if (typeof window.getRestaurantePaqueteById === 'function') {
+                if (p.comRest) {
+                    var rc = window.getRestaurantePaqueteById(p.comRest);
+                    if (rc) nomCom = rc.nombre;
+                }
+                if (p.cenRest) {
+                    var rn = window.getRestaurantePaqueteById(p.cenRest);
+                    if (rn) nomCen = rn.nombre;
+                }
+            }
+            if (!nomCom && hasCom) nomCom = p.comida === 'lerma' ? 'Zona Lerma' : 'Zona Burgos';
+            if (!nomCen && hasCen) nomCen = p.cena === 'lerma' ? 'Zona Lerma' : 'Zona Burgos';
+            var rowCom = hasCom
+                ? ('<div class="comida-slot-elegido"><span class="comida-slot-elegido-text"><strong>Comida:</strong> ' + escapeHtmlComida(nomCom) + '</span> ' +
+                    '<button type="button" class="btn-comida-cambiar comida-abrir-picker" data-dia="' + i + '" data-tipo="comida">Cambiar</button> ' +
+                    '<button type="button" class="btn-comida-quitar comida-chip-quitar" data-dia="' + i + '" data-tipo="comida">Quitar</button></div>')
+                : ('<button type="button" class="btn-comida-anadir comida-abrir-picker" data-dia="' + i + '" data-tipo="comida">+ Añadir comida (almuerzo)</button>');
+            var rowCen = hasCen
+                ? ('<div class="comida-slot-elegido"><span class="comida-slot-elegido-text"><strong>Cena:</strong> ' + escapeHtmlComida(nomCen) + '</span> ' +
+                    '<button type="button" class="btn-comida-cambiar comida-abrir-picker" data-dia="' + i + '" data-tipo="cena">Cambiar</button> ' +
+                    '<button type="button" class="btn-comida-quitar comida-chip-quitar" data-dia="' + i + '" data-tipo="cena">Quitar</button></div>')
+                : ('<button type="button" class="btn-comida-anadir comida-abrir-picker" data-dia="' + i + '" data-tipo="cena">+ Añadir cena</button>');
             var block = document.createElement('div');
             block.className = 'comida-dia-block';
             block.innerHTML =
                 '<div class="comida-dia-titulo">' + titulo + '</div>' +
-                '<div class="comida-dia-slots">' +
-                '<div class="comida-slot-fila">' +
-                '<label class="comida-slot-label">' +
-                '<input type="checkbox" name="comida_activa_' + i + '" value="1" class="comida-slot-activa-cb" data-dia="' + i + '" data-meal="comida"' + comChk + '>' +
-                '<span>Incluir <strong>comida</strong> (almuerzo)</span>' +
-                '</label>' +
-                '<select name="comida_dia_' + i + '" class="comida-slot-select" aria-label="Zona para la comida del ' + titulo + '">' + optComida + '</select>' +
-                '</div>' +
-                '<div class="comida-slot-fila">' +
-                '<label class="comida-slot-label">' +
-                '<input type="checkbox" name="cena_activa_' + i + '" value="1" class="comida-slot-activa-cb" data-dia="' + i + '" data-meal="cena"' + cenChk + '>' +
-                '<span>Incluir <strong>cena</strong></span>' +
-                '</label>' +
-                '<select name="cena_dia_' + i + '" class="comida-slot-select" aria-label="Zona para la cena del ' + titulo + '">' + optCena + '</select>' +
-                '</div></div>';
+                '<div class="comida-anadir-row">' + rowCom + '</div>' +
+                '<div class="comida-anadir-row">' + rowCen + '</div>' +
+                '<input type="hidden" name="comida_dia_' + i + '" value="' + escapeHtmlComida(p.comida) + '">' +
+                '<input type="hidden" name="cena_dia_' + i + '" value="' + escapeHtmlComida(p.cena) + '">' +
+                '<input type="hidden" name="comida_rest_id_' + i + '" value="' + escapeHtmlComida(p.comRest) + '">' +
+                '<input type="hidden" name="cena_rest_id_' + i + '" value="' + escapeHtmlComida(p.cenRest) + '">';
             comidaPorDiaContainer.appendChild(block);
         }
-        comidaPorDiaContainer.querySelectorAll('.comida-slot-activa-cb').forEach(function (cb) {
-            syncComidaCenaSelectFromCheckbox(cb);
-        });
+    }
+
+    var comidaPickerControl = null;
+    var comidaPickerListenersBound = false;
+    var activeComidaPickerSlot = null;
+
+    function ensureComidaPickerListeners() {
+        if (comidaPickerListenersBound) return;
+        comidaPickerListenersBound = true;
+        var btnG = document.getElementById('comida-picker-guardar');
+        var btnC = document.getElementById('comida-picker-cerrar');
+        if (btnG) btnG.addEventListener('click', function () { commitComidaPickerChoice(); });
+        if (btnC) btnC.addEventListener('click', function () { closeComidaPickerPanel(); });
+    }
+
+    function mountComidaPickerIfNeeded() {
+        var root = document.getElementById('comida-restaurante-picker-root');
+        if (!root || comidaPickerControl || typeof window.mountRestaurantePaquetePicker !== 'function') return;
+        comidaPickerControl = window.mountRestaurantePaquetePicker(root);
+        ensureComidaPickerListeners();
+    }
+
+    function openComidaPickerPanel(diaStr, tipo) {
+        mountComidaPickerIfNeeded();
+        if (!form) return;
+        var fd = new FormData(form);
+        var fechasArr = fd.getAll('fechas[]') || [];
+        var dia = parseInt(diaStr, 10);
+        var idx = dia - 1;
+        var labelDia = (idx >= 0 && fechasArr[idx]) ? formatearEtiquetaDiaComida(fechasArr[idx]) : ('Día ' + diaStr);
+        activeComidaPickerSlot = { dia: String(dia), tipo: tipo };
+        var panel = document.getElementById('comida-restaurante-picker-panel');
+        var ctx = document.getElementById('comida-picker-context');
+        var gs = document.getElementById('comida-picker-guardar-slot');
+        var etiquetaTipo = tipo === 'comida' ? 'comida (almuerzo)' : 'cena';
+        if (ctx) ctx.textContent = 'Elige zona y restaurante para la ' + etiquetaTipo + ' del ' + labelDia + '. Al cambiar de pestaña verás otro widget; cuando quieras fijar la opción, pulsa Guardar.';
+        if (gs) gs.textContent = tipo === 'comida' ? 'esta comida' : 'esta cena';
+        if (panel) {
+            panel.hidden = false;
+            panel.style.display = 'block';
+        }
+        if (comidaPickerControl && comidaPickerControl.setCategoria) comidaPickerControl.setCategoria('lerma');
+        if (panel && panel.scrollIntoView) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function closeComidaPickerPanel() {
+        var panel = document.getElementById('comida-restaurante-picker-panel');
+        if (panel) {
+            panel.hidden = true;
+            panel.style.display = 'none';
+        }
+        activeComidaPickerSlot = null;
+    }
+
+    function commitComidaPickerChoice() {
+        if (!activeComidaPickerSlot || !comidaPickerControl || !form) return;
+        var r = comidaPickerControl.getCurrentRestaurant();
+        if (!r) return;
+        var d = activeComidaPickerSlot.dia;
+        var tipo = activeComidaPickerSlot.tipo;
+        var pack = r.precioPack || (r.area === 'lerma' ? 'lerma' : 'burgos');
+        var hp = form.querySelector('input[name="' + tipo + '_dia_' + d + '"]');
+        var hr = form.querySelector('input[name="' + tipo + '_rest_id_' + d + '"]');
+        if (hp) hp.value = pack;
+        if (hr) hr.value = r.id;
+        var fd = new FormData(form);
+        var fechasArr = fd.getAll('fechas[]') || [];
+        closeComidaPickerPanel();
+        actualizarBloqueComida(fechasArr.length, fechasArr);
+        if (typeof actualizarResumen === 'function') actualizarResumen();
     }
 
     if (calendarioContainer && form && typeof CalendarioDias !== 'undefined') {
@@ -679,9 +754,6 @@ function initConfiguradorPaquete() {
                 if (i >= 1) refillHotelSelect(i, t.value || '');
                 return;
             }
-            if (t && t.classList && t.classList.contains('comida-slot-activa-cb')) {
-                syncComidaCenaSelectFromCheckbox(t);
-            }
             if (t && t.id === 'tamanio-grupo') recalcNumeroGrupos();
             actualizarResumen();
         });
@@ -689,6 +761,31 @@ function initConfiguradorPaquete() {
             var t = e.target;
             if (t && t.id === 'tamanio-grupo') recalcNumeroGrupos();
             if (t && t.matches && t.matches('#tamanio-grupo, #hora-salida, #handicap-grupo, .ancillary-counter, input[name^="hora_salida"]')) actualizarResumen();
+        });
+        form.addEventListener('click', function (e) {
+            var abrir = e.target.closest('.comida-abrir-picker');
+            if (abrir && form.contains(abrir)) {
+                e.preventDefault();
+                var dia = abrir.getAttribute('data-dia');
+                var tipo = abrir.getAttribute('data-tipo');
+                if (dia && tipo) openComidaPickerPanel(dia, tipo);
+                return;
+            }
+            var q = e.target.closest('.comida-chip-quitar');
+            if (q && form.contains(q)) {
+                e.preventDefault();
+                var d = q.getAttribute('data-dia');
+                var tip = q.getAttribute('data-tipo');
+                if (!d || !tip) return;
+                var hp = form.querySelector('input[name="' + tip + '_dia_' + d + '"]');
+                var hr = form.querySelector('input[name="' + tip + '_rest_id_' + d + '"]');
+                if (hp) hp.value = '';
+                if (hr) hr.value = '';
+                var fdq = new FormData(form);
+                var fa = fdq.getAll('fechas[]') || [];
+                actualizarBloqueComida(fa.length, fa);
+                actualizarResumen();
+            }
         });
         window.actualizarResumen = actualizarResumen;
         document.addEventListener('i18n:changed', function () { if (typeof actualizarResumen === 'function') actualizarResumen(); });

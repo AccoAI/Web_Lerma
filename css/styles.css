@@ -2486,53 +2486,143 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     border-color: var(--color-primary);
 }
 
-/* Comida/cena por franjas (checkbox + select) — paquete fin de semana */
-.comida-dia-slots {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+/* Comida/cena: + Añadir y panel embebido — paquete fin de semana */
+.comida-anadir-row {
+    margin: 0.5rem 0 0.85rem;
 }
 
-.comida-slot-fila {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(140px, 1fr);
-    gap: 0.75rem 1rem;
-    align-items: center;
-}
-
-@media (max-width: 520px) {
-    .comida-slot-fila {
-        grid-template-columns: 1fr;
-    }
-}
-
-.comida-slot-label {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    margin: 0;
+.btn-comida-anadir {
+    font-family: inherit;
     font-size: 0.92rem;
-    line-height: 1.4;
+    font-weight: 600;
+    padding: 0.45rem 0.75rem;
+    border: 2px dashed rgba(26, 77, 58, 0.45);
+    background: rgba(26, 77, 58, 0.04);
+    color: var(--color-primary);
+    border-radius: 0;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-comida-anadir:hover {
+    background: rgba(26, 77, 58, 0.1);
+    border-color: var(--color-primary);
+}
+
+.comida-slot-elegido {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    padding: 0.5rem 0.65rem;
+    background: rgba(26, 77, 58, 0.08);
+    border: 1px solid rgba(26, 77, 58, 0.2);
+    font-size: 0.92rem;
+}
+
+.comida-slot-elegido-text {
+    flex: 1;
+    min-width: 12rem;
+}
+
+.btn-comida-cambiar,
+.btn-comida-quitar {
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+    border-radius: 0;
+    cursor: pointer;
+    border: 2px solid var(--color-primary);
+    background: #fff;
+    color: var(--color-primary);
+}
+
+.btn-comida-quitar {
+    border-color: #a67c52;
+    color: #7a4a1e;
+}
+
+.btn-comida-cambiar:hover,
+.btn-comida-quitar:hover {
+    opacity: 0.9;
+}
+
+.comida-restaurante-picker-panel {
+    margin-top: 1.5rem;
+    padding: 1rem 1.1rem 1.25rem;
+    background: rgba(139, 69, 19, 0.07);
+    border: 1px solid rgba(139, 69, 19, 0.25);
+    border-radius: 0;
+}
+
+.comida-picker-panel-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.85rem;
+}
+
+.comida-picker-context {
+    margin: 0;
+    flex: 1;
+    min-width: 12rem;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    color: var(--color-text);
+}
+
+.comida-picker-cerrar {
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid var(--color-text);
+    background: transparent;
     color: var(--color-text);
     cursor: pointer;
-    font-weight: 500;
+    border-radius: 0;
 }
 
-.comida-slot-label input[type="checkbox"] {
-    margin-top: 0.2rem;
-    flex-shrink: 0;
-    width: 1.05rem;
-    height: 1.05rem;
-    accent-color: var(--color-primary);
+.comida-picker-cerrar:hover {
+    background: rgba(0, 0, 0, 0.06);
 }
 
-.comida-slot-select:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-    background: #f0f0f0;
+.comida-restaurante-picker-root {
+    margin-top: 0.25rem;
 }
 
-/* Restaurantes asociados (reserva online / iframe) — paquete fin de semana */
+.comida-picker-commit-wrap {
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(26, 77, 58, 0.2);
+}
+
+.btn-comida-picker-guardar {
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    background: var(--color-primary);
+    color: #fff;
+    cursor: pointer;
+    border-radius: 0;
+    width: 100%;
+    max-width: 36rem;
+}
+
+.btn-comida-picker-guardar:hover {
+    opacity: 0.93;
+}
+
+/* Selector embebido (zonas + tabs + iframe) */
+.restaurantes-paquete-picker-inner {
+    margin: 0;
+}
+
 .restaurantes-paquete-widget {
     margin-top: 1.75rem;
     padding-top: 1.35rem;
