@@ -57,10 +57,9 @@ function initUsuariosForm() {
         const inner = document.createElement('div');
         inner.className = 'correspondencia-grupos-inner';
         inner.innerHTML =
-            '<h4 class="correspondencia-grupos-titulo">Correspondencias por grupos (opcional)</h4>' +
-            '<p class="correspondencia-grupos-hint">Indica cuántos participantes adicionales tienen correspondencia de cada club. Ej.: 3 × Club A, 2 × Club B, 2 sin.</p>' +
+            '<p class="correspondencia-grupos-hint">Solo si aplica tarifa por correspondencia. Añade una fila por club (o déjalo vacío si no aplica).</p>' +
             '<div class="correspondencia-grupos-rows"></div>' +
-            '<button type="button" class="btn-anadir-grupo">+ Añadir grupo</button>';
+            '<button type="button" class="btn-anadir-grupo">+ Añadir club</button>';
         gruposWrap.appendChild(inner);
         const rowsCont = inner.querySelector('.correspondencia-grupos-rows');
         const btnAdd = inner.querySelector('.btn-anadir-grupo');
@@ -68,9 +67,10 @@ function initUsuariosForm() {
             const row = document.createElement('div');
             row.className = 'correspondencia-grupos-row';
             row.innerHTML =
-                '<label class="corr-grupo-label"><input type="number" name="correspondencia_grupo[][cantidad]" min="1" class="corr-grupo-cantidad" placeholder="Nº" value="1"> personas con</label>' +
-                '<select name="correspondencia_grupo[][club_id]" class="corr-grupo-club">' + optHtml + '</select>' +
-                '<button type="button" class="btn-eliminar-grupo" aria-label="Quitar grupo">×</button>';
+                '<input type="number" name="correspondencia_grupo[][cantidad]" min="1" class="corr-grupo-cantidad" placeholder="Nº" value="1" title="Personas">' +
+                '<span class="corr-grupo-con">con</span>' +
+                '<select name="correspondencia_grupo[][club_id]" class="corr-grupo-club" aria-label="Club de correspondencia">' + optHtml + '</select>' +
+                '<button type="button" class="btn-eliminar-grupo" aria-label="Quitar fila">×</button>';
             rowsCont.appendChild(row);
             row.querySelector('.btn-eliminar-grupo').addEventListener('click', function () {
                 row.remove();
@@ -82,7 +82,6 @@ function initUsuariosForm() {
             if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
         }
         btnAdd.addEventListener('click', addRow);
-        addRow();
     }
 
     function crearFormularioUsuario(numero) {

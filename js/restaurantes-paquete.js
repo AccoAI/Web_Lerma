@@ -4,13 +4,13 @@
  */
 (function () {
     var RESTAURANTES = [
-        { id: 'parador', nombre: 'Parador de Lerma', zona: 'Lerma', area: 'lerma', precioPack: 'lerma', texto: 'Reserva con el widget oficial de TheFork.', url: 'https://widget.thefork.com/en-GB/e1f7b394-0e58-4166-9eef-3b5ba2f1c529?step=date', iframeAlto: 650 },
-        { id: 'lali', nombre: 'Restaurante Golf Lerma (Lali)', zona: 'Lerma', area: 'lerma', precioPack: 'lerma', texto: 'Restaurante del club. Reserva por teléfono; abajo tienes la fecha y los comensales según tu paquete.', reservaInhouse: true, telefono: '947171215', urlInfo: 'el-campo.html#restaurante', iframeAlto: 640 },
-        { id: 'alfoz', nombre: 'El Alfoz', zona: 'Saldaña', area: 'saldana', precioPack: 'burgos', texto: 'Cocina de mercado. Reserva en CoverManager.', url: 'https://www.covermanager.com/reserve/module_restaurant/restaurante-alfoz-de-burgos/spanish', iframeAlto: 720 },
-        { id: 'cobo', nombre: 'Cobo Estratos', zona: 'Burgos', area: 'burgos', precioPack: 'burgos', texto: 'Alta cocina. Reserva en CoverManager.', url: 'https://www.covermanager.com/reservation/module_restaurant/restaurante-coboestratos/spanish', iframeAlto: 720 },
-        { id: 'fabrica', nombre: 'La Fábrica', zona: 'Burgos', area: 'burgos', precioPack: 'burgos', texto: 'Reserva con TheFork.', url: 'https://widget.thefork.com/en-GB/d8abb8d7-ecfa-4db4-8aff-089ed282986d?step=date', iframeAlto: 620 },
-        { id: 'favorita', nombre: 'La Favorita', zona: 'Burgos', area: 'burgos', precioPack: 'burgos', texto: 'Tapeo y cocina castellana. CoverManager.', url: 'https://www.covermanager.com/reservation/module_restaurant/restaurante-lafavoritadeburgos/spanish', iframeAlto: 720 },
-        { id: 'onirica', nombre: 'Onírica', zona: 'Burgos', area: 'burgos', precioPack: 'burgos', texto: 'Experiencia gastronómica. CoverManager.', url: 'https://www.covermanager.com/reservation/module_restaurant/restaurante-onirica/spanish', iframeAlto: 720 }
+        { id: 'parador', nombre: 'Parador de Lerma', zona: 'Lerma', area: 'lerma', precioPack: 'lerma', precioNivel: '€€€', tipoComida: 'Castellano', texto: 'Reserva con el widget oficial de TheFork.', url: 'https://widget.thefork.com/en-GB/e1f7b394-0e58-4166-9eef-3b5ba2f1c529?step=date', iframeAlto: 650 },
+        { id: 'lali', nombre: 'Restaurante Golf Lerma (Lali)', zona: 'Lerma', area: 'lerma', precioPack: 'lerma', precioNivel: '€€€', tipoComida: 'Castellano', soloComida: true, texto: 'Solo comidas (almuerzo), no cenas. Reserva por teléfono; abajo tienes la fecha y los comensales según tu paquete.', reservaInhouse: true, telefono: '947171215', urlInfo: 'el-campo.html#restaurante', iframeAlto: 640 },
+        { id: 'alfoz', nombre: 'El Alfoz', zona: 'Saldaña', area: 'saldana', precioPack: 'burgos', precioNivel: '€€', tipoComida: 'Castellano', texto: 'Cocina de mercado. Reserva en CoverManager.', url: 'https://www.covermanager.com/reserve/module_restaurant/restaurante-alfoz-de-burgos/spanish', iframeAlto: 720 },
+        { id: 'cobo', nombre: 'Cobo Estratos', zona: 'Burgos', area: 'burgos', precioPack: 'burgos', precioNivel: '€€€€', tipoComida: 'Estrella Michelin', texto: 'Alta cocina. Reserva en CoverManager.', url: 'https://www.covermanager.com/reservation/module_restaurant/restaurante-coboestratos/spanish', iframeAlto: 720 },
+        { id: 'fabrica', nombre: 'La Fábrica', zona: 'Burgos', area: 'burgos', precioPack: 'burgos', precioNivel: '€€€', tipoComida: 'Española', texto: 'Reserva con TheFork.', url: 'https://widget.thefork.com/en-GB/d8abb8d7-ecfa-4db4-8aff-089ed282986d?step=date', iframeAlto: 620 },
+        { id: 'favorita', nombre: 'La Favorita', zona: 'Burgos', area: 'burgos', precioPack: 'burgos', precioNivel: '€€€', tipoComida: 'Tapeo / asador', texto: 'Tapeo y cocina castellana. CoverManager.', url: 'https://www.covermanager.com/reservation/module_restaurant/restaurante-lafavoritadeburgos/spanish', iframeAlto: 720 },
+        { id: 'onirica', nombre: 'Onírica', zona: 'Burgos', area: 'burgos', precioPack: 'burgos', precioNivel: '€€€', tipoComida: 'Vanguardia', texto: 'Experiencia gastronómica. CoverManager.', url: 'https://www.covermanager.com/reservation/module_restaurant/restaurante-onirica/spanish', iframeAlto: 720 }
     ];
 
     var AREAS = [
@@ -28,6 +28,13 @@
         }
         return null;
     };
+
+    /** Si el usuario está eligiendo cena, excluye restaurantes marcados soloComida (p. ej. Lali). */
+    function restauranteDisponibleParaTipoServicio(r, tipoServicio) {
+        if (!r) return false;
+        if (r.soloComida && tipoServicio === 'cena') return false;
+        return true;
+    }
 
     function escapeHtml(s) {
         if (!s) return '';
@@ -63,7 +70,7 @@
     /**
      * Sincroniza iframe con el formulario del paquete (fecha del día elegido + tamaño del grupo).
      * CoverManager (motor module_restaurant): el servidor solo rellena day_pre/people_pre con day=YYYY-MM-DD y people=N (no usa ?date=).
-     * TheFork (widget/widgets): date + partySize
+     * TheFork (widget/widgets): date + comensales. El wizard ha usado distintos nombres en query (guests, covers, partySize…); se envían alias compatibles.
      */
     function applyPaqueteEmbedSyncToUrl(urlString, ctx) {
         if (!urlString || !ctx || !ctx.dateISO || ctx.partySize == null) return urlString;
@@ -79,7 +86,14 @@
             }
             if (h.indexOf('thefork.') >= 0) {
                 u.searchParams.set('date', ctx.dateISO);
-                u.searchParams.set('partySize', String(ctx.partySize));
+                var p = String(ctx.partySize);
+                u.searchParams.set('partySize', p);
+                u.searchParams.set('guests', p);
+                u.searchParams.set('covers', p);
+                u.searchParams.set('nbGuests', p);
+                u.searchParams.set('party', p);
+                u.searchParams.set('diners', p);
+                u.searchParams.set('people', p);
                 return u.toString();
             }
         } catch (e) { /* URL relativa u otro */ }
@@ -121,6 +135,10 @@
         var meta = document.createElement('p');
         meta.className = 'restaurante-paquete-meta';
 
+        var fichaInfo = document.createElement('div');
+        fichaInfo.className = 'restaurante-paquete-ficha';
+        fichaInfo.setAttribute('aria-label', 'Precio y tipo de cocina');
+
         var pDesc = document.createElement('p');
         pDesc.className = 'restaurante-paquete-desc';
 
@@ -145,6 +163,7 @@
         nota.textContent = '¿Pantalla en blanco? Algunos proveedores bloquean el visor embebido.';
 
         panel.appendChild(meta);
+        panel.appendChild(fichaInfo);
         panel.appendChild(pDesc);
         panel.appendChild(inhouseEl);
         panel.appendChild(telP);
@@ -162,6 +181,17 @@
             panel.setAttribute('aria-labelledby', 'tab-rp-' + r.id);
             meta.textContent = r.zona || '';
             pDesc.textContent = r.texto || '';
+
+            if (r.precioNivel || r.tipoComida) {
+                fichaInfo.style.display = '';
+                fichaInfo.innerHTML =
+                    (r.precioNivel ? '<span class="restaurante-paquete-precio" title="Rango de precio orientativo">' + escapeHtml(r.precioNivel) + '</span>' : '') +
+                    (r.precioNivel && r.tipoComida ? '<span class="restaurante-paquete-ficha-sep" aria-hidden="true">·</span>' : '') +
+                    (r.tipoComida ? '<span class="restaurante-paquete-tipo">' + escapeHtml(r.tipoComida) + '</span>' : '');
+            } else {
+                fichaInfo.style.display = 'none';
+                fichaInfo.innerHTML = '';
+            }
 
             if (r.reservaInhouse) {
                 telP.style.display = 'none';
@@ -237,7 +267,10 @@
         }
 
         function setCategoria(areaId) {
-            visibleList = RESTAURANTES.filter(function (r) { return r.area === areaId; });
+            var tipoSlot = (window.__paqueteEmbedSlot && window.__paqueteEmbedSlot.tipo) || '';
+            visibleList = RESTAURANTES.filter(function (r) {
+                return r.area === areaId && restauranteDisponibleParaTipoServicio(r, tipoSlot);
+            });
             categoryButtons.forEach(function (b) {
                 var on = b.dataset.area === areaId;
                 b.classList.toggle('is-active', on);
@@ -245,6 +278,21 @@
             });
             tablist.innerHTML = '';
             tabs = [];
+            if (!visibleList.length) {
+                meta.textContent = '';
+                fichaInfo.style.display = 'none';
+                fichaInfo.innerHTML = '';
+                pDesc.textContent = 'No hay restaurantes en esta zona para el servicio elegido (comida o cena). Prueba otra zona.';
+                telP.style.display = 'none';
+                telP.innerHTML = '';
+                inhouseEl.style.display = 'none';
+                inhouseEl.setAttribute('hidden', '');
+                inhouseEl.innerHTML = '';
+                wrap.style.display = '';
+                nota.style.display = '';
+                ifr.removeAttribute('src');
+                return;
+            }
             visibleList.forEach(function (r, idx) {
                 var tab = document.createElement('button');
                 tab.type = 'button';
@@ -307,8 +355,6 @@
             } catch (err) { /* ignore */ }
         });
 
-        setCategoria('lerma');
-
         function selectRestaurantById(id) {
             var r = null;
             for (var j = 0; j < RESTAURANTES.length; j++) {
@@ -318,6 +364,8 @@
                 }
             }
             if (!r) return false;
+            var tipoSlot = (window.__paqueteEmbedSlot && window.__paqueteEmbedSlot.tipo) || '';
+            if (!restauranteDisponibleParaTipoServicio(r, tipoSlot)) return false;
             setCategoria(r.area);
             for (var k = 0; k < visibleList.length; k++) {
                 if (visibleList[k].id === id) {

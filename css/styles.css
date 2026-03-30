@@ -2829,6 +2829,34 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     opacity: 0.9;
 }
 
+.restaurante-paquete-ficha {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.5rem;
+    margin: 0 0 0.55rem;
+    font-size: 0.88rem;
+    line-height: 1.35;
+}
+
+.restaurante-paquete-precio {
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #7a5c1a;
+    font-variant-numeric: tabular-nums;
+}
+
+.restaurante-paquete-ficha-sep {
+    color: rgba(26, 77, 58, 0.35);
+    font-weight: 400;
+    user-select: none;
+}
+
+.restaurante-paquete-tipo {
+    color: var(--color-text);
+    font-weight: 500;
+}
+
 .restaurante-paquete-desc {
     margin: 0 0 0.75rem;
     font-size: 0.95rem;
@@ -3063,6 +3091,82 @@ a.btn-restaurante-paquete-reservar:focus-visible {
     border-color: var(--color-primary);
 }
 
+/* Opcional: correspondencia + handicap en un bloque colapsable (paquete fin de semana) */
+.participantes-extras-opcional {
+    margin: 0.75rem 0 0.5rem;
+    border: 1px solid rgba(26, 77, 58, 0.2);
+    background: rgba(250, 250, 248, 0.9);
+    padding: 0;
+}
+
+.participantes-extras-summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.participantes-extras-summary::-webkit-details-marker {
+    display: none;
+}
+
+.participantes-extras-summary::before {
+    content: '';
+    display: inline-block;
+    width: 0.35em;
+    height: 0.35em;
+    margin-right: 0.35rem;
+    border-right: 2px solid var(--color-primary);
+    border-bottom: 2px solid var(--color-primary);
+    transform: rotate(-45deg);
+    transition: transform 0.15s ease;
+    vertical-align: middle;
+}
+
+.participantes-extras-opcional[open] .participantes-extras-summary::before {
+    transform: rotate(45deg);
+    margin-top: 0.1em;
+}
+
+.extras-opcional-tag {
+    font-size: 0.78rem;
+    font-weight: 500;
+    text-transform: lowercase;
+    color: var(--color-text-light, #666);
+    letter-spacing: 0.02em;
+}
+
+.participantes-extras-body {
+    padding: 0 0.75rem 0.65rem;
+    border-top: 1px solid rgba(26, 77, 58, 0.1);
+}
+
+.handicap-grupo-inline {
+    margin: 0.5rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+}
+
+.handicap-grupo-inline label {
+    margin: 0;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.handicap-grupo-inline input {
+    max-width: 7rem;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.9rem;
+}
+
 .cubo-premium-block {
     display: flex;
     flex-wrap: wrap;
@@ -3098,7 +3202,7 @@ a.btn-restaurante-paquete-reservar:focus-visible {
     align-items: center;
     gap: 1rem;
     flex-wrap: wrap;
-    margin-top: 1rem;
+    margin-top: 0.65rem;
 }
 
 .agregar-usuario-line .btn-agregar-usuario {
@@ -3116,39 +3220,45 @@ a.btn-restaurante-paquete-reservar:focus-visible {
     color: var(--color-text);
 }
 
-/* Correspondencias por grupos (paquete fin de semana) */
+/* Correspondencias por grupos (paquete fin de semana) — compacto */
 .correspondencia-grupos-wrap {
-    margin: 1.5rem 0;
-    padding: 1.5rem;
-    background: rgba(26, 77, 58, 0.06);
-    border-radius: 0;
-    border: 1px solid rgba(26, 77, 58, 0.2);
+    margin: 0.35rem 0 0;
+    padding: 0;
+    background: transparent;
+    border: none;
 }
 
 .correspondencia-grupos-titulo {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: var(--color-primary);
-    margin: 0 0 0.5rem;
+    margin: 0 0 0.35rem;
 }
 
 .correspondencia-grupos-hint {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: var(--color-text);
-    margin: 0 0 1rem;
-    opacity: 0.9;
+    margin: 0 0 0.5rem;
+    line-height: 1.35;
+    opacity: 0.88;
 }
 
 .correspondencia-grupos-rows {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.4rem;
 }
 
 .correspondencia-grupos-row {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.4rem 0.5rem;
     flex-wrap: wrap;
+}
+
+.corr-grupo-con {
+    font-size: 0.78rem;
+    color: var(--color-text-light, #666);
+    flex-shrink: 0;
 }
 
 .corr-grupo-label {
@@ -3158,31 +3268,33 @@ a.btn-restaurante-paquete-reservar:focus-visible {
 }
 
 .correspondencia-grupos-row .corr-grupo-cantidad {
-    width: 4rem;
-    padding: 0.5rem;
-    border: 2px solid #ddd;
+    width: 3.25rem;
+    padding: 0.3rem 0.35rem;
+    border: 1px solid #ccc;
     border-radius: 0;
-    font-size: 1rem;
+    font-size: 0.9rem;
 }
 
 .correspondencia-grupos-row .corr-grupo-club {
     flex: 1;
-    min-width: 180px;
-    padding: 0.5rem;
-    border: 2px solid #ddd;
+    min-width: 140px;
+    max-width: 100%;
+    padding: 0.3rem 0.45rem;
+    border: 1px solid #ccc;
     border-radius: 0;
-    font-size: 1rem;
+    font-size: 0.85rem;
 }
 
 .correspondencia-grupos-row .btn-eliminar-grupo {
     background: transparent;
     color: #999;
     border: 1px solid #ddd;
-    padding: 0.35rem 0.6rem;
+    padding: 0.2rem 0.45rem;
     border-radius: 0;
     cursor: pointer;
-    font-size: 1.1rem;
+    font-size: 1rem;
     line-height: 1;
+    flex-shrink: 0;
 }
 
 .correspondencia-grupos-row .btn-eliminar-grupo:hover {
@@ -3192,20 +3304,20 @@ a.btn-restaurante-paquete-reservar:focus-visible {
 }
 
 .btn-anadir-grupo {
-    margin-top: 1rem;
+    margin-top: 0.45rem;
     background: transparent;
     color: var(--color-primary);
-    border: 2px dashed rgba(26, 77, 58, 0.5);
-    padding: 0.5rem 1rem;
+    border: 1px dashed rgba(26, 77, 58, 0.45);
+    padding: 0.3rem 0.65rem;
     border-radius: 0;
-    font-size: 0.95rem;
+    font-size: 0.8rem;
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
 }
 
 .btn-anadir-grupo:hover {
-    background: rgba(26, 77, 58, 0.08);
+    background: rgba(26, 77, 58, 0.06);
     border-color: var(--color-primary);
 }
 
