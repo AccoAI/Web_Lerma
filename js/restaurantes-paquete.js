@@ -50,6 +50,33 @@
     }
 
     /**
+     * Sincroniza iframe con el formulario del paquete (fecha del día elegido + tamaño del grupo).
+     * CoverManager: ?/& date=YYYY-MM-DD & people=N (según indiquen; si no aplican, el widget los ignora).
+     * TheFork (widget/widgets): date + partySize
+     */
+    function applyPaqueteEmbedSyncToUrl(urlString, ctx) {
+        if (!urlString || !ctx || !ctx.dateISO || ctx.partySize == null) return urlString;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(String(ctx.dateISO))) return urlString;
+        try {
+            var u = new URL(urlString);
+            var h = (u.hostname || '').toLowerCase().replace(/^www\./, '');
+            if (h.indexOf('covermanager.') >= 0) {
+                u.searchParams.set('date', ctx.dateISO);
+                u.searchParams.set('people', String(ctx.partySize));
+                return u.toString();
+            }
+            if (h.indexOf('thefork.') >= 0) {
+                u.searchParams.set('date', ctx.dateISO);
+                u.searchParams.set('partySize', String(ctx.partySize));
+                return u.toString();
+            }
+        } catch (e) { /* URL relativa u otro */ }
+        return urlString;
+    }
+
+    window.applyPaqueteEmbedSyncToUrl = applyPaqueteEmbedSyncToUrl;
+
+    /**
      * @param {HTMLElement} container - vacío; aquí se pinta categorías + tabs + panel
      * @returns {{ setCategoria: function(string), getCurrentRestaurant: function(): object|null, getSelectedIndex: function(): number }}
      */
@@ -134,7 +161,9 @@
             var alto = r.iframeAlto != null ? r.iframeAlto : 700;
             ifr.style.height = alto + 'px';
             ifr.setAttribute('title', 'Reserva — ' + r.nombre);
-            ifr.src = absolutizarUrl(srcEmbed);
+            var raw = absolutizarUrl(srcEmbed);
+            var syncCtx = typeof window.getPaqueteEmbedContext === 'function' ? window.getPaqueteEmbedContext() : null;
+            ifr.src = applyPaqueteEmbedSyncToUrl(raw, syncCtx);
         }
 
         function selectTab(index) {
@@ -244,6 +273,9 @@
             selectRestaurantById: selectRestaurantById,
             getIframe: function () {
                 return ifr;
+            },
+            refreshCurrentEmbed: function () {
+                if (visibleList.length && currentVisibleIndex >= 0) aplicarRestaurante(currentVisibleIndex);
             },
             getCurrentRestaurant: function () {
                 return visibleList[currentVisibleIndex] || null;

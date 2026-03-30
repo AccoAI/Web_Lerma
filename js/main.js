@@ -409,9 +409,35 @@ function initConfiguradorPaquete() {
     var horaPorDiaWrapFS = document.getElementById('hora-salida-por-dia-finsemana');
     var horaUnicaWrapFS = document.getElementById('hora-salida-unica-finsemana');
 
+    /** Contexto para sincronizar iframe CoverManager/TheFork con el formulario (fecha del día del slot + participantes). */
+    window.getPaqueteEmbedContext = function () {
+        if (!form) return null;
+        var slot = window.__paqueteEmbedSlot;
+        if (!slot || !slot.dia) return null;
+        var fechas = new FormData(form).getAll('fechas[]');
+        var idx = parseInt(slot.dia, 10) - 1;
+        var dateISO = (idx >= 0 && fechas[idx]) ? String(fechas[idx]).trim() : null;
+        if (!dateISO || !/^\d{4}-\d{2}-\d{2}$/.test(dateISO)) return null;
+        var tg = document.getElementById('tamanio-grupo');
+        var party = Math.max(1, parseInt((tg && tg.value) ? tg.value : '1', 10) || 1);
+        return { dateISO: dateISO, partySize: party };
+    };
+
+    function campoDiaTieneReservaFinSemana(idx) {
+        var sel = form && form.querySelector('select[name="campo-dia-' + idx + '"]');
+        return !!(sel && String(sel.value || '').trim() !== '');
+    }
+
     function generarHoraSalidaPorDiaFinSemana(numDias) {
         if (!horaPorDiaWrapFS || !horaUnicaWrapFS) return;
         var singleInput = form && form.querySelector('input[name="hora_salida"]');
+        if (!numDias || numDias < 1) {
+            horaPorDiaWrapFS.style.display = 'none';
+            horaPorDiaWrapFS.innerHTML = '';
+            horaUnicaWrapFS.style.display = 'none';
+            if (singleInput) singleInput.removeAttribute('required');
+            return;
+        }
         if (numDias > 1) {
             var prev = {};
             for (var i = 1; i <= numDias; i++) {
@@ -419,20 +445,27 @@ function initConfiguradorPaquete() {
                 if (inp && inp.value) prev[i] = inp.value;
             }
             horaPorDiaWrapFS.innerHTML = '';
-            horaPorDiaWrapFS.style.display = 'block';
             horaUnicaWrapFS.style.display = 'none';
             if (singleInput) singleInput.removeAttribute('required');
-            for (var i = 1; i <= numDias; i++) {
+            var hayHoras = false;
+            for (var j = 1; j <= numDias; j++) {
+                if (!campoDiaTieneReservaFinSemana(j)) continue;
+                hayHoras = true;
                 var item = document.createElement('div');
                 item.className = 'campos-dias-item';
-                item.innerHTML = '<label for="hora-salida-dia-' + i + '-fs">Hora de salida día ' + i + ' *</label><input type="time" id="hora-salida-dia-' + i + '-fs" name="hora_salida_dia_' + i + '" title="Hora día ' + i + '" required value="' + (prev[i] || '') + '">';
+                item.innerHTML = '<label for="hora-salida-dia-' + j + '-fs">Hora de salida día ' + j + ' *</label><input type="time" id="hora-salida-dia-' + j + '-fs" name="hora_salida_dia_' + j + '" title="Hora día ' + j + '" required value="' + (prev[j] || '') + '">';
                 horaPorDiaWrapFS.appendChild(item);
             }
+            horaPorDiaWrapFS.style.display = hayHoras ? 'block' : 'none';
         } else {
             horaPorDiaWrapFS.style.display = 'none';
             horaPorDiaWrapFS.innerHTML = '';
-            horaUnicaWrapFS.style.display = 'block';
-            if (singleInput) singleInput.setAttribute('required', 'required');
+            var conCampo = campoDiaTieneReservaFinSemana(1);
+            horaUnicaWrapFS.style.display = conCampo ? 'block' : 'none';
+            if (singleInput) {
+                if (conCampo) singleInput.setAttribute('required', 'required');
+                else singleInput.removeAttribute('required');
+            }
         }
     }
 
@@ -450,7 +483,7 @@ function initConfiguradorPaquete() {
             item.className = 'campos-dias-item';
             item.innerHTML = [
                 '<label for="campo-dia-' + i + '-sel">Día ' + i + '</label>',
-                '<select id="campo-dia-' + i + '-sel" name="campo-dia-' + i + '" required>',
+                '<select id="campo-dia-' + i + '-sel" name="campo-dia-' + i + '">',
                 '<option value="">Sin reserva</option>',
                 '<option value="lerma"' + (saved === 'lerma' ? ' selected' : '') + '>Golf Lerma</option>',
                 '<option value="saldana"' + (saved === 'saldana' ? ' selected' : '') + '>Saldaña Golf</option>',
@@ -619,18 +652,22 @@ function initConfiguradorPaquete() {
                 ? ('<div class="comida-slot-elegido"><span class="comida-slot-elegido-text"><strong>Comida:</strong> ' + escapeHtmlComida(nomCom) + '</span> ' +
                     '<button type="button" class="btn-comida-cambiar comida-abrir-picker" data-dia="' + i + '" data-tipo="comida">Cambiar</button> ' +
                     '<button type="button" class="btn-comida-quitar comida-chip-quitar" data-dia="' + i + '" data-tipo="comida">Quitar</button></div>')
-                : ('<button type="button" class="btn-comida-anadir comida-abrir-picker" data-dia="' + i + '" data-tipo="comida">+ Añadir comida (almuerzo)</button>');
+                : ('<button type="button" class="btn-comida-anadir comida-abrir-picker" data-dia="' + i + '" data-tipo="comida" title="Añadir comida (almuerzo)">+ Comida</button>');
             var rowCen = hasCen
                 ? ('<div class="comida-slot-elegido"><span class="comida-slot-elegido-text"><strong>Cena:</strong> ' + escapeHtmlComida(nomCen) + '</span> ' +
                     '<button type="button" class="btn-comida-cambiar comida-abrir-picker" data-dia="' + i + '" data-tipo="cena">Cambiar</button> ' +
                     '<button type="button" class="btn-comida-quitar comida-chip-quitar" data-dia="' + i + '" data-tipo="cena">Quitar</button></div>')
-                : ('<button type="button" class="btn-comida-anadir comida-abrir-picker" data-dia="' + i + '" data-tipo="cena">+ Añadir cena</button>');
+                : ('<button type="button" class="btn-comida-anadir comida-abrir-picker" data-dia="' + i + '" data-tipo="cena" title="Añadir cena">+ Cena</button>');
             var block = document.createElement('div');
-            block.className = 'comida-dia-block';
+            block.className = 'comida-dia-block comida-dia-block-compact';
             block.innerHTML =
-                '<div class="comida-dia-titulo">' + titulo + '</div>' +
-                '<div class="comida-anadir-row">' + rowCom + '</div>' +
-                '<div class="comida-anadir-row">' + rowCen + '</div>' +
+                '<div class="comida-dia-compact-row">' +
+                '<span class="comida-dia-titulo">' + titulo + '</span>' +
+                '<div class="comida-dia-botonera">' +
+                '<span class="comida-anadir-inline">' + rowCom + '</span>' +
+                '<span class="comida-anadir-sep" aria-hidden="true">·</span>' +
+                '<span class="comida-anadir-inline">' + rowCen + '</span>' +
+                '</div></div>' +
                 '<input type="hidden" name="comida_dia_' + i + '" value="' + escapeHtmlComida(p.comida) + '">' +
                 '<input type="hidden" name="cena_dia_' + i + '" value="' + escapeHtmlComida(p.cena) + '">' +
                 '<input type="hidden" name="comida_rest_id_' + i + '" value="' + escapeHtmlComida(p.comRest) + '">' +
@@ -644,6 +681,17 @@ function initConfiguradorPaquete() {
     var activeComidaPickerSlot = null;
     var embedPollTimer = null;
     var lastEmbedAutoCommitAt = 0;
+    var refreshPickerIframeTimer = null;
+
+    function schedulePickerIframeRefreshFromForm() {
+        var panel = document.getElementById('comida-restaurante-picker-panel');
+        if (!panel || panel.hidden || !comidaPickerControl || !comidaPickerControl.refreshCurrentEmbed) return;
+        clearTimeout(refreshPickerIframeTimer);
+        refreshPickerIframeTimer = setTimeout(function () {
+            refreshPickerIframeTimer = null;
+            if (comidaPickerControl && comidaPickerControl.refreshCurrentEmbed) comidaPickerControl.refreshCurrentEmbed();
+        }, 400);
+    }
 
     function tryReadIframeInnerText(ifr) {
         if (!ifr) return null;
@@ -784,6 +832,7 @@ function initConfiguradorPaquete() {
         var idx = dia - 1;
         var labelDia = (idx >= 0 && fechasArr[idx]) ? formatearEtiquetaDiaComida(fechasArr[idx]) : ('Día ' + diaStr);
         activeComidaPickerSlot = { dia: String(dia), tipo: tipo };
+        window.__paqueteEmbedSlot = activeComidaPickerSlot;
         var panel = document.getElementById('comida-restaurante-picker-panel');
         var ctx = document.getElementById('comida-picker-context');
         var gs = document.getElementById('comida-picker-guardar-slot');
@@ -809,6 +858,11 @@ function initConfiguradorPaquete() {
             panel.style.display = 'none';
         }
         activeComidaPickerSlot = null;
+        window.__paqueteEmbedSlot = null;
+        if (refreshPickerIframeTimer) {
+            clearTimeout(refreshPickerIframeTimer);
+            refreshPickerIframeTimer = null;
+        }
     }
 
     function commitComidaPickerChoice() {
@@ -863,6 +917,7 @@ function initConfiguradorPaquete() {
                 actualizarBloqueComida(count, fechas || []);
                 generarHoraSalidaPorDiaFinSemana(count);
                 if (typeof actualizarResumen === 'function') actualizarResumen();
+                schedulePickerIframeRefreshFromForm();
             }
         });
     }
@@ -879,12 +934,24 @@ function initConfiguradorPaquete() {
                 if (i >= 1) refillHotelSelect(i, t.value || '');
                 return;
             }
-            if (t && t.id === 'tamanio-grupo') recalcNumeroGrupos();
+            if (t && t.name && /^campo-dia-\d+$/.test(t.name)) {
+                var nFechas = (new FormData(form).getAll('fechas[]') || []).length;
+                generarHoraSalidaPorDiaFinSemana(nFechas);
+                actualizarResumen();
+                return;
+            }
+            if (t && t.id === 'tamanio-grupo') {
+                recalcNumeroGrupos();
+                schedulePickerIframeRefreshFromForm();
+            }
             actualizarResumen();
         });
         form.addEventListener('input', function (e) {
             var t = e.target;
-            if (t && t.id === 'tamanio-grupo') recalcNumeroGrupos();
+            if (t && t.id === 'tamanio-grupo') {
+                recalcNumeroGrupos();
+                schedulePickerIframeRefreshFromForm();
+            }
             if (t && t.matches && t.matches('#tamanio-grupo, #hora-salida, #handicap-grupo, .ancillary-counter, input[name^="hora_salida"]')) actualizarResumen();
         });
         form.addEventListener('click', function (e) {
