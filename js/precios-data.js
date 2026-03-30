@@ -43,7 +43,8 @@ window.PRECIOS_DATA = {
 
   /* Parámetros por paquete */
   paquetes: {
-    finSemana: { descuentoPorcentaje: 15, greenFeesIncluidos: 2 },
+    /** lali: prepago en el pack (€/persona y por reserva comida/cena en Lali); el resto de mesas se pagan en el restaurante */
+    finSemana: { descuentoPorcentaje: 15, greenFeesIncluidos: 2, laliComidaPrecioPorPersona: 35 },
     cochinillo: { precioBasePorPersona: 55 },
     pausaDrive: { precioCerrado: 50, recargaZunder: 15 },
     golfVino: { descuentoPorcentaje: 10 },

@@ -158,17 +158,12 @@
         ifr.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
         wrap.appendChild(ifr);
 
-        var nota = document.createElement('p');
-        nota.className = 'restaurante-paquete-iframe-nota';
-        nota.textContent = '¿Pantalla en blanco? Algunos proveedores bloquean el visor embebido.';
-
         panel.appendChild(meta);
         panel.appendChild(fichaInfo);
         panel.appendChild(pDesc);
         panel.appendChild(inhouseEl);
         panel.appendChild(telP);
         panel.appendChild(wrap);
-        panel.appendChild(nota);
 
         container.appendChild(catRow);
         container.appendChild(tablist);
@@ -197,7 +192,6 @@
                 telP.style.display = 'none';
                 telP.innerHTML = '';
                 wrap.style.display = 'none';
-                nota.style.display = 'none';
                 inhouseEl.style.display = 'block';
                 inhouseEl.removeAttribute('hidden');
                 ifr.removeAttribute('src');
@@ -232,7 +226,6 @@
                 inhouseEl.setAttribute('hidden', '');
                 inhouseEl.innerHTML = '';
                 wrap.style.display = '';
-                nota.style.display = '';
 
                 if (r.telefono) {
                     var digits = String(r.telefono).replace(/\D/g, '');
@@ -289,7 +282,6 @@
                 inhouseEl.setAttribute('hidden', '');
                 inhouseEl.innerHTML = '';
                 wrap.style.display = '';
-                nota.style.display = '';
                 ifr.removeAttribute('src');
                 return;
             }

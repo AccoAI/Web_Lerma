@@ -2899,17 +2899,6 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     }
 }
 
-.restaurante-paquete-iframe-nota {
-    font-size: 0.8rem;
-    color: var(--color-text-light, #555);
-    margin: 0.65rem 0 0;
-    font-style: italic;
-    text-align: center;
-    max-width: 420px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
 /* Reserva in-house (teléfono + datos del pack, sin iframe) */
 .restaurante-paquete-inhouse {
     margin: 0 0 1rem;
@@ -8055,6 +8044,39 @@ body.page-torneo .torneo-detalle-section {
         min-width: 0;
     }
 
+    /* Visor embebido (TheFork / CoverManager): casi ancho completo en móvil */
+    .paquete-detalle .comida-restaurante-picker-panel {
+        width: calc(100% + 2.5rem + 2.5rem);
+        margin-left: -2.5rem;
+        margin-right: -2.5rem;
+        box-sizing: border-box;
+        padding: 0.85rem 0.45rem 1.1rem;
+    }
+
+    .paquete-detalle .comida-picker-panel-head {
+        padding-left: 0.35rem;
+        padding-right: 0.35rem;
+    }
+
+    .paquete-detalle .comida-picker-commit-wrap {
+        padding-left: 0.35rem;
+        padding-right: 0.35rem;
+    }
+
+    .paquete-detalle .restaurantes-paquete-panel {
+        padding-left: 0.35rem;
+        padding-right: 0.35rem;
+    }
+
+    .paquete-detalle .restaurante-paquete-iframe-wrap {
+        max-width: none;
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
     .configurador-seccion {
         min-width: 0;
     }
@@ -8379,25 +8401,32 @@ body.page-torneo .torneo-detalle-section {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
+    flex-wrap: nowrap;
+    gap: 0.5rem 0.75rem;
     min-width: 0;
-    padding: 0.5rem 0;
-    line-height: 1.45;
+    padding: 0.35rem 0;
+    line-height: 1.25;
 }
 
 .ancillaries-with-counter .ancillary-item label {
     font-weight: 400;
     cursor: default;
-    flex: 1;
+    flex: 1 1 auto;
     min-width: 0;
-    line-height: 1.45;
+    line-height: 1.25;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 0.25rem;
 }
 
 .ancillaries-with-counter .ancillary-item label .ancillary-precio {
     font-weight: 600;
     color: var(--color-primary);
-    margin-left: 0.35rem;
+    margin-left: 0;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .ancillary-counter-wrap {
@@ -8523,6 +8552,14 @@ body.page-torneo .torneo-detalle-section {
 
 .ancillary-dia-grid.ancillaries-with-counter {
     gap: 0.65rem 1rem;
+}
+
+/* Una fila por servicio: si no cabe en pantallas muy estrechas, scroll horizontal suave */
+.servicios-adicionales-section .ancillary-dia-grid.ancillaries-with-counter,
+.servicios-adicionales-section .ancillaries-grid.ancillaries-with-counter {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.15rem;
 }
 
 @media (min-width: 640px) {

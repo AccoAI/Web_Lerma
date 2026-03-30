@@ -1088,7 +1088,7 @@ function initConfiguradorPaquete() {
             resumenHTML += '<p><strong>Estancia:</strong> ' + noches + ' ' + (noches === '1' ? 'noche' : 'noches') + '</p>';
             resumenHTML += '<p><strong>Green fees:</strong> ' + salidasConCampo + ' ' + (salidasConCampo === 1 ? 'salida' : 'salidas') + '</p>';
             resumenHTML += '<p><strong>Alojamiento:</strong> ' + (necesitaHotel && hotelOk ? (noches + ' ' + (noches === '1' ? 'noche' : 'noches')) : '—') + '</p>';
-            resumenHTML += '<p><strong>Comidas y cenas:</strong> ' + (numServicios > 0 ? numServicios + ' ' + (numServicios === 1 ? 'servicio' : 'servicios') : '—') + '</p>';
+            resumenHTML += '<p><strong>Comidas y cenas:</strong> ' + (numServicios > 0 ? 'x' + numServicios : '—') + '</p>';
 
             var usuarios = form.querySelectorAll('.usuario-form');
             var nPart = usuarios.length || (formData.get('tamanio_grupo') || '').trim() || '1';
@@ -1170,19 +1170,19 @@ function initConfiguradorPaquete() {
                 }
             }
 
-            var totalComidaPorPersona = 0;
-            var numServicios = 0;
-            var precioComida = (precios.comida && precios.comida.lerma) != null ? precios.comida.lerma : 22;
-            var precioBurgos = (precios.comida && precios.comida.burgos) != null ? precios.comida.burgos : 25;
+            var precioLaliPp = (precios.paquetes && precios.paquetes.finSemana && precios.paquetes.finSemana.laliComidaPrecioPorPersona != null)
+                ? precios.paquetes.finSemana.laliComidaPrecioPorPersona
+                : 35;
+            var totalComidaPrepago = 0;
             for (var iv = 1; iv <= count; iv++) {
                 var cv = (formData.get('comida_dia_' + iv) || '').trim();
                 var cev = (formData.get('cena_dia_' + iv) || '').trim();
-                if (cv === 'lerma') { totalComidaPorPersona += precioComida; numServicios++; }
-                else if (cv === 'burgos') { totalComidaPorPersona += precioBurgos; numServicios++; }
-                if (cev === 'lerma') { totalComidaPorPersona += precioComida; numServicios++; }
-                else if (cev === 'burgos') { totalComidaPorPersona += precioBurgos; numServicios++; }
+                var cr = (formData.get('comida_rest_id_' + iv) || '').trim();
+                var cer = (formData.get('cena_rest_id_' + iv) || '').trim();
+                if (cv && cr === 'lali') totalComidaPrepago += precioLaliPp * numParticipants;
+                if (cev && cer === 'lali') totalComidaPrepago += precioLaliPp * numParticipants;
             }
-            var comidaVal = Math.round(totalComidaPorPersona * numParticipants * 100) / 100;
+            var comidaVal = Math.round(totalComidaPrepago * 100) / 100;
 
             var anc = precios.ancillaries || {};
             var ancVal = 0;
@@ -1207,7 +1207,7 @@ function initConfiguradorPaquete() {
             resumenHTML += '<table class="resumen-subtotal-tabla">';
             resumenHTML += '<tr><td>Green fees</td><td>' + gf + ' €</td></tr>';
             resumenHTML += '<tr><td>Alojamiento</td><td>' + (necesitaHotel && hotelOk ? (aloj + ' €') : '—') + '</td></tr>';
-            resumenHTML += '<tr><td>Comidas y cenas</td><td>' + (comidaVal > 0 ? comidaVal + ' €' : '—') + '</td></tr>';
+            resumenHTML += '<tr><td>Comidas / cenas — prepago Lali club</td><td>' + (comidaVal > 0 ? comidaVal + ' €' : '—') + '</td></tr>';
             resumenHTML += '<tr><td>Servicios adicionales</td><td>' + (ancVal > 0 ? ancVal + ' €' : '—') + '</td></tr>';
             resumenHTML += '<tr class="resumen-descuento"><td>Descuento pack (-' + DESCUENTO_PACK_PORC + '%)</td><td>-' + desc + ' €</td></tr>';
             resumenHTML += '<tr class="resumen-total"><td>Total</td><td>' + subtotal + ' €</td></tr>';
@@ -1215,7 +1215,7 @@ function initConfiguradorPaquete() {
                 resumenHTML += '<tr class="resumen-por-persona"><td>Por persona</td><td>' + (Math.round((subtotal / numParticipants) * 100) / 100) + ' €</td></tr>';
             }
             resumenHTML += '</table>';
-            resumenHTML += '<p class="resumen-subtotal-nota">Descuento por pack aplicado.' + (clubId ? ' Tarifa correspondencia aplicada según día de la semana.' : '') + ' Forma de pago: ' + (formaPago === 'por_persona' ? 'por persona (enlaces individuales).' : 'único.') + '</p></div>';
+            resumenHTML += '<p class="resumen-subtotal-nota">Descuento por pack aplicado.' + (clubId ? ' Tarifa correspondencia aplicada según día de la semana.' : '') + ' Forma de pago: ' + (formaPago === 'por_persona' ? 'por persona (enlaces individuales).' : 'único.') + ' Restaurantes asociados: sin anticipo en este total; Lali (club): ' + precioLaliPp + ' €/pax por reserva indicada.</p></div>';
 
             resumenDiv.innerHTML = resumenHTML;
         } else {
