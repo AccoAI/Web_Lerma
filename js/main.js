@@ -425,7 +425,15 @@ function initConfiguradorPaquete() {
     };
 
     function campoDiaTieneReservaFinSemana(idx) {
-        var sel = form && form.querySelector('select[name="campo-dia-' + idx + '"]');
+        if (!form || idx < 1) return false;
+        var sel = null;
+        if (diasCamposContainerFinSemana) {
+            var items = diasCamposContainerFinSemana.querySelectorAll('.campos-dias-item');
+            var item = items[idx - 1];
+            if (item) sel = item.querySelector('select[name="campo-dia-' + idx + '"]') || item.querySelector('select');
+        }
+        if (!sel) sel = form.querySelector('#dias-campos-container-finsemana select[name="campo-dia-' + idx + '"]');
+        if (!sel) sel = form.querySelector('select[name="campo-dia-' + idx + '"]');
         return !!(sel && String(sel.value || '').trim() !== '');
     }
 
@@ -473,8 +481,11 @@ function initConfiguradorPaquete() {
     function generarCamposPorDiaFinSemana(numDias) {
         if (!diasCamposContainerFinSemana) return;
         var prev = {};
+        var oldItems = diasCamposContainerFinSemana.querySelectorAll('.campos-dias-item');
         for (var i = 1; i <= numDias; i++) {
-            var sel = form && form.querySelector('select[name="campo-dia-' + i + '"]');
+            var oldItem = oldItems[i - 1];
+            var sel = oldItem && (oldItem.querySelector('select[name="campo-dia-' + i + '"]') || oldItem.querySelector('select'));
+            if (!sel && form) sel = form.querySelector('#dias-campos-container-finsemana select[name="campo-dia-' + i + '"]');
             if (sel && sel.value) prev[i] = sel.value;
         }
         diasCamposContainerFinSemana.innerHTML = '';
@@ -698,6 +709,9 @@ function initConfiguradorPaquete() {
         }
         ancillaryPorDiaContainer.innerHTML = '';
         var any = false;
+        var tBug = (window.i18n && window.i18n.t) ? window.i18n.t('anc_buggies') : 'Buggies';
+        var tMano = (window.i18n && window.i18n.t) ? window.i18n.t('anc_carrito_mano') : 'Carrito de mano';
+        var tElec = (window.i18n && window.i18n.t) ? window.i18n.t('anc_carrito_electrico') : 'Carrito eléctrico';
         for (var i = 1; i <= count; i++) {
             if (!campoDiaTieneReservaFinSemana(i)) continue;
             any = true;
@@ -708,22 +722,28 @@ function initConfiguradorPaquete() {
             block.className = 'ancillary-dia-block';
             block.innerHTML =
                 '<div class="ancillary-dia-header">' + escapeHtmlComida(titulo) + '</div>' +
-                '<div class="ancillary-dia-grid ancillaries-with-counter">' +
-                '<div class="ancillary-item">' +
-                '<label for="ancillary-buggy-dia-' + i + '">🛺 Buggies <span class="ancillary-precio" data-ancillary="buggy"></span></label>' +
-                '<div class="ancillary-counter-wrap">' +
+                '<div class="ancillary-pack-dia-grid" role="group" aria-label="' + escapeHtmlComida(titulo) + '">' +
+                '<div class="ancillary-pack-cell">' +
+                '<label class="ancillary-pack-label" for="ancillary-buggy-dia-' + i + '">' +
+                '<span class="ancillary-pack-title">🛺 ' + escapeHtmlComida(tBug) + '</span>' +
+                '<span class="ancillary-precio" data-ancillary="buggy"></span></label>' +
+                '<div class="ancillary-counter-wrap ancillary-pack-counter">' +
                 '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>' +
                 '<input type="number" id="ancillary-buggy-dia-' + i + '" name="ancillary_buggy_dia_' + i + '" min="0" max="20" value="' + p.buggy + '" class="ancillary-counter" readonly>' +
                 '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar">+</button></div></div>' +
-                '<div class="ancillary-item">' +
-                '<label for="ancillary-carrito-mano-dia-' + i + '">🛒 <span data-i18n="anc_carrito_mano">Carrito de mano</span> <span class="ancillary-precio" data-ancillary="carritoMano"></span></label>' +
-                '<div class="ancillary-counter-wrap">' +
+                '<div class="ancillary-pack-cell">' +
+                '<label class="ancillary-pack-label" for="ancillary-carrito-mano-dia-' + i + '">' +
+                '<span class="ancillary-pack-title">🛒 ' + escapeHtmlComida(tMano) + '</span>' +
+                '<span class="ancillary-precio" data-ancillary="carritoMano"></span></label>' +
+                '<div class="ancillary-counter-wrap ancillary-pack-counter">' +
                 '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>' +
                 '<input type="number" id="ancillary-carrito-mano-dia-' + i + '" name="ancillary_carrito_mano_dia_' + i + '" min="0" max="20" value="' + p.mano + '" class="ancillary-counter" readonly>' +
                 '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar">+</button></div></div>' +
-                '<div class="ancillary-item">' +
-                '<label for="ancillary-carrito-elec-dia-' + i + '">⚡ <span data-i18n="anc_carrito_electrico">Carrito eléctrico</span> <span class="ancillary-precio" data-ancillary="carritoElectrico"></span></label>' +
-                '<div class="ancillary-counter-wrap">' +
+                '<div class="ancillary-pack-cell">' +
+                '<label class="ancillary-pack-label" for="ancillary-carrito-elec-dia-' + i + '">' +
+                '<span class="ancillary-pack-title">⚡ ' + escapeHtmlComida(tElec) + '</span>' +
+                '<span class="ancillary-precio" data-ancillary="carritoElectrico"></span></label>' +
+                '<div class="ancillary-counter-wrap ancillary-pack-counter">' +
                 '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>' +
                 '<input type="number" id="ancillary-carrito-elec-dia-' + i + '" name="ancillary_carrito_electrico_dia_' + i + '" min="0" max="20" value="' + p.elec + '" class="ancillary-counter" readonly>' +
                 '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar">+</button></div></div>' +
@@ -1042,7 +1062,14 @@ function initConfiguradorPaquete() {
             }
         });
         window.actualizarResumen = actualizarResumen;
-        document.addEventListener('i18n:changed', function () { if (typeof actualizarResumen === 'function') actualizarResumen(); });
+        document.addEventListener('i18n:changed', function () {
+            if (typeof actualizarResumen === 'function') actualizarResumen();
+            if (form && ancillaryPorDiaContainer) {
+                var fdi = new FormData(form);
+                var ni = (fdi.getAll('fechas[]') || []).length;
+                if (ni >= 1) actualizarBloqueAncillaryPorDia(ni, fdi.getAll('fechas[]') || []);
+            }
+        });
         recalcNumeroGrupos();
         if (!window.__golfLermaPaqueteMsgBound) {
             window.__golfLermaPaqueteMsgBound = true;
@@ -1223,7 +1250,7 @@ function initConfiguradorPaquete() {
                 resumenHTML += '<tr class="resumen-por-persona"><td>Por persona</td><td>' + (Math.round((subtotal / numParticipants) * 100) / 100) + ' €</td></tr>';
             }
             resumenHTML += '</table>';
-            resumenHTML += '<p class="resumen-subtotal-nota">Descuento por pack aplicado.' + (clubId ? ' Tarifa correspondencia aplicada según día de la semana.' : '') + ' Forma de pago: ' + (formaPago === 'por_persona' ? 'por persona (enlaces individuales).' : 'único.') + ' Restaurantes asociados: sin anticipo en este total; Lali (club): ' + precioLaliPp + ' €/pax por reserva indicada.</p></div>';
+            resumenHTML += '<p class="resumen-subtotal-nota">Descuento por pack aplicado.' + (clubId ? ' Tarifa correspondencia aplicada según día de la semana.' : '') + ' Forma de pago: ' + (formaPago === 'por_persona' ? 'por persona (enlaces individuales).' : 'único.') + '</p></div>';
 
             resumenDiv.innerHTML = resumenHTML;
         } else {

@@ -8554,68 +8554,69 @@ body.page-torneo .torneo-detalle-section {
     gap: 0.65rem 1rem;
 }
 
-/* Fin de semana: tres servicios en una franja horizontal; texto encima del stepper para que no quede tapado */
-.ancillary-dia-block .ancillary-dia-grid.ancillaries-with-counter {
+/* Paquete fin de semana: tres columnas; layout propio (sin .ancillary-item) para que título y precio no queden tapados por los botones */
+.ancillary-pack-dia-grid {
     display: flex;
+    flex-direction: row;
     flex-wrap: nowrap;
-    align-items: stretch;
-    gap: 0.35rem 0.45rem;
+    align-items: flex-end;
+    gap: 0.45rem 0.55rem;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 0.2rem;
-    grid-template-columns: unset;
+    padding-bottom: 0.15rem;
 }
 
-.ancillary-dia-block .ancillaries-with-counter .ancillary-item {
+.ancillary-pack-cell {
+    flex: 1 1 0;
+    min-width: 6.5rem;
+    max-width: 100%;
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    gap: 0.2rem;
-    flex: 1 1 0;
-    min-width: 6.75rem;
-    max-width: 100%;
-    padding: 0.15rem 0;
-    justify-content: flex-start;
+    gap: 0.3rem;
 }
 
-.ancillary-dia-block .ancillaries-with-counter .ancillary-item label {
-    flex: none;
-    white-space: normal;
-    font-size: 0.75rem;
-    line-height: 1.2;
-    display: block;
-    padding-right: 0;
+.ancillary-pack-label {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.15rem 0.35rem;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    font-weight: 500;
+    color: var(--color-text);
+    cursor: default;
+    margin: 0;
 }
 
-.ancillary-dia-block .ancillaries-with-counter .ancillary-item label .ancillary-precio {
-    display: inline;
-    margin-left: 0.15rem;
+.ancillary-pack-label .ancillary-precio {
+    font-weight: 600;
+    color: var(--color-primary);
+    white-space: nowrap;
 }
 
-.ancillary-dia-block .ancillary-counter-wrap {
-    flex-shrink: 0;
+.ancillary-pack-cell .ancillary-counter-wrap {
+    align-self: flex-start;
     min-width: 0;
-    width: 100%;
-    max-width: 6.25rem;
-    align-self: flex-end;
+    flex-shrink: 0;
 }
 
-.ancillary-dia-block .ancillary-btn {
-    width: 1.6rem;
-    min-width: 1.6rem;
-    height: 1.6rem;
-    font-size: 1rem;
+.ancillary-pack-cell .ancillary-btn {
+    width: 1.65rem;
+    min-width: 1.65rem;
+    height: 1.65rem;
+    font-size: 1.05rem;
 }
 
-.ancillary-dia-block .ancillaries-with-counter .ancillary-counter {
-    width: 1.7rem;
-    min-width: 1.7rem;
-    padding: 0.2rem 0.1rem;
-    font-size: 0.8rem;
+.ancillary-pack-cell .ancillary-counter {
+    width: 1.75rem;
+    min-width: 1.75rem;
+    padding: 0.22rem 0.12rem;
+    font-size: 0.85rem;
 }
 
 /* Una fila por servicio: si no cabe en pantallas muy estrechas, scroll horizontal suave */
 .servicios-adicionales-section .ancillary-dia-grid.ancillaries-with-counter,
+.servicios-adicionales-section .ancillary-pack-dia-grid,
 .servicios-adicionales-section .ancillaries-grid.ancillaries-with-counter {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
