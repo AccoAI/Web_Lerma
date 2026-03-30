@@ -406,6 +406,7 @@ function initConfiguradorPaquete() {
     var hotelesPorNocheContainer = document.getElementById('hoteles-por-noche-container');
     var comidaSinFechas = document.getElementById('comida-sin-fechas');
     var comidaPorDiaContainer = document.getElementById('comida-por-dia-container');
+    var ancillaryPorDiaContainer = document.getElementById('ancillary-por-dia-container');
     var horaPorDiaWrapFS = document.getElementById('hora-salida-por-dia-finsemana');
     var horaUnicaWrapFS = document.getElementById('hora-salida-unica-finsemana');
 
@@ -676,6 +677,60 @@ function initConfiguradorPaquete() {
         }
     }
 
+    function actualizarBloqueAncillaryPorDia(count, fechas) {
+        fechas = fechas || [];
+        if (!ancillaryPorDiaContainer) return;
+        if (count < 1) {
+            ancillaryPorDiaContainer.innerHTML = '';
+            ancillaryPorDiaContainer.style.display = 'none';
+            return;
+        }
+        var prev = {};
+        for (var pi = 1; pi <= count; pi++) {
+            var ib = form && form.querySelector('input[name="ancillary_buggy_dia_' + pi + '"]');
+            var ic = form && form.querySelector('input[name="ancillary_carrito_mano_dia_' + pi + '"]');
+            var ie = form && form.querySelector('input[name="ancillary_carrito_electrico_dia_' + pi + '"]');
+            prev[pi] = {
+                buggy: ib ? Math.max(0, parseInt(ib.value || '0', 10)) : 0,
+                mano: ic ? Math.max(0, parseInt(ic.value || '0', 10)) : 0,
+                elec: ie ? Math.max(0, parseInt(ie.value || '0', 10)) : 0
+            };
+        }
+        ancillaryPorDiaContainer.style.display = 'block';
+        ancillaryPorDiaContainer.innerHTML = '';
+        for (var i = 1; i <= count; i++) {
+            var iso = fechas[i - 1];
+            var titulo = formatearEtiquetaDiaComida(iso) || ('Día ' + i);
+            var p = prev[i] || { buggy: 0, mano: 0, elec: 0 };
+            var block = document.createElement('div');
+            block.className = 'ancillary-dia-block';
+            block.innerHTML =
+                '<div class="ancillary-dia-header">' + escapeHtmlComida(titulo) + '</div>' +
+                '<div class="ancillary-dia-grid ancillaries-with-counter">' +
+                '<div class="ancillary-item">' +
+                '<label for="ancillary-buggy-dia-' + i + '">🛺 Buggies <span class="ancillary-precio" data-ancillary="buggy"></span></label>' +
+                '<div class="ancillary-counter-wrap">' +
+                '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>' +
+                '<input type="number" id="ancillary-buggy-dia-' + i + '" name="ancillary_buggy_dia_' + i + '" min="0" max="20" value="' + p.buggy + '" class="ancillary-counter" readonly>' +
+                '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar">+</button></div></div>' +
+                '<div class="ancillary-item">' +
+                '<label for="ancillary-carrito-mano-dia-' + i + '">🛒 <span data-i18n="anc_carrito_mano">Carrito de mano</span> <span class="ancillary-precio" data-ancillary="carritoMano"></span></label>' +
+                '<div class="ancillary-counter-wrap">' +
+                '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>' +
+                '<input type="number" id="ancillary-carrito-mano-dia-' + i + '" name="ancillary_carrito_mano_dia_' + i + '" min="0" max="20" value="' + p.mano + '" class="ancillary-counter" readonly>' +
+                '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar">+</button></div></div>' +
+                '<div class="ancillary-item">' +
+                '<label for="ancillary-carrito-elec-dia-' + i + '">⚡ <span data-i18n="anc_carrito_electrico">Carrito eléctrico</span> <span class="ancillary-precio" data-ancillary="carritoElectrico"></span></label>' +
+                '<div class="ancillary-counter-wrap">' +
+                '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>' +
+                '<input type="number" id="ancillary-carrito-elec-dia-' + i + '" name="ancillary_carrito_electrico_dia_' + i + '" min="0" max="20" value="' + p.elec + '" class="ancillary-counter" readonly>' +
+                '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar">+</button></div></div>' +
+                '</div>';
+            ancillaryPorDiaContainer.appendChild(block);
+        }
+        if (typeof fillAncillaryPrices === 'function') fillAncillaryPrices();
+    }
+
     var comidaPickerControl = null;
     var comidaPickerListenersBound = false;
     var activeComidaPickerSlot = null;
@@ -915,6 +970,7 @@ function initConfiguradorPaquete() {
                     }
                 }
                 actualizarBloqueComida(count, fechas || []);
+                actualizarBloqueAncillaryPorDia(count, fechas || []);
                 generarHoraSalidaPorDiaFinSemana(count);
                 if (typeof actualizarResumen === 'function') actualizarResumen();
                 schedulePickerIframeRefreshFromForm();
@@ -1039,9 +1095,14 @@ function initConfiguradorPaquete() {
             resumenHTML += '<p><strong>Participantes:</strong> ' + nPart + '</p>';
             var grupos = getCorrespondenciaGrupos(form);
             if (grupos.length > 0) resumenHTML += '<p><strong>Correspondencias:</strong> Sí</p>';
-            var qB = parseInt(formData.get('ancillary_buggy') || 0, 10);
-            var qC = parseInt(formData.get('ancillary_carrito_mano') || 0, 10);
-            var qE = parseInt(formData.get('ancillary_carrito_electrico') || 0, 10);
+            var qB = 0;
+            var qC = 0;
+            var qE = 0;
+            for (var ian = 1; ian <= count; ian++) {
+                qB += Math.max(0, parseInt(formData.get('ancillary_buggy_dia_' + ian) || '0', 10));
+                qC += Math.max(0, parseInt(formData.get('ancillary_carrito_mano_dia_' + ian) || '0', 10));
+                qE += Math.max(0, parseInt(formData.get('ancillary_carrito_electrico_dia_' + ian) || '0', 10));
+            }
             var tieneAnc = (qB + qC + qE) > 0;
             resumenHTML += '<p><strong>Servicios adicionales:</strong> ' + (tieneAnc ? 'Sí' : '—') + '</p>';
             resumenHTML += '</div>';
@@ -1125,9 +1186,14 @@ function initConfiguradorPaquete() {
 
             var anc = precios.ancillaries || {};
             var ancVal = 0;
-            var qBuggy = Math.max(0, parseInt(formData.get('ancillary_buggy') || '0', 10));
-            var qCarritoMano = Math.max(0, parseInt(formData.get('ancillary_carrito_mano') || '0', 10));
-            var qCarritoElec = Math.max(0, parseInt(formData.get('ancillary_carrito_electrico') || '0', 10));
+            var qBuggy = 0;
+            var qCarritoMano = 0;
+            var qCarritoElec = 0;
+            for (var ia2 = 1; ia2 <= count; ia2++) {
+                qBuggy += Math.max(0, parseInt(formData.get('ancillary_buggy_dia_' + ia2) || '0', 10));
+                qCarritoMano += Math.max(0, parseInt(formData.get('ancillary_carrito_mano_dia_' + ia2) || '0', 10));
+                qCarritoElec += Math.max(0, parseInt(formData.get('ancillary_carrito_electrico_dia_' + ia2) || '0', 10));
+            }
             ancVal += (anc.buggy || 15) * qBuggy;
             ancVal += (anc.carritoMano || 3) * qCarritoMano;
             ancVal += (anc.carritoElectrico || 5) * qCarritoElec;

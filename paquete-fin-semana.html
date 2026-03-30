@@ -200,35 +200,11 @@
                         </div>
                     </div>
 
-                    <!-- Servicios Adicionales -->
+                    <!-- Servicios Adicionales (por día de salida; se genera con el calendario) -->
                     <div class="configurador-seccion servicios-adicionales-section">
                         <h3 class="configurador-titulo" data-i18n="servicios_adicionales">Servicios adicionales</h3>
-                        <div class="ancillaries-grid ancillaries-with-counter">
-                            <div class="ancillary-item">
-                                <label for="ancillary_buggy">🛺 Buggies <span class="ancillary-precio" data-ancillary="buggy"></span></label>
-                                <div class="ancillary-counter-wrap">
-                                    <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>
-                                    <input type="number" id="ancillary_buggy" name="ancillary_buggy" min="0" max="20" value="0" class="ancillary-counter" readonly>
-                                    <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar">+</button>
-                                </div>
-                            </div>
-                            <div class="ancillary-item">
-                                <label for="ancillary_carrito_mano">🛒 <span data-i18n="anc_carrito_mano">Carrito de mano</span> <span class="ancillary-precio" data-ancillary="carritoMano"></span></label>
-                                <div class="ancillary-counter-wrap">
-                                    <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>
-                                    <input type="number" id="ancillary_carrito_mano" name="ancillary_carrito_mano" min="0" max="20" value="0" class="ancillary-counter" readonly>
-                                    <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar">+</button>
-                                </div>
-                            </div>
-                            <div class="ancillary-item">
-                                <label for="ancillary_carrito_electrico">⚡ <span data-i18n="anc_carrito_electrico">Carrito eléctrico</span> <span class="ancillary-precio" data-ancillary="carritoElectrico"></span></label>
-                                <div class="ancillary-counter-wrap">
-                                    <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>
-                                    <input type="number" id="ancillary_carrito_electrico" name="ancillary_carrito_electrico" min="0" max="20" value="0" class="ancillary-counter" readonly>
-                                    <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar">+</button>
-                                </div>
-                            </div>
-                        </div>
+                        <p class="configurador-hint servicios-adicionales-intro">Indica buggies y carritos <strong>por cada día de green fee</strong> (cada fecha del calendario). Así queda claro qué servicios corresponden a qué jornada.</p>
+                        <div id="ancillary-por-dia-container" class="ancillary-por-dia-container" style="display:none;" aria-live="polite"></div>
                     </div>
 
                     <!-- Forma de pago -->
