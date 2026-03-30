@@ -51,7 +51,7 @@
 
     /**
      * Sincroniza iframe con el formulario del paquete (fecha del día elegido + tamaño del grupo).
-     * CoverManager: ?/& date=YYYY-MM-DD & people=N (según indiquen; si no aplican, el widget los ignora).
+     * CoverManager (motor module_restaurant): el servidor solo rellena day_pre/people_pre con day=YYYY-MM-DD y people=N (no usa ?date=).
      * TheFork (widget/widgets): date + partySize
      */
     function applyPaqueteEmbedSyncToUrl(urlString, ctx) {
@@ -61,8 +61,9 @@
             var u = new URL(urlString);
             var h = (u.hostname || '').toLowerCase().replace(/^www\./, '');
             if (h.indexOf('covermanager.') >= 0) {
-                u.searchParams.set('date', ctx.dateISO);
+                u.searchParams.set('day', ctx.dateISO);
                 u.searchParams.set('people', String(ctx.partySize));
+                u.searchParams.delete('date');
                 return u.toString();
             }
             if (h.indexOf('thefork.') >= 0) {

@@ -1016,6 +1016,10 @@ function initConfiguradorPaquete() {
         var nNoches = parseInt(noches || '0', 10);
         if (nNoches >= 1) {
             var fechas = formData.getAll('fechas[]');
+            var salidasConCampo = 0;
+            for (var isc = 1; isc <= count; isc++) {
+                if ((formData.get('campo-dia-' + isc) || '').trim()) salidasConCampo++;
+            }
             var numServicios = 0;
             for (var ic = 1; ic <= count; ic++) {
                 var com = (formData.get('comida_dia_' + ic) || '').trim();
@@ -1026,7 +1030,7 @@ function initConfiguradorPaquete() {
 
             var resumenHTML = '<div class="resumen-items">';
             resumenHTML += '<p><strong>Estancia:</strong> ' + noches + ' ' + (noches === '1' ? 'noche' : 'noches') + '</p>';
-            resumenHTML += '<p><strong>Green fees:</strong> ' + count + ' ' + (count === 1 ? 'salida' : 'salidas') + '</p>';
+            resumenHTML += '<p><strong>Green fees:</strong> ' + salidasConCampo + ' ' + (salidasConCampo === 1 ? 'salida' : 'salidas') + '</p>';
             resumenHTML += '<p><strong>Alojamiento:</strong> ' + (necesitaHotel && hotelOk ? (noches + ' ' + (noches === '1' ? 'noche' : 'noches')) : '—') + '</p>';
             resumenHTML += '<p><strong>Comidas y cenas:</strong> ' + (numServicios > 0 ? numServicios + ' ' + (numServicios === 1 ? 'servicio' : 'servicios') : '—') + '</p>';
 
@@ -1064,10 +1068,11 @@ function initConfiguradorPaquete() {
             for (var idx = 0; idx < numGF; idx++) {
                 var iso = fechasGF[idx];
                 if (!iso) continue;
+                var campoDia = formData.get('campo-dia-' + (idx + 1));
+                if (!(campoDia && String(campoDia).trim())) continue;
                 var d = new Date(iso + 'T12:00:00');
                 var dow = d.getDay();
                 var esFinDeSemana = (dow === 0 || dow === 6);
-                var campoDia = formData.get('campo-dia-' + (idx + 1));
                 var p = null;
                 if (clubId && typeof getPrecioGreenFee === 'function') {
                     p = getPrecioGreenFee(clubId, (campoDia === 'saldana') ? 'saldana' : 'lerma');
