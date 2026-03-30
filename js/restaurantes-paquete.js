@@ -212,10 +212,39 @@
             selectTab(next);
         });
 
+        ifr.addEventListener('load', function () {
+            try {
+                container.dispatchEvent(new CustomEvent('restaurante-iframe-loaded', { bubbles: true, detail: { iframe: ifr } }));
+            } catch (err) { /* ignore */ }
+        });
+
         setCategoria('lerma');
+
+        function selectRestaurantById(id) {
+            var r = null;
+            for (var j = 0; j < RESTAURANTES.length; j++) {
+                if (RESTAURANTES[j].id === id) {
+                    r = RESTAURANTES[j];
+                    break;
+                }
+            }
+            if (!r) return false;
+            setCategoria(r.area);
+            for (var k = 0; k < visibleList.length; k++) {
+                if (visibleList[k].id === id) {
+                    selectTab(k);
+                    return true;
+                }
+            }
+            return false;
+        }
 
         return {
             setCategoria: setCategoria,
+            selectRestaurantById: selectRestaurantById,
+            getIframe: function () {
+                return ifr;
+            },
             getCurrentRestaurant: function () {
                 return visibleList[currentVisibleIndex] || null;
             },

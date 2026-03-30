@@ -642,6 +642,104 @@ function initConfiguradorPaquete() {
     var comidaPickerControl = null;
     var comidaPickerListenersBound = false;
     var activeComidaPickerSlot = null;
+    var embedPollTimer = null;
+    var lastEmbedAutoCommitAt = 0;
+
+    function tryReadIframeInnerText(ifr) {
+        if (!ifr) return null;
+        try {
+            var doc = ifr.contentDocument || (ifr.contentWindow && ifr.contentWindow.document);
+            if (!doc || !doc.body) return null;
+            return (doc.body.innerText || '') || null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function normalizeAcc(s) {
+        if (s == null) return '';
+        var t = String(s);
+        if (typeof t.normalize === 'function') {
+            t = t.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+        return t.toLowerCase();
+    }
+
+    /** Coincidir nombre de restaurante con texto de confirmación (CoverManager, etc.). */
+    function findRestaurantInConfirmationText(text) {
+        var data = window.RESTAURANTES_PAQUETE_DATA;
+        if (!data || !text) return null;
+        var flat = normalizeAcc(text);
+        var i;
+        for (i = 0; i < data.length; i++) {
+            if (flat.indexOf(normalizeAcc(data[i].nombre)) >= 0) return data[i];
+            if (flat.indexOf(normalizeAcc(data[i].id)) >= 0) return data[i];
+        }
+        var m = /Gracias por reservar en\s+([^\.\n\r]+)/i.exec(text);
+        if (m) {
+            var frag = normalizeAcc(m[1].trim());
+            for (i = 0; i < data.length; i++) {
+                var nom = normalizeAcc(data[i].nombre);
+                if (frag.indexOf(nom) >= 0 || nom.indexOf(frag) >= 0) return data[i];
+            }
+        }
+        return null;
+    }
+
+    function embedPayloadToString(data) {
+        if (data == null) return '';
+        if (typeof data === 'string') return data;
+        try {
+            return JSON.stringify(data);
+        } catch (e) {
+            return String(data);
+        }
+    }
+
+    function looksLikeReservationConfirmation(text) {
+        if (!text || typeof text !== 'string') return false;
+        return (/Gracias por reservar/i.test(text) ||
+            /reserva confirmada/i.test(text) ||
+            /email de confirmaci/i.test(text) ||
+            /recibir[aá] en breve un email/i.test(text));
+    }
+
+    function handleEmbedConfirmationText(rawText) {
+        if (!activeComidaPickerSlot || !comidaPickerControl || !form) return;
+        if (Date.now() - lastEmbedAutoCommitAt < 4500) return;
+        var text = String(rawText || '').slice(0, 16000);
+        if (!looksLikeReservationConfirmation(text)) return;
+        var r = findRestaurantInConfirmationText(text);
+        if (r && comidaPickerControl.selectRestaurantById) {
+            comidaPickerControl.selectRestaurantById(r.id);
+        }
+        if (commitComidaPickerChoice()) {
+            lastEmbedAutoCommitAt = Date.now();
+        }
+    }
+
+    function scheduleEmbedConfirmationPoll(ifr) {
+        if (!ifr || !activeComidaPickerSlot) return;
+        if (embedPollTimer) {
+            clearInterval(embedPollTimer);
+            embedPollTimer = null;
+        }
+        var tries = 0;
+        embedPollTimer = setInterval(function () {
+            tries++;
+            if (!activeComidaPickerSlot || tries > 90) {
+                if (embedPollTimer) clearInterval(embedPollTimer);
+                embedPollTimer = null;
+                return;
+            }
+            var t = tryReadIframeInnerText(ifr);
+            if (t && looksLikeReservationConfirmation(t)) {
+                if (embedPollTimer) clearInterval(embedPollTimer);
+                embedPollTimer = null;
+                handleEmbedConfirmationText(t);
+            }
+        }, 650);
+    }
 
     function ensureComidaPickerListeners() {
         if (comidaPickerListenersBound) return;
@@ -657,6 +755,24 @@ function initConfiguradorPaquete() {
         if (!root || comidaPickerControl || typeof window.mountRestaurantePaquetePicker !== 'function') return;
         comidaPickerControl = window.mountRestaurantePaquetePicker(root);
         ensureComidaPickerListeners();
+        if (!root.dataset.embedLoadListener) {
+            root.dataset.embedLoadListener = '1';
+            root.addEventListener('restaurante-iframe-loaded', function (ev) {
+                var ir = ev.detail && ev.detail.iframe;
+                if (ir) scheduleEmbedConfirmationPoll(ir);
+            });
+        }
+    }
+
+    function onPaqueteWindowMessage(e) {
+        if (!activeComidaPickerSlot || !comidaPickerControl) return;
+        var ifr = comidaPickerControl.getIframe && comidaPickerControl.getIframe();
+        if (!ifr || e.source !== ifr.contentWindow) return;
+        var str = embedPayloadToString(e.data);
+        if (!str || str.length > 20000) return;
+        if (looksLikeReservationConfirmation(str)) {
+            handleEmbedConfirmationText(str);
+        }
     }
 
     function openComidaPickerPanel(diaStr, tipo) {
@@ -683,6 +799,10 @@ function initConfiguradorPaquete() {
     }
 
     function closeComidaPickerPanel() {
+        if (embedPollTimer) {
+            clearInterval(embedPollTimer);
+            embedPollTimer = null;
+        }
         var panel = document.getElementById('comida-restaurante-picker-panel');
         if (panel) {
             panel.hidden = true;
@@ -692,9 +812,13 @@ function initConfiguradorPaquete() {
     }
 
     function commitComidaPickerChoice() {
-        if (!activeComidaPickerSlot || !comidaPickerControl || !form) return;
+        if (!activeComidaPickerSlot || !comidaPickerControl || !form) return false;
+        if (embedPollTimer) {
+            clearInterval(embedPollTimer);
+            embedPollTimer = null;
+        }
         var r = comidaPickerControl.getCurrentRestaurant();
-        if (!r) return;
+        if (!r) return false;
         var d = activeComidaPickerSlot.dia;
         var tipo = activeComidaPickerSlot.tipo;
         var pack = r.precioPack || (r.area === 'lerma' ? 'lerma' : 'burgos');
@@ -707,6 +831,7 @@ function initConfiguradorPaquete() {
         closeComidaPickerPanel();
         actualizarBloqueComida(fechasArr.length, fechasArr);
         if (typeof actualizarResumen === 'function') actualizarResumen();
+        return true;
     }
 
     if (calendarioContainer && form && typeof CalendarioDias !== 'undefined') {
@@ -790,6 +915,10 @@ function initConfiguradorPaquete() {
         window.actualizarResumen = actualizarResumen;
         document.addEventListener('i18n:changed', function () { if (typeof actualizarResumen === 'function') actualizarResumen(); });
         recalcNumeroGrupos();
+        if (!window.__golfLermaPaqueteMsgBound) {
+            window.__golfLermaPaqueteMsgBound = true;
+            window.addEventListener('message', onPaqueteWindowMessage);
+        }
     }
 
     function recalcNumeroGrupos() {
