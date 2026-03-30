@@ -696,9 +696,11 @@ function initConfiguradorPaquete() {
                 elec: ie ? Math.max(0, parseInt(ie.value || '0', 10)) : 0
             };
         }
-        ancillaryPorDiaContainer.style.display = 'block';
         ancillaryPorDiaContainer.innerHTML = '';
+        var any = false;
         for (var i = 1; i <= count; i++) {
+            if (!campoDiaTieneReservaFinSemana(i)) continue;
+            any = true;
             var iso = fechas[i - 1];
             var titulo = formatearEtiquetaDiaComida(iso) || ('Día ' + i);
             var p = prev[i] || { buggy: 0, mano: 0, elec: 0 };
@@ -728,6 +730,7 @@ function initConfiguradorPaquete() {
                 '</div>';
             ancillaryPorDiaContainer.appendChild(block);
         }
+        ancillaryPorDiaContainer.style.display = any ? 'block' : 'none';
         if (typeof fillAncillaryPrices === 'function') fillAncillaryPrices();
     }
 
@@ -991,8 +994,11 @@ function initConfiguradorPaquete() {
                 return;
             }
             if (t && t.name && /^campo-dia-\d+$/.test(t.name)) {
-                var nFechas = (new FormData(form).getAll('fechas[]') || []).length;
+                var fdCampo = new FormData(form);
+                var nFechas = (fdCampo.getAll('fechas[]') || []).length;
+                var fechasCampo = fdCampo.getAll('fechas[]') || [];
                 generarHoraSalidaPorDiaFinSemana(nFechas);
+                actualizarBloqueAncillaryPorDia(nFechas, fechasCampo);
                 actualizarResumen();
                 return;
             }
@@ -1099,6 +1105,7 @@ function initConfiguradorPaquete() {
             var qC = 0;
             var qE = 0;
             for (var ian = 1; ian <= count; ian++) {
+                if (!(formData.get('campo-dia-' + ian) || '').trim()) continue;
                 qB += Math.max(0, parseInt(formData.get('ancillary_buggy_dia_' + ian) || '0', 10));
                 qC += Math.max(0, parseInt(formData.get('ancillary_carrito_mano_dia_' + ian) || '0', 10));
                 qE += Math.max(0, parseInt(formData.get('ancillary_carrito_electrico_dia_' + ian) || '0', 10));
@@ -1190,6 +1197,7 @@ function initConfiguradorPaquete() {
             var qCarritoMano = 0;
             var qCarritoElec = 0;
             for (var ia2 = 1; ia2 <= count; ia2++) {
+                if (!(formData.get('campo-dia-' + ia2) || '').trim()) continue;
                 qBuggy += Math.max(0, parseInt(formData.get('ancillary_buggy_dia_' + ia2) || '0', 10));
                 qCarritoMano += Math.max(0, parseInt(formData.get('ancillary_carrito_mano_dia_' + ia2) || '0', 10));
                 qCarritoElec += Math.max(0, parseInt(formData.get('ancillary_carrito_electrico_dia_' + ia2) || '0', 10));
@@ -1207,7 +1215,7 @@ function initConfiguradorPaquete() {
             resumenHTML += '<table class="resumen-subtotal-tabla">';
             resumenHTML += '<tr><td>Green fees</td><td>' + gf + ' €</td></tr>';
             resumenHTML += '<tr><td>Alojamiento</td><td>' + (necesitaHotel && hotelOk ? (aloj + ' €') : '—') + '</td></tr>';
-            resumenHTML += '<tr><td>Comidas / cenas — prepago Lali club</td><td>' + (comidaVal > 0 ? comidaVal + ' €' : '—') + '</td></tr>';
+            resumenHTML += '<tr><td>Comidas / cenas</td><td>' + (comidaVal > 0 ? comidaVal + ' €' : '—') + '</td></tr>';
             resumenHTML += '<tr><td>Servicios adicionales</td><td>' + (ancVal > 0 ? ancVal + ' €' : '—') + '</td></tr>';
             resumenHTML += '<tr class="resumen-descuento"><td>Descuento pack (-' + DESCUENTO_PACK_PORC + '%)</td><td>-' + desc + ' €</td></tr>';
             resumenHTML += '<tr class="resumen-total"><td>Total</td><td>' + subtotal + ' €</td></tr>';

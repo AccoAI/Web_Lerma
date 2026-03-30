@@ -8554,6 +8554,66 @@ body.page-torneo .torneo-detalle-section {
     gap: 0.65rem 1rem;
 }
 
+/* Fin de semana: tres servicios en una franja horizontal; texto encima del stepper para que no quede tapado */
+.ancillary-dia-block .ancillary-dia-grid.ancillaries-with-counter {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 0.35rem 0.45rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.2rem;
+    grid-template-columns: unset;
+}
+
+.ancillary-dia-block .ancillaries-with-counter .ancillary-item {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.2rem;
+    flex: 1 1 0;
+    min-width: 6.75rem;
+    max-width: 100%;
+    padding: 0.15rem 0;
+    justify-content: flex-start;
+}
+
+.ancillary-dia-block .ancillaries-with-counter .ancillary-item label {
+    flex: none;
+    white-space: normal;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    display: block;
+    padding-right: 0;
+}
+
+.ancillary-dia-block .ancillaries-with-counter .ancillary-item label .ancillary-precio {
+    display: inline;
+    margin-left: 0.15rem;
+}
+
+.ancillary-dia-block .ancillary-counter-wrap {
+    flex-shrink: 0;
+    min-width: 0;
+    width: 100%;
+    max-width: 6.25rem;
+    align-self: flex-end;
+}
+
+.ancillary-dia-block .ancillary-btn {
+    width: 1.6rem;
+    min-width: 1.6rem;
+    height: 1.6rem;
+    font-size: 1rem;
+}
+
+.ancillary-dia-block .ancillaries-with-counter .ancillary-counter {
+    width: 1.7rem;
+    min-width: 1.7rem;
+    padding: 0.2rem 0.1rem;
+    font-size: 0.8rem;
+}
+
 /* Una fila por servicio: si no cabe en pantallas muy estrechas, scroll horizontal suave */
 .servicios-adicionales-section .ancillary-dia-grid.ancillaries-with-counter,
 .servicios-adicionales-section .ancillaries-grid.ancillaries-with-counter {
