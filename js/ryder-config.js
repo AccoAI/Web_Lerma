@@ -22,12 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const comidaPorDiaContainerRyder = document.getElementById('comida-por-dia-container-ryder');
 
     function getHotelLabelFromValueRyder(val) {
-        if (!val || val.indexOf('-') < 0) return val || 'Sin reserva';
-        var idx = val.indexOf('-');
-        var c = val.substring(0, idx);
-        var h = val.substring(idx + 1);
-        var lbl = (typeof HOTELES_LABELS !== 'undefined' && HOTELES_LABELS[c]) ? HOTELES_LABELS[c][h] : null;
-        return lbl ? lbl + ' (' + (c === 'lerma' ? 'Lerma' : 'Burgos') + ')' : val;
+        return (typeof window.etiquetaHotelSelect === 'function') ? window.etiquetaHotelSelect(val) : (val || 'Sin reserva');
     }
 
     function refillHotelSelectRyder(i, ciudad) {
@@ -170,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (configuradorHotelWrapRyder) {
                     if (count >= 2) {
                         actualizarBloqueHotelRyder();
+                        if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
                     } else {
                         configuradorHotelWrapRyder.style.display = 'none';
                         if (hotelPorNocheBlockRyder) hotelPorNocheBlockRyder.style.display = 'none';
@@ -338,19 +334,12 @@ document.addEventListener('DOMContentLoaded', () => {
             var gf = Math.round(totalGF * numParticipants * 100) / 100;
 
             var aloj = 0;
-            var opts = (typeof getHotelesOpts === 'function') ? getHotelesOpts() : {};
             if (sectionAlojamientoShown && nNoches >= 1) {
                 for (var inx = 1; inx <= nNoches; inx++) {
                     var hv = (formData.get('hotel-noche-' + inx) || '').trim();
-                    if (hv && hv.indexOf('-') >= 0) {
-                        var idx = hv.indexOf('-');
-                        var ciudad = hv.substring(0, idx);
-                        var hotelId = hv.substring(idx + 1);
-                        var arr = opts[ciudad] || [];
-                        for (var j = 0; j < arr.length; j++) {
-                            if (arr[j].v === hotelId && arr[j].p != null) { aloj += arr[j].p; break; }
-                        }
-                    }
+                    if (!hv) continue;
+                    var pa = (typeof window.precioNocheDesdeHotelSelect === 'function') ? window.precioNocheDesdeHotelSelect(hv) : null;
+                    if (pa != null) aloj += pa;
                 }
             }
 
@@ -390,8 +379,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             resumenHTML += '<div class="resumen-subtotal">';
             resumenHTML += '<table class="resumen-subtotal-tabla">';
-            resumenHTML += '<tr><td>Green fees (' + numDias + ' ' + (numDias === 1 ? 'día' : 'días') + ')</td><td>' + gf + ' €</td></tr>';
-            resumenHTML += '<tr><td>Alojamiento (' + nNoches + ' ' + (nNoches === 1 ? 'noche' : 'noches') + ')</td><td>' + (aloj > 0 ? aloj + ' €' : '—') + '</td></tr>';
+            if (sectionAlojamientoShown && nNoches >= 1 && hotelOk) {
+                var packRyder = Math.round((gf + aloj) * 100) / 100;
+                resumenHTML += '<tr><td>Pack golf + alojamiento</td><td>' + packRyder + ' €</td></tr>';
+            } else {
+                resumenHTML += '<tr><td>Green fees (' + numDias + ' ' + (numDias === 1 ? 'día' : 'días') + ')</td><td>' + gf + ' €</td></tr>';
+                if (sectionAlojamientoShown && nNoches >= 1) {
+                    resumenHTML += '<tr><td>Alojamiento (' + nNoches + ' ' + (nNoches === 1 ? 'noche' : 'noches') + ')</td><td>' + (aloj > 0 ? aloj + ' €' : '—') + '</td></tr>';
+                }
+            }
             resumenHTML += '<tr><td>Comidas y cenas</td><td>' + (comidaVal > 0 ? comidaVal + ' €' : '—') + '</td></tr>';
             resumenHTML += '<tr><td>Transporte desde Madrid</td><td>' + (transporteVal > 0 ? transporteVal + ' €' : '—') + '</td></tr>';
             resumenHTML += '<tr><td>Servicios adicionales</td><td>' + (ancVal > 0 ? ancVal + ' €' : '—') + '</td></tr>';
@@ -453,5 +449,13 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('¡Configuración de Ryder Cup enviada! Te contactaremos pronto con un presupuesto personalizado.');
         });
     }
+
+    window.actualizarResumenRyder = actualizarResumenRyder;
+
+    document.addEventListener('hotelbeds-dynamic-ready', function () {
+        if (configuradorHotelWrapRyder && configuradorHotelWrapRyder.style.display !== 'none') {
+            actualizarBloqueHotelRyder();
+        }
+    });
 });
 

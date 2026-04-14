@@ -1184,23 +1184,12 @@ function initConfiguradorPaquete() {
 
             var aloj = 0;
             if (necesitaHotel && hotelOk) {
-                var opts = getHotelesOpts();
-                var livePrices = window.LIVE_HOTEL_PRICES;
                 for (var inx = 1; inx <= nNoches; inx++) {
                     var hv = (formData.get('hotel-noche-' + inx) || '').trim();
-                    if (hv && hv.indexOf('-') >= 0) {
-                        var idx = hv.indexOf('-');
-                        var ciudad = hv.substring(0, idx);
-                        var hotelId = hv.substring(idx + 1);
-                        var price = (livePrices && livePrices[hotelId] != null) ? livePrices[hotelId] : null;
-                        if (price == null) {
-                            var arr = opts[ciudad] || [];
-                            for (var j = 0; j < arr.length; j++) {
-                                if (arr[j].v === hotelId) { price = arr[j].p != null ? arr[j].p : 75; break; }
-                            }
-                        }
-                        if (price != null) aloj += price;
-                    }
+                    if (!hv) continue;
+                    var price = (typeof window.precioNocheDesdeHotelSelect === 'function') ? window.precioNocheDesdeHotelSelect(hv) : null;
+                    if (price == null) price = 75;
+                    aloj += price;
                 }
             }
 
@@ -1240,8 +1229,15 @@ function initConfiguradorPaquete() {
 
             resumenHTML += '<div class="resumen-subtotal">';
             resumenHTML += '<table class="resumen-subtotal-tabla">';
-            resumenHTML += '<tr><td>Green fees</td><td>' + gf + ' €</td></tr>';
-            resumenHTML += '<tr><td>Alojamiento</td><td>' + (necesitaHotel && hotelOk ? (aloj + ' €') : '—') + '</td></tr>';
+            if (necesitaHotel && hotelOk) {
+                var packGolfAloj = Math.round((gf + aloj) * 100) / 100;
+                resumenHTML += '<tr><td>Pack golf + alojamiento</td><td>' + packGolfAloj + ' €</td></tr>';
+            } else {
+                resumenHTML += '<tr><td>Green fees</td><td>' + gf + ' €</td></tr>';
+                if (necesitaHotel) {
+                    resumenHTML += '<tr><td>Alojamiento</td><td>' + (hotelOk ? (aloj + ' €') : '—') + '</td></tr>';
+                }
+            }
             resumenHTML += '<tr><td>Comidas / cenas</td><td>' + (comidaVal > 0 ? comidaVal + ' €' : '—') + '</td></tr>';
             resumenHTML += '<tr><td>Servicios adicionales</td><td>' + (ancVal > 0 ? ancVal + ' €' : '—') + '</td></tr>';
             resumenHTML += '<tr class="resumen-descuento"><td>Descuento pack (-' + DESCUENTO_PACK_PORC + '%)</td><td>-' + desc + ' €</td></tr>';

@@ -195,6 +195,12 @@
                             <p class="hotel-noche-hint">Elige primero el <strong>lugar</strong> (Lerma o Burgos) y después el <strong>hotel</strong> de ese lugar.</p>
                             <div id="hoteles-por-noche-container-vino" class="campos-dias-row"></div>
                         </div>
+                        <div id="hotelbeds-precios-block-vino" class="hotelbeds-precios-wrap" aria-live="polite">
+                            <p class="hotelbeds-block hotelbeds-info">Selecciona las fechas en el calendario para ver precios en tiempo real (Hotelbeds).</p>
+                        </div>
+                        <div id="booking-com-widget-vino" class="booking-com-widget booking-com-widget-secondary" style="display: none;">
+                            <p class="booking-com-note">Si no ves precios arriba: <a id="booking-link-lerma-vino" href="https://www.booking.com/searchresults.html?ss=Lerma%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer">Lerma</a> · <a id="booking-link-burgos-vino" href="https://www.booking.com/searchresults.html?ss=Burgos%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer">Burgos</a></p>
+                        </div>
                     </div>
 
                     <!-- Servicios Adicionales -->
@@ -319,6 +325,7 @@
 
     <script src="js/i18n.js"></script>
     <script src="js/precios-data.js"></script>
+    <script src="js/hotelbeds-config.js"></script>
     <script src="js/correspondencias-data.js"></script>
     <script src="js/correspondencias.js"></script>
     <script src="js/stripe-pago.js"></script>
@@ -368,12 +375,7 @@
             }
 
             function getHotelLabelFromValue(val) {
-                if (!val || val.indexOf('-') < 0) return val || 'Sin reserva';
-                var idx = val.indexOf('-');
-                var c = val.substring(0, idx);
-                var h = val.substring(idx + 1);
-                var lbl = (typeof HOTELES_LABELS !== 'undefined' && HOTELES_LABELS[c]) ? HOTELES_LABELS[c][h] : null;
-                return lbl ? lbl + ' (' + (c === 'lerma' ? 'Lerma' : 'Burgos') + ')' : val;
+                return (typeof window.etiquetaHotelSelect === 'function') ? window.etiquetaHotelSelect(val) : (val || 'Sin reserva');
             }
 
             function generarCamposPorDiaVino(numDias) {
@@ -574,11 +576,13 @@
                 if (numGF === 0) totalGF = 50; // dummy: 50€ base
                 var gf = totalGF * numParticipants;
                 
-                // DUMMY: Alojamiento (solo noches con hotel seleccionado)
                 var aloj = 0;
                 if (necesitaHotel && nNoches >= 1) {
                     for (var inx = 1; inx <= nNoches; inx++) {
-                        if ((fd.get('hotel-noche-' + inx) || '').trim()) aloj += 75; // 75€/noche
+                        var hvv = (fd.get('hotel-noche-' + inx) || '').trim();
+                        if (!hvv) continue;
+                        var pa = (typeof window.precioNocheDesdeHotelSelect === 'function') ? window.precioNocheDesdeHotelSelect(hvv) : null;
+                        aloj += (pa != null ? pa : 75);
                     }
                 }
                 
@@ -592,9 +596,14 @@
                 
                 html += '<div class="resumen-subtotal">';
                 html += '<table class="resumen-subtotal-tabla">';
-                html += '<tr><td>Green fees (' + (numGF > 0 ? numGF : 1) + (numParticipants > 1 ? ' × ' + numParticipants + ' pers.' : '') + ')</td><td>' + gf + ' €</td></tr>';
-                if (necesitaHotel) {
-                    html += '<tr><td>Alojamiento (' + nNoches + ' ' + (nNoches === 1 ? 'noche' : 'noches') + ')</td><td>' + (hotelOk ? (aloj + ' €') : '—') + '</td></tr>';
+                if (necesitaHotel && hotelOk) {
+                    var packVino = Math.round((gf + aloj) * 100) / 100;
+                    html += '<tr><td>Pack golf + alojamiento</td><td>' + packVino + ' €</td></tr>';
+                } else {
+                    html += '<tr><td>Green fees (' + (numGF > 0 ? numGF : 1) + (numParticipants > 1 ? ' × ' + numParticipants + ' pers.' : '') + ')</td><td>' + gf + ' €</td></tr>';
+                    if (necesitaHotel) {
+                        html += '<tr><td>Alojamiento (' + nNoches + ' ' + (nNoches === 1 ? 'noche' : 'noches') + ')</td><td>' + (hotelOk ? (aloj + ' €') : '—') + '</td></tr>';
+                    }
                 }
                 html += '<tr><td>Cata de vinos Bodegas Portia + Transporte' + (numParticipants > 1 ? ' (' + numParticipants + ' pers.)' : '') + '</td><td>' + vinoVal + ' €</td></tr>';
                 html += '<tr class="resumen-descuento"><td>Descuento pack (-' + (tieneCorrespondencia ? '15' : '12') + '%)</td><td>-' + desc + ' €</td></tr>';
@@ -628,6 +637,7 @@
                             if (count >= 2) {
                                 configuradorHotelWrapVino.style.display = 'block';
                                 actualizarBloqueHotelVino();
+                                if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
                             } else {
                                 configuradorHotelWrapVino.style.display = 'none';
                                 if (hotelPorNocheBlockVino) hotelPorNocheBlockVino.style.display = 'none';
@@ -656,6 +666,11 @@
                     if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
                 });
                 recalcNumeroGrupos();
+                document.addEventListener('hotelbeds-dynamic-ready', function () {
+                    if (configuradorHotelWrapVino && configuradorHotelWrapVino.style.display !== 'none') {
+                        actualizarBloqueHotelVino();
+                    }
+                });
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
                     if (!form.reportValidity()) return;
@@ -673,5 +688,19 @@
             }
         });
     </script>
+    <script>
+      window.HOTELBEDS_PAGE = {
+        formId: 'formGolfVino',
+        hotelWrapId: 'configurador-hotel-wrap-vino',
+        preciosBlockId: 'hotelbeds-precios-block-vino',
+        bookingWidgetId: 'booking-com-widget-vino',
+        linkLermaId: 'booking-link-lerma-vino',
+        linkBurgosId: 'booking-link-burgos-vino',
+        onResumen: function () {
+          if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
+        },
+      };
+    </script>
+    <script src="js/hotelbeds-paquetes.js"></script>
 </body>
 </html>

@@ -46,3 +46,46 @@ window.HOTELBEDS_CONFIG = {
     return codes;
   },
 };
+
+/** Precio €/noche para un valor de select (lerma-id, hb-código, etc.) usando LIVE_HOTEL_PRICES y getHotelesOpts. */
+window.precioNocheDesdeHotelSelect = function (hv) {
+  if (!hv || String(hv).indexOf('-') < 0) return null;
+  hv = String(hv);
+  var live = window.LIVE_HOTEL_PRICES;
+  if (live && live[hv] != null) return Number(live[hv]);
+  var idx = hv.indexOf('-');
+  var ciudad = hv.substring(0, idx);
+  var hotelId = hv.substring(idx + 1);
+  if (live && live[hotelId] != null) return Number(live[hotelId]);
+  var opts = (typeof getHotelesOpts === 'function') ? getHotelesOpts() : {};
+  var arr = opts[ciudad] || [];
+  for (var j = 0; j < arr.length; j++) {
+    if (arr[j].v === hotelId && arr[j].p != null) return Number(arr[j].p);
+  }
+  return null;
+};
+
+/** Etiqueta legible para un valor de select de hotel (incl. códigos Hotelbeds hb-). */
+window.etiquetaHotelSelect = function (val) {
+  if (!val) return 'Sin reserva';
+  val = String(val);
+  if (window.HOTELBEDS_DYNAMIC_OPTS) {
+    function findIn(arr) {
+      if (!arr) return null;
+      for (var i = 0; i < arr.length; i++) {
+        if (arr[i].v === val) return arr[i].l;
+      }
+      return null;
+    }
+    var dyn = findIn(window.HOTELBEDS_DYNAMIC_OPTS.lerma) || findIn(window.HOTELBEDS_DYNAMIC_OPTS.burgos);
+    if (dyn) return dyn + (val.indexOf('hb-') === 0 ? '' : '');
+  }
+  if (val.indexOf('-') >= 0) {
+    var ix = val.indexOf('-');
+    var c = val.substring(0, ix);
+    var h = val.substring(ix + 1);
+    var lbl = (typeof HOTELES_LABELS !== 'undefined' && HOTELES_LABELS[c]) ? HOTELES_LABELS[c][h] : null;
+    if (lbl) return lbl + ' (' + (c === 'lerma' ? 'Lerma' : 'Burgos') + ')';
+  }
+  return val;
+};

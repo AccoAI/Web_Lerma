@@ -311,7 +311,14 @@
     <script src="js/calendario-dias.js"></script>
     <script src="js/usuarios-form.js"></script>
     <script src="js/ancillary-counters.js"></script>
-    <script src="js/hotelbeds-finsemana.js"></script>
+    <script>
+      window.HOTELBEDS_PAGE = {
+        onResumen: function () {
+          if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
+        },
+      };
+    </script>
+    <script src="js/hotelbeds-paquetes.js"></script>
 </body>
 </html>
 

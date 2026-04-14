@@ -99,6 +99,12 @@
                             <p class="hotel-noche-hint">Elige primero el <strong>lugar</strong> (Lerma o Burgos) y después el <strong>hotel</strong> de ese lugar.</p>
                             <div id="hoteles-por-noche-container-ryder" class="campos-dias-row"></div>
                         </div>
+                        <div id="hotelbeds-precios-block-ryder" class="hotelbeds-precios-wrap" aria-live="polite">
+                            <p class="hotelbeds-block hotelbeds-info">Selecciona las fechas en el calendario para ver precios en tiempo real (Hotelbeds).</p>
+                        </div>
+                        <div id="booking-com-widget-ryder" class="booking-com-widget booking-com-widget-secondary" style="display: none;">
+                            <p class="booking-com-note">Si no ves precios arriba: <a id="booking-link-lerma-ryder" href="https://www.booking.com/searchresults.html?ss=Lerma%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer">Lerma</a> · <a id="booking-link-burgos-ryder" href="https://www.booking.com/searchresults.html?ss=Burgos%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer">Burgos</a></p>
+                        </div>
                     </div>
 
                     <!-- Opciones para comer (igual que torneos / paquete fin de semana) -->
@@ -300,6 +306,7 @@
 
     <script src="js/i18n.js"></script>
     <script src="js/precios-data.js"></script>
+    <script src="js/hotelbeds-config.js"></script>
     <script src="js/correspondencias-data.js"></script>
     <script src="js/correspondencias.js"></script>
     <script src="js/main.js"></script>
@@ -308,6 +315,20 @@
     <script src="js/ryder-config.js"></script>
     <script src="js/usuarios-form.js"></script>
     <script src="js/ancillary-counters.js"></script>
+    <script>
+      window.HOTELBEDS_PAGE = {
+        formId: 'configuradorRyderForm',
+        hotelWrapId: 'configurador-hotel-wrap-ryder',
+        preciosBlockId: 'hotelbeds-precios-block-ryder',
+        bookingWidgetId: 'booking-com-widget-ryder',
+        linkLermaId: 'booking-link-lerma-ryder',
+        linkBurgosId: 'booking-link-burgos-ryder',
+        onResumen: function () {
+          if (typeof window.actualizarResumenRyder === 'function') window.actualizarResumenRyder();
+        },
+      };
+    </script>
+    <script src="js/hotelbeds-paquetes.js"></script>
 </body>
 </html>
 

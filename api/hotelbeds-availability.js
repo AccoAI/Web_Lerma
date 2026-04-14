@@ -108,7 +108,19 @@ export async function GET(request) {
     });
   }
   return jsonResponse(
-    { error: 'Usa POST con checkIn, checkOut, rooms, adults' },
+    {
+      error:
+        'Este endpoint no se usa abriendo la URL en el navegador (eso es GET). Para disponibilidad usa POST con JSON.',
+      hint: 'POST con Content-Type application/json y cuerpo: checkIn, checkOut, rooms, adults; opcional children, destinationCode o hotelCodes.',
+      example: {
+        checkIn: '2026-05-10',
+        checkOut: '2026-05-12',
+        rooms: 1,
+        adults: 2,
+        destinationCode: 'BUR',
+      },
+      connectivityCheck: 'GET este mismo path con ?status=1 para probar credenciales y estado Hotelbeds.',
+    },
     400
   );
 }

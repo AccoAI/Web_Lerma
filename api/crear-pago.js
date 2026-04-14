@@ -1,11 +1,16 @@
 /**
  * Vercel Serverless Function: crear Payment Link de Stripe
  * POST /api/crear-pago
- * Body: { amountCents, modo, numParticipantes, paquete }
+ * Body: { amountCents, modo, numParticipantes, paquete, tituloTorneo?, hotelbedsVoucher? }
+ *
+ * hotelbedsVoucher (opcional): tras confirmar reserva en Hotelbeds, pasa los datos del bono;
+ * se guardan en metadata del Payment Link (claves hb_*) y el webhook adjunta el voucher al email.
+ * Ver HOTELBEDS-SETUP.md → Bono / voucher en el correo.
  *
  * Configurar STRIPE_SECRET_KEY en Variables de Entorno de Vercel
  */
 import Stripe from 'stripe';
+import { voucherToStripeMetadata } from '../lib/hotelbeds-voucher-html.js';
 
 function jsonResponse(obj, status = 200) {
   return new Response(JSON.stringify(obj), {
@@ -30,7 +35,7 @@ export async function POST(request) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const { amountCents, modo, numParticipantes, paquete, tituloTorneo } = body;
+    const { amountCents, modo, numParticipantes, paquete, tituloTorneo, hotelbedsVoucher } = body;
 
     if (!amountCents || amountCents < 50) {
       return jsonResponse({ error: 'Importe inválido (mínimo 0,50 €)' }, 400);
@@ -73,6 +78,15 @@ export async function POST(request) {
         ? `Pago por persona (${numPart} participantes)`
         : 'Pago del paquete completo';
 
+    const hbMetaRaw =
+      hotelbedsVoucher && typeof hotelbedsVoucher === 'object'
+        ? voucherToStripeMetadata(hotelbedsVoucher)
+        : {};
+    const hbMeta = {};
+    for (const [k, v] of Object.entries(hbMetaRaw)) {
+      if (v != null && String(v).length > 0) hbMeta[k] = String(v);
+    }
+
     const paymentLink = await stripe.paymentLinks.create({
       line_items: [
         {
@@ -92,6 +106,7 @@ export async function POST(request) {
         modo: modoPago,
         numParticipantes: String(numPart),
         ...(tituloTorneo ? { torneoTitulo: String(tituloTorneo).slice(0, 200) } : {}),
+        ...hbMeta,
       },
     });
 

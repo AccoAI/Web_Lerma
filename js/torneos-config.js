@@ -42,12 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function getHotelLabelFromValueTorneos(val) {
-        if (!val || val.indexOf('-') < 0) return val || 'Sin reserva';
-        var idx = val.indexOf('-');
-        var c = val.substring(0, idx);
-        var h = val.substring(idx + 1);
-        var lbl = (typeof HOTELES_LABELS !== 'undefined' && HOTELES_LABELS[c]) ? HOTELES_LABELS[c][h] : null;
-        return lbl ? lbl + ' (' + (c === 'lerma' ? 'Lerma' : 'Burgos') + ')' : val;
+        return (typeof window.etiquetaHotelSelect === 'function') ? window.etiquetaHotelSelect(val) : (val || 'Sin reserva');
     }
 
     function generarCamposPorDiaTorneos(numDias) {
@@ -222,6 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (count >= 2) {
                         configuradorHotelWrapTorneos.style.display = 'block';
                         actualizarBloqueHotelTorneos();
+                        if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
                     } else {
                         configuradorHotelWrapTorneos.style.display = 'none';
                         if (hotelPorNocheBlockTorneos) hotelPorNocheBlockTorneos.style.display = 'none';
@@ -311,6 +307,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Hacer función disponible globalmente para actualizarResumenTorneo
     window.getHotelLabelFromValueTorneos = getHotelLabelFromValueTorneos;
+
+    document.addEventListener('hotelbeds-dynamic-ready', function () {
+        var fd = new FormData(form);
+        var n = parseInt((fd.get('noches') || '0'), 10);
+        if (n >= 1 && configuradorHotelWrapTorneos && configuradorHotelWrapTorneos.style.display !== 'none') {
+            generarHotelesPorNocheTorneos(n);
+        }
+    });
 
     // Actualizar resumen inicial
     actualizarResumenTorneo();

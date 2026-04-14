@@ -1,5 +1,6 @@
 /**
  * Webhook Stripe: al completarse un pago, envía notificación por WhatsApp (Twilio) y correo (Resend).
+ * Si la sesión incluye metadata Hotelbeds (hb_*), el correo incluye el bono/voucher de alojamiento (certificación §4).
  *
  * Configurar en Stripe: Developers > Webhooks > Add endpoint
  *   URL: https://tu-dominio.vercel.app/api/webhook-stripe
@@ -21,6 +22,11 @@ import { readFileSync, existsSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { sendEmail } from '../lib/resend.js';
+import {
+  buildHotelbedsVoucherHtml,
+  buildHotelbedsVoucherPlainText,
+  voucherDataFromStripeMetadata,
+} from '../lib/hotelbeds-voucher-html.js';
 
 function loadLocalWebhookSecret() {
   if (process.env.STRIPE_WEBHOOK_SECRET_LOCAL) return process.env.STRIPE_WEBHOOK_SECRET_LOCAL;
@@ -148,14 +154,37 @@ export async function POST(request) {
 
   const pagoTipo = modo === 'por_persona' ? 'Por persona' : 'Único';
   const subjectConfirmacion = `Confirmación de tu reserva - ${nombreProducto}`;
-  const htmlConfirmacion =
-    `<h2>Confirmación de reserva</h2>` +
+
+  const htmlBase =
+    `<div style="font-family: system-ui, sans-serif; line-height: 1.5; color: #222;">` +
+    `<h2 style="margin-top:0;">Confirmación de reserva</h2>` +
     `<p>Gracias por tu reserva en Golf Lerma.</p>` +
     `<p><strong>Paquete:</strong> ${nombreProducto}</p>` +
     `<p><strong>Importe abonado:</strong> ${amountTotal.toFixed(2)} €</p>` +
     `<p><strong>Participantes:</strong> ${numPart}</p>` +
     `<p><strong>Forma de pago:</strong> ${pagoTipo}</p>` +
-    `<p>Para cualquier consulta: (+34) 947 56 46 30.</p>`;
+    `<p>Para cualquier consulta: (+34) 947 56 46 30.</p>` +
+    `</div>`;
+
+  const textBase =
+    `Confirmación de reserva — Golf Lerma\n\n` +
+    `Paquete: ${nombreProducto}\n` +
+    `Importe abonado: ${amountTotal.toFixed(2)} €\n` +
+    `Participantes: ${numPart}\n` +
+    `Forma de pago: ${pagoTipo}\n\n` +
+    `Consultas: (+34) 947 56 46 30\n`;
+
+  const voucherData = voucherDataFromStripeMetadata(metadata);
+  if (voucherData && !voucherData.packageName) voucherData.packageName = nombreProducto;
+
+  let htmlConfirmacion = htmlBase;
+  let textConfirmacion = textBase;
+  if (voucherData) {
+    htmlConfirmacion +=
+      `<hr style="margin: 28px 0; border: none; border-top: 1px solid #ccc;" />` +
+      buildHotelbedsVoucherHtml(voucherData);
+    textConfirmacion += `\n\n---\n\n` + buildHotelbedsVoucherPlainText(voucherData);
+  }
 
   // 1) Correo al cliente (destinatario dinámico: quien pagó)
   if (customerEmail) {
@@ -163,22 +192,38 @@ export async function POST(request) {
       to: customerEmail,
       subject: subjectConfirmacion,
       html: htmlConfirmacion,
+      text: textConfirmacion,
     });
   }
 
   // 2) Copia opcional al club (variable de entorno fija)
   const emailCopiaClub = process.env.RESEND_EMAIL_TO;
   if (emailCopiaClub) {
+    const htmlClubHead =
+      `<div style="font-family: system-ui, sans-serif;">` +
+      `<h2 style="margin-top:0;">Nueva reserva pagada</h2>` +
+      `<p><strong>Paquete:</strong> ${nombreProducto}</p>` +
+      `<p><strong>Importe:</strong> ${amountTotal.toFixed(2)} €</p>` +
+      `<p><strong>Participantes:</strong> ${numPart}</p>` +
+      `<p><strong>Pago:</strong> ${pagoTipo}</p>` +
+      (customerEmail ? `<p><strong>Cliente:</strong> ${customerEmail}</p>` : '') +
+      `</div>`;
+    let htmlClub = htmlClubHead;
+    let textClub =
+      `[Club] Nueva reserva\nPaquete: ${nombreProducto}\nImporte: ${amountTotal.toFixed(2)} €\n` +
+      `Participantes: ${numPart}\nPago: ${pagoTipo}` +
+      (customerEmail ? `\nCliente: ${customerEmail}` : '');
+    if (voucherData) {
+      htmlClub +=
+        `<hr style="margin: 28px 0; border: none; border-top: 1px solid #ccc;" />` +
+        buildHotelbedsVoucherHtml(voucherData);
+      textClub += `\n\n---\n\n` + buildHotelbedsVoucherPlainText(voucherData);
+    }
     await sendEmail({
       to: emailCopiaClub,
       subject: `[Club] Nueva reserva: ${nombreProducto}`,
-      html:
-        `<h2>Nueva reserva pagada</h2>` +
-        `<p><strong>Paquete:</strong> ${nombreProducto}</p>` +
-        `<p><strong>Importe:</strong> ${amountTotal.toFixed(2)} €</p>` +
-        `<p><strong>Participantes:</strong> ${numPart}</p>` +
-        `<p><strong>Pago:</strong> ${pagoTipo}</p>` +
-        (customerEmail ? `<p><strong>Cliente:</strong> ${customerEmail}</p>` : ''),
+      html: htmlClub,
+      text: textClub,
     });
   }
 
