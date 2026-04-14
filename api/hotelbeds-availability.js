@@ -13,6 +13,9 @@ function getSignature(apiKey, secret) {
   return createHash('sha256').update(str, 'utf8').digest('hex');
 }
 
+/**
+ * @returns {{ ok: true, data: object } | { ok: false, error: string, status?: number, raw?: string, data?: object }}
+ */
 async function fetchAvailability(apiKey, secret, body) {
   const signature = getSignature(apiKey, secret);
   const baseUrl = process.env.HOTELBEDS_ENV === 'production'
@@ -39,31 +42,50 @@ async function fetchAvailability(apiKey, secret, body) {
     payload.destination = { code: 'BUR' };
   }
 
-  const res = await fetch(`${baseUrl}/hotel-api/1.0/hotels`, {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'Api-key': apiKey,
-      'X-Signature': signature,
-    },
-    body: JSON.stringify(payload),
-  });
+  let res;
+  try {
+    res = await fetch(`${baseUrl}/hotel-api/1.0/hotels`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Api-key': apiKey,
+        'X-Signature': signature,
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch (e) {
+    return { ok: false, error: e.message || 'Error de red al contactar con Hotelbeds' };
+  }
 
   const text = await res.text();
   let data;
   try {
     data = JSON.parse(text);
   } catch {
-    throw new Error(text || `HTTP ${res.status}`);
+    return {
+      ok: false,
+      status: res.status,
+      error: `Hotelbeds devolvió una respuesta no JSON (HTTP ${res.status}).`,
+      raw: (text || '').slice(0, 400),
+    };
   }
 
   if (!res.ok) {
-    const errMsg = data.error && data.error.message ? data.error.message : JSON.stringify(data);
-    throw new Error(errMsg);
+    const errObj = data && data.error;
+    const errMsg =
+      (typeof errObj === 'string' ? errObj : errObj && errObj.message) ||
+      data.message ||
+      (typeof data === 'string' ? data : JSON.stringify(data));
+    return {
+      ok: false,
+      status: res.status,
+      error: String(errMsg),
+      data,
+    };
   }
 
-  return data;
+  return { ok: true, data };
 }
 
 function jsonResponse(obj, status = 200) {
@@ -125,14 +147,22 @@ export async function GET(request) {
   );
 }
 
+const EMPTY_HOTELS = { hotels: { hotels: [] } };
+
 export async function POST(request) {
   const apiKey = process.env.API_Key || process.env.HOTELBEDS_API_KEY;
   const secret = process.env.API_Secret || process.env.HOTELBEDS_API_SECRET;
 
+  /** 200 + error: el front (hotelbeds-paquetes.js) ya trata hb.error y evita "500" en consola del navegador. */
   if (!apiKey || !secret) {
     return jsonResponse(
-      { error: 'Faltan credenciales Hotelbeds (HOTELBEDS_API_KEY, HOTELBEDS_API_SECRET)' },
-      500
+      {
+        ...EMPTY_HOTELS,
+        error:
+          'Faltan credenciales Hotelbeds en el servidor (HOTELBEDS_API_KEY y HOTELBEDS_API_SECRET). En local, define variables en .env.local y reinicia `vercel dev`. En Vercel: Project Settings → Environment Variables.',
+        code: 'MISSING_CREDENTIALS',
+      },
+      200
     );
   }
 
@@ -143,12 +173,12 @@ export async function POST(request) {
 
     if (!checkIn || !checkOut) {
       return jsonResponse(
-        { error: 'Se requieren checkIn y checkOut (YYYY-MM-DD)' },
+        { error: 'Se requieren checkIn y checkOut (YYYY-MM-DD)', ...EMPTY_HOTELS },
         400
       );
     }
 
-    const data = await fetchAvailability(apiKey, secret, {
+    const result = await fetchAvailability(apiKey, secret, {
       checkIn,
       checkOut,
       rooms: body.rooms || 1,
@@ -158,14 +188,28 @@ export async function POST(request) {
       destinationCode: body.destinationCode,
     });
 
-    return jsonResponse(data);
+    if (!result.ok) {
+      console.error('Hotelbeds availability:', result.status, result.error, result.raw || '');
+      return jsonResponse(
+        {
+          ...EMPTY_HOTELS,
+          error: result.error || 'Error al consultar disponibilidad',
+          ...(result.status && { hotelbedsHttpStatus: result.status }),
+          ...(result.data && { hotelbeds: result.data }),
+          ...(result.raw && { rawPreview: result.raw }),
+        },
+        200
+      );
+    }
+
+    return jsonResponse(result.data);
   } catch (err) {
     console.error('Hotelbeds error:', err.message);
     const errBody = {
+      ...EMPTY_HOTELS,
       error: err.message || 'Error al consultar disponibilidad',
       ...(process.env.NODE_ENV !== 'production' && err.stack && { stack: err.stack }),
     };
-    const isDebug = request?.url && new URL(request.url).searchParams.get('debug') === '1';
-    return jsonResponse(errBody, isDebug ? 200 : 500);
+    return jsonResponse(errBody, 200);
   }
 }
