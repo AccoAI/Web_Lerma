@@ -983,7 +983,8 @@ function initConfiguradorPaquete() {
                     }
                 }
                 if (configuradorHotelWrap) {
-                    if (count >= 2) {
+                    /* Una fecha = al menos 1 noche (noches=1): mostrar hoteles + bloque Hotelbeds. Antes exigía 2+ fechas y el apartado 3 quedaba oculto para muchos usuarios. */
+                    if (count >= 1) {
                         configuradorHotelWrap.style.display = 'block';
                         actualizarBloqueHotel();
                         if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();

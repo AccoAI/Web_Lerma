@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pago recibido — Golf Lerma</title>
+  <link rel="stylesheet" href="css/estilos.css">
+  <style>
+    .confirm-wrap { max-width: 560px; margin: 3rem auto; padding: 0 1rem; }
+    .confirm-box { background: #fafafa; border: 1px solid #ddd; border-radius: 8px; padding: 1.5rem; }
+    .confirm-actions { margin-top: 1.25rem; display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    .confirm-actions a.button { display: inline-block; padding: 0.65rem 1.1rem; background: #2c5530; color: #fff !important; text-decoration: none; border-radius: 6px; font-weight: 600; }
+    .confirm-actions a.button.secondary { background: #444; }
+    .confirm-muted { color: #555; font-size: 0.95rem; margin-top: 1rem; }
+    .confirm-loading { color: #666; }
+    .confirm-error { color: #a00; }
+  </style>
+</head>
+<body>
+  <div class="confirm-wrap">
+    <h1 style="color:#2c5530;">Gracias</h1>
+    <div class="confirm-box">
+      <p id="confirmStatus" class="confirm-loading">Comprobando el pago…</p>
+      <p id="confirmEmail" class="confirm-muted" hidden></p>
+      <div id="confirmActions" class="confirm-actions" hidden>
+        <a id="btnVoucher" class="button" href="#" hidden>Descargar bono de confirmación</a>
+        <a id="btnVoucherPrint" class="button secondary" href="#" target="_blank" rel="noopener" hidden>Abrir bono (imprimir / PDF)</a>
+      </div>
+      <p id="confirmNoVoucher" class="confirm-muted" hidden>
+        No hay bono de alojamiento asociado a este pago. Si reservaste hotel con nosotros, revisa el correo de confirmación o contacta con el club.
+      </p>
+      <p class="confirm-muted"><a href="index.html">Volver al inicio</a></p>
+    </div>
+  </div>
+  <script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var sessionId = params.get('session_id');
+  var statusEl = document.getElementById('confirmStatus');
+  var emailEl = document.getElementById('confirmEmail');
+  var actionsEl = document.getElementById('confirmActions');
+  var noVoucherEl = document.getElementById('confirmNoVoucher');
+  var btnVoucher = document.getElementById('btnVoucher');
+  var btnPrint = document.getElementById('btnVoucherPrint');
+
+  if (!sessionId) {
+    statusEl.textContent = 'Falta el identificador de sesión (session_id). Si has pagado desde Stripe, vuelve al enlace del correo o contacta con el club.';
+    statusEl.className = 'confirm-error';
+    return;
+  }
+
+  fetch('/api/stripe-checkout-session?session_id=' + encodeURIComponent(sessionId))
+    .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+    .then(function (_ref) {
+      var ok = _ref.ok, data = _ref.j;
+      statusEl.className = '';
+      if (!ok || !data.ok) {
+        statusEl.textContent = (data && data.error) || 'No se pudo verificar el pago.';
+        statusEl.className = 'confirm-error';
+        return;
+      }
+      if (data.payment_status === 'paid') {
+        statusEl.textContent = 'Pago recibido correctamente.';
+      } else {
+        statusEl.textContent = 'Estado del pago: ' + (data.payment_status || 'desconocido') + '.';
+      }
+      if (data.customer_email) {
+        emailEl.hidden = false;
+        emailEl.textContent = 'Correo de contacto: ' + data.customer_email;
+      }
+      if (data.voucher_available && data.voucher_download_url && data.voucher_url) {
+        actionsEl.hidden = false;
+        btnVoucher.hidden = false;
+        btnPrint.hidden = false;
+        btnVoucher.href = data.voucher_download_url;
+        btnPrint.href = data.voucher_url;
+      } else {
+        noVoucherEl.hidden = false;
+      }
+    })
+    .catch(function () {
+      statusEl.textContent = 'Error de red al verificar el pago.';
+      statusEl.className = 'confirm-error';
+    });
+})();
+  </script>
+</body>
+</html>

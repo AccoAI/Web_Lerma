@@ -159,7 +159,7 @@
                         </div>
                     </div>
 
-                    <!-- Selección de Hotel (solo si 2+ días) -->
+                    <!-- Selección de Hotel (visible al elegir al menos una fecha de estancia en el calendario) -->
                     <div class="configurador-seccion" id="configurador-hotel-wrap" style="display: none;">
                         <h3 class="configurador-titulo">3. Alojamiento</h3>
                         <p class="hotel-ciudad-label">Elige el hotel para cada noche. Puedes combinar Lerma y Burgos (ej.: una noche en Lerma y otra en Burgos).</p>
@@ -168,7 +168,7 @@
                             <p class="hotel-noche-hint">Elige primero el <strong>lugar</strong> (Lerma o Burgos) y después el <strong>hotel</strong> de ese lugar.</p>
                             <div id="hoteles-por-noche-container" class="campos-dias-row"></div>
                         </div>
-                        <!-- Precios en tiempo real: se rellena por JS (Amadeus). Reserva desde aquí, sin salir de la web. -->
+                        <!-- Precios en tiempo real: Hotelbeds (JS). Reserva del paquete vía Stripe desde esta página. -->
                         <div id="hotelbeds-precios-block" class="hotelbeds-precios-wrap" aria-live="polite">
                             <p class="hotelbeds-block hotelbeds-info" id="precios-block-initial-msg">Selecciona las fechas en el calendario (arriba) para ver precios en tiempo real. Reservarás todo el paquete desde esta página.</p>
                         </div>

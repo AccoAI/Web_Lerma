@@ -87,6 +87,20 @@ export async function POST(request) {
       if (v != null && String(v).length > 0) hbMeta[k] = String(v);
     }
 
+    /** Solo si defines PUBLIC_SITE_URL (p. ej. https://web-lerma.vercel.app) en Vercel. */
+    const baseUrl = (process.env.PUBLIC_SITE_URL || '').replace(/\/$/, '');
+
+    /** Tras el pago, redirige a confirmación con session_id para descargar el bono (metadata hb_*). */
+    const afterCompletion =
+      baseUrl ?
+        {
+          type: 'redirect',
+          redirect: {
+            url: `${baseUrl}/confirmacion-reserva.html?session_id={CHECKOUT_SESSION_ID}`,
+          },
+        }
+      : undefined;
+
     const paymentLink = await stripe.paymentLinks.create({
       line_items: [
         {
@@ -101,6 +115,7 @@ export async function POST(request) {
           quantity: 1,
         },
       ],
+      ...(afterCompletion ? { after_completion: afterCompletion } : {}),
       metadata: {
         paquete: String(paquete || ''),
         modo: modoPago,
