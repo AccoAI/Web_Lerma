@@ -1,5 +1,11 @@
 {
   "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/hotelbeds-transfers-status",
+      "destination": "/api/hotelbeds-availability?__hb_transfers=1&status=1"
+    }
+  ],
   "functions": {
     "api/crear-pago.js": { "maxDuration": 10 },
     "api/hotelbeds-availability.js": { "maxDuration": 15 },
@@ -12,7 +18,6 @@
     "api/socios-list.js": { "maxDuration": 10 },
     "api/socios-amigos.js": { "maxDuration": 10 },
     "api/booking-voucher.js": { "maxDuration": 15 },
-    "api/stripe-checkout-session.js": { "maxDuration": 10 },
-    "api/hotelbeds-transfers-status.js": { "maxDuration": 10 }
+    "api/stripe-checkout-session.js": { "maxDuration": 10 }
   }
 }
