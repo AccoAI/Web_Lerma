@@ -107,6 +107,52 @@
                         </div>
                     </div>
 
+                    <div class="configurador-seccion paquete-transfer-hb-block" data-hb-transfer-page="ryder">
+                        <h3 class="configurador-titulo">Transfer aeropuerto / trayecto (opcional)</h3>
+                        <p class="hotel-ciudad-label">Distinto del transporte en autobús desde Madrid (sección siguiente). Aquí: traslados puntuales con <strong>Hotelbeds Transfers</strong> (aeropuerto, estación, hotel…). La cotización en vivo se integrará después.</p>
+                        <p class="hotelbeds-transfer-api-line" aria-live="polite"><span class="hotelbeds-transfer-api-badge hotelbeds-transfer-api-badge--pending">Comprobando acceso Transfer API…</span></p>
+                        <div class="transfer-hb-opcion">
+                            <label class="transfer-hb-checkbox-label">
+                                <input type="checkbox" name="transfer_hb_interes" value="1">
+                                <span>Sí, quiero incluir o presupuestar un transfer Hotelbeds</span>
+                            </label>
+                        </div>
+                        <div class="transfer-hb-detalles" hidden>
+                            <div class="transfer-hb-grid">
+                                <div>
+                                    <label>Tipo de trayecto
+                                        <select name="transfer_hb_sentido">
+                                            <option value="">Elige…</option>
+                                            <option value="ida">Solo ida</option>
+                                            <option value="vuelta">Solo vuelta</option>
+                                            <option value="ida_vuelta">Ida y vuelta</option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <div>
+                                    <label>Pasajeros (aprox.)
+                                        <input type="number" name="transfer_hb_pax" min="1" max="54" value="2">
+                                    </label>
+                                </div>
+                                <div class="transfer-hb-grid-full">
+                                    <label>Origen
+                                        <input type="text" name="transfer_hb_origen" maxlength="200" placeholder="Ej. Aeropuerto Madrid-Barajas (MAD)" autocomplete="off">
+                                    </label>
+                                </div>
+                                <div class="transfer-hb-grid-full">
+                                    <label>Destino
+                                        <input type="text" name="transfer_hb_destino" maxlength="200" placeholder="Ej. Hotel / Golf Lerma" autocomplete="off">
+                                    </label>
+                                </div>
+                                <div class="transfer-hb-grid-full">
+                                    <label>Notas
+                                        <textarea name="transfer_hb_notas" rows="2" maxlength="800" placeholder="Opcional"></textarea>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Opciones para comer (igual que torneos / paquete fin de semana) -->
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo">3. Opciones para comer</h3>
@@ -329,6 +375,7 @@
       };
     </script>
     <script src="js/hotelbeds-paquetes.js"></script>
+    <script src="js/hotelbeds-transfers-block.js"></script>
 </body>
 </html>
 

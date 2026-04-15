@@ -203,6 +203,52 @@
                         </div>
                     </div>
 
+                    <div class="configurador-seccion paquete-transfer-hb-block" data-hb-transfer-page="golf-vino">
+                        <h3 class="configurador-titulo">Transfer (opcional)</h3>
+                        <p class="hotel-ciudad-label">Traslado aeropuerto, estación AVE u otro punto con <strong>Hotelbeds Transfers</strong>, como complemento al alojamiento (el paquete ya incluye transporte acordado a Bodegas Portia; esto es para otros trayectos si los necesitáis).</p>
+                        <p class="hotelbeds-transfer-api-line" aria-live="polite"><span class="hotelbeds-transfer-api-badge hotelbeds-transfer-api-badge--pending">Comprobando acceso Transfer API…</span></p>
+                        <div class="transfer-hb-opcion">
+                            <label class="transfer-hb-checkbox-label">
+                                <input type="checkbox" name="transfer_hb_interes" value="1">
+                                <span>Sí, quiero incluir o presupuestar un transfer adicional</span>
+                            </label>
+                        </div>
+                        <div class="transfer-hb-detalles" hidden>
+                            <div class="transfer-hb-grid">
+                                <div>
+                                    <label>Tipo de trayecto
+                                        <select name="transfer_hb_sentido">
+                                            <option value="">Elige…</option>
+                                            <option value="ida">Solo ida</option>
+                                            <option value="vuelta">Solo vuelta</option>
+                                            <option value="ida_vuelta">Ida y vuelta</option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <div>
+                                    <label>Pasajeros (aprox.)
+                                        <input type="number" name="transfer_hb_pax" min="1" max="54" value="2">
+                                    </label>
+                                </div>
+                                <div class="transfer-hb-grid-full">
+                                    <label>Origen (ej. aeropuerto MAD, estación…)
+                                        <input type="text" name="transfer_hb_origen" maxlength="200" placeholder="Ej. Aeropuerto Madrid-Barajas (MAD)" autocomplete="off">
+                                    </label>
+                                </div>
+                                <div class="transfer-hb-grid-full">
+                                    <label>Destino (hotel, Golf Lerma, Saldaña…)
+                                        <input type="text" name="transfer_hb_destino" maxlength="200" placeholder="Ej. Hotel en Lerma / campo de golf" autocomplete="off">
+                                    </label>
+                                </div>
+                                <div class="transfer-hb-grid-full">
+                                    <label>Notas (vuelo, hora orientativa…)
+                                        <textarea name="transfer_hb_notas" rows="2" maxlength="800" placeholder="Opcional"></textarea>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Servicios Adicionales -->
                     <div class="configurador-seccion servicios-adicionales-section">
                         <h3 class="configurador-titulo">Servicios adicionales</h3>
@@ -702,5 +748,6 @@
       };
     </script>
     <script src="js/hotelbeds-paquetes.js"></script>
+    <script src="js/hotelbeds-transfers-block.js"></script>
 </body>
 </html>
