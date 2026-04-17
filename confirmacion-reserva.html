@@ -49,7 +49,7 @@
     return;
   }
 
-  fetch('/api/stripe-checkout-session?session_id=' + encodeURIComponent(sessionId))
+  fetch('/api/booking-voucher?checkout_json=1&session_id=' + encodeURIComponent(sessionId))
     .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
     .then(function (_ref) {
       var ok = _ref.ok, data = _ref.j;
