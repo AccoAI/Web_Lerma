@@ -20,8 +20,11 @@
     .tc-actions button { padding: 0.5rem 1rem; font-weight: 600; cursor: pointer; border-radius: 4px; border: none; background: var(--color-primary); color: #fff; }
     .tc-actions button.secondary { background: #555; }
     .tc-out { margin-top: 1rem; font-family: ui-monospace, monospace; font-size: 0.75rem; background: #1a1a1a; color: #e8e8e8; padding: 1rem; border-radius: 6px; overflow: auto; max-height: 420px; white-space: pre-wrap; word-break: break-word; }
-    .tc-services { margin: 0.75rem 0; max-height: 200px; overflow: auto; font-size: 0.8rem; background: #f5f5f5; padding: 0.75rem; border-radius: 4px; }
+    .tc-services { margin: 0.75rem 0; max-height: 280px; overflow: auto; font-size: 0.8rem; background: #f5f5f5; padding: 0.75rem; border-radius: 4px; }
     .tc-services label { display: block; margin: 0.35rem 0; cursor: pointer; }
+    .tc-route-block { margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #ddd; }
+    .tc-route-block:last-child { border-bottom: none; }
+    .tc-multi-json { width: 100%; font-family: ui-monospace, monospace; font-size: 0.75rem; padding: 0.5rem; box-sizing: border-box; }
     .tc-legal { font-size: 0.82rem; color: #555; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd; }
   </style>
 </head>
@@ -37,6 +40,8 @@
 
     <h2 class="configurador-titulo" style="font-size:1rem;">1. Disponibilidad (GET)</h2>
     <div class="tc-presets" id="tc-presets"></div>
+    <p class="tc-note" style="margin-bottom:0.35rem;">Tipos de punto (doc HB): <code>IATA</code>, <code>ATLAS</code>, <code>GIATA</code>, <code>GPS</code>, <code>PORT</code>, <code>STATION</code>. En <strong>GPS</strong>, <code>toCode</code> es <code>lat,lon</code> (coma decimal). En <strong>GIATA</strong>, <code>fromCode</code>/<code>toCode</code> son el id GIATA.</p>
+    <div class="tc-presets" id="tc-presets-types"></div>
     <div class="tc-grid">
       <label>language <input type="text" id="f-lang" value="en"></label>
       <label>fromType <input type="text" id="f-fromType" value="ATLAS"></label>
@@ -50,16 +55,30 @@
       <label>infants <input type="number" id="f-infants" value="0" min="0"></label>
     </div>
     <div class="tc-actions">
-      <button type="button" id="btn-search">Buscar disponibilidad</button>
+      <button type="button" id="btn-search">Buscar disponibilidad (simple)</button>
     </div>
+
+    <h2 class="configurador-titulo" style="font-size:1rem;margin-top:1.25rem;">1b. Disponibilidad Multi (POST)</h2>
+    <p class="tc-note">Hasta <strong>20</strong> rutas en una petición. Cada <code>id</code> es <code>fromType/fromCode/toType/toCode</code> (ej. <code>ATLAS/57/PORT/BCNP</code>). Reutiliza ocupación e idioma de la sección 1.</p>
+    <label class="tc-note" style="display:block;margin-bottom:0.5rem;">Cuerpo JSON (array de rutas)</label>
+    <textarea class="tc-multi-json" id="f-multi-routes" rows="10" aria-label="Rutas availability multi"></textarea>
+    <div class="tc-grid" style="margin-top:0.5rem;">
+      <label><input type="checkbox" id="f-multi-partial"> allowPartialResults (devolver lo disponible aunque falle alguna ruta)</label>
+    </div>
+    <div class="tc-actions">
+      <button type="button" id="btn-search-multi">Buscar disponibilidad (multi)</button>
+      <button type="button" class="secondary" id="btn-multi-example">Cargar ejemplo 2 rutas (BCN)</button>
+      <button type="button" class="secondary" id="btn-multi-gps-doc">Cargar ejemplo multi GPS (doc HB)</button>
+    </div>
+
     <div class="tc-services" id="svc-box" hidden>
       <strong>Servicios (elige uno para rellenar rateKey abajo)</strong>
       <div id="svc-list"></div>
     </div>
 
     <h2 class="configurador-titulo" style="font-size:1rem;margin-top:1rem;">Respuesta API</h2>
-    <p class="tc-note" id="tc-hint" style="margin-top:0;">JSON del proxy al pulsar <em>Buscar disponibilidad</em>, <em>Confirmar booking</em> o <em>Cancelar</em>. Revisa <code>ok</code>, <code>httpStatus</code> y <code>data</code>.</p>
-    <pre class="tc-out" id="tc-out" aria-live="polite">Pulsa «Buscar disponibilidad» para probar el proxy.</pre>
+    <p class="tc-note" id="tc-hint" style="margin-top:0;">JSON del proxy (simple, multi, booking, detalle o cancel). Revisa <code>ok</code>, <code>httpStatus</code> y <code>data</code>.</p>
+    <pre class="tc-out" id="tc-out" aria-live="polite">Pulsa «Buscar disponibilidad (simple)» o «(multi)» para probar el proxy.</pre>
 
     <h2 class="configurador-titulo" style="font-size:1rem;margin-top:1.5rem;">2. Confirmación (POST booking)</h2>
     <p class="tc-note">Pega el <code>rateKey</code> del servicio elegido. Para <strong>ida y vuelta (2 servicios)</strong>, añade un segundo bloque JSON en el array <code>transfers</code> (segunda búsqueda IN/OUT).</p>
@@ -78,7 +97,13 @@
       <button type="button" class="secondary" id="btn-book-json">Ver JSON que se enviará</button>
     </div>
 
-    <h2 class="configurador-titulo" style="font-size:1rem;margin-top:1.5rem;">3. Cancelación (POST action cancel)</h2>
+    <h2 class="configurador-titulo" style="font-size:1rem;margin-top:1.5rem;">3. Detalle de reserva (GET BookingDetail)</h2>
+    <p class="tc-note">Consulta por referencia HB (mismo localizador que tras el booking o en el email). Usa el idioma de la sección 1.</p>
+    <div class="tc-actions">
+      <button type="button" id="btn-detail">Consultar detalle</button>
+    </div>
+
+    <h2 class="configurador-titulo" style="font-size:1rem;margin-top:1.5rem;">4. Cancelación (POST action cancel)</h2>
     <div class="tc-grid">
       <label>Referencia HB (XXX-XXXXXX) <input type="text" id="c-ref" placeholder="1-1234567"></label>
       <label>serviceId (cancel parcial, opcional) <input type="text" id="c-sid" placeholder=""></label>
@@ -90,7 +115,9 @@
 
     <div class="tc-legal">
       Documentación: <a href="https://developer.hotelbeds.com/documentation/transfers/booking-api/search-availability/availability-simple/" target="_blank" rel="noopener">Availability simple</a>,
+      <a href="https://developer.hotelbeds.com/documentation/transfers/booking-api/search-availability/availability-multi/" target="_blank" rel="noopener">Availability multi</a>,
       <a href="https://developer.hotelbeds.com/documentation/transfers/booking-api/booking-post-booking/" target="_blank" rel="noopener">Booking</a>,
+      <a href="https://developer.hotelbeds.com/documentation/transfers/booking-api/booking-post-booking/booking-detail/" target="_blank" rel="noopener">Booking detail</a>,
       <a href="https://developer.hotelbeds.com/documentation/transfers/knowledge-base/certification-process/" target="_blank" rel="noopener">Certificación</a>.
     </div>
   </div>
@@ -101,12 +128,49 @@
     out.textContent = typeof o === 'string' ? o : JSON.stringify(o, null, 2);
   }
 
+  var MULTI_EXAMPLE = [
+    { id: 'ATLAS/57/PORT/BCNP', dateTime: '2026-08-12T10:00:00' },
+    { id: 'PORT/BCNP/ATLAS/57', dateTime: '2026-08-14T18:00:00' },
+  ];
+
+  /** Tres rutas GPS de ejemplo (doc Hotelbeds Availability Multi). */
+  var MULTI_GPS_DOC = [
+    { id: 'IATA/EZE/GPS/-34.66240331621875,-58.4475481089588', dateTime: '2026-08-10T10:00:00' },
+    { id: 'IATA/EZE/GPS/-34.61833893385364,-58.49423999835325', dateTime: '2026-08-10T10:00:00' },
+    { id: 'IATA/EZE/GPS/-34.58103540463529,-58.46265430846877', dateTime: '2026-08-10T10:00:00' },
+  ];
+
+  document.getElementById('f-multi-routes').value = JSON.stringify(MULTI_EXAMPLE, null, 2);
+
   var PRESETS = [
     { key: '1', label: '1 · Departure Sistina → CIA', lang: 'en', fromType: 'ATLAS', fromCode: '5643', toType: 'IATA', toCode: 'CIA', outbound: '2026-08-10T14:00:00', inbound: '' },
     { key: '2', label: '2 · BCN Universal → Port (BCNP) — ida', lang: 'en', fromType: 'ATLAS', fromCode: '57', toType: 'PORT', toCode: 'BCNP', outbound: '2026-08-12T10:00:00', inbound: '' },
     { key: '2b', label: '2 · mismo trayecto — vuelta (segunda búsqueda)', lang: 'en', fromType: 'PORT', fromCode: 'BCNP', toType: 'ATLAS', toCode: '57', outbound: '2026-08-14T18:00:00', inbound: '' },
     { key: '3', label: '3 · Arrival Hilton → Sants BCNE', lang: 'en', fromType: 'ATLAS', fromCode: '651', toType: 'STATION', toCode: 'BCNE', outbound: '2026-08-11T09:30:00', inbound: '' },
     { key: '4', label: '4 · Universal → BCN aeropuerto (extras en booking)', lang: 'en', fromType: 'ATLAS', fromCode: '57', toType: 'IATA', toCode: 'BCN', outbound: '2026-08-13T11:00:00', inbound: '' }
+  ];
+
+  var TYPE_PRESETS = [
+    {
+      label: 'GIATA → IATA (ajusta código GIATA)',
+      lang: 'en',
+      fromType: 'GIATA',
+      fromCode: '90',
+      toType: 'IATA',
+      toCode: 'BCN',
+      outbound: '2026-08-12T10:00:00',
+      inbound: '',
+    },
+    {
+      label: 'IATA → GPS (EZE, doc HB)',
+      lang: 'en',
+      fromType: 'IATA',
+      fromCode: 'EZE',
+      toType: 'GPS',
+      toCode: '-34.66240331621875,-58.4475481089588',
+      outbound: '2026-08-10T10:00:00',
+      inbound: '',
+    },
   ];
 
   var presetEl = document.getElementById('tc-presets');
@@ -124,6 +188,23 @@
       document.getElementById('f-inbound').value = p.inbound || '';
     });
     presetEl.appendChild(b);
+  });
+
+  var presetTypesEl = document.getElementById('tc-presets-types');
+  TYPE_PRESETS.forEach(function (p) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = p.label;
+    b.addEventListener('click', function () {
+      document.getElementById('f-lang').value = p.lang;
+      document.getElementById('f-fromType').value = p.fromType;
+      document.getElementById('f-fromCode').value = p.fromCode;
+      document.getElementById('f-toType').value = p.toType;
+      document.getElementById('f-toCode').value = p.toCode;
+      document.getElementById('f-outbound').value = p.outbound;
+      document.getElementById('f-inbound').value = p.inbound || '';
+    });
+    presetTypesEl.appendChild(b);
   });
 
   var ISO_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
@@ -164,6 +245,66 @@
     });
   }
 
+  function append403Hint(data) {
+    var outText = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    if (data && data.httpStatus === 403 && data.data && data.data.error) {
+      outText +=
+        '\n\n— Si ves «Access to this API has been disallowed», pide a Hotelbeds que habilite la API de Transfers para tu Api-key (entorno test).';
+    }
+    return outText;
+  }
+
+  document.getElementById('btn-multi-example').addEventListener('click', function () {
+    document.getElementById('f-multi-routes').value = JSON.stringify(MULTI_EXAMPLE, null, 2);
+  });
+
+  document.getElementById('btn-multi-gps-doc').addEventListener('click', function () {
+    document.getElementById('f-multi-routes').value = JSON.stringify(MULTI_GPS_DOC, null, 2);
+  });
+
+  document.getElementById('btn-search-multi').addEventListener('click', function () {
+    var routes;
+    try {
+      routes = JSON.parse(document.getElementById('f-multi-routes').value);
+    } catch (e) {
+      log('JSON inválido en rutas multi: ' + (e.message || e));
+      return;
+    }
+    if (!Array.isArray(routes) || routes.length < 1) {
+      log('El cuerpo debe ser un array JSON con al menos una ruta { id, dateTime }');
+      return;
+    }
+    if (routes.length > 20) {
+      log('Máximo 20 rutas según documentación Hotelbeds.');
+      return;
+    }
+    var payload = {
+      action: 'availability_multi',
+      language: document.getElementById('f-lang').value.trim() || 'en',
+      adults: parseInt(document.getElementById('f-adults').value, 10) || 0,
+      children: parseInt(document.getElementById('f-children').value, 10) || 0,
+      infants: parseInt(document.getElementById('f-infants').value, 10) || 0,
+      routes: routes,
+    };
+    if (document.getElementById('f-multi-partial').checked) {
+      payload.allowPartialResults = true;
+    }
+    log('Cargando (multi)…');
+    fetch('/api/hotelbeds-transfers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then(parseJsonResponse)
+      .then(function (data) {
+        log(append403Hint(data));
+        renderServices(data);
+      })
+      .catch(function (e) {
+        log(String(e));
+      });
+  });
+
   document.getElementById('btn-search').addEventListener('click', function () {
     var qs;
     try {
@@ -176,16 +317,19 @@
     fetch('/api/hotelbeds-transfers?' + qs)
       .then(parseJsonResponse)
       .then(function (data) {
-        var outText = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
-        if (data && data.httpStatus === 403 && data.data && data.data.error) {
-          outText +=
-            '\n\n— Si ves «Access to this API has been disallowed», pide a Hotelbeds que habilite la API de Transfers para tu Api-key (entorno test).';
-        }
-        log(outText);
+        log(append403Hint(data));
         renderServices(data);
       })
       .catch(function (e) { log(String(e)); });
   });
+
+  function normalizeServiceList(servicesRoot) {
+    if (servicesRoot == null) return [];
+    if (Array.isArray(servicesRoot)) return servicesRoot;
+    var raw = servicesRoot.service != null ? servicesRoot.service : servicesRoot;
+    if (!Array.isArray(raw)) raw = [raw];
+    return raw;
+  }
 
   function renderServices(res) {
     var box = document.getElementById('svc-box');
@@ -194,6 +338,43 @@
     var data = res.data;
     if (!data) {
       box.hidden = true;
+      return;
+    }
+    if (Array.isArray(data.routes) && data.routes.length) {
+      box.hidden = false;
+      data.routes.forEach(function (route, ri) {
+        var block = document.createElement('div');
+        block.className = 'tc-route-block';
+        var h = document.createElement('strong');
+        h.textContent = 'Ruta: ' + (route.id != null ? route.id : '#' + ri);
+        block.appendChild(h);
+        var svcs = normalizeServiceList(route.services);
+        if (!svcs.length) {
+          var empty = document.createElement('div');
+          empty.style.fontSize = '0.85rem';
+          empty.style.marginTop = '0.35rem';
+          empty.textContent = '(sin servicios en respuesta)';
+          block.appendChild(empty);
+        }
+        svcs.forEach(function (s) {
+          var rk = s.rateKey;
+          var must = '';
+          try {
+            var pu = s.pickupInformation && s.pickupInformation.pickup && s.pickupInformation.pickup.checkPickup;
+            if (pu && pu.mustCheckPickupTime === true) must = ' [mustCheckPickupTime]';
+          } catch (e2) {}
+          var lab = document.createElement('label');
+          var name = 'svc-pick-m-' + ri;
+          lab.innerHTML = '<input type="radio" name="' + name + '"> ' +
+            (s.direction || '') + ' · ' + (s.transferType || '') + must + ' · id ' + (s.id != null ? s.id : '—');
+          var inp = lab.querySelector('input');
+          inp.addEventListener('change', function () {
+            if (rk) document.getElementById('f-rateKey').value = rk;
+          });
+          block.appendChild(lab);
+        });
+        list.appendChild(block);
+      });
       return;
     }
     var raw = data.services && data.services.service != null ? data.services.service : data.service;
@@ -275,7 +456,7 @@
     })
       .then(parseJsonResponse)
       .then(function (data) {
-        log(data);
+        log(append403Hint(data));
         var bd = data.data;
         if (bd && bd.bookings && bd.bookings[0] && bd.bookings[0].reference) {
           document.getElementById('c-ref').value = bd.bookings[0].reference;
@@ -284,6 +465,29 @@
         }
       })
       .catch(function (e) { log(String(e)); });
+  });
+
+  document.getElementById('btn-detail').addEventListener('click', function () {
+    var ref = document.getElementById('c-ref').value.trim();
+    if (!ref) {
+      log('Indica la referencia HB en el campo de la sección 4 (o pégala ahí).');
+      return;
+    }
+    var lang = document.getElementById('f-lang').value.trim() || 'en';
+    log('Consultando detalle…');
+    fetch(
+      '/api/hotelbeds-transfers?detail=1&language=' +
+        encodeURIComponent(lang) +
+        '&reference=' +
+        encodeURIComponent(ref)
+    )
+      .then(parseJsonResponse)
+      .then(function (data) {
+        log(append403Hint(data));
+      })
+      .catch(function (e) {
+        log(String(e));
+      });
   });
 
   document.getElementById('btn-cancel').addEventListener('click', function () {
@@ -307,7 +511,9 @@
       body: JSON.stringify(payload)
     })
       .then(parseJsonResponse)
-      .then(log)
+      .then(function (data) {
+        log(append403Hint(data));
+      })
       .catch(function (e) { log(String(e)); });
   });
 })();

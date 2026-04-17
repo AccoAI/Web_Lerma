@@ -5,8 +5,15 @@
  *      — disponibilidad simple (ida: dejar inbound vacío o omitir)
  *
  * POST /api/hotelbeds-transfers — JSON:
+ *   { "action": "availability_multi", "language":"en", "adults":2, "children":0, "infants":0,
+ *     "routes":[{ "id":"ATLAS/57/PORT/BCNP", "dateTime":"2026-08-12T10:00:00" }, ...] }
+ *     → POST …/transfer-api/1.0/availability/routes/{lang}/{adults}/{children}/{infants}
+ *     (hasta 20 rutas; query opcional: allowPartialResults, vehicle, type, category)
  *   { "action": "booking", "language":"en", "holder":{...}, "transfers":[...], ... } → POST …/transfer-api/1.0/bookings
+ *   { "action": "booking_detail", "language":"en", "reference":"XXX-XXXXXX" } → GET …/bookings/{lang}/reference/{ref}
  *   { "action": "cancel", "language":"en", "reference":"XXX-XXXXXX", "simulation":false, "serviceId": 2 } → DELETE …/bookings/{lang}/reference/…
+ *
+ * GET  /api/hotelbeds-transfers?detail=1&language=en&reference=XXX-XXXXXX — mismo GET booking detail (alternativa al POST).
  */
 import { createHash } from 'crypto';
 
@@ -35,6 +42,30 @@ function hbHeaders(apiKey, secret) {
     'Api-key': apiKey,
     'X-Signature': getSignature(apiKey, secret),
   };
+}
+
+function hbHeadersGet(apiKey, secret) {
+  return {
+    Accept: 'application/json',
+    'Api-key': apiKey,
+    'X-Signature': getSignature(apiKey, secret),
+  };
+}
+
+async function fetchBookingDetailJson(baseUrl, apiKey, secret, language, reference) {
+  const path = `${baseUrl}/transfer-api/1.0/bookings/${encodeURIComponent(language)}/reference/${encodeURIComponent(reference)}`;
+  const res = await fetch(path, {
+    method: 'GET',
+    headers: hbHeadersGet(apiKey, secret),
+  });
+  const text = await res.text();
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = { raw: text.slice(0, 1200) };
+  }
+  return { res, data };
 }
 
 /**
@@ -72,6 +103,30 @@ export async function GET(request) {
   const url = new URL(request.url);
   if (url.searchParams.get('ping') === '1') {
     return json({ ok: true, msg: 'hotelbeds-transfers proxy' });
+  }
+
+  const wantDetail =
+    url.searchParams.get('detail') === '1' || url.searchParams.get('booking_detail') === '1';
+  if (wantDetail) {
+    const reference = url.searchParams.get('reference') || url.searchParams.get('booking_reference');
+    const language = url.searchParams.get('language') || 'en';
+    if (!reference || !reference.trim()) {
+      return json({ ok: false, error: 'missing_reference' }, 400);
+    }
+    try {
+      const baseUrl = getBaseUrl();
+      const { res, data } = await fetchBookingDetailJson(
+        baseUrl,
+        apiKey,
+        secret,
+        language,
+        reference.trim()
+      );
+      return json({ ok: res.ok, httpStatus: res.status, data }, 200);
+    } catch (e) {
+      console.error('hotelbeds-transfers GET detail:', e);
+      return json({ ok: false, error: e.message || String(e) }, 200);
+    }
   }
 
   try {
@@ -118,6 +173,67 @@ export async function POST(request) {
 
   const baseUrl = getBaseUrl();
   const action = body.action || 'booking';
+
+  if (action === 'availability_multi') {
+    const language = body.language || 'en';
+    const adults = Math.max(0, parseInt(body.adults ?? 2, 10) || 0);
+    const children = Math.max(0, parseInt(body.children ?? 0, 10) || 0);
+    const infants = Math.max(0, parseInt(body.infants ?? 0, 10) || 0);
+    const routes = body.routes;
+    if (!Array.isArray(routes) || routes.length < 1 || routes.length > 20) {
+      return json(
+        { error: 'routes debe ser un array de 1 a 20 elementos { id, dateTime }' },
+        400
+      );
+    }
+    const qs = new URLSearchParams();
+    if (body.allowPartialResults === true) qs.set('allowPartialResults', 'true');
+    if (body.allowPartialResults === false) qs.set('allowPartialResults', 'false');
+    if (body.vehicle != null && body.vehicle !== '') qs.set('vehicle', String(body.vehicle));
+    if (body.type != null && body.type !== '') qs.set('type', String(body.type));
+    if (body.category != null && body.category !== '') qs.set('category', String(body.category));
+    const qstr = qs.toString();
+    const path = `${baseUrl}/transfer-api/1.0/availability/routes/${encodeURIComponent(language)}/${adults}/${children}/${infants}${qstr ? `?${qstr}` : ''}`;
+    try {
+      const res = await fetch(path, {
+        method: 'POST',
+        headers: hbHeaders(apiKey, secret),
+        body: JSON.stringify(routes),
+      });
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { raw: text.slice(0, 1200) };
+      }
+      return json({ ok: res.ok, httpStatus: res.status, data }, 200);
+    } catch (e) {
+      console.error('hotelbeds-transfers availability_multi:', e);
+      return json({ ok: false, error: e.message || String(e) }, 200);
+    }
+  }
+
+  if (action === 'booking_detail') {
+    const language = body.language || 'en';
+    const reference = body.reference || body.bookingReference;
+    if (!reference) {
+      return json({ error: 'Se requiere reference' }, 400);
+    }
+    try {
+      const { res, data } = await fetchBookingDetailJson(
+        baseUrl,
+        apiKey,
+        secret,
+        language,
+        String(reference).trim()
+      );
+      return json({ ok: res.ok, httpStatus: res.status, data }, 200);
+    } catch (e) {
+      console.error('hotelbeds-transfers booking_detail:', e);
+      return json({ ok: false, error: e.message || String(e) }, 200);
+    }
+  }
 
   if (action === 'cancel') {
     const language = body.language || 'en';
@@ -184,5 +300,8 @@ export async function POST(request) {
     }
   }
 
-  return json({ error: 'action no soportada (usa booking o cancel)' }, 400);
+  return json(
+    { error: 'action no soportada (usa availability_multi, booking, booking_detail o cancel)' },
+    400
+  );
 }
