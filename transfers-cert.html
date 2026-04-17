@@ -44,7 +44,7 @@
       <label>toType <input type="text" id="f-toType" value="IATA"></label>
       <label>toCode <input type="text" id="f-toCode" value="CIA"></label>
       <label>outbound (ISO) <input type="text" id="f-outbound" value="2026-07-15T14:00:00"></label>
-      <label>inbound (opcional) <input type="text" id="f-inbound" placeholder="Ida y vuelta"></label>
+      <label>inbound (opcional, ISO) <input type="text" id="f-inbound" placeholder="2026-08-14T18:00:00 o vacío"></label>
       <label>adults <input type="number" id="f-adults" value="2" min="0"></label>
       <label>children <input type="number" id="f-children" value="0" min="0"></label>
       <label>infants <input type="number" id="f-infants" value="0" min="0"></label>
@@ -56,6 +56,10 @@
       <strong>Servicios (elige uno para rellenar rateKey abajo)</strong>
       <div id="svc-list"></div>
     </div>
+
+    <h2 class="configurador-titulo" style="font-size:1rem;margin-top:1rem;">Respuesta API</h2>
+    <p class="tc-note" id="tc-hint" style="margin-top:0;">JSON del proxy al pulsar <em>Buscar disponibilidad</em>, <em>Confirmar booking</em> o <em>Cancelar</em>. Revisa <code>ok</code>, <code>httpStatus</code> y <code>data</code>.</p>
+    <pre class="tc-out" id="tc-out" aria-live="polite">Pulsa «Buscar disponibilidad» para probar el proxy.</pre>
 
     <h2 class="configurador-titulo" style="font-size:1rem;margin-top:1.5rem;">2. Confirmación (POST booking)</h2>
     <p class="tc-note">Pega el <code>rateKey</code> del servicio elegido. Para <strong>ida y vuelta (2 servicios)</strong>, añade un segundo bloque JSON en el array <code>transfers</code> (segunda búsqueda IN/OUT).</p>
@@ -83,9 +87,6 @@
     <div class="tc-actions">
       <button type="button" class="secondary" id="btn-cancel">Cancelar booking</button>
     </div>
-
-    <h2 class="configurador-titulo" style="font-size:1rem;margin-top:1.5rem;">Respuesta API</h2>
-    <pre class="tc-out" id="tc-out">—</pre>
 
     <div class="tc-legal">
       Documentación: <a href="https://developer.hotelbeds.com/documentation/transfers/booking-api/search-availability/availability-simple/" target="_blank" rel="noopener">Availability simple</a>,
@@ -125,6 +126,8 @@
     presetEl.appendChild(b);
   });
 
+  var ISO_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
+
   function q() {
     var p = new URLSearchParams();
     p.set('language', document.getElementById('f-lang').value.trim() || 'en');
@@ -134,19 +137,51 @@
     p.set('toCode', document.getElementById('f-toCode').value.trim());
     p.set('outbound', document.getElementById('f-outbound').value.trim());
     var inbound = document.getElementById('f-inbound').value.trim();
-    if (inbound) p.set('inbound', inbound);
+    if (inbound) {
+      if (!ISO_RE.test(inbound)) {
+        throw new Error('inbound debe estar vacío o ser fecha/hora ISO (ej. 2026-08-14T18:00:00). No uses texto como «Ida y vuelta».');
+      }
+      p.set('inbound', inbound);
+    }
     p.set('adults', document.getElementById('f-adults').value);
     p.set('children', document.getElementById('f-children').value);
     p.set('infants', document.getElementById('f-infants').value);
     return p.toString();
   }
 
+  function parseJsonResponse(r) {
+    return r.text().then(function (text) {
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        return {
+          ok: false,
+          parseError: true,
+          httpStatus: r.status,
+          snippet: text.slice(0, 400),
+        };
+      }
+    });
+  }
+
   document.getElementById('btn-search').addEventListener('click', function () {
+    var qs;
+    try {
+      qs = q();
+    } catch (e) {
+      log(String(e.message || e));
+      return;
+    }
     log('Cargando…');
-    fetch('/api/hotelbeds-transfers?' + q())
-      .then(function (r) { return r.json(); })
+    fetch('/api/hotelbeds-transfers?' + qs)
+      .then(parseJsonResponse)
       .then(function (data) {
-        log(data);
+        var outText = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+        if (data && data.httpStatus === 403 && data.data && data.data.error) {
+          outText +=
+            '\n\n— Si ves «Access to this API has been disallowed», pide a Hotelbeds que habilite la API de Transfers para tu Api-key (entorno test).';
+        }
+        log(outText);
         renderServices(data);
       })
       .catch(function (e) { log(String(e)); });
@@ -238,7 +273,7 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     })
-      .then(function (r) { return r.json(); })
+      .then(parseJsonResponse)
       .then(function (data) {
         log(data);
         var bd = data.data;
@@ -271,7 +306,7 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
-      .then(function (r) { return r.json(); })
+      .then(parseJsonResponse)
       .then(log)
       .catch(function (e) { log(String(e)); });
   });
