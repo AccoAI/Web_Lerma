@@ -67,8 +67,14 @@
     renderBlock('<div class="hotelbeds-block hotelbeds-loading"><span class="hotelbeds-spinner"></span> Consultando precios en tiempo real...</div>');
   }
 
+  function clearHotelbedsBookingContext() {
+    window.__HB_LAST_AVAIL__ = null;
+    window.__HB_RATE_BY_CODE = null;
+  }
+
   function renderError(msg) {
     window.LIVE_HOTEL_PRICES = null;
+    clearHotelbedsBookingContext();
     setBookingWidgetVisible(true);
     renderBlock('<div class="hotelbeds-block hotelbeds-error"><strong>No se pudieron cargar precios en tiempo real.</strong><br>' + escapeHtml(msg || 'Error de conexión') + '</div><p class="hotelbeds-block hotelbeds-info">El total del resumen puede usar precios por defecto. Puedes continuar con la reserva.</p>');
   }
@@ -78,6 +84,52 @@
     var div = document.createElement('div');
     div.textContent = s;
     return div.innerHTML;
+  }
+
+  function pickPreferredRate(rates) {
+    if (!rates) return null;
+    var list = Array.isArray(rates) ? rates : [rates];
+    var i;
+    var r;
+    for (i = 0; i < list.length; i++) {
+      r = list[i];
+      if (r && r.rateKey && String(r.rateType || '').toUpperCase() === 'BOOKABLE') return r;
+    }
+    for (i = 0; i < list.length; i++) {
+      r = list[i];
+      if (r && r.rateKey) return r;
+    }
+    return null;
+  }
+
+  function indexRatesByHotelCode(data) {
+    var map = {};
+    var hotels = (data && data.hotels && data.hotels.hotels) || [];
+    var hi;
+    for (hi = 0; hi < hotels.length; hi++) {
+      var h = hotels[hi];
+      var code = String(h.code || '');
+      var rooms = h.rooms || [];
+      var ri;
+      for (ri = 0; ri < rooms.length; ri++) {
+        var room = rooms[ri];
+        var rates = room.rates || [];
+        var rate = pickPreferredRate(rates);
+        if (rate && code) {
+          map[code] = {
+            rateKey: rate.rateKey,
+            rateType: rate.rateType || 'BOOKABLE',
+            roomName:
+              (typeof room.name === 'string' ? room.name : room.name && room.name.content) ||
+              room.description ||
+              '',
+            boardCode: rate.boardCode || rate.boardName || '',
+          };
+          break;
+        }
+      }
+    }
+    return map;
   }
 
   function triggerResumenUpdate() {
@@ -294,6 +346,7 @@
     var range = getCheckInCheckOut(formData);
     if (!range) {
       window.LIVE_HOTEL_PRICES = null;
+      clearHotelbedsBookingContext();
       setBookingWidgetVisible(false);
       renderBlock('<p class="hotelbeds-block hotelbeds-info">Selecciona las fechas en el calendario para ver precios en tiempo real (Hotelbeds).</p>');
       return;
@@ -302,6 +355,7 @@
     var noches = parseInt(formData.get('noches') || '0', 10);
     if (noches < 1) {
       window.LIVE_HOTEL_PRICES = null;
+      clearHotelbedsBookingContext();
       setBookingWidgetVisible(false);
       renderBlock('<p class="hotelbeds-block hotelbeds-info">Selecciona las fechas de estancia para ver hoteles y precios en tiempo real.</p>');
       return;
@@ -321,6 +375,8 @@
         if (hb && hb.error) {
           throw new Error(typeof hb.error === 'string' ? hb.error : (hb.error && hb.error.message) || 'Hotelbeds error');
         }
+        window.__HB_LAST_AVAIL__ = hb;
+        window.__HB_RATE_BY_CODE = indexRatesByHotelCode(hb);
         if (codes.length > 0) {
           var fd = getFormData();
           var n = parseInt(fd.get('noches') || '0', 10);
@@ -335,6 +391,174 @@
         document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
       });
   }
+
+  function splitHolderName(full) {
+    full = (full || '').trim();
+    if (!full) return { name: 'Guest', surname: 'Booking' };
+    var sp = full.indexOf(' ');
+    if (sp < 0) return { name: full, surname: 'Booking' };
+    return {
+      name: full.slice(0, sp).trim() || 'Guest',
+      surname: full.slice(sp + 1).trim() || 'Booking',
+    };
+  }
+
+  var HB_PAQUETE_LABELS = {
+    'fin-semana': 'Fin de semana golf Burgos',
+    'golf-vino': 'Paquete golf y vino',
+    '36-hoyos': '36 hoyos golf',
+    ryder: 'Ryder cup',
+    torneos: 'Torneo / configurador',
+    'pausa-drive': 'Pausa & drive',
+    cochinillo: 'Paquete cochinillo',
+    'tour-boogie': 'Tour boogie',
+    bautismos: 'Bautismos',
+    'primera-cuota': 'Cuota socio',
+  };
+
+  function hotelCodeFromSelectValue(hv, cfg) {
+    if (!hv) return null;
+    hv = String(hv);
+    if (hv.indexOf('hb-') === 0) return hv.slice(3);
+    var dash = hv.indexOf('-');
+    if (dash > 0 && cfg && cfg.getCode) {
+      var c = cfg.getCode(hv.slice(dash + 1));
+      if (c) return String(c);
+    }
+    return null;
+  }
+
+  function getActiveHotelCodeForBooking(formData, noches, cfg) {
+    var map = window.__HB_RATE_BY_CODE || {};
+    var i;
+    for (i = 1; i <= (noches || 10); i++) {
+      var hv = (formData.get && formData.get('hotel-noche-' + i)) || '';
+      var code = hotelCodeFromSelectValue(hv, cfg);
+      if (code && map[code]) return code;
+    }
+    for (i = 1; i <= (noches || 10); i++) {
+      hv = (formData.get && formData.get('hotel-noche-' + i)) || '';
+      code = hotelCodeFromSelectValue(hv, cfg);
+      if (code) return code;
+    }
+    return null;
+  }
+
+  function extractRateKeyAfterCheckrate(chk) {
+    if (!chk || typeof chk !== 'object') return null;
+    var h = chk.hotel || chk;
+    var rooms = (h && h.rooms) || [];
+    var r0 = rooms[0];
+    if (!r0) return null;
+    var rates = r0.rates || [];
+    var rt = Array.isArray(rates) ? rates[0] : rates;
+    return rt && rt.rateKey ? String(rt.rateKey) : null;
+  }
+
+  window.tryHotelbedsBookForStripe = function (opts) {
+    opts = opts || {};
+    if (window.HOTELBEDS_SKIP_PREBOOK === true) {
+      return Promise.resolve(null);
+    }
+    var formId = opts.formId || (pageOpts().formId || 'configuradorForm');
+    var form = document.getElementById(formId);
+    if (!form) return Promise.resolve(null);
+    var fd = new FormData(form);
+    var noches = parseInt(fd.get('noches') || '0', 10);
+    var cfg = window.HOTELBEDS_CONFIG;
+    var hotelCode = getActiveHotelCodeForBooking(fd, noches, cfg);
+    if (!hotelCode) return Promise.resolve(null);
+    var hb = window.__HB_LAST_AVAIL__;
+    var byCode = window.__HB_RATE_BY_CODE || {};
+    if (!hb || !hb.hotels || !byCode[hotelCode]) return Promise.resolve(null);
+    var pick = byCode[hotelCode];
+    if (!pick || !pick.rateKey) return Promise.resolve(null);
+
+    var nombre = (fd.get('usuario[1][nombre]') || '').trim();
+    var mail = (fd.get('usuario[1][correo]') || '').trim();
+    var pre = (fd.get('usuario[1][movil_prefijo]') || '+34').trim().replace(/\s+/g, '');
+    var mov = (fd.get('usuario[1][movil]') || '').replace(/\s+/g, '');
+    var phone = mov.indexOf('+') === 0 ? mov : pre + mov;
+    if (!phone) phone = '+34000000000';
+
+    if (!mail) {
+      return Promise.reject(new Error('Falta el correo del titular (usuario 1) para la reserva de hotel.'));
+    }
+
+    var nameParts = splitHolderName(nombre);
+    var base = window.location.origin || '';
+    var paquete = opts.paquete || '';
+    var pkgLabel = HB_PAQUETE_LABELS[paquete] || paquete || 'Paquete Golf Lerma';
+
+    function postHb(payload) {
+      return fetch(base + '/api/hotelbeds-availability', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).then(function (r) {
+        return r.json();
+      });
+    }
+
+    function doBooking(finalRateKey) {
+      var booking = {
+        holder: {
+          name: nameParts.name,
+          surname: nameParts.surname,
+          email: mail,
+          phone: phone,
+        },
+        rooms: [
+          {
+            rateKey: finalRateKey,
+            paxes: [
+              {
+                roomId: 1,
+                type: 'AD',
+                name: nameParts.name,
+                surname: nameParts.surname,
+              },
+            ],
+          },
+        ],
+        clientReference: 'GL-' + paquete + '-' + Date.now(),
+        remark: 'Web paquete / Stripe: ' + pkgLabel,
+        tolerance: '2',
+      };
+      return postHb({ action: 'booking', booking: booking, packageLabel: pkgLabel }).then(function (res) {
+        if (!res.ok || !res.voucher) {
+          var msg =
+            res.hotelbedsError ||
+            (res.data &&
+              res.data.error &&
+              (typeof res.data.error === 'string' ? res.data.error : res.data.error.message)) ||
+            res.error ||
+            'La reserva Hotelbeds no devolvió bono (voucher).';
+          throw new Error(String(msg));
+        }
+        return res.voucher;
+      });
+    }
+
+    var rk = pick.rateKey;
+    var rt = String(pick.rateType || '').toUpperCase();
+    if (rt === 'RECHECK') {
+      return postHb({ action: 'checkrates', rooms: [{ rateKey: rk }] }).then(function (cr) {
+        if (!cr.ok) {
+          var e =
+            cr.hotelbedsError ||
+            (cr.data && cr.data.error && (cr.data.error.message || cr.data.error)) ||
+            cr.error ||
+            'CheckRate falló';
+          throw new Error(String(e));
+        }
+        var nk = extractRateKeyAfterCheckrate(cr.data);
+        if (!nk) throw new Error('CheckRate no devolvió rateKey.');
+        return doBooking(nk);
+      });
+    }
+    return doBooking(rk);
+  };
 
   function schedule() {
     if (debounceTimer) clearTimeout(debounceTimer);

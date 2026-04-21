@@ -1,9 +1,14 @@
 import { createHash } from 'crypto';
+import { mapHotelbedsBookingToVoucherData } from '../lib/hotelbeds-booking-map.js';
 
 /**
  * Proxy para Hotelbeds Availability API
  * POST /api/hotelbeds-availability
  * Body: { checkIn, checkOut, rooms, adults, children?, hotelCodes?, destinationCode? }
+ *
+ * También (mismo endpoint, sin función extra en Vercel):
+ * - { "action": "checkrates", "rooms": [ { "rateKey": "..." }, ... ] } (máx. 10)
+ * - { "action": "booking", "booking": { ... }, "packageLabel": "opcional" } → POST /bookings (timeout 65s)
  *
  * Transfers status (mismo archivo para límite 12 funciones Hobby): GET /api/hotelbeds-transfers-status?status=1
  * → rewrite en vercel.json a ?__hb_transfers=1
@@ -16,14 +21,135 @@ function getSignature(apiKey, secret) {
   return createHash('sha256').update(str, 'utf8').digest('hex');
 }
 
+function hotelbedsBaseUrl() {
+  return process.env.HOTELBEDS_ENV === 'production'
+    ? 'https://api.hotelbeds.com'
+    : 'https://api.test.hotelbeds.com';
+}
+
+const BOOKING_TIMEOUT_MS = 65000;
+
+async function hotelbedsPostJson(apiKey, secret, pathSuffix, jsonBody, timeoutMs) {
+  const baseUrl = hotelbedsBaseUrl();
+  const signature = getSignature(apiKey, secret);
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${baseUrl}${pathSuffix}`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'Api-key': apiKey,
+        'X-Signature': signature,
+      },
+      body: JSON.stringify(jsonBody),
+      signal: controller.signal,
+    });
+    const text = await res.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { raw: text.slice(0, 1500) };
+    }
+    return { res, data };
+  } finally {
+    clearTimeout(tid);
+  }
+}
+
+async function handleCheckrates(apiKey, secret, body) {
+  const rooms = body.rooms;
+  if (!Array.isArray(rooms) || rooms.length < 1 || rooms.length > 10) {
+    return jsonResponse({ error: 'rooms debe ser un array de 1 a 10 { rateKey }' }, 400);
+  }
+  for (const r of rooms) {
+    if (!r || !r.rateKey) {
+      return jsonResponse({ error: 'Cada room debe incluir rateKey' }, 400);
+    }
+  }
+  try {
+    const { res, data } = await hotelbedsPostJson(
+      apiKey,
+      secret,
+      '/hotel-api/1.0/checkrates',
+      { rooms },
+      45000
+    );
+    const hbErr =
+      data &&
+      data.error &&
+      (typeof data.error === 'string' ? data.error : data.error.message || JSON.stringify(data.error));
+    const logicalOk = res.ok && !hbErr;
+    return jsonResponse(
+      {
+        ok: logicalOk,
+        httpStatus: res.status,
+        data,
+        ...(hbErr && { hotelbedsError: hbErr }),
+      },
+      200
+    );
+  } catch (e) {
+    const msg = e.name === 'AbortError' ? 'Timeout checkrates' : e.message || String(e);
+    return jsonResponse({ ok: false, error: msg }, 200);
+  }
+}
+
+async function handleBooking(apiKey, secret, body) {
+  const bookingBody = body.booking && typeof body.booking === 'object' ? body.booking : null;
+  if (!bookingBody || !bookingBody.holder || !Array.isArray(bookingBody.rooms)) {
+    return jsonResponse(
+      {
+        error:
+          'Body inválido: { action: "booking", booking: { holder, rooms, clientReference?, ... } }',
+      },
+      400
+    );
+  }
+  try {
+    const { res, data } = await hotelbedsPostJson(
+      apiKey,
+      secret,
+      '/hotel-api/1.0/bookings',
+      bookingBody,
+      BOOKING_TIMEOUT_MS
+    );
+    const hbErr =
+      data &&
+      data.error &&
+      (typeof data.error === 'string' ? data.error : data.error.message || JSON.stringify(data.error));
+    const logicalOk = res.ok && !hbErr;
+    let voucher = null;
+    if (logicalOk && data) {
+      voucher = mapHotelbedsBookingToVoucherData(data);
+      if (voucher && body.packageLabel) {
+        voucher.packageName = String(body.packageLabel).slice(0, 200);
+      }
+    }
+    return jsonResponse(
+      {
+        ok: logicalOk,
+        httpStatus: res.status,
+        data,
+        voucher,
+        ...(hbErr && { hotelbedsError: hbErr }),
+      },
+      200
+    );
+  } catch (e) {
+    const msg = e.name === 'AbortError' ? 'Timeout booking (≥65s)' : e.message || String(e);
+    return jsonResponse({ ok: false, error: msg, voucher: null }, 200);
+  }
+}
+
 /**
  * @returns {{ ok: true, data: object } | { ok: false, error: string, status?: number, raw?: string, data?: object }}
  */
 async function fetchAvailability(apiKey, secret, body) {
   const signature = getSignature(apiKey, secret);
-  const baseUrl = process.env.HOTELBEDS_ENV === 'production'
-    ? 'https://api.hotelbeds.com'
-    : 'https://api.test.hotelbeds.com';
+  const baseUrl = hotelbedsBaseUrl();
 
   const payload = {
     stay: {
@@ -119,10 +245,7 @@ async function handleTransfersStatusGET(request) {
     );
   }
 
-  const baseUrl =
-    process.env.HOTELBEDS_ENV === 'production'
-      ? 'https://api.hotelbeds.com'
-      : 'https://api.test.hotelbeds.com';
+  const baseUrl = hotelbedsBaseUrl();
 
   const sig = getSignature(apiKey, secret);
   try {
@@ -161,7 +284,7 @@ export async function GET(request) {
     const apiKey = process.env.API_Key || process.env.HOTELBEDS_API_KEY;
     const secret = process.env.API_Secret || process.env.HOTELBEDS_API_SECRET;
     if (!apiKey || !secret) return jsonResponse({ error: 'Faltan credenciales' }, 200);
-    const baseUrl = process.env.HOTELBEDS_ENV === 'production' ? 'https://api.hotelbeds.com' : 'https://api.test.hotelbeds.com';
+    const baseUrl = hotelbedsBaseUrl();
     const signature = getSignature(apiKey, secret);
     try {
       const res = await fetch(`${baseUrl}/hotel-api/1.0/status`, {
@@ -228,6 +351,14 @@ export async function POST(request) {
 
   try {
     const body = await request.json().catch(() => ({}));
+
+    if (body.action === 'checkrates') {
+      return handleCheckrates(apiKey, secret, body);
+    }
+    if (body.action === 'booking') {
+      return handleBooking(apiKey, secret, body);
+    }
+
     const checkIn = (body.checkIn || '').trim();
     const checkOut = (body.checkOut || '').trim();
 

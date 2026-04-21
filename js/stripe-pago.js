@@ -85,16 +85,40 @@
       submitButton.textContent = 'Procesando...';
     }
 
-    fetch('/api/crear-pago', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        amountCents: amountCents,
-        modo: modo,
-        numParticipantes: numParticipantes,
-        paquete: paquete
+    var prebook = Promise.resolve(null);
+    if (typeof window.tryHotelbedsBookForStripe === 'function' && window.HOTELBEDS_SKIP_PREBOOK !== true) {
+      prebook = window
+        .tryHotelbedsBookForStripe({
+          paquete: paquete,
+          formId: options.formId,
+        })
+        .catch(function (err) {
+          if (options.hotelbedsStrictPrebook === true || window.HOTELBEDS_STRICT_PREBOOK === true) {
+            return Promise.reject(err);
+          }
+          console.warn('[Hotelbeds] Sin pre-reserva antes de Stripe:', err && err.message ? err.message : err);
+          return null;
+        });
+    }
+
+    prebook
+      .then(function (hotelbedsVoucher) {
+        var body = {
+          amountCents: amountCents,
+          modo: modo,
+          numParticipantes: numParticipantes,
+          paquete: paquete,
+        };
+        if (options.tituloTorneo) body.tituloTorneo = options.tituloTorneo;
+        if (hotelbedsVoucher && typeof hotelbedsVoucher === 'object') {
+          body.hotelbedsVoucher = hotelbedsVoucher;
+        }
+        return fetch('/api/crear-pago', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
       })
-    })
       .then(function (r) {
         return r.text().then(function (text) {
           if (!r.ok) {
@@ -102,7 +126,7 @@
             try {
               var j = JSON.parse(text);
               if (j && j.error) errMsg = j.error;
-            } catch (e) {
+            } catch (e2) {
               if (r.status === 404) errMsg = 'La pasarela de pago no está disponible. ¿Estás en el servidor desplegado?';
               else if (text && text.length < 200) errMsg = text;
             }
@@ -110,7 +134,7 @@
           }
           try {
             return JSON.parse(text);
-          } catch (e) {
+          } catch (e3) {
             throw new Error('Respuesta inválida del servidor');
           }
         });

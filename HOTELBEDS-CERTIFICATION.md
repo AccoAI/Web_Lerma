@@ -14,26 +14,26 @@ We currently use our **Vercel production URL** for certification and tester acce
 
 ## Estado del código frente a la guía de certificación (Hotels)
 
-Use this table internally and with Hotelbeds **only with honest wording**. Last reviewed against repo: **availability + UI pricing** implemented; **CheckRate, Hotelbeds Booking, and voucher metadata from the package flow** are not fully wired yet.
+Use this table internally and with Hotelbeds **only with honest wording**. Last reviewed against repo: **availability + UI pricing**; **CheckRate (solo RECHECK), Booking y `hotelbedsVoucher` → Stripe** en el flujo de paquetes que cargan `js/hotelbeds-paquetes.js` + `js/stripe-pago.js` (ver notas de alcance).
 
 | Área (guía) | Requisito principal | Estado en repo | Notas / archivos |
 |-------------|---------------------|----------------|------------------|
 | **1 Technical** | Requests well-formed; GZIP where applicable | **Parcial** | Proxy `api/hotelbeds-availability.js` uses `fetch` + standard headers. Confirm explicit **Accept-Encoding: gzip** if auditors require it. |
-| **2.1–2.2 Workflow** | Availability → (CheckRate if needed) → Booking; **no** redundant Availability before CheckRate/Booking | **No cumplido** (booking HB ausente) | No hay llamada a `…/checkrates` ni a `…/bookings` (hoteles) en el flujo de paquetes. `js/stripe-pago.js` no envía `hotelbedsVoucher` a `crear-pago`. |
+| **2.1–2.2 Workflow** | Availability → (CheckRate if needed) → Booking; **no** redundant Availability before CheckRate/Booking | **Parcial** | Tras disponibilidad, el front guarda `rateKey` por código (`js/hotelbeds-paquetes.js`). Antes de Stripe: **CheckRate** solo si la tarifa elegida es `RECHECK`; luego **Booking** vía el mismo proxy (`action: checkrates` / `action: booking`). **Orden comercial:** reserva HB **antes** del enlace Stripe para poder adjuntar voucher en metadata (si falla HB, el pago puede seguir sin voucher salvo `HOTELBEDS_STRICT_PREBOOK`). |
 | **2.3** | Max hotels per availability call within limit | **Parcial** | Con `hotelCodes` en body se agrupan; `js/precios-data.js` tiene `hotelbedsCode: null` en hoteles por defecto → a menudo se usa **destino** (dos llamadas BUR/BUR2) en `js/hotelbeds-paquetes.js`. |
-| **2.5–2.6 CheckRate** | Solo si `rateType=RECHECK`; batch hasta 10 | **No implementado** | No hay `RECHECK` / `BOOKABLE` en el código del front. |
+| **2.5–2.6 CheckRate** | Solo si `rateType=RECHECK`; batch hasta 10 | **Parcial** | Se prioriza tarifa **BOOKABLE** al indexar; si la elegida es **RECHECK**, una habitación → un `checkrates`. Multitarifa / hasta 10 en un solo batch: **no** desde el flujo paquete aún. |
 | **2.7 Promotions** | Mostrar promociones de tarifa | **No** en UI actual | Lista de precios resumida; no se pintan `promotions` por rate. |
 | **3.1** | Precio, habitación, régimen, hotel, paginación… | **Parcial** | Se muestran nombre + precio (minRate / primer rate); no hay selector granular de **cada** rateKey / room / board desde HB en el HTML de paquetes. |
-| **3.2–3.4** | Pax / niños / multi-room | **Parcial** | `fetchAvailability` usa ocupación simple (rooms/adults/children) en `api/hotelbeds-availability.js`; UI de grupo en formularios, no mapeo completo multi-occupancy HB. |
+| **3.2–3.4** | Pax / niños / multi-room | **Parcial** | `fetchAvailability` usa ocupación simple (rooms/adults/children) en `api/hotelbeds-availability.js`; el **booking** desde paquetes envía **1 habitación / 1 adulto** (titular `usuario[1]`). Sin mapeo completo multi-occupancy HB. |
 | **3.6 sourceMarket** | Si se pide, solo para ese mercado | **No** en request | El POST de disponibilidad no añade `sourceMarket` hoy. |
 | **3.8 Cancellation policies** | Mostrar o declarar que no | **No** en UI | Declarar por escrito a Hotelbeds si no se muestran. |
 | **3.9 Rate comments** | Antes de confirmar; Content o CheckRate | **No** | No implementado en el flujo de paquetes. |
-| **3.11 Booking timeout ≥ 60 s** | Cliente booking | **N/A** hasta haber booking | Cuando exista `fetch` a `/bookings`, configurar timeout ≥ 60 s. |
-| **4 Voucher** | Documento completo al cliente | **Infra lista, flujo incompleto** | `api/webhook-stripe.js` + `lib/hotelbeds-voucher-html.js` generan HTML si hay metadata `hb_*`; eso requiere `hotelbedsVoucher` en `POST /api/crear-pago` — hoy **no** lo rellena `iniciarPagoStripe`. |
+| **3.11 Booking timeout ≥ 60 s** | Cliente booking | **Sí (servidor)** | `api/hotelbeds-availability.js`: timeout **65 s** en POST `/bookings`. |
+| **4 Voucher** | Documento completo al cliente | **Parcial** | `js/stripe-pago.js` envía **`hotelbedsVoucher`** a `POST /api/crear-pago` cuando `tryHotelbedsBookForStripe` devuelve datos (páginas con `hotelbeds-paquetes.js`). `api/webhook-stripe.js` + `lib/hotelbeds-voucher-html.js` generan el HTML si hay `hb_*`. Páginas **sin** bloque Hotelbeds no rellenan voucher. |
 | **5 Content** | Uso correcto de Content API | **Parcial** | `api/hotelbeds-list-hotels.js` + listados para desplegables; no es catálogo completo al estilo guía. |
 | **6 Live** | Booking + cancel en LIVE | **Post-certificación** | Tras llaves LIVE y acuerdo con HB. |
 
-**Conclusión:** Podéis certificar **parte técnica de disponibilidad y uso del proxy**, pero **no** afirmar en correo que ya cumplís el workflow completo §2–§4 hasta implementar CheckRate condicional, Booking con `rateKey`, y paso de datos al voucher (o acordar un alcance explícito con `apitude@hotelbeds.com`).
+**Conclusión:** Podéis afirmar **Availability + CheckRate condicional + Booking + envío de voucher a Stripe** en el flujo de paquetes con alojamiento HB **cuando** el usuario tiene fechas, hotel con `rateKey` en la última disponibilidad y datos del titular. Seguís con **lagunas** (promociones, políticas cancelación en UI, rate comments, multi-room/pax, `sourceMarket`, GZIP explícito) — aclaradlas en correo o completadlas antes de la revisión.
 
 ---
 
@@ -81,9 +81,9 @@ We operate a **single B2C channel** for regional golf/stay packages on our websi
 
 1. **Availability** — Implemented today: we call `POST …/hotel-api/1.0/hotels` **only from our server-side proxy** (`POST https://web-lerma.vercel.app/api/hotelbeds-availability`). The browser never holds Hotelbeds credentials; we authenticate with **Api-key** and **X-Signature** (HMAC). The UI uses an **800 ms debounce** to minimise unnecessary availability calls. We show **live prices** (from `minRate` or the first returned rate) in the package/configurator pages listed below.
 
-2. **CheckRate** — **Not yet wired in our UI/API path.** We intend to follow your rule (§2.5): **CheckRate only when the chosen rate has `rateType=RECHECK`**, and **no** CheckRate for `BOOKABLE`, with **batched** CheckRate when multiple RECHECK rates apply (§2.6). We will not repeat Availability redundantly before CheckRate/Booking (§2.1–2.2).
+2. **CheckRate** — Implemented on the **package payment path** when the selected rate requires it: our client (`js/hotelbeds-paquetes.js`) prefers **BOOKABLE** rates when indexing availability; if the chosen rate is **`rateType=RECHECK`**, we call **`POST …/checkrates`** through the same server proxy (`POST /api/hotelbeds-availability` with `action: "checkrates"`). We do **not** call CheckRate for BOOKABLE-only paths. **Batch CheckRate (up to 10)** for multiple RECHECK rooms is **not** wired from the package UI yet.
 
-3. **Confirmation (Booking)** — **Not yet wired end-to-end from the public package flow.** We collect payment via **Stripe** (`POST /api/crear-pago` + Payment Links). Our backend **can** attach Hotelbeds voucher fields to Stripe metadata when `hotelbedsVoucher` is supplied to `crear-pago`, and the **webhook** can email an HTML voucher (`/api/webhook-stripe` + `lib/hotelbeds-voucher-html.js`), but the **default** `iniciarPagoStripe` flow does **not** yet send `hotelbedsVoucher` or call Hotelbeds **`/bookings`**. We will implement Booking after payment (or the order you require), **`rateKey`** from Availability/CheckRate as per your workflow, and a **≥ 60 s** timeout on the Booking client (§3.11).
+3. **Confirmation (Booking)** — Implemented for **package pages that load our Hotelbeds pricing script**: before redirecting to **Stripe** (`POST /api/crear-pago` + Payment Links), the browser calls our proxy with **`action: "booking"`** and the **`rateKey`** from the last Availability response (or from CheckRate when RECHECK). The proxy uses a **≥ 60 s** server-side timeout (**65 s**) on **`/hotel-api/1.0/bookings`** (§3.11). **Commercial order:** we confirm the **Hotelbeds booking first**, then create the Stripe Payment Link including **`hotelbedsVoucher`** in the JSON body so **`hb_*` metadata** can be stored and the **webhook** (`/api/webhook-stripe` + `lib/hotelbeds-voucher-html.js`) can email the HTML voucher. If Hotelbeds pre-book fails, payment may still proceed **without** voucher metadata unless strict mode is enabled (`HOTELBEDS_STRICT_PREBOOK` / `hotelbedsStrictPrebook`). **Scope limits:** we currently send **one room / one adult (lead guest from `usuario[1]`)** from the package form; pages **without** `hotelbeds-paquetes.js` do not trigger this path.
 
 **Volume / batching (availability) today:**
 
@@ -116,7 +116,7 @@ Our offer is a **specialised regional golf/stay product** (Lerma and Burgos area
 
 **Target (§4):** For confirmed HB hotel stays, a voucher with reference, dates, room/board, pax, supplier payment line, etc.
 
-**Today:** Voucher HTML for hotels is implemented in **`/api/webhook-stripe`** using **`lib/hotelbeds-voucher-html.js`** when Stripe metadata contains **`hb_*`** fields produced from **`hotelbedsVoucher`** in **`POST /api/crear-pago`**. That metadata path is **not** populated by the default package payment button today; it is ready for wiring once Booking is integrated.
+**Today:** Voucher HTML for hotels is implemented in **`/api/webhook-stripe`** using **`lib/hotelbeds-voucher-html.js`** when Stripe metadata contains **`hb_*`** fields produced from **`hotelbedsVoucher`** in **`POST /api/crear-pago`**. On package pages with **`js/hotelbeds-paquetes.js`**, **`js/stripe-pago.js`** calls **`window.tryHotelbedsBookForStripe`** before **`crear-pago`** and passes the returned voucher when Booking succeeds.
 
 ### Content API
 
@@ -149,7 +149,7 @@ Example: `{"checkIn":"YYYY-MM-DD","checkOut":"YYYY-MM-DD","rooms":1,"adults":2,"
 
 ### Payment information
 
-**Merchant model:** **ADRINOS SL** collects **package payment** from the end customer via **Stripe** on our website. After a **successful payment**, our backend performs **Hotelbeds confirmation** as described above. **Settlement with Hotelbeds** is handled under our **commercial agreement**.
+**Merchant model:** **ADRINOS SL** collects **package payment** from the end customer via **Stripe** on our website. For configured **Hotelbeds accommodation** flows, we typically **confirm the Hotelbeds booking on the server proxy first** (so voucher data can be attached to the Stripe session), then the customer completes payment on Stripe. **Settlement with Hotelbeds** is handled under our **commercial agreement**.
 
 ### Language
 
@@ -182,7 +182,7 @@ Estimada Tanya,
 
 Gracias por la información sobre la certificación. Hemos revisado el [proceso de certificación](https://developer.hotelbeds.com/documentation/hotels/knowledge-base/certification-process/) y adjuntamos los datos solicitados.
 
-**Flujo (real hoy):** Disponibilidad vía proxy (`/api/hotelbeds-availability`), precios en vivo en paquetes, debounce 800 ms. **CheckRate y Booking HB aún no conectados** al flujo público de pago; voucher por correo cuando existan metadatos `hb_*` en Stripe. Ver tabla *Estado del código* arriba. **Objetivo certificación:** CheckRate solo si `RECHECK`; booking con `rateKey`; timeout ≥ 60 s.
+**Flujo (real hoy):** Disponibilidad vía proxy (`/api/hotelbeds-availability`), precios en vivo en paquetes con `hotelbeds-paquetes.js`, debounce 800 ms. Antes de Stripe: **CheckRate** solo si la tarifa es `RECHECK`; **Booking** con `rateKey` y timeout servidor **65 s**; si hay voucher, **`crear-pago`** recibe `hotelbedsVoucher` y el webhook puede enviar el HTML. Ver tabla *Estado del código* y límites (1 hab. / titular). Páginas sin script Hotelbeds no hacen pre-reserva.
 
 **URLs base:** `https://web-lerma.vercel.app` (Vercel Production; dominio propio posible después sin cambiar rutas API).
 
@@ -216,11 +216,11 @@ Un saludo,
 | **Opaque / packaged rates** | Must match real behaviour |
 | **Cancellation policies** | Display vs not display |
 | **Content API** | Honest list (`hotelbeds-list-hotels`, etc.) |
-| **Voucher** | **Infra:** `/api/webhook-stripe` + `hb_*` metadata from `hotelbedsVoucher` in `POST /api/crear-pago`. **Gap:** `js/stripe-pago.js` does not send `hotelbedsVoucher` yet; Hotelbeds `/bookings` not called from package flow. |
+| **Voucher** | **Infra:** `/api/webhook-stripe` + `hb_*` from `hotelbedsVoucher` in `POST /api/crear-pago`. **Paquetes con HB:** `stripe-pago.js` + `tryHotelbedsBookForStripe` en `hotelbeds-paquetes.js`. **Sin script HB en la página:** no voucher. |
 | **Login** | None or test user |
 | **test / production** | As agreed with Hotelbeds |
 
-**Implementation note:** Align code with §2.5 (**CheckRate only if `rateType=RECHECK`**) before claiming full workflow in writing. The English template above is now **honest about current vs planned** behaviour; do not revert to aspirational wording until Booking + metadata are wired.
+**Implementation note:** Re-read the **English** workflow block before sending; disclose **gaps** still marked **No / Parcial** in the Spanish table (promotions, cancellation UI, rate comments, `sourceMarket`, multi-room, GZIP if required).
 
 ---
 
