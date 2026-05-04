@@ -321,6 +321,13 @@ export async function POST(request) {
         400
       );
     }
+    {
+      const rawRef =
+        bookingBody.clientReference != null && String(bookingBody.clientReference).trim() !== ''
+          ? String(bookingBody.clientReference).trim()
+          : 'GL-' + Date.now();
+      bookingBody.clientReference = rawRef.slice(0, 20);
+    }
     try {
       const res = await fetch(`${baseUrl}/transfer-api/1.0/bookings`, {
         method: 'POST',

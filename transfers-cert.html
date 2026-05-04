@@ -112,7 +112,7 @@
       <label>Dirección ride 2 <input type="text" id="td2-dir" value="ARRIVAL" placeholder="DEPARTURE/ARRIVAL"></label>
       <label>Código ride 2 <input type="text" id="td2-code" value="AB5678" maxlength="7"></label>
     </div>
-    <p class="tc-note" style="margin-top:0.75rem;">Opcional — cuerpo booking completo (sustituye el formulario si es JSON válido; debe incluir <code>language</code>, <code>holder</code>, <code>transfers</code> como en Postman):</p>
+    <p class="tc-note" style="margin-top:0.75rem;">Opcional — cuerpo booking completo (sustituye el formulario si es JSON válido; debe incluir <code>language</code>, <code>holder</code>, <code>transfers</code> como en Postman). <strong>clientReference</strong> se recorta a 20 caracteres (límite Transfer API). Déjalo vacío para usar solo el formulario.</p>
     <textarea class="tc-multi-json" id="f-booking-raw" rows="6" aria-label="Booking JSON opcional" placeholder='{"language":"en","holder":{...},"transfers":[...]}'></textarea>
     <div class="tc-actions">
       <button type="button" id="btn-book">Confirmar booking</button>
@@ -452,6 +452,13 @@
     });
   }
 
+  /** Transfer API: clientReference máx. 20 caracteres (Hotelbeds). */
+  function hbTransferClientRef(optional) {
+    var s = optional != null && String(optional).trim() !== '' ? String(optional).trim() : '';
+    if (!s) s = 'GL-' + Date.now();
+    return s.slice(0, 20);
+  }
+
   function buildBookingBody() {
     var raw = document.getElementById('f-booking-raw').value.trim();
     if (raw) {
@@ -464,6 +471,7 @@
       if (!inner || typeof inner !== 'object' || Array.isArray(inner)) {
         throw new Error('El JSON avanzado debe ser un objeto con language, holder, transfers…');
       }
+      inner.clientReference = hbTransferClientRef(inner.clientReference);
       return Object.assign({}, inner, { action: 'booking' });
     }
     var rk = document.getElementById('f-rateKey').value.trim();
@@ -504,7 +512,7 @@
         phone: document.getElementById('h-phone').value.trim()
       },
       transfers: transfers,
-      clientReference: ('GL-' + Date.now()).slice(0, 20),
+      clientReference: hbTransferClientRef(),
       remark: 'Certification test booking'
     };
   }
