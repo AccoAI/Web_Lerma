@@ -504,7 +504,7 @@
         phone: document.getElementById('h-phone').value.trim()
       },
       transfers: transfers,
-      clientReference: 'GOLF-LERMA-CERT-' + Date.now(),
+      clientReference: ('GL-' + Date.now()).slice(0, 20),
       remark: 'Certification test booking'
     };
   }
