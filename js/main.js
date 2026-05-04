@@ -354,15 +354,21 @@ function getPrecios() {
     return window.PRECIOS_DATA || {};
 }
 function getHotelesOpts() {
-    if (window.HOTELBEDS_DYNAMIC_OPTS && window.HOTELBEDS_DYNAMIC_OPTS.lerma && window.HOTELBEDS_DYNAMIC_OPTS.burgos) {
-        return window.HOTELBEDS_DYNAMIC_OPTS;
-    }
     var p = getPrecios();
     var hl = (p.hoteles && p.hoteles.lerma) || [];
     var hb = (p.hoteles && p.hoteles.burgos) || [];
-    return {
+    var staticOpts = {
         lerma: hl.map(function (h) { return { v: h.id, l: h.nombre, p: h.precioPorNoche }; }),
-        burgos: hb.map(function (h) { return { v: h.id, l: h.nombre, p: h.precioPorNoche }; })
+        burgos: hb.map(function (h) { return { v: h.id, l: h.nombre, p: h.precioPorNoche }; }),
+    };
+    var dyn = window.HOTELBEDS_DYNAMIC_OPTS;
+    if (!dyn || !dyn.lerma || !dyn.burgos) return staticOpts;
+    function pick(staticArr, dynArr) {
+        return dynArr && dynArr.length > 0 ? dynArr : (staticArr || []);
+    }
+    return {
+        lerma: pick(staticOpts.lerma, dyn.lerma),
+        burgos: pick(staticOpts.burgos, dyn.burgos),
     };
 }
 var HOTELES_OPTS = getHotelesOpts();

@@ -420,7 +420,12 @@
       window.LIVE_HOTEL_PRICES = null;
       window.HOTELBEDS_DYNAMIC_OPTS = null;
       setBookingWidgetVisible(true);
-      renderBlock('<div class="hotelbeds-block hotelbeds-info">No se pudo cargar el listado de hoteles. Elige Lerma o Burgos y un hotel en los desplegables; si no aparecen opciones, usa el enlace a Booking.com debajo.</div>');
+      renderBlock(
+        '<div class="hotelbeds-block hotelbeds-info">' +
+        'Hotelbeds no devolvió catálogo ni disponibilidad para Burgos/Lerma con estas fechas (es habitual en entorno de pruebas o sin inventario). ' +
+        'Puedes elegir un <strong>hotel de referencia</strong> en los desplegables (precios orientativos de la web) o reservar con los enlaces a Booking más abajo.' +
+        '</div>'
+      );
       document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
       return;
     }
