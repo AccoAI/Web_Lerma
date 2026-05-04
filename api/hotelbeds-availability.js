@@ -1,5 +1,6 @@
 import { createHash } from 'crypto';
 import { mapHotelbedsBookingToVoucherData } from '../lib/hotelbeds-booking-map.js';
+import { getHotelbedsCredentialsTransfers } from '../lib/hotelbeds-credentials.js';
 
 /**
  * Proxy para Hotelbeds Availability API
@@ -13,7 +14,8 @@ import { mapHotelbedsBookingToVoucherData } from '../lib/hotelbeds-booking-map.j
  * Transfers status (mismo archivo para límite 12 funciones Hobby): GET /api/hotelbeds-transfers-status?status=1
  * → rewrite en vercel.json a ?__hb_transfers=1
  *
- * Variables de entorno en Vercel: API_Key, API_Secret (o HOTELBEDS_API_KEY, HOTELBEDS_API_SECRET)
+ * Variables Hotel API: API_Key, API_Secret (o HOTELBEDS_API_KEY / HOTELBEDS_API_SECRET).
+ * Para Transfer status: HOTELBEDS_TRANSFER_API_KEY / HOTELBEDS_TRANSFER_API_SECRET tienen prioridad.
  */
 function getSignature(apiKey, secret) {
   const ts = Math.floor(Date.now() / 1000);
@@ -230,17 +232,21 @@ async function handleTransfersStatusGET(request) {
   if (url.searchParams.get('status') !== '1' && url.searchParams.get('ping') !== '1') {
     return jsonResponse(
       {
-        hint: 'Use GET ?status=1 para transfer-api/1.0/status (mismas credenciales que Hotels).',
+        hint: 'Use GET ?status=1 para transfer-api/1.0/status (credenciales: HOTELBEDS_TRANSFER_* o hotel API).',
       },
       400
     );
   }
 
-  const apiKey = process.env.API_Key || process.env.HOTELBEDS_API_KEY;
-  const secret = process.env.API_Secret || process.env.HOTELBEDS_API_SECRET;
+  const { apiKey, secret } = getHotelbedsCredentialsTransfers();
   if (!apiKey || !secret) {
     return jsonResponse(
-      { ok: false, error: 'missing_credentials', message: 'Faltan HOTELBEDS_API_KEY / HOTELBEDS_API_SECRET' },
+      {
+        ok: false,
+        error: 'missing_credentials',
+        message:
+          'Faltan HOTELBEDS_TRANSFER_API_KEY / HOTELBEDS_TRANSFER_API_SECRET o API_Key / HOTELBEDS_API_KEY (+ secret).',
+      },
       200
     );
   }

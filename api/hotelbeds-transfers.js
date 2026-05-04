@@ -14,16 +14,12 @@
  *   { "action": "cancel", "language":"en", "reference":"XXX-XXXXXX", "simulation":false, "serviceId": 2 } → DELETE …/bookings/{lang}/reference/…
  *
  * GET  /api/hotelbeds-transfers?detail=1&language=en&reference=XXX-XXXXXX — mismo GET booking detail (alternativa al POST).
+ *
+ * Variables: HOTELBEDS_TRANSFER_API_KEY / HOTELBEDS_TRANSFER_API_SECRET (prioridad),
+ * o API_Key / HOTELBEDS_API_KEY + API_Secret / HOTELBEDS_API_SECRET.
  */
 import { createHash } from 'crypto';
-
-function getHotelbedsCredentials() {
-  const rawK = process.env.API_Key || process.env.HOTELBEDS_API_KEY;
-  const rawS = process.env.API_Secret || process.env.HOTELBEDS_API_SECRET;
-  const apiKey = typeof rawK === 'string' ? rawK.trim() : rawK;
-  const secret = typeof rawS === 'string' ? rawS.trim() : rawS;
-  return { apiKey, secret };
-}
+import { getHotelbedsCredentialsTransfers } from '../lib/hotelbeds-credentials.js';
 
 /**
  * Misma fórmula que Postman / doc Hotelbeds: SHA256(Api-key + Secret + timestampUnixSegundos).
@@ -53,7 +49,7 @@ function withTransfer403Help(payload, baseUrl, operation, apiKey) {
         typeof apiKey === 'string' && apiKey.length >= 4 ? apiKey.slice(-4) : null,
       signatureNote: 'SHA256(apiKey + secret + unixTimestampSeconds); mismo criterio que hotel-api en este repo.',
       likelyCause:
-        '403 "Access disallowed" suele indicar que esta Api-key no tiene habilitado el producto Transfer API en Hotelbeds. Comprueba en Vercel las mismas variables que en Postman (API_Key/API_Secret o HOTELBEDS_API_KEY/SECRET) y que HOTELBEDS_ENV (test vs production) coincida con el host que usas en Postman. Si GET disponibilidad simple también da 403, pide a Hotelbeds activación Transfer API. Si solo falla availability_multi (POST), pide permiso explícito para multi-route.',
+        '403 "Access disallowed" suele indicar que esta Api-key no tiene habilitado el producto Transfer API en Hotelbeds. Comprueba HOTELBEDS_TRANSFER_* o API_Key/HOTELBEDS_API_KEY en Vercel y HOTELBEDS_ENV. Si GET disponibilidad simple también da 403, pide a Hotelbeds activación Transfer API. Si solo falla availability_multi (POST), pide permiso explícito para multi-route.',
     },
   };
 }
@@ -130,7 +126,7 @@ function buildAvailabilityPath(baseUrl, q) {
 }
 
 export async function GET(request) {
-  const { apiKey, secret } = getHotelbedsCredentials();
+  const { apiKey, secret } = getHotelbedsCredentialsTransfers();
   if (!apiKey || !secret) {
     return json({ ok: false, error: 'missing_credentials' }, 200);
   }
@@ -201,7 +197,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const { apiKey, secret } = getHotelbedsCredentials();
+  const { apiKey, secret } = getHotelbedsCredentialsTransfers();
   if (!apiKey || !secret) {
     return json({ ok: false, error: 'missing_credentials' }, 200);
   }
