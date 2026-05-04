@@ -17,9 +17,45 @@
  */
 import { createHash } from 'crypto';
 
+function getHotelbedsCredentials() {
+  const rawK = process.env.API_Key || process.env.HOTELBEDS_API_KEY;
+  const rawS = process.env.API_Secret || process.env.HOTELBEDS_API_SECRET;
+  const apiKey = typeof rawK === 'string' ? rawK.trim() : rawK;
+  const secret = typeof rawS === 'string' ? rawS.trim() : rawS;
+  return { apiKey, secret };
+}
+
+/**
+ * Misma fórmula que Postman / doc Hotelbeds: SHA256(Api-key + Secret + timestampUnixSegundos).
+ */
 function getSignature(apiKey, secret) {
   const ts = Math.floor(Date.now() / 1000);
   return createHash('sha256').update(apiKey + secret + ts, 'utf8').digest('hex');
+}
+
+/** Si Hotelbeds devuelve 403 "disallowed", casi siempre es contrato/permiso de la key, no bug de firma. */
+function withTransfer403Help(payload, baseUrl, operation, apiKey) {
+  const errStr =
+    payload &&
+    payload.data &&
+    (typeof payload.data.error === 'string' ? payload.data.error : JSON.stringify(payload.data.error || ''));
+  const disallowed =
+    payload.httpStatus === 403 ||
+    (errStr && String(errStr).toLowerCase().includes('disallowed'));
+  if (!disallowed) return payload;
+  return {
+    ...payload,
+    diagnostic: {
+      environment: process.env.HOTELBEDS_ENV === 'production' ? 'production' : 'test',
+      hotelbedsHost: baseUrl.replace(/^https:\/\//, ''),
+      operation,
+      apiKeyLast4:
+        typeof apiKey === 'string' && apiKey.length >= 4 ? apiKey.slice(-4) : null,
+      signatureNote: 'SHA256(apiKey + secret + unixTimestampSeconds); mismo criterio que hotel-api en este repo.',
+      likelyCause:
+        '403 "Access disallowed" suele indicar que esta Api-key no tiene habilitado el producto Transfer API en Hotelbeds. Comprueba en Vercel las mismas variables que en Postman (API_Key/API_Secret o HOTELBEDS_API_KEY/SECRET) y que HOTELBEDS_ENV (test vs production) coincida con el host que usas en Postman. Si GET disponibilidad simple también da 403, pide a Hotelbeds activación Transfer API. Si solo falla availability_multi (POST), pide permiso explícito para multi-route.',
+    },
+  };
 }
 
 function getBaseUrl() {
@@ -94,15 +130,20 @@ function buildAvailabilityPath(baseUrl, q) {
 }
 
 export async function GET(request) {
-  const apiKey = process.env.API_Key || process.env.HOTELBEDS_API_KEY;
-  const secret = process.env.API_Secret || process.env.HOTELBEDS_API_SECRET;
+  const { apiKey, secret } = getHotelbedsCredentials();
   if (!apiKey || !secret) {
     return json({ ok: false, error: 'missing_credentials' }, 200);
   }
 
   const url = new URL(request.url);
   if (url.searchParams.get('ping') === '1') {
-    return json({ ok: true, msg: 'hotelbeds-transfers proxy' });
+    return json({
+      ok: true,
+      msg: 'hotelbeds-transfers proxy',
+      env: process.env.HOTELBEDS_ENV === 'production' ? 'production' : 'test',
+      apiKeyLast4:
+        typeof apiKey === 'string' && apiKey.length >= 4 ? apiKey.slice(-4) : null,
+    });
   }
 
   const wantDetail =
@@ -122,7 +163,8 @@ export async function GET(request) {
         language,
         reference.trim()
       );
-      return json({ ok: res.ok, httpStatus: res.status, data }, 200);
+      const payload = { ok: res.ok, httpStatus: res.status, data };
+      return json(withTransfer403Help(payload, baseUrl, 'booking_detail GET', apiKey), 200);
     } catch (e) {
       console.error('hotelbeds-transfers GET detail:', e);
       return json({ ok: false, error: e.message || String(e) }, 200);
@@ -150,7 +192,8 @@ export async function GET(request) {
         200
       );
     }
-    return json({ ok: res.ok, httpStatus: res.status, data }, 200);
+    const payload = { ok: res.ok, httpStatus: res.status, data };
+    return json(withTransfer403Help(payload, baseUrl, 'availability_simple GET', apiKey), 200);
   } catch (e) {
     console.error('hotelbeds-transfers GET:', e);
     return json({ ok: false, error: e.message || String(e) }, 200);
@@ -158,8 +201,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const apiKey = process.env.API_Key || process.env.HOTELBEDS_API_KEY;
-  const secret = process.env.API_Secret || process.env.HOTELBEDS_API_SECRET;
+  const { apiKey, secret } = getHotelbedsCredentials();
   if (!apiKey || !secret) {
     return json({ ok: false, error: 'missing_credentials' }, 200);
   }
@@ -207,7 +249,8 @@ export async function POST(request) {
       } catch {
         data = { raw: text.slice(0, 1200) };
       }
-      return json({ ok: res.ok, httpStatus: res.status, data }, 200);
+      const payload = { ok: res.ok, httpStatus: res.status, data };
+      return json(withTransfer403Help(payload, baseUrl, 'availability_multi POST', apiKey), 200);
     } catch (e) {
       console.error('hotelbeds-transfers availability_multi:', e);
       return json({ ok: false, error: e.message || String(e) }, 200);
@@ -228,7 +271,8 @@ export async function POST(request) {
         language,
         String(reference).trim()
       );
-      return json({ ok: res.ok, httpStatus: res.status, data }, 200);
+      const payload = { ok: res.ok, httpStatus: res.status, data };
+      return json(withTransfer403Help(payload, baseUrl, 'booking_detail POST', apiKey), 200);
     } catch (e) {
       console.error('hotelbeds-transfers booking_detail:', e);
       return json({ ok: false, error: e.message || String(e) }, 200);
@@ -262,7 +306,8 @@ export async function POST(request) {
       } catch {
         data = { raw: text.slice(0, 800) };
       }
-      return json({ ok: res.ok, httpStatus: res.status, data }, res.ok ? 200 : 200);
+      const payload = { ok: res.ok, httpStatus: res.status, data };
+      return json(withTransfer403Help(payload, baseUrl, 'cancel DELETE', apiKey), 200);
     } catch (e) {
       return json({ ok: false, error: e.message || String(e) }, 200);
     }
@@ -293,7 +338,8 @@ export async function POST(request) {
       } catch {
         data = { raw: text.slice(0, 1200) };
       }
-      return json({ ok: res.ok, httpStatus: res.status, data }, 200);
+      const payload = { ok: res.ok, httpStatus: res.status, data };
+      return json(withTransfer403Help(payload, baseUrl, 'booking POST', apiKey), 200);
     } catch (e) {
       console.error('hotelbeds-transfers booking:', e);
       return json({ ok: false, error: e.message || String(e) }, 200);
