@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Hotelbeds Hotels — certificación (interno)</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .hc-wrap { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+    .hc-wrap h1 { color: var(--color-primary); font-size: 1.35rem; margin-bottom: 0.5rem; }
+    .hc-note { font-size: 0.9rem; color: var(--color-text-light); margin-bottom: 1.25rem; }
+    .hc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.65rem; margin: 0.75rem 0; }
+    .hc-grid label { display: flex; flex-direction: column; font-size: 0.8rem; font-weight: 600; gap: 0.2rem; }
+    .hc-grid input, .hc-grid select { padding: 0.4rem 0.45rem; font-size: 0.9rem; }
+    .hc-presets { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0 1rem; }
+    .hc-presets button { font-size: 0.8rem; padding: 0.4rem 0.65rem; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #fafafa; }
+    .hc-presets button:hover { background: #eef2ee; }
+    .hc-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0; }
+    .hc-actions button { padding: 0.5rem 1rem; font-weight: 600; cursor: pointer; border-radius: 4px; border: none; background: var(--color-primary); color: #fff; }
+    .hc-actions button.secondary { background: #555; }
+    .hc-out { margin-top: 1rem; font-family: ui-monospace, monospace; font-size: 0.75rem; background: #1a1a1a; color: #e8e8e8; padding: 1rem; border-radius: 6px; overflow: auto; max-height: 380px; white-space: pre-wrap; word-break: break-word; }
+    .hc-rates { margin: 0.75rem 0; max-height: 320px; overflow: auto; font-size: 0.8rem; background: #f5f5f5; padding: 0.75rem; border-radius: 4px; }
+    .hc-rates label { display: block; margin: 0.35rem 0; cursor: pointer; }
+    .hc-hotel-block { margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #ddd; }
+    .hc-hotel-block:last-child { border-bottom: none; }
+    .hc-multi-json { width: 100%; font-family: ui-monospace, monospace; font-size: 0.75rem; padding: 0.5rem; box-sizing: border-box; }
+    .hc-legal { font-size: 0.82rem; color: #555; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd; }
+    .hc-mode { display: flex; flex-wrap: wrap; gap: 1rem; margin: 0.5rem 0 0.75rem; font-size: 0.85rem; }
+  </style>
+</head>
+<body class="fondo-golf-lerma-estandar">
+  <div class="hc-wrap">
+    <p><a href="index.html">← Inicio</a> · <a href="transfers-cert.html">Transfers cert</a></p>
+    <h1>Hotelbeds Hotels (Hotel API) — certificación</h1>
+    <p class="hc-note">
+      Página técnica para demo con Hotelbeds mañana. Usa el proxy
+      <code>POST /api/hotelbeds-availability</code> (disponibilidad, <code>checkrates</code>, <code>booking</code>) y
+      <code>GET ?status=1</code> / <code>?diagnostic=1</code>. Mismas variables que el resto del sitio:
+      <code>API_Key</code> / <code>HOTELBEDS_API_KEY</code> y secret (no las <code>HOTELBEDS_TRANSFER_*</code>).
+      Entorno test/prod según <code>HOTELBEDS_ENV</code>.
+    </p>
+
+    <h2 class="configurador-titulo" style="font-size:1rem;">0. Conectividad</h2>
+    <div class="hc-actions">
+      <button type="button" id="btn-status">Hotel API status (<code>?status=1</code>)</button>
+      <button type="button" class="secondary" id="btn-diagnostic">Diagnostic (<code>?diagnostic=1</code>)</button>
+    </div>
+
+    <h2 class="configurador-titulo" style="font-size:1rem;margin-top:1.25rem;">1. Disponibilidad (<code>POST</code> sin <code>action</code>)</h2>
+    <p class="hc-note">El proxy arma el body hacia <code>/hotel-api/1.0/hotels</code>. Por defecto destino <strong>BUR</strong> si no indicas nada.</p>
+    <div class="hc-presets" id="hc-presets"></div>
+    <div class="hc-grid">
+      <label>checkIn <input type="date" id="hc-checkin"></label>
+      <label>checkOut <input type="date" id="hc-checkout"></label>
+      <label>rooms <input type="number" id="hc-rooms" value="1" min="1"></label>
+      <label>adults <input type="number" id="hc-adults" value="2" min="1"></label>
+      <label>children <input type="number" id="hc-children" value="0" min="0"></label>
+    </div>
+    <div class="hc-mode">
+      <label><input type="radio" name="hc-search-mode" id="hc-mode-dest" value="dest" checked> Por código destino</label>
+      <label><input type="radio" name="hc-search-mode" id="hc-mode-hotels" value="hotels"> Por códigos de hotel (lista)</label>
+    </div>
+    <div class="hc-grid" id="hc-dest-wrap">
+      <label style="grid-column:1/-1;">destinationCode <input type="text" id="hc-dest" value="BUR" placeholder="BUR, BUR2…"></label>
+    </div>
+    <div class="hc-grid" id="hc-codes-wrap" style="display:none;">
+      <label style="grid-column:1/-1;">hotelCodes (coma) <input type="text" id="hc-codes" placeholder="ej. 12345, 67890 (máx. 20 en proxy)"></label>
+    </div>
+    <div class="hc-actions">
+      <button type="button" id="btn-avail">Buscar disponibilidad</button>
+    </div>
+
+    <h2 class="configurador-titulo" style="font-size:1rem;margin-top:1rem;">Respuesta</h2>
+    <pre class="hc-out" id="hc-pre" aria-live="polite">Pulsa «Buscar disponibilidad» o conectividad.</pre>
+
+    <h2 class="configurador-titulo" style="font-size:1rem;margin-top:1.25rem;">Tarifas — elegir <code>rateKey</code></h2>
+    <p class="hc-note">Selecciona una tarifa; se rellena el campo inferior. Si el tipo es <strong>RECHECK</strong>, usa CheckRate antes del booking (botón en §2).</p>
+    <div class="hc-rates" id="hc-rates-box" hidden>
+      <strong>Hoteles / tarifas</strong>
+      <div id="hc-rates-list"></div>
+    </div>
+    <div class="hc-grid">
+      <label style="grid-column:1/-1;">rateKey <textarea id="hc-rateKey" rows="4" style="font-family:monospace;font-size:0.75rem;"></textarea></label>
+      <label id="hc-rateType-lbl" style="grid-column:1/-1;font-size:0.8rem;color:#555;">rateType seleccionado: —</label>
+    </div>
+
+    <h2 class="configurador-titulo" style="font-size:1rem;margin-top:1.25rem;">2. CheckRate (<code>action: checkrates</code>)</h2>
+    <p class="hc-note">Obligatorio cuando la tarifa viene como <code>RECHECK</code>. Máx. 10 <code>rateKey</code> por petición (aquí una).</p>
+    <div class="hc-actions">
+      <button type="button" id="btn-checkrates">Ejecutar CheckRate</button>
+    </div>
+
+    <h2 class="configurador-titulo" style="font-size:1rem;margin-top:1.25rem;">3. Booking (<code>action: booking</code>)</h2>
+    <p class="hc-note">Una habitación / un adulto titular (como en paquetes). Incluye <code>tolerance: "2"</code>. Opcional: JSON completo abajo sustituye el formulario.</p>
+    <div class="hc-grid">
+      <label>Nombre <input type="text" id="hc-h-name" value="Test"></label>
+      <label>Apellidos <input type="text" id="hc-h-surname" value="Certification"></label>
+      <label>Email <input type="email" id="hc-h-email" value="cert@test.local"></label>
+      <label>Teléfono <input type="text" id="hc-h-phone" value="+34600000000"></label>
+      <label>packageLabel (voucher) <input type="text" id="hc-pkg" value="Certificación Hotel API"></label>
+    </div>
+    <p class="hc-note" style="margin-top:0.75rem;">Opcional — JSON booking completo (misma forma que Postman; debe incluir <code>holder</code>, <code>rooms</code> con <code>rateKey</code>):</p>
+    <textarea class="hc-multi-json" id="hc-booking-raw" rows="5" aria-label="Booking JSON opcional" placeholder='{"holder":{...},"rooms":[...]}'></textarea>
+    <div class="hc-actions">
+      <button type="button" id="btn-book">Confirmar booking</button>
+      <button type="button" class="secondary" id="btn-book-preview">Ver JSON que se enviará</button>
+    </div>
+
+    <div class="hc-legal">
+      Doc:
+      <a href="https://developer.hotelbeds.com/documentation/hotels/booking-api/search-availability/" target="_blank" rel="noopener">Availability</a>,
+      <a href="https://developer.hotelbeds.com/documentation/hotels/booking-api/booking-api/booking-confirmation/" target="_blank" rel="noopener">Booking</a>,
+      <a href="https://developer.hotelbeds.com/documentation/hotels/booking-api/booking-api/checkrate/" target="_blank" rel="noopener">CheckRate</a>.
+    </div>
+  </div>
+  <script>
+(function () {
+  var out = document.getElementById('hc-pre');
+  function log(o) {
+    out.textContent = typeof o === 'string' ? o : JSON.stringify(o, null, 2);
+  }
+
+  function parseJsonResponse(r) {
+    return r.text().then(function (text) {
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        return { parseError: true, httpStatus: r.status, snippet: text.slice(0, 500) };
+      }
+    });
+  }
+
+  function hotelName(h) {
+    if (!h || !h.name) return String(h && h.code != null ? h.code : '');
+    if (typeof h.name === 'string') return h.name;
+    return (h.name.content || h.name.text || '') + '';
+  }
+
+  function setDatesDefault() {
+    var d = new Date();
+    var inD = new Date(d.getTime());
+    var outD = new Date(d.getTime());
+    outD.setDate(outD.getDate() + 2);
+    function isoDate(dt) {
+      return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+    }
+    document.getElementById('hc-checkin').value = isoDate(inD);
+    document.getElementById('hc-checkout').value = isoDate(outD);
+  }
+
+  setDatesDefault();
+
+  var PRESETS = [
+    { label: 'BUR · 2 noches', dest: 'BUR', nights: 2 },
+    { label: 'BUR2 · 2 noches', dest: 'BUR2', nights: 2 },
+    { label: 'BUR · 1 noche', dest: 'BUR', nights: 1 },
+  ];
+
+  var presetEl = document.getElementById('hc-presets');
+  PRESETS.forEach(function (p) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = p.label;
+    b.addEventListener('click', function () {
+      document.getElementById('hc-mode-dest').checked = true;
+      syncMode();
+      document.getElementById('hc-dest').value = p.dest;
+      var d = new Date();
+      var inD = new Date(d.getTime());
+      var outD = new Date(d.getTime());
+      outD.setDate(outD.getDate() + p.nights);
+      function isoDate(dt) {
+        return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+      }
+      document.getElementById('hc-checkin').value = isoDate(inD);
+      document.getElementById('hc-checkout').value = isoDate(outD);
+    });
+    presetEl.appendChild(b);
+  });
+
+  function syncMode() {
+    var dest = document.getElementById('hc-mode-dest').checked;
+    document.getElementById('hc-dest-wrap').style.display = dest ? 'grid' : 'none';
+    document.getElementById('hc-codes-wrap').style.display = dest ? 'none' : 'grid';
+  }
+  document.getElementById('hc-mode-dest').addEventListener('change', syncMode);
+  document.getElementById('hc-mode-hotels').addEventListener('change', syncMode);
+  syncMode();
+
+  var selectedRateType = '';
+
+  function renderRates(data) {
+    var box = document.getElementById('hc-rates-box');
+    var list = document.getElementById('hc-rates-list');
+    list.innerHTML = '';
+    var hotels = data.hotels && data.hotels.hotels;
+    if (!hotels || !hotels.length) {
+      box.hidden = true;
+      return;
+    }
+    box.hidden = false;
+    hotels.forEach(function (h, hi) {
+      var block = document.createElement('div');
+      block.className = 'hc-hotel-block';
+      var title = document.createElement('strong');
+      title.textContent = hotelName(h) + ' · código ' + (h.code != null ? h.code : '—');
+      block.appendChild(title);
+      var rooms = h.rooms || [];
+      rooms.forEach(function (room, ri) {
+        var rates = room.rates || [];
+        rates.forEach(function (rate, rti) {
+          var rk = rate.rateKey;
+          if (!rk) return;
+          var rt = (rate.rateType || '') + '';
+          var board = '';
+          if (rate.boardName) {
+            board = typeof rate.boardName === 'string' ? rate.boardName : (rate.boardName.content || '');
+          } else if (rate.boardCode) board = String(rate.boardCode);
+          var net = rate.net != null ? rate.net : (rate.sellingRate != null ? rate.sellingRate : '');
+          var label = document.createElement('label');
+          var bits = [rt, board, net !== '' ? net + ' €' : ''].filter(Boolean).join(' · ');
+          label.innerHTML = '<input type="radio" name="hc-rate-pick"> ' + bits + ' · <span style="opacity:0.85">' + String(rk).slice(0, 48) + '…</span>';
+          var inp = label.querySelector('input');
+          inp.addEventListener('change', function () {
+            document.getElementById('hc-rateKey').value = rk;
+            selectedRateType = rt;
+            document.getElementById('hc-rateType-lbl').textContent = 'rateType seleccionado: ' + (rt || '—') + (String(rt).toUpperCase() === 'RECHECK' ? ' → usa CheckRate antes de booking' : '');
+          });
+          block.appendChild(label);
+        });
+      });
+      list.appendChild(block);
+    });
+  }
+
+  document.getElementById('btn-status').addEventListener('click', function () {
+    log('Consultando…');
+    fetch('/api/hotelbeds-availability?status=1')
+      .then(parseJsonResponse)
+      .then(function (data) { log(data); })
+      .catch(function (e) { log(String(e)); });
+  });
+
+  document.getElementById('btn-diagnostic').addEventListener('click', function () {
+    log('Consultando…');
+    fetch('/api/hotelbeds-availability?diagnostic=1')
+      .then(parseJsonResponse)
+      .then(function (data) { log(data); })
+      .catch(function (e) { log(String(e)); });
+  });
+
+  document.getElementById('btn-avail').addEventListener('click', function () {
+    var checkIn = document.getElementById('hc-checkin').value;
+    var checkOut = document.getElementById('hc-checkout').value;
+    if (!checkIn || !checkOut) {
+      log('Indica checkIn y checkOut');
+      return;
+    }
+    var body = {
+      checkIn: checkIn,
+      checkOut: checkOut,
+      rooms: parseInt(document.getElementById('hc-rooms').value, 10) || 1,
+      adults: parseInt(document.getElementById('hc-adults').value, 10) || 2,
+      children: parseInt(document.getElementById('hc-children').value, 10) || 0,
+    };
+    if (document.getElementById('hc-mode-hotels').checked) {
+      var raw = document.getElementById('hc-codes').value.trim();
+      if (!raw) {
+        log('Indica al menos un código de hotel o cambia a destino.');
+        return;
+      }
+      body.hotelCodes = raw.split(/[\s,]+/).filter(Boolean).slice(0, 20);
+    } else {
+      var dc = document.getElementById('hc-dest').value.trim();
+      if (dc) body.destinationCode = dc;
+    }
+    log('Cargando disponibilidad…');
+    fetch('/api/hotelbeds-availability', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+      .then(parseJsonResponse)
+      .then(function (data) {
+        log(data);
+        if (!data.error && data.hotels) renderRates(data);
+        else document.getElementById('hc-rates-box').hidden = true;
+      })
+      .catch(function (e) { log(String(e)); });
+  });
+
+  function extractRateKeyAfterCheckrate(chk) {
+    if (!chk || typeof chk !== 'object') return null;
+    var h = chk.hotel || chk;
+    var rooms = (h && h.rooms) || [];
+    var r0 = rooms[0];
+    if (!r0) return null;
+    var rates = r0.rates || [];
+    var rt = Array.isArray(rates) ? rates[0] : rates;
+    return rt && rt.rateKey ? String(rt.rateKey) : null;
+  }
+
+  document.getElementById('btn-checkrates').addEventListener('click', function () {
+    var rk = document.getElementById('hc-rateKey').value.trim();
+    if (!rk) {
+      log('Pega o elige un rateKey primero.');
+      return;
+    }
+    log('CheckRate…');
+    fetch('/api/hotelbeds-availability', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'checkrates', rooms: [{ rateKey: rk }] }),
+    })
+      .then(parseJsonResponse)
+      .then(function (data) {
+        log(data);
+        if (data.ok && data.data) {
+          var nk = extractRateKeyAfterCheckrate(data.data);
+          if (nk) {
+            document.getElementById('hc-rateKey').value = nk;
+            selectedRateType = 'BOOKABLE';
+            document.getElementById('hc-rateType-lbl').textContent = 'Tras CheckRate: nuevo rateKey aplicado (confirmar booking).';
+          }
+        }
+      })
+      .catch(function (e) { log(String(e)); });
+  });
+
+  function buildBookingPayload() {
+    var raw = document.getElementById('hc-booking-raw').value.trim();
+    if (raw) {
+      var inner;
+      try {
+        inner = JSON.parse(raw);
+      } catch (e) {
+        throw new Error('JSON booking inválido: ' + (e.message || e));
+      }
+      return { action: 'booking', booking: inner, packageLabel: document.getElementById('hc-pkg').value.trim() || 'Cert' };
+    }
+    var rk = document.getElementById('hc-rateKey').value.trim();
+    if (!rk) throw new Error('Falta rateKey');
+    var fname = document.getElementById('hc-h-name').value.trim() || 'Test';
+    var lname = document.getElementById('hc-h-surname').value.trim() || 'Certification';
+    var parts = { name: fname, surname: lname };
+    var booking = {
+      holder: {
+        name: parts.name,
+        surname: parts.surname,
+        email: document.getElementById('hc-h-email').value.trim(),
+        phone: document.getElementById('hc-h-phone').value.trim() || '+34000000000',
+      },
+      rooms: [
+        {
+          rateKey: rk,
+          paxes: [
+            {
+              roomId: 1,
+              type: 'AD',
+              name: parts.name,
+              surname: parts.surname,
+            },
+          ],
+        },
+      ],
+      clientReference: ('HC-' + Date.now()).slice(0, 50),
+      remark: 'Hotel-cert manual',
+      tolerance: '2',
+    };
+    return {
+      action: 'booking',
+      booking: booking,
+      packageLabel: document.getElementById('hc-pkg').value.trim() || 'Certificación Hotel API',
+    };
+  }
+
+  document.getElementById('btn-book-preview').addEventListener('click', function () {
+    try {
+      log(buildBookingPayload());
+    } catch (e) {
+      log(String(e.message || e));
+    }
+  });
+
+  document.getElementById('btn-book').addEventListener('click', function () {
+    var rk = document.getElementById('hc-rateKey').value.trim();
+    var rt = String(selectedRateType || '').toUpperCase();
+    function sendBooking(payload) {
+      log('Enviando booking…');
+      fetch('/api/hotelbeds-availability', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then(parseJsonResponse)
+        .then(function (data) {
+          log(data);
+        })
+        .catch(function (e) {
+          log(String(e));
+        });
+    }
+
+    try {
+      if (document.getElementById('hc-booking-raw').value.trim()) {
+        sendBooking(buildBookingPayload());
+        return;
+      }
+      if (!rk) {
+        log('Falta rateKey');
+        return;
+      }
+      if (rt === 'RECHECK') {
+        log('Tarifa RECHECK: ejecutando CheckRate antes…');
+        fetch('/api/hotelbeds-availability', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'checkrates', rooms: [{ rateKey: rk }] }),
+        })
+          .then(parseJsonResponse)
+          .then(function (cr) {
+            log(cr);
+            if (!cr.ok) {
+              log('CheckRate falló; no se envía booking. Revisa el JSON anterior.');
+              return;
+            }
+            var nk = extractRateKeyAfterCheckrate(cr.data);
+            if (!nk) {
+              log('CheckRate no devolvió rateKey.');
+              return;
+            }
+            document.getElementById('hc-rateKey').value = nk;
+            selectedRateType = 'BOOKABLE';
+            sendBooking(buildBookingPayload());
+          })
+          .catch(function (e) {
+            log(String(e));
+          });
+        return;
+      }
+      sendBooking(buildBookingPayload());
+    } catch (e) {
+      log(String(e.message || e));
+    }
+  });
+})();
+  </script>
+</body>
+</html>

@@ -70,6 +70,7 @@
   function clearHotelbedsBookingContext() {
     window.__HB_LAST_AVAIL__ = null;
     window.__HB_RATE_BY_CODE = null;
+    window.__HB_CONTENT_BY_CODE = null;
   }
 
   function renderError(msg) {
@@ -102,6 +103,42 @@
     return null;
   }
 
+  function boardFullFromRate(rate) {
+    if (!rate) return '';
+    var bn = rate.boardName;
+    if (typeof bn === 'string') return bn.trim();
+    if (bn && bn.content) return String(bn.content).trim();
+    return String(rate.boardCode || '').trim();
+  }
+
+  function paidExtrasFromRate(rate) {
+    var lines = [];
+    if (!rate || typeof rate !== 'object') return lines;
+    var taxes = rate.taxes && (rate.taxes.taxes || rate.taxes);
+    if (!Array.isArray(taxes)) return lines;
+    taxes.forEach(function (tx) {
+      if (!tx || typeof tx !== 'object') return;
+      if (tx.included === true) return;
+      var amt = tx.clientAmount != null ? tx.clientAmount : tx.amount;
+      if (amt == null || amt === '' || Number(amt) === 0) return;
+      var desc = (tx.description && String(tx.description).trim()) || tx.type || 'Cargo adicional';
+      lines.push(desc + ': ' + amt + ' ' + (tx.currency || 'EUR'));
+    });
+    return lines;
+  }
+
+  function rateCommentsFromRate(rate) {
+    var out = [];
+    if (!rate) return out;
+    var rc = rate.rateComments;
+    if (!Array.isArray(rc)) return out;
+    rc.forEach(function (c) {
+      if (typeof c === 'string') out.push(c);
+      else if (c && c.text) out.push(c.text);
+    });
+    return out;
+  }
+
   function indexRatesByHotelCode(data) {
     var map = {};
     var hotels = (data && data.hotels && data.hotels.hotels) || [];
@@ -124,12 +161,173 @@
               room.description ||
               '',
             boardCode: rate.boardCode || rate.boardName || '',
+            boardName: boardFullFromRate(rate),
+            rateExtrasPaid: paidExtrasFromRate(rate),
+            rateComments: rateCommentsFromRate(rate),
           };
           break;
         }
       }
     }
     return map;
+  }
+
+  function loadHotelContentEnrichment() {
+    var base =
+      typeof window !== 'undefined' && window.location && window.location.origin
+        ? window.location.origin
+        : '';
+    if (!base) return Promise.resolve();
+    return Promise.all(
+      DESTINATIONS_LERMA_BURGOS.map(function (dest) {
+        return fetch(
+          base +
+            '/api/hotelbeds-list-hotels?destination=' +
+            encodeURIComponent(dest) +
+            '&source=content&enrich=1&filter=none&from=1&to=200&language=CAS'
+        )
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (data) {
+            return data.hotels || [];
+          })
+          .catch(function () {
+            return [];
+          });
+      })
+    )
+      .then(function (lists) {
+        var byCode = {};
+        lists.forEach(function (arr) {
+          arr.forEach(function (h) {
+            if (h && h.code) byCode[String(h.code)] = h;
+          });
+        });
+        window.__HB_CONTENT_BY_CODE = byCode;
+      })
+      .catch(function () {
+        window.__HB_CONTENT_BY_CODE = {};
+      });
+  }
+
+  function renderStarsBadge(categoryName) {
+    var s = (categoryName || '').trim();
+    if (!s) return '';
+    var m =
+      s.match(/([1-5])\s*(?:star|stars|estrella|estrellas|\*|★)/i) ||
+      s.match(/^([1-5])(?:\s|$|\*|★)/);
+    var n = m ? parseInt(m[1], 10) : 0;
+    if (n >= 1 && n <= 5) {
+      return '<span class="hotelbeds-stars" title="' + escapeHtml(s) + '">' + '★'.repeat(n) + '</span>';
+    }
+    return '<span class="hotelbeds-category">' + escapeHtml(s) + '</span>';
+  }
+
+  function truncateText(t, max) {
+    if (!t) return '';
+    t = String(t);
+    if (t.length <= max) return t;
+    return t.slice(0, max - 1) + '…';
+  }
+
+  /**
+   * @param {object} hAvail — hotel objeto Availability API
+   * @param {object|null} meta — __HB_CONTENT_BY_CODE[code]
+   * @param {object|null} pick — __HB_RATE_BY_CODE[code]
+   */
+  function hotelRichCardHtml(hAvail, meta, pick, priceStr, selSuffix) {
+    var code = String(hAvail.code || '');
+    var displayName =
+      (typeof hAvail.name === 'string' ? hAvail.name : hAvail.name && hAvail.name.content) ||
+      (meta && meta.name) ||
+      'Hotel ' + code;
+    if (typeof displayName !== 'string') displayName = String(displayName || 'Hotel');
+
+    var img = meta && meta.imageUrl ? meta.imageUrl : '';
+    var catLabel = meta && (meta.categoryName || meta.categoryCode) ? meta.categoryName || meta.categoryCode : '';
+    var desc = meta && meta.descriptionShort ? meta.descriptionShort : '';
+    var paidFac = (meta && meta.facilitiesWithCharge) || [];
+    var hf = (meta && meta.hotelFacilities) || [];
+    var rf = (meta && meta.roomFacilities) || [];
+    var boardLine = pick && pick.boardName ? pick.boardName : pick && pick.boardCode ? String(pick.boardCode) : '';
+    var roomLine = pick && pick.roomName ? pick.roomName : '';
+    var ratePaid = (pick && pick.rateExtrasPaid) || [];
+    var rateComm = (pick && pick.rateComments) || [];
+
+    var imgHtml = img
+      ? '<div class="hotelbeds-card-media"><img src="' + escapeHtml(img) + '" alt="" loading="lazy" width="120" height="90"></div>'
+      : '<div class="hotelbeds-card-media hotelbeds-card-media--empty" aria-hidden="true"></div>';
+
+    var paidBlock = '';
+    if (paidFac.length) {
+      paidBlock +=
+        '<div class="hotelbeds-paid-facilities"><strong>Servicios con coste adicional (hotel):</strong><ul class="hotelbeds-mini-list">' +
+        paidFac
+          .slice(0, 25)
+          .map(function (x) {
+            return '<li>' + escapeHtml(x) + '</li>';
+          })
+          .join('') +
+        '</ul></div>';
+    }
+    var facBlock = '';
+    var facCombined = hf.slice(0, 12).concat(rf.length ? ['— Habitación —'] : []).concat(rf.slice(0, 12));
+    if (facCombined.length) {
+      facBlock =
+        '<div class="hotelbeds-facilities"><strong>Instalaciones (extracto Content API):</strong> ' +
+        escapeHtml(truncateText(facCombined.join(' · '), 420)) +
+        '</div>';
+    }
+
+    var boardBlock = '';
+    if (boardLine || roomLine) {
+      boardBlock =
+        '<div class="hotelbeds-board-room">' +
+        (roomLine ? '<div><strong>Habitación:</strong> ' + escapeHtml(roomLine) + '</div>' : '') +
+        (boardLine ? '<div><strong>Régimen:</strong> ' + escapeHtml(boardLine) + '</div>' : '') +
+        '</div>';
+    }
+
+    var rateExtraBlock = '';
+    if (ratePaid.length) {
+      rateExtraBlock +=
+        '<div class="hotelbeds-rate-paid"><strong>Cargos en la tarifa (API disponibilidad):</strong><ul class="hotelbeds-mini-list">' +
+        ratePaid
+          .map(function (x) {
+            return '<li>' + escapeHtml(x) + '</li>';
+          })
+          .join('') +
+        '</ul></div>';
+    }
+    if (rateComm.length) {
+      rateExtraBlock +=
+        '<div class="hotelbeds-rate-comments"><strong>Observaciones tarifa:</strong> ' +
+        escapeHtml(truncateText(rateComm.join(' '), 400)) +
+        '</div>';
+    }
+
+    return (
+      '<article class="hotelbeds-card">' +
+      imgHtml +
+      '<div class="hotelbeds-card-main">' +
+      '<header class="hotelbeds-card-head">' +
+      renderStarsBadge(catLabel) +
+      '<span class="hotelbeds-card-title">' +
+      escapeHtml(displayName) +
+      selSuffix +
+      '</span>' +
+      '<span class="hotelbeds-price">' +
+      escapeHtml(priceStr) +
+      '</span>' +
+      '</header>' +
+      (desc ? '<p class="hotelbeds-desc">' + escapeHtml(truncateText(desc, 380)) + '</p>' : '') +
+      boardBlock +
+      paidBlock +
+      facBlock +
+      rateExtraBlock +
+      '</div></article>'
+    );
   }
 
   function triggerResumenUpdate() {
@@ -265,24 +463,32 @@
       if (c) codeToId[String(c)] = id;
     });
     var live = {};
-    var html = '<div class="hotelbeds-block hotelbeds-results"><h4 class="hotelbeds-title">Precios en tiempo real (Hotelbeds)</h4><ul class="hotelbeds-list">';
+    var rateBy = window.__HB_RATE_BY_CODE || {};
+    var contentBy = window.__HB_CONTENT_BY_CODE || {};
+    var html =
+      '<div class="hotelbeds-block hotelbeds-results"><h4 class="hotelbeds-title">Precios en tiempo real (Hotelbeds)</h4><ul class="hotelbeds-list hotelbeds-list--cards">';
     hotels.forEach(function (h) {
       var code = String(h.code);
       var ourId = codeToId[code];
-      var name = (h.name || (h.description && h.description.content) || 'Hotel ' + code);
       var rate = h.minRate;
       if (rate == null && h.rooms && h.rooms[0]) {
         var r0 = h.rooms[0];
-        var rr = (r0.rates && r0.rates[0]) ? r0.rates[0] : null;
+        var rr = r0.rates && r0.rates[0] ? r0.rates[0] : null;
         if (rr) rate = parseFloat(rr.net || rr.gross || rr.sellingRate) || null;
       }
       if (typeof rate === 'string') rate = parseFloat(rate) || null;
       if (ourId && rate != null) live[ourId] = rate;
-      var priceStr = rate != null ? (Math.round(rate * 100) / 100) + ' €' : '—';
+      var priceStr = rate != null ? (Math.round(rate * 100) / 100) + ' €/noche' : '—';
       var sel = selectedHotels.indexOf(code) >= 0 ? ' <span class="hotelbeds-selected">(elegido)</span>' : '';
-      html += '<li class="hotelbeds-item"><span class="hotelbeds-name">' + escapeHtml(name) + sel + '</span> <span class="hotelbeds-price">' + priceStr + '</span></li>';
+      var pick = rateBy[code];
+      var meta = contentBy[code];
+      html +=
+        '<li class="hotelbeds-item-wrap">' +
+        hotelRichCardHtml(h, meta, pick, priceStr, sel) +
+        '</li>';
     });
-    html += '</ul><p class="hotelbeds-note">Precios por noche. El total del resumen usa estos importes cuando apliquen.</p></div>';
+    html +=
+      '</ul><p class="hotelbeds-note">Ficha enriquecida con Hotelbeds Content API (estrellas, imagen, descripción, instalaciones). Los <strong>servicios con coste adicional</strong> y cargos de tarifa se muestran cuando la API los incluye. Precios orientativos por noche.</p></div>';
     window.LIVE_HOTEL_PRICES = Object.keys(live).length ? live : null;
     setBookingWidgetVisible(!window.LIVE_HOTEL_PRICES);
     renderBlock(html);
@@ -323,16 +529,24 @@
     window.LIVE_HOTEL_PRICES = live;
     window.HOTELBEDS_DYNAMIC_OPTS = { lerma: lerma, burgos: burgos };
 
-    var html = '<div class="hotelbeds-block hotelbeds-results"><h4 class="hotelbeds-title">Precios en tiempo real (Hotelbeds) · Lerma y Burgos</h4><ul class="hotelbeds-list">';
+    var rateBy = window.__HB_RATE_BY_CODE || {};
+    var contentBy = window.__HB_CONTENT_BY_CODE || {};
+    var html =
+      '<div class="hotelbeds-block hotelbeds-results"><h4 class="hotelbeds-title">Precios en tiempo real (Hotelbeds) · Lerma y Burgos</h4><ul class="hotelbeds-list hotelbeds-list--cards">';
     hotels.forEach(function (h) {
       var code = String(h.code);
-      var name = getStr(h.name) || getStr(h.description) || ('Hotel ' + code);
       var key = 'hb-' + code;
       var rate = live[key];
-      var priceStr = rate != null ? (Math.round(rate * 100) / 100) + ' €' : '—';
-      html += '<li class="hotelbeds-item"><span class="hotelbeds-name">' + escapeHtml(name) + '</span> <span class="hotelbeds-price">' + priceStr + '</span></li>';
+      var priceStr = rate != null ? (Math.round(rate * 100) / 100) + ' €/noche' : '—';
+      var pick = rateBy[code];
+      var meta = contentBy[code];
+      html +=
+        '<li class="hotelbeds-item-wrap">' +
+        hotelRichCardHtml(h, meta, pick, priceStr, '') +
+        '</li>';
     });
-    html += '</ul><p class="hotelbeds-note">Elige el hotel para cada noche en los desplegables. El total usa estos precios cuando estén disponibles.</p></div>';
+    html +=
+      '</ul><p class="hotelbeds-note">Elige el hotel para cada noche en los desplegables. Ficha enriquecida con Content API. Cargos e instalaciones de pago cuando los devuelve la API.</p></div>';
     setBookingWidgetVisible(false);
     renderBlock(html);
     document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
@@ -377,6 +591,11 @@
         }
         window.__HB_LAST_AVAIL__ = hb;
         window.__HB_RATE_BY_CODE = indexRatesByHotelCode(hb);
+        return loadHotelContentEnrichment().then(function () {
+          return hb;
+        });
+      })
+      .then(function (hb) {
         if (codes.length > 0) {
           var fd = getFormData();
           var n = parseInt(fd.get('noches') || '0', 10);

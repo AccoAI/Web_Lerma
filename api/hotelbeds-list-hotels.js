@@ -3,6 +3,7 @@
  *
  * GET /api/hotelbeds-list-hotels?destination=BUR&source=transfer-cache
  * GET /api/hotelbeds-list-hotels?destination=BUR&source=content
+ * GET /api/hotelbeds-list-hotels?destination=BUR&source=content&enrich=1 — Content API con estrellas, imagen, descripción, facilities (incl. de pago)
  * GET /api/hotelbeds-list-hotels?hotelCodes=225042,1058754  (Availability por códigos)
  *
  * source=transfer-cache -> Transfer Cache API (campos name, city, code directos)
@@ -10,6 +11,7 @@
  * source=availability -> Availability API (precios; BUR vacío en test)
  */
 import { createHash } from 'crypto';
+import { mapContentHotelForUi } from '../lib/hotelbeds-enriched-content.js';
 
 function getSignature(apiKey, secret) {
   const ts = Math.floor(Date.now() / 1000);
@@ -98,7 +100,7 @@ async function fetchFromTransferCache(apiKey, secret, dest, country, offset, lim
   };
 }
 
-async function fetchFromContent(apiKey, secret, dest, country, from, to, lang, baseUrl) {
+async function fetchFromContent(apiKey, secret, dest, country, from, to, lang, baseUrl, enrich) {
   const params = new URLSearchParams({
     destinationCode: dest,
     countryCode: country || 'ES',
@@ -119,6 +121,12 @@ async function fetchFromContent(apiKey, secret, dest, country, from, to, lang, b
   if (!res.ok) throw new Error(data.error?.message || JSON.stringify(data));
   const hotels = Array.isArray(data.hotels) ? data.hotels : [];
   const getStr = (v) => (typeof v === 'string' ? v : (v && v.content) ? v.content : '');
+  if (enrich) {
+    return {
+      list: hotels.map((h) => mapContentHotelForUi(h)),
+      rawHotels: hotels.slice(0, 2),
+    };
+  }
   return {
     list: hotels.map((h) => ({
       code: h.code,
@@ -154,6 +162,7 @@ export async function GET(request) {
   const from = url?.searchParams?.get('from') || '1';
   const to = url?.searchParams?.get('to') || '100';
   const lang = url?.searchParams?.get('language') || 'CAS';
+  const enrich = url?.searchParams?.get('enrich') === '1';
 
   const baseUrl = process.env.HOTELBEDS_ENV === 'production'
     ? 'https://api.hotelbeds.com'
@@ -180,7 +189,7 @@ export async function GET(request) {
         }, 200);
       }
     } else if (source === 'content') {
-      result = await fetchFromContent(apiKey, secret, dest, country, from, to, lang, baseUrl);
+      result = await fetchFromContent(apiKey, secret, dest, country, from, to, lang, baseUrl, enrich);
     } else {
       const dates = checkIn && checkOut ? { checkIn, checkOut } : getFutureDates();
       const hotelCodes = hotelCodesParam ? hotelCodesParam.split(',').map((c) => c.trim()).filter(Boolean) : null;
@@ -216,7 +225,8 @@ export async function GET(request) {
       total: list.length,
       destination: dest,
       source,
-      nota: 'Usa code en precios-data.js. Si BUR no devuelve Burgos ES: contacta Hotelbeds. ?filter=none muestra todos sin filtrar.',
+      enrich: enrich || false,
+      nota: 'Usa code en precios-data.js. Si BUR no devuelve Burgos ES: contacta Hotelbeds. ?filter=none muestra todos sin filtrar. enrich=1 añade datos Content API (certificación).',
     });
   } catch (err) {
     const msg = err.message || String(err);

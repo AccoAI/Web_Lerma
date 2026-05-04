@@ -2138,6 +2138,116 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     color: var(--color-text-light);
 }
 
+/* Tarjetas alojamiento (Content API + Availability) */
+.hotelbeds-list--cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.hotelbeds-item-wrap {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.hotelbeds-card {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 0.85rem 1rem;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+.hotelbeds-card-media {
+    flex: 0 0 120px;
+    max-width: 140px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.06);
+    min-height: 90px;
+}
+.hotelbeds-card-media img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+}
+.hotelbeds-card-media--empty {
+    min-width: 120px;
+}
+.hotelbeds-card-main {
+    flex: 1;
+    min-width: 200px;
+}
+.hotelbeds-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 0.75rem;
+    margin-bottom: 0.35rem;
+}
+.hotelbeds-card-title {
+    font-weight: 600;
+    flex: 1;
+    min-width: 140px;
+}
+.hotelbeds-stars {
+    letter-spacing: 0.05em;
+    color: #c9a961;
+    font-size: 1rem;
+}
+.hotelbeds-category {
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+}
+.hotelbeds-desc {
+    font-size: 0.82rem;
+    color: var(--color-text);
+    margin: 0.35rem 0 0.5rem;
+    line-height: 1.45;
+}
+.hotelbeds-board-room {
+    font-size: 0.82rem;
+    margin: 0.35rem 0;
+}
+.hotelbeds-board-room strong {
+    font-weight: 600;
+}
+.hotelbeds-paid-facilities {
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.65rem;
+    background: rgba(179, 51, 68, 0.07);
+    border-radius: 6px;
+    font-size: 0.8rem;
+}
+.hotelbeds-paid-facilities strong {
+    color: #822;
+}
+.hotelbeds-mini-list {
+    margin: 0.35rem 0 0 1rem;
+    padding: 0;
+}
+.hotelbeds-facilities {
+    font-size: 0.78rem;
+    color: var(--color-text-light);
+    margin-top: 0.45rem;
+    line-height: 1.4;
+}
+.hotelbeds-rate-paid {
+    margin-top: 0.45rem;
+    font-size: 0.78rem;
+    padding: 0.45rem 0.55rem;
+    background: rgba(26, 77, 58, 0.06);
+    border-radius: 6px;
+}
+.hotelbeds-rate-comments {
+    margin-top: 0.35rem;
+    font-size: 0.78rem;
+    color: var(--color-text-light);
+}
+
 /* Transfer opcional (Hotelbeds Transfers) — paquetes con hotel */
 .paquete-transfer-hb-block {
     margin-top: 0.25rem;
