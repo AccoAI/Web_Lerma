@@ -61,7 +61,7 @@
     </div>
 
     <h2 class="configurador-titulo" style="font-size:1rem;margin-top:1.25rem;">1b. Disponibilidad Multi (POST)</h2>
-    <p class="tc-note">Hasta <strong>20</strong> rutas en una petición. Cada <code>id</code> es <code>fromType/fromCode/toType/toCode</code> (ej. <code>ATLAS/57/PORT/BCNP</code>). Reutiliza ocupación e idioma de la sección 1.</p>
+    <p class="tc-note">Hasta <strong>20</strong> rutas en una petición. Cada <code>id</code> es <code>fromType/fromCode/toType/toCode</code> (ej. hotel Universal Barcelona → aeropuerto: <code>ATLAS/57/IATA/BCN</code>). Los códigos <code>PORT/…</code> deben existir en el catálogo Hotelbeds; si no, usa <code>IATA/BCN</code> para el aeropuerto. Reutiliza ocupación e idioma de la sección 1.</p>
     <label class="tc-note" style="display:block;margin-bottom:0.5rem;">Cuerpo JSON (array de rutas)</label>
     <textarea class="tc-multi-json" id="f-multi-routes" rows="10" aria-label="Rutas availability multi"></textarea>
     <div class="tc-grid" style="margin-top:0.5rem;">
@@ -152,8 +152,8 @@
   }
 
   var MULTI_EXAMPLE = [
-    { id: 'ATLAS/57/PORT/BCNP', dateTime: '2026-08-12T10:00:00' },
-    { id: 'PORT/BCNP/ATLAS/57', dateTime: '2026-08-14T18:00:00' },
+    { id: 'ATLAS/57/IATA/BCN', dateTime: '2026-08-12T10:00:00' },
+    { id: 'IATA/BCN/ATLAS/57', dateTime: '2026-08-14T18:00:00' },
   ];
 
   /** Tres rutas GPS de ejemplo (doc Hotelbeds Availability Multi). */
@@ -167,8 +167,8 @@
 
   var PRESETS = [
     { key: '1', label: '1 · Departure Sistina → CIA', lang: 'en', fromType: 'ATLAS', fromCode: '5643', toType: 'IATA', toCode: 'CIA', outbound: '2026-08-10T14:00:00', inbound: '' },
-    { key: '2', label: '2 · BCN Universal → Port (BCNP) — ida', lang: 'en', fromType: 'ATLAS', fromCode: '57', toType: 'PORT', toCode: 'BCNP', outbound: '2026-08-12T10:00:00', inbound: '' },
-    { key: '2b', label: '2 · mismo trayecto — vuelta (segunda búsqueda)', lang: 'en', fromType: 'PORT', fromCode: 'BCNP', toType: 'ATLAS', toCode: '57', outbound: '2026-08-14T18:00:00', inbound: '' },
+    { key: '2', label: '2 · BCN Universal → aeropuerto (IATA/BCN) — ida', lang: 'en', fromType: 'ATLAS', fromCode: '57', toType: 'IATA', toCode: 'BCN', outbound: '2026-08-12T10:00:00', inbound: '' },
+    { key: '2b', label: '2 · aeropuerto → Universal — vuelta (segunda búsqueda)', lang: 'en', fromType: 'IATA', fromCode: 'BCN', toType: 'ATLAS', toCode: '57', outbound: '2026-08-14T18:00:00', inbound: '' },
     { key: '3', label: '3 · Arrival Hilton → Sants BCNE', lang: 'en', fromType: 'ATLAS', fromCode: '651', toType: 'STATION', toCode: 'BCNE', outbound: '2026-08-11T09:30:00', inbound: '' },
     { key: '4', label: '4 · Universal → BCN aeropuerto (extras en booking)', lang: 'en', fromType: 'ATLAS', fromCode: '57', toType: 'IATA', toCode: 'BCN', outbound: '2026-08-13T11:00:00', inbound: '' }
   ];

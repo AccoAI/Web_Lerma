@@ -6,7 +6,7 @@
  *
  * POST /api/hotelbeds-transfers — JSON:
  *   { "action": "availability_multi", "language":"en", "adults":2, "children":0, "infants":0,
- *     "routes":[{ "id":"ATLAS/57/PORT/BCNP", "dateTime":"2026-08-12T10:00:00" }, ...] }
+ *     "routes":[{ "id":"ATLAS/57/IATA/BCN", "dateTime":"2026-08-12T10:00:00" }, ...] }
  *     → POST …/transfer-api/1.0/availability/routes/{lang}/{adults}/{children}/{infants}
  *     (hasta 20 rutas; query opcional: allowPartialResults, vehicle, type, category)
  *   { "action": "booking", "language":"en", "holder":{...}, "transfers":[...], ... } → POST …/transfer-api/1.0/bookings
