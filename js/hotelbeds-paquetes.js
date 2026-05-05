@@ -8,6 +8,10 @@
   var ALL_HOTEL_IDS = ['alisa', 'ceres', 'parador', 'silken', 'palacio-blasones', 'hotel-centro'];
   /** Hotel API: destination.code solo 1–3 caracteres (p. ej. BRG). «BUR2» no es válido y devuelve 400. */
   var DESTINATIONS_LERMA_BURGOS = ['BRG'];
+  var ALLOWED_HOTEL_CODES = {
+    lerma: { '62060': 1, '8116': 1, '194680': 1 },
+    burgos: { '87356': 1, '23103': 1, '54825': 1, '35657': 1 },
+  };
 
   function pageOpts() {
     var d = {
@@ -391,6 +395,18 @@
     return /LERMA/.test(s) ? 'lerma' : 'burgos';
   }
 
+  function cityForCode(code, hotelObj) {
+    var c = String(code || '');
+    if (ALLOWED_HOTEL_CODES.lerma[c]) return 'lerma';
+    if (ALLOWED_HOTEL_CODES.burgos[c]) return 'burgos';
+    return cityForHotel(hotelObj || {});
+  }
+
+  function isAllowedHotel(code) {
+    var c = String(code || '');
+    return !!(ALLOWED_HOTEL_CODES.lerma[c] || ALLOWED_HOTEL_CODES.burgos[c]);
+  }
+
   var DEFAULT_PRICE_PER_NIGHT = 75;
 
   function fetchHotelbedsListHotels() {
@@ -402,6 +418,7 @@
       if (!Array.isArray(list)) return;
       list.forEach(function (h) {
         var code = String(h.code || h);
+        if (!isAllowedHotel(code)) return;
         if (!byCode[code]) {
           byCode[code] = true;
           all.push({ code: code, name: h.name || ('Hotel ' + code), city: h.city || '' });
@@ -417,6 +434,7 @@
   }
 
   function renderFullHotelListFromContent(hotelList) {
+    hotelList = (hotelList || []).filter(function (h) { return isAllowedHotel(h && h.code); });
     if (!hotelList || hotelList.length === 0) {
       window.LIVE_HOTEL_PRICES = null;
       window.HOTELBEDS_DYNAMIC_OPTS = null;
@@ -435,7 +453,7 @@
     var burgos = [];
     hotelList.forEach(function (h) {
       var name = (typeof h.name === 'string' ? h.name : (h.name && h.name.content) ? h.name.content : '') || ('Hotel ' + h.code);
-      var ciudad = cityForHotel(h);
+      var ciudad = cityForCode(h.code, h);
       var opt = { v: 'hb-' + h.code, l: name, p: DEFAULT_PRICE_PER_NIGHT };
       if (ciudad === 'lerma') lerma.push(opt); else burgos.push(opt);
     });
@@ -454,7 +472,9 @@
 
   function renderHotelbedsResults(data, selectedHotels) {
     window.HOTELBEDS_DYNAMIC_OPTS = null;
-    var hotels = (data.hotels && data.hotels.hotels) || [];
+    var hotels = ((data.hotels && data.hotels.hotels) || []).filter(function (h) {
+      return isAllowedHotel(h && h.code);
+    });
     if (hotels.length === 0) {
       window.LIVE_HOTEL_PRICES = null;
       setBookingWidgetVisible(true);
@@ -503,7 +523,9 @@
   }
 
   function renderHotelbedsResultsByDestination(data) {
-    var hotels = (data.hotels && data.hotels.hotels) || [];
+    var hotels = ((data.hotels && data.hotels.hotels) || []).filter(function (h) {
+      return isAllowedHotel(h && h.code);
+    });
     if (hotels.length === 0) {
       fetchHotelbedsListHotels().then(function (list) {
         renderFullHotelListFromContent(list);
@@ -526,7 +548,7 @@
         if (rr) rate = parseFloat(rr.net || rr.gross || rr.sellingRate) || null;
       }
       if (typeof rate === 'string') rate = parseFloat(rate) || null;
-      var ciudad = cityForHotel(h);
+      var ciudad = cityForCode(code, h);
       var key = 'hb-' + code;
       live[key] = rate != null ? rate : null;
       var opt = { v: key, l: name, p: rate };
