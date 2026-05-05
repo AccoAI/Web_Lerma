@@ -189,7 +189,7 @@
           base +
             '/api/hotelbeds-list-hotels?destination=' +
             encodeURIComponent(dest) +
-            '&source=content&enrich=1&filter=none&from=1&to=200&language=CAS'
+            '&source=content&enrich=1&filter=none&from=1&to=200&language=ENG'
         )
           .then(function (r) {
             return r.json();
@@ -426,7 +426,12 @@
       });
     }
     return Promise.all(DESTINATIONS_LERMA_BURGOS.map(function (dest) {
-      return fetch(base + '/api/hotelbeds-list-hotels?destination=' + encodeURIComponent(dest) + '&source=content&filter=none&from=1&to=200')
+      return fetch(
+        base +
+          '/api/hotelbeds-list-hotels?destination=' +
+          encodeURIComponent(dest) +
+          '&source=content&filter=none&from=1&to=200&language=ENG'
+      )
         .then(function (r) { return r.json(); })
         .then(function (data) { if (!data.error) addFromResponse(data); return data; })
         .catch(function () { return {}; });
