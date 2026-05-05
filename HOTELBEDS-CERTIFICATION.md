@@ -20,7 +20,7 @@ Use this table internally and with Hotelbeds **only with honest wording**. Last 
 |-------------|---------------------|----------------|------------------|
 | **1 Technical** | Requests well-formed; GZIP where applicable | **Parcial** | Proxy `api/hotelbeds-availability.js` uses `fetch` + standard headers. Confirm explicit **Accept-Encoding: gzip** if auditors require it. |
 | **2.1–2.2 Workflow** | Availability → (CheckRate if needed) → Booking; **no** redundant Availability before CheckRate/Booking | **Parcial** | Tras disponibilidad, el front guarda `rateKey` por código (`js/hotelbeds-paquetes.js`). Antes de Stripe: **CheckRate** solo si la tarifa elegida es `RECHECK`; luego **Booking** vía el mismo proxy (`action: checkrates` / `action: booking`). **Orden comercial:** reserva HB **antes** del enlace Stripe para poder adjuntar voucher en metadata (si falla HB, el pago puede seguir sin voucher salvo `HOTELBEDS_STRICT_PREBOOK`). |
-| **2.3** | Max hotels per availability call within limit | **Parcial** | Con `hotelCodes` en body se agrupan; `js/precios-data.js` tiene `hotelbedsCode: null` en hoteles por defecto → a menudo se usa **destino** (dos llamadas BUR/BUR2) en `js/hotelbeds-paquetes.js`. |
+| **2.3** | Max hotels per availability call within limit | **Parcial** | Con `hotelCodes` en body se agrupan; `js/precios-data.js` tiene `hotelbedsCode: null` en hoteles por defecto → a menudo se usa **destino BRG** (una llamada; `BUR2` no es válido en la API: código máx. 3 caracteres). |
 | **2.5–2.6 CheckRate** | Solo si `rateType=RECHECK`; batch hasta 10 | **Parcial** | Se prioriza tarifa **BOOKABLE** al indexar; si la elegida es **RECHECK**, una habitación → un `checkrates`. Multitarifa / hasta 10 en un solo batch: **no** desde el flujo paquete aún. |
 | **2.7 Promotions** | Mostrar promociones de tarifa | **No** en UI actual | Lista de precios resumida; no se pintan `promotions` por rate. |
 | **3.1** | Precio, habitación, régimen, hotel, paginación… | **Parcial** | Se muestran nombre + precio (minRate / primer rate); no hay selector granular de **cada** rateKey / room / board desde HB en el HTML de paquetes. |
@@ -88,7 +88,7 @@ We operate a **single B2C channel** for regional golf/stay packages on our websi
 **Volume / batching (availability) today:**
 
 - **One** availability request when querying by **explicit hotel codes** (when `hotelbedsCode` is configured per hotel), within your limits.
-- **Two sequential** availability requests when querying by **destination** (**BUR** and **BUR2**), merged and **deduplicated** client-side (geographic scope of our product).
+- **One** availability request when querying by **destination** (**BRG**). (*Código de destino validado para Burgos/Lerma en vuestro entorno test.*)
 
 **Other Hotelbeds calls:** We use **`GET https://web-lerma.vercel.app/api/hotelbeds-list-hotels`** for hotel lists where needed.
 
@@ -96,7 +96,7 @@ We operate a **single B2C channel** for regional golf/stay packages on our websi
 
 ### Commercial decisions
 
-Our offer is a **specialised regional golf/stay product** (Lerma and Burgos area). We scope searches to **destinations BUR and BUR2** and/or **configured hotel codes** that match that geographic scope. We display **rates and hotel names** (and, where we surface them, **room/board** and **promotions**) as returned by the API, without **undisclosed** filtering to manipulate which contracted properties appear beyond this product scope.
+Our offer is a **specialised regional golf/stay product** (Lerma and Burgos area). We scope searches to **destination BRG** and/or **configured hotel codes** that match that geographic scope. We display **rates and hotel names** (and, where we surface them, **room/board** and **promotions**) as returned by the API, without **undisclosed** filtering to manipulate which contracted properties appear beyond this product scope.
 
 **If you apply any deliberate limitation** (e.g. not showing every board type on the package UI), disclose it explicitly during certification.
 
@@ -136,7 +136,7 @@ We use this **Vercel production URL** for certification; a **custom domain** may
 - `https://web-lerma.vercel.app/configurador-torneos.html`
 
 **Direct API test:** `POST https://web-lerma.vercel.app/api/hotelbeds-availability`  
-Example: `{"checkIn":"YYYY-MM-DD","checkOut":"YYYY-MM-DD","rooms":1,"adults":2,"destinationCode":"BUR"}` or `"hotelCodes":["…"]`.
+Example: `{"checkIn":"YYYY-MM-DD","checkOut":"YYYY-MM-DD","rooms":1,"adults":2,"destinationCode":"BRG"}` or `"hotelCodes":["…"]`.
 
 **Connectivity:** `GET https://web-lerma.vercel.app/api/hotelbeds-availability?status=1`
 
@@ -188,7 +188,7 @@ Gracias por la información sobre la certificación. Hemos revisado el [proceso 
 
 **Páginas:** `paquete-fin-semana.html`, `paquete-golf-vino.html`, `paquete-36-hoyos.html` (dos fechas para alojamiento), `configurador-ryder.html`, `configurador-torneos.html`.
 
-**Comercial:** ámbito BUR/BUR2 y códigos configurados; sin filtros ocultos fuera del producto.
+**Comercial:** ámbito BRG y códigos de hotel configurados; sin filtros ocultos fuera del producto.
 
 **Pago:** modelo merchant; liquidación con Hotelbeds según contrato.
 

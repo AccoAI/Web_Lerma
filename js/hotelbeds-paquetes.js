@@ -6,7 +6,8 @@
   var DEBOUNCE_MS = 800;
   var debounceTimer = null;
   var ALL_HOTEL_IDS = ['alisa', 'ceres', 'parador', 'silken', 'palacio-blasones', 'hotel-centro'];
-  var DESTINATIONS_LERMA_BURGOS = ['BUR', 'BUR2'];
+  /** Hotel API: destination.code solo 1–3 caracteres (p. ej. BRG). «BUR2» no es válido y devuelve 400. */
+  var DESTINATIONS_LERMA_BURGOS = ['BRG'];
 
   function pageOpts() {
     var d = {

@@ -1,14 +1,14 @@
 /**
  * Lista hoteles por destino.
  *
- * GET /api/hotelbeds-list-hotels?destination=BUR&source=transfer-cache
- * GET /api/hotelbeds-list-hotels?destination=BUR&source=content
- * GET /api/hotelbeds-list-hotels?destination=BUR&source=content&enrich=1 — Content API con estrellas, imagen, descripción, facilities (incl. de pago)
+ * GET /api/hotelbeds-list-hotels?destination=BRG&source=transfer-cache
+ * GET /api/hotelbeds-list-hotels?destination=BRG&source=content
+ * GET /api/hotelbeds-list-hotels?destination=BRG&source=content&enrich=1 — Content API con estrellas, imagen, descripción, facilities (incl. de pago)
  * GET /api/hotelbeds-list-hotels?hotelCodes=225042,1058754  (Availability por códigos)
  *
  * source=transfer-cache -> Transfer Cache API (campos name, city, code directos)
  * source=content -> Hotel Content API
- * source=availability -> Availability API (precios; BUR vacío en test)
+ * source=availability -> Availability API (precios; BRG es el código correcto Burgos/Lerma)
  */
 import { createHash } from 'crypto';
 import { mapContentHotelForUi } from '../lib/hotelbeds-enriched-content.js';
@@ -150,7 +150,7 @@ export async function GET(request) {
       return jsonResponse({ error: 'Faltan credenciales' }, 200);
     }
 
-    const dest = url?.searchParams?.get('destination') || 'BUR';
+    const dest = url?.searchParams?.get('destination') || 'BRG';
   const hotelCodesParam = url?.searchParams?.get('hotelCodes') || '';
   let source = url?.searchParams?.get('source') || 'content';
   if (hotelCodesParam && !url?.searchParams?.get('source')) source = 'availability';
@@ -205,7 +205,7 @@ export async function GET(request) {
       });
     }
 
-    if (filterSpain && dest === 'BUR') {
+    if (filterSpain && dest === 'BRG') {
       const before = list.length;
       list = list.filter(esZonaBurgos);
       if (list.length === 0 && before > 0) {
@@ -214,7 +214,7 @@ export async function GET(request) {
           total: 0,
           destination: dest,
           source,
-          aviso: 'BUR devuelve hoteles fuera de Burgos (España). Filtrados. Usa ?filter=none para ver todos y contacta a Hotelbeds por el código correcto para Burgos (ES).',
+          aviso: 'BRG no devolvió resultados tras filtrar zona Burgos/Lerma. Usa ?filter=none para ver todos y revisar mapeo con Hotelbeds.',
           nota: 'Puedes añadir códigos manualmente en precios-data.js tras obtenerlos de tu gestor Hotelbeds.',
         });
       }
@@ -226,7 +226,7 @@ export async function GET(request) {
       destination: dest,
       source,
       enrich: enrich || false,
-      nota: 'Usa code en precios-data.js. Si BUR no devuelve Burgos ES: contacta Hotelbeds. ?filter=none muestra todos sin filtrar. enrich=1 añade datos Content API (certificación).',
+      nota: 'Usa code en precios-data.js. Si BRG no devuelve datos para tus fechas/credenciales: revisa inventario o usa hotelCodes. ?filter=none muestra todos sin filtrar. enrich=1 añade datos Content API (certificación).',
     });
   } catch (err) {
     const msg = err.message || String(err);

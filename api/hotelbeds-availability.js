@@ -170,7 +170,7 @@ async function fetchAvailability(apiKey, secret, body) {
   } else if (body.destinationCode) {
     payload.destination = { code: String(body.destinationCode) };
   } else {
-    payload.destination = { code: 'BUR' };
+    payload.destination = { code: 'BRG' };
   }
 
   let res;
@@ -328,7 +328,7 @@ export async function GET(request) {
         checkOut: '2026-05-12',
         rooms: 1,
         adults: 2,
-        destinationCode: 'BUR',
+        destinationCode: 'BRG',
       },
       connectivityCheck: 'GET este mismo path con ?status=1 para probar credenciales y estado Hotelbeds.',
     },

@@ -48,7 +48,7 @@
     </div>
 
     <h2 class="configurador-titulo" style="font-size:1rem;margin-top:1.25rem;">1. Disponibilidad (<code>POST</code> sin <code>action</code>)</h2>
-    <p class="hc-note">El proxy arma el body hacia <code>/hotel-api/1.0/hotels</code>. Por defecto destino <strong>BUR</strong> si no indicas nada.</p>
+    <p class="hc-note">El proxy arma el body hacia <code>/hotel-api/1.0/hotels</code>. Por defecto destino <strong>BRG</strong> si no indicas nada. <strong>Importante:</strong> el destino en Hotel API es <strong>1 a 3 caracteres</strong> (no uses <code>BUR2</code> — devuelve 400).</p>
     <div class="hc-presets" id="hc-presets"></div>
     <div class="hc-grid">
       <label>checkIn <input type="date" id="hc-checkin"></label>
@@ -62,7 +62,7 @@
       <label><input type="radio" name="hc-search-mode" id="hc-mode-hotels" value="hotels"> Por códigos de hotel (lista)</label>
     </div>
     <div class="hc-grid" id="hc-dest-wrap">
-      <label style="grid-column:1/-1;">destinationCode <input type="text" id="hc-dest" value="BUR" placeholder="BUR, BUR2…"></label>
+      <label style="grid-column:1/-1;">destinationCode <input type="text" id="hc-dest" value="BRG" maxlength="3" placeholder="1–3 caracteres (BRG, MAD…)" title="Hotelbeds: máximo 3 caracteres por destino"></label>
     </div>
     <div class="hc-grid" id="hc-codes-wrap" style="display:none;">
       <label style="grid-column:1/-1;">hotelCodes (coma) <input type="text" id="hc-codes" placeholder="ej. 12345, 67890 (máx. 20 en proxy)"></label>
@@ -152,9 +152,9 @@
   setDatesDefault();
 
   var PRESETS = [
-    { label: 'BUR · 2 noches', dest: 'BUR', nights: 2 },
-    { label: 'BUR2 · 2 noches', dest: 'BUR2', nights: 2 },
-    { label: 'BUR · 1 noche', dest: 'BUR', nights: 1 },
+    { label: 'BRG · 2 noches', dest: 'BRG', nights: 2 },
+    { label: 'MAD · 2 noches', dest: 'MAD', nights: 2 },
+    { label: 'BRG · 1 noche', dest: 'BRG', nights: 1 },
   ];
 
   var presetEl = document.getElementById('hc-presets');

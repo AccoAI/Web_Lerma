@@ -32,9 +32,9 @@ curl -X POST https://tu-dominio.vercel.app/api/hotelbeds-availability \
 
 Usa la **Content API** para obtener el listado con códigos:
 
-1. Burgos ciudad: `GET .../api/hotelbeds-list-hotels?destination=BUR`
-2. Lerma y provincia: `GET .../api/hotelbeds-list-hotels?destination=BUR2`
-3. Paginación: `?destination=BUR&from=1&to=100`
+1. Burgos / zona (código destino API **1–3 caracteres**): `GET .../api/hotelbeds-list-hotels?destination=BRG`
+2. No usar `BUR2` en Availability ni listados: la Hotel API devuelve **400** (*destination.code size must be between 1 and 3*). Para más cobertura geográfica, usar **códigos de hotel** concretos en `precios-data.js` / Content API.
+3. Paginación: `?destination=BRG&from=1&to=100`
 
 La respuesta incluye `{ hotels: [ { code, name, city, ... } ] }`. Busca por nombre (Alisa, Parador, Silken, Landa, etc.) y anota el `code`.
 
