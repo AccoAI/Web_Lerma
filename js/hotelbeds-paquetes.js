@@ -9,10 +9,9 @@
   /** Hotel API: destination.code solo 1–3 caracteres (p. ej. BRG). «BUR2» no es válido y devuelve 400. */
   var DESTINATIONS_LERMA_BURGOS = ['BRG'];
   var ALLOWED_HOTEL_CODES = {
-    lerma: { '62060': 1, '8116': 1, '194680': 1 },
+    lerma: { '62060': 1, '8116': 1, '194680': 1, '134469': 1 },
     burgos: { '87356': 1, '23103': 1, '54825': 1, '35657': 1 },
   };
-  var ALLOWED_HOTEL_CODE_LIST = ['62060', '8116', '194680', '87356', '23103', '54825', '35657'];
 
   function pageOpts() {
     var d = {
@@ -408,30 +407,6 @@
     return !!(ALLOWED_HOTEL_CODES.lerma[c] || ALLOWED_HOTEL_CODES.burgos[c]);
   }
 
-  function ensureAllowedHotels(hotels, contentBy) {
-    var out = [];
-    var byCode = {};
-    (hotels || []).forEach(function (h) {
-      if (!h || !h.code) return;
-      var code = String(h.code);
-      if (!isAllowedHotel(code) || byCode[code]) return;
-      byCode[code] = h;
-      out.push(h);
-    });
-    ALLOWED_HOTEL_CODE_LIST.forEach(function (code) {
-      if (byCode[code]) return;
-      var meta = contentBy && contentBy[code];
-      out.push({
-        code: code,
-        name: (meta && meta.name) ? meta.name : ('Hotel ' + code),
-        destinationName: cityForCode(code) === 'lerma' ? 'Lerma' : 'Burgos',
-        rooms: [],
-        minRate: null,
-      });
-    });
-    return out;
-  }
-
   var DEFAULT_PRICE_PER_NIGHT = 75;
 
   function fetchHotelbedsListHotels() {
@@ -548,10 +523,10 @@
   }
 
   function renderHotelbedsResultsByDestination(data) {
-    var hotelsAvail = ((data.hotels && data.hotels.hotels) || []).filter(function (h) {
+    var hotels = ((data.hotels && data.hotels.hotels) || []).filter(function (h) {
       return isAllowedHotel(h && h.code);
     });
-    if (hotelsAvail.length === 0) {
+    if (hotels.length === 0) {
       fetchHotelbedsListHotels().then(function (list) {
         renderFullHotelListFromContent(list);
       }).catch(function () {
@@ -559,8 +534,6 @@
       });
       return;
     }
-    var contentBy = window.__HB_CONTENT_BY_CODE || {};
-    var hotels = ensureAllowedHotels(hotelsAvail, contentBy);
     var live = {};
     var lerma = [];
     var burgos = [];
@@ -585,6 +558,7 @@
     window.HOTELBEDS_DYNAMIC_OPTS = { lerma: lerma, burgos: burgos };
 
     var rateBy = window.__HB_RATE_BY_CODE || {};
+    var contentBy = window.__HB_CONTENT_BY_CODE || {};
     var html =
       '<div class="hotelbeds-block hotelbeds-results"><h4 class="hotelbeds-title">Precios en tiempo real (Hotelbeds) · Lerma y Burgos</h4><ul class="hotelbeds-list hotelbeds-list--cards">';
     hotels.forEach(function (h) {
