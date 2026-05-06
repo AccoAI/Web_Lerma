@@ -1,14 +1,44 @@
 /**
- * Bloque opcional "Transfer (Hotelbeds)" en paquetes con alojamiento.
- * - Ping: mismo proxy que transfers-cert.html → GET /api/hotelbeds-transfers?ping=1
- * - Presupuesto en vivo: GET /api/hotelbeds-transfers?… (availability simple)
+ * Transfer Hotelbeds en paquetes: ping + modal «transporte desde/hacia Burgos»
+ * con disponibilidad en vivo (GET /api/hotelbeds-transfers).
+ *
+ * Destino/salida Burgos: IATA RGS (hub estándar catálogo HB). Fechas: fechas[] del formulario.
  */
 (function () {
-  var ROUTE_PRESETS = [
-    { label: 'MAD → Burgos (RGS)', fromType: 'IATA', fromCode: 'MAD', toType: 'IATA', toCode: 'RGS' },
-    { label: 'Burgos (RGS) → MAD', fromType: 'IATA', fromCode: 'RGS', toType: 'IATA', toCode: 'MAD' },
-    { label: 'MAD → Valladolid (VLL)', fromType: 'IATA', fromCode: 'MAD', toType: 'IATA', toCode: 'VLL' },
+  /** Punto Burgos en Hotelbeds Transfers (aeropuerto / referencia IATA España). */
+  var BURGOS_HB = { toType: 'IATA', toCode: 'RGS', label: 'Burgos (IATA RGS)' };
+
+  /** Orígenes habituales hacia Burgos (solo IATA). */
+  var ORIGINS_IN = [
+    { label: 'Madrid-Barajas (MAD)', code: 'MAD' },
+    { label: 'Valladolid (VLL)', code: 'VLL' },
+    { label: 'Bilbao (BIO)', code: 'BIO' },
+    { label: 'Santander (SDR)', code: 'SDR' },
+    { label: 'Zaragoza (ZAZ)', code: 'ZAZ' },
   ];
+
+  /** Destinos habituales saliendo desde Burgos. */
+  var DESTINATIONS_OUT = [
+    { label: 'Madrid-Barajas (MAD)', code: 'MAD' },
+    { label: 'Valladolid (VLL)', code: 'VLL' },
+    { label: 'Bilbao (BIO)', code: 'BIO' },
+    { label: 'Barcelona (BCN)', code: 'BCN' },
+  ];
+
+  var escapeModalBound = false;
+  function ensureEscapeClosesModal() {
+    if (escapeModalBound) return;
+    escapeModalBound = true;
+    document.addEventListener('keydown', function (ev) {
+      if (ev.key !== 'Escape') return;
+      document.querySelectorAll('.transfer-hb-modal').forEach(function (m) {
+        if (!m.hidden) {
+          m.hidden = true;
+          document.body.classList.remove('transfer-hb-modal-open');
+        }
+      });
+    });
+  }
 
   function setBadge(el, text, state) {
     if (!el) return;
@@ -83,172 +113,6 @@
     return '';
   }
 
-  function injectLiveUi(block) {
-    var det = block.querySelector('.transfer-hb-detalles');
-    if (!det || det.querySelector('.transfer-hb-live-wrap')) return;
-
-    var intro = document.createElement('p');
-    intro.className = 'transfer-hb-live-intro';
-    intro.textContent =
-      'Presupuesto en vivo con el mismo proxy que la certificación: indica tipo y código de origen/destino (doc. Hotelbeds: IATA, ATLAS, GIATA, GPS). La fecha/hora del tramo se rellena desde tu calendario cuando hay fechas seleccionadas.';
-
-    var presets = document.createElement('div');
-    presets.className = 'transfer-hb-presets';
-    presets.setAttribute('aria-label', 'Rutas de ejemplo');
-
-    var codes = document.createElement('div');
-    codes.className = 'transfer-hb-codes-grid';
-
-    function addField(labelText, name, defVal, inputType) {
-      var wrap = document.createElement('label');
-      wrap.className = 'transfer-hb-code-field';
-      var span = document.createElement('span');
-      span.textContent = labelText;
-      wrap.appendChild(span);
-      var inp = document.createElement(inputType || 'input');
-      if (!inputType || inputType === 'input') {
-        inp.type = 'text';
-        inp.value = defVal || '';
-      }
-      inp.setAttribute('data-transfer-field', name);
-      wrap.appendChild(inp);
-      codes.appendChild(wrap);
-      return inp;
-    }
-
-    var langEl = addField('Idioma API', 'language', 'es');
-    var ftEl = addField('fromType', 'fromType', 'IATA');
-    var fcEl = addField('fromCode', 'fromCode', 'MAD');
-    var ttEl = addField('toType', 'toType', 'IATA');
-    var tcEl = addField('toCode', 'toCode', 'RGS');
-
-    var dtWrap = document.createElement('label');
-    dtWrap.className = 'transfer-hb-code-field transfer-hb-code-field--full';
-    var dtSpan = document.createElement('span');
-    dtSpan.textContent = 'Salida del transfer (fecha y hora local)';
-    dtWrap.appendChild(dtSpan);
-    var dtEl = document.createElement('input');
-    dtEl.type = 'datetime-local';
-    dtEl.setAttribute('data-transfer-field', 'outbound');
-    dtWrap.appendChild(dtEl);
-    codes.appendChild(dtWrap);
-
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'btn-transfer-hb-search';
-    btn.textContent = 'Buscar disponibilidad y precios';
-
-    var hiddenRk = document.createElement('input');
-    hiddenRk.type = 'hidden';
-    hiddenRk.name = 'transfer_hb_rate_key';
-    hiddenRk.value = '';
-
-    var results = document.createElement('div');
-    results.className = 'transfer-hb-results';
-    results.setAttribute('aria-live', 'polite');
-
-    var live = document.createElement('div');
-    live.className = 'transfer-hb-live-wrap';
-    live.appendChild(intro);
-    live.appendChild(presets);
-    live.appendChild(codes);
-    live.appendChild(btn);
-    live.appendChild(hiddenRk);
-    live.appendChild(results);
-
-    det.appendChild(live);
-
-    ROUTE_PRESETS.forEach(function (pr) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'transfer-hb-preset-btn';
-      b.textContent = pr.label;
-      b.addEventListener('click', function () {
-        ftEl.value = pr.fromType;
-        fcEl.value = pr.fromCode;
-        ttEl.value = pr.toType;
-        tcEl.value = pr.toCode;
-      });
-      presets.appendChild(b);
-    });
-
-    function syncOutboundDefault() {
-      var form = getForm(block);
-      var iso = defaultOutboundFromCalendar(form);
-      if (!iso) return;
-      var localVal = iso.slice(0, 16);
-      if (!dtEl.value) dtEl.value = localVal;
-    }
-
-    btn.addEventListener('click', function () {
-      var form = getForm(block);
-      syncOutboundDefault();
-      var outbound = dtEl.value.trim();
-      if (!outbound) {
-        results.innerHTML =
-          '<p class="transfer-hb-results-msg transfer-hb-results-msg--warn">Indica fecha y hora de salida del transfer (o selecciona antes fechas en el calendario).</p>';
-        return;
-      }
-      var outboundIso = outbound;
-      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(outbound)) {
-        outboundIso = outbound + ':00';
-      }
-
-      var paxEl = block.querySelector('input[name="transfer_hb_pax"]');
-      var adults = Math.max(1, parseInt(paxEl && paxEl.value ? paxEl.value : '2', 10) || 2);
-
-      var qs = new URLSearchParams({
-        language: (langEl.value || 'es').trim(),
-        fromType: (ftEl.value || 'IATA').trim(),
-        fromCode: (fcEl.value || '').trim(),
-        toType: (ttEl.value || 'IATA').trim(),
-        toCode: (tcEl.value || '').trim(),
-        outbound: outboundIso,
-        inbound: '',
-        adults: String(adults),
-        children: '0',
-        infants: '0',
-      });
-
-      if (!(qs.get('fromCode') && qs.get('toCode'))) {
-        results.innerHTML =
-          '<p class="transfer-hb-results-msg transfer-hb-results-msg--warn">Completa fromCode y toCode (o usa un acceso rápido arriba).</p>';
-        return;
-      }
-
-      results.innerHTML = '<p class="transfer-hb-results-msg">Buscando en Hotelbeds…</p>';
-      btn.disabled = true;
-
-      fetch(originBase() + '/api/hotelbeds-transfers?' + qs.toString())
-        .then(function (r) {
-          return r.text().then(function (text) {
-            try {
-              return JSON.parse(text);
-            } catch (e) {
-              return { ok: false, parseError: true, snippet: text.slice(0, 400) };
-            }
-          });
-        })
-        .then(function (data) {
-          renderServices(results, hiddenRk, data, block);
-        })
-        .catch(function () {
-          results.innerHTML =
-            '<p class="transfer-hb-results-msg transfer-hb-results-msg--warn">Error de red al consultar el proxy de transfers.</p>';
-        })
-        .then(function () {
-          btn.disabled = false;
-        });
-    });
-
-    var cb = block.querySelector('input[name="transfer_hb_interes"]');
-    if (cb) {
-      cb.addEventListener('change', function () {
-        if (cb.checked) syncOutboundDefault();
-      });
-    }
-  }
-
   function renderServices(container, hiddenRateKey, res, block) {
     var pickName = 'transfer_hb_svc_pick_' + (block && block.getAttribute ? block.getAttribute('data-hb-transfer-page') || 'x' : 'x');
     hiddenRateKey.value = '';
@@ -256,7 +120,7 @@
 
     if (!res || res.ok === false) {
       var err = document.createElement('p');
-      err.className = 'transfer-hb-results-msg transfer-hb-results-msg--warn';
+      err.className = 'transfer-hb-modal-msg transfer-hb-modal-msg--warn';
       var detail =
         res && res.error === 'missing_credentials'
           ? 'Faltan credenciales de Transfer en el servidor.'
@@ -281,7 +145,7 @@
     var data = res.data;
     if (!data) {
       var empty = document.createElement('p');
-      empty.className = 'transfer-hb-results-msg';
+      empty.className = 'transfer-hb-modal-msg';
       empty.textContent = 'Respuesta sin datos de servicios.';
       container.appendChild(empty);
       return;
@@ -299,8 +163,8 @@
       var raw = data.services && data.services.service != null ? data.services.service : data.service;
       if (raw == null) {
         var n = document.createElement('p');
-        n.className = 'transfer-hb-results-msg';
-        n.textContent = 'No hay servicios en la respuesta para esta ruta (prueba otros códigos o fecha).';
+        n.className = 'transfer-hb-modal-msg';
+        n.textContent = 'No hay servicios para esta ruta (prueba otro origen o fecha).';
         container.appendChild(n);
         return;
       }
@@ -309,8 +173,8 @@
 
     if (!services.length) {
       var z = document.createElement('p');
-      z.className = 'transfer-hb-results-msg';
-      z.textContent = 'Sin servicios disponibles para los parámetros indicados.';
+      z.className = 'transfer-hb-modal-msg';
+      z.textContent = 'Sin servicios disponibles para estos datos.';
       container.appendChild(z);
       return;
     }
@@ -318,7 +182,7 @@
     var list = document.createElement('div');
     list.className = 'transfer-hb-svc-list';
 
-    services.forEach(function (s, idx) {
+    services.forEach(function (s) {
       var price = pickPrice(s);
       var card = document.createElement('article');
       card.className = 'transfer-hb-svc-card';
@@ -342,10 +206,16 @@
       radio.type = 'radio';
       radio.name = pickName;
       radio.addEventListener('change', function () {
-        if (radio.checked && s.rateKey) hiddenRateKey.value = s.rateKey;
+        if (radio.checked && s.rateKey) {
+          hiddenRateKey.value = s.rateKey;
+          var cb = block.querySelector('input[name="transfer_hb_interes"]');
+          if (cb) cb.checked = true;
+          var det = block.querySelector('.transfer-hb-detalles');
+          if (det) det.hidden = false;
+        }
       });
       pick.appendChild(radio);
-      pick.appendChild(document.createTextNode(' Usar este servicio para la solicitud'));
+      pick.appendChild(document.createTextNode(' Elegir para mi solicitud'));
       card.appendChild(pick);
       list.appendChild(card);
     });
@@ -353,13 +223,366 @@
     container.appendChild(list);
   }
 
+  function runAvailability(block, hiddenRk, els, resultsEl, btnSearch) {
+    var form = getForm(block);
+    var outboundRaw = els.dt.value.trim();
+    if (!outboundRaw) {
+      var hint = defaultOutboundFromCalendar(form);
+      if (hint) {
+        els.dt.value = hint.slice(0, 16);
+        outboundRaw = els.dt.value.trim();
+      }
+    }
+    if (!outboundRaw) {
+      resultsEl.innerHTML =
+        '<p class="transfer-hb-modal-msg transfer-hb-modal-msg--warn">Selecciona antes las fechas del viaje en el calendario (arriba), o indica fecha y hora del transfer aquí.</p>';
+      return;
+    }
+
+    var outboundIso = outboundRaw;
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(outboundRaw)) {
+      outboundIso = outboundRaw + ':00';
+    }
+
+    var mode = els.mode.value === 'from_burgos' ? 'from_burgos' : 'to_burgos';
+    var fromType = 'IATA';
+    var fromCode = '';
+    var toType = 'IATA';
+    var toCode = '';
+
+    if (mode === 'to_burgos') {
+      fromCode = els.originSel.value === '__custom__' ? (els.originCustom.value || '').trim().toUpperCase() : els.originSel.value;
+      toType = BURGOS_HB.toType;
+      toCode = BURGOS_HB.toCode;
+    } else {
+      fromType = BURGOS_HB.toType;
+      fromCode = BURGOS_HB.toCode;
+      toCode = els.destOut.value === '__custom__' ? (els.destCustom.value || '').trim().toUpperCase() : els.destOut.value;
+    }
+
+    if (!fromCode || !toCode) {
+      resultsEl.innerHTML =
+        '<p class="transfer-hb-modal-msg transfer-hb-modal-msg--warn">Indica origen y destino (o código IATA en «Otro»).</p>';
+      return;
+    }
+
+    var paxEl = block.querySelector('input[name="transfer_hb_pax"]');
+    var adults = Math.max(1, parseInt(paxEl && paxEl.value ? paxEl.value : '2', 10) || 2);
+    if (els.paxSync && els.paxSync.value) {
+      adults = Math.max(1, parseInt(els.paxSync.value, 10) || adults);
+      if (paxEl) paxEl.value = String(adults);
+    }
+
+    var qs = new URLSearchParams({
+      language: (els.lang.value || 'es').trim(),
+      fromType: fromType,
+      fromCode: fromCode,
+      toType: toType,
+      toCode: toCode,
+      outbound: outboundIso,
+      inbound: '',
+      adults: String(adults),
+      children: '0',
+      infants: '0',
+    });
+
+    resultsEl.innerHTML = '<p class="transfer-hb-modal-msg">Consultando Hotelbeds…</p>';
+    btnSearch.disabled = true;
+
+    fetch(originBase() + '/api/hotelbeds-transfers?' + qs.toString())
+      .then(function (r) {
+        return r.text().then(function (text) {
+          try {
+            return JSON.parse(text);
+          } catch (e) {
+            return { ok: false, parseError: true, snippet: text.slice(0, 400) };
+          }
+        });
+      })
+      .then(function (data) {
+        renderServices(resultsEl, hiddenRk, data, block);
+      })
+      .catch(function () {
+        resultsEl.innerHTML =
+          '<p class="transfer-hb-modal-msg transfer-hb-modal-msg--warn">Error de red al consultar transfers.</p>';
+      })
+      .then(function () {
+        btnSearch.disabled = false;
+      });
+  }
+
+  function openModal(root, focusEl) {
+    root.hidden = false;
+    document.body.classList.add('transfer-hb-modal-open');
+    if (focusEl && focusEl.focus) focusEl.focus();
+  }
+
+  function closeModal(root) {
+    root.hidden = true;
+    document.body.classList.remove('transfer-hb-modal-open');
+  }
+
+  function setupTransferModal(block) {
+    if (block.querySelector('.transfer-hb-modal-launch-wrap')) return;
+
+    var hiddenRk = document.createElement('input');
+    hiddenRk.type = 'hidden';
+    hiddenRk.name = 'transfer_hb_rate_key';
+    hiddenRk.value = '';
+    block.appendChild(hiddenRk);
+
+    var launchWrap = document.createElement('div');
+    launchWrap.className = 'transfer-hb-modal-launch-wrap';
+    var openBtn = document.createElement('button');
+    openBtn.type = 'button';
+    openBtn.className = 'btn-transfer-hb-modal-open';
+    openBtn.textContent = 'Transporte desde / hacia Burgos — ver disponibilidad Hotelbeds';
+    var launchHint = document.createElement('p');
+    launchHint.className = 'transfer-hb-modal-launch-hint';
+    launchHint.textContent =
+      'Se abre un buscador: el punto Burgos va fijo al catálogo (IATA RGS). La fecha/hora se toma de tu calendario cuando ya hay fechas.';
+    launchWrap.appendChild(openBtn);
+    launchWrap.appendChild(launchHint);
+
+    var apiLine = block.querySelector('.hotelbeds-transfer-api-line');
+    if (apiLine && apiLine.parentNode) {
+      apiLine.parentNode.insertBefore(launchWrap, apiLine.nextSibling);
+    } else {
+      block.insertBefore(launchWrap, block.firstChild);
+    }
+
+    var uid = block.getAttribute('data-hb-transfer-page') || 'x';
+    var modal = document.createElement('div');
+    modal.className = 'transfer-hb-modal';
+    modal.setAttribute('hidden', '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'transfer-hb-modal-title-' + uid);
+
+    var backdrop = document.createElement('div');
+    backdrop.className = 'transfer-hb-modal-backdrop';
+    backdrop.tabIndex = -1;
+
+    var panel = document.createElement('div');
+    panel.className = 'transfer-hb-modal-panel';
+
+    var head = document.createElement('div');
+    head.className = 'transfer-hb-modal-head';
+    var title = document.createElement('h4');
+    title.id = 'transfer-hb-modal-title-' + uid;
+    title.className = 'transfer-hb-modal-title';
+    title.textContent = 'Transfer hacia / desde Burgos';
+    var closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'transfer-hb-modal-close';
+    closeBtn.setAttribute('aria-label', 'Cerrar');
+    closeBtn.textContent = '\u00d7';
+    head.appendChild(title);
+    head.appendChild(closeBtn);
+
+    var destNote = document.createElement('p');
+    destNote.className = 'transfer-hb-modal-note';
+    destNote.appendChild(document.createTextNode('Punto Burgos en Hotelbeds: '));
+    var s1 = document.createElement('strong');
+    s1.textContent = 'IATA RGS';
+    destNote.appendChild(s1);
+    destNote.appendChild(
+      document.createTextNode(
+        ' (referencia aeropuerto / catálogo). Otro punto (hotel ATLAS/GIATA): indicarlo en notas o usar la página técnica transfers-cert.'
+      )
+    );
+
+    var modeRow = document.createElement('div');
+    modeRow.className = 'transfer-hb-modal-field';
+    var modeLab = document.createElement('label');
+    modeLab.textContent = 'Sentido';
+    var modeSel = document.createElement('select');
+    modeSel.className = 'transfer-hb-modal-select';
+    modeSel.innerHTML =
+      '<option value="to_burgos">Llego a Burgos (desde aeropuerto/otro punto → RGS)</option>' +
+      '<option value="from_burgos">Salgo de Burgos (desde RGS → otro destino)</option>';
+    modeLab.appendChild(modeSel);
+    modeRow.appendChild(modeLab);
+
+    var rowIn = document.createElement('div');
+    rowIn.className = 'transfer-hb-modal-field transfer-hb-modal-field--in';
+    var oLab = document.createElement('label');
+    oLab.textContent = 'Origen (IATA)';
+    var oSel = document.createElement('select');
+    oSel.className = 'transfer-hb-modal-select';
+    var o0 = document.createElement('option');
+    o0.value = '';
+    o0.textContent = 'Elige aeropuerto / ciudad…';
+    oSel.appendChild(o0);
+    ORIGINS_IN.forEach(function (o) {
+      var opt = document.createElement('option');
+      opt.value = o.code;
+      opt.textContent = o.label;
+      oSel.appendChild(opt);
+    });
+    var ocust = document.createElement('option');
+    ocust.value = '__custom__';
+    ocust.textContent = 'Otro (código IATA)';
+    oSel.appendChild(ocust);
+    var oCustom = document.createElement('input');
+    oCustom.type = 'text';
+    oCustom.className = 'transfer-hb-modal-input transfer-hb-modal-input--custom';
+    oCustom.placeholder = 'Ej. OVD';
+    oCustom.maxLength = 4;
+    oCustom.style.marginTop = '0.35rem';
+    oCustom.hidden = true;
+    oSel.addEventListener('change', function () {
+      oCustom.hidden = oSel.value !== '__custom__';
+    });
+    oLab.appendChild(oSel);
+    oLab.appendChild(oCustom);
+    rowIn.appendChild(oLab);
+
+    var rowOut = document.createElement('div');
+    rowOut.className = 'transfer-hb-modal-field transfer-hb-modal-field--out';
+    rowOut.hidden = true;
+    var dLab = document.createElement('label');
+    dLab.textContent = 'Destino fuera de Burgos (IATA)';
+    var dSel = document.createElement('select');
+    dSel.className = 'transfer-hb-modal-select';
+    var d0 = document.createElement('option');
+    d0.value = '';
+    d0.textContent = 'Elige destino…';
+    dSel.appendChild(d0);
+    DESTINATIONS_OUT.forEach(function (o) {
+      var opt = document.createElement('option');
+      opt.value = o.code;
+      opt.textContent = o.label;
+      dSel.appendChild(opt);
+    });
+    var dcust = document.createElement('option');
+    dcust.value = '__custom__';
+    dcust.textContent = 'Otro (código IATA)';
+    dSel.appendChild(dcust);
+    var dCustom = document.createElement('input');
+    dCustom.type = 'text';
+    dCustom.className = 'transfer-hb-modal-input transfer-hb-modal-input--custom';
+    dCustom.placeholder = 'Ej. MAD';
+    dCustom.maxLength = 4;
+    dCustom.style.marginTop = '0.35rem';
+    dCustom.hidden = true;
+    dSel.addEventListener('change', function () {
+      dCustom.hidden = dSel.value !== '__custom__';
+    });
+    dLab.appendChild(dSel);
+    dLab.appendChild(dCustom);
+    rowOut.appendChild(dLab);
+
+    modeSel.addEventListener('change', function () {
+      var fromB = modeSel.value === 'from_burgos';
+      rowIn.hidden = fromB;
+      rowOut.hidden = !fromB;
+    });
+
+    var dtRow = document.createElement('div');
+    dtRow.className = 'transfer-hb-modal-field';
+    var dtLab = document.createElement('label');
+    dtLab.textContent = 'Fecha y hora del transfer (salida)';
+    var dt = document.createElement('input');
+    dt.type = 'datetime-local';
+    dt.className = 'transfer-hb-modal-datetime';
+    dtLab.appendChild(dt);
+    dtRow.appendChild(dtLab);
+
+    var paxRow = document.createElement('div');
+    paxRow.className = 'transfer-hb-modal-field';
+    var paxLab = document.createElement('label');
+    paxLab.textContent = 'Pasajeros';
+    var paxSync = document.createElement('input');
+    paxSync.type = 'number';
+    paxSync.min = '1';
+    paxSync.max = '54';
+    paxSync.value = '2';
+    paxSync.className = 'transfer-hb-modal-pax';
+    paxLab.appendChild(paxSync);
+    paxRow.appendChild(paxLab);
+
+    var lang = document.createElement('input');
+    lang.type = 'hidden';
+    lang.value = 'es';
+
+    var searchBtn = document.createElement('button');
+    searchBtn.type = 'button';
+    searchBtn.className = 'btn-transfer-hb-modal-search';
+    searchBtn.textContent = 'Buscar disponibilidad y precios';
+
+    var results = document.createElement('div');
+    results.className = 'transfer-hb-modal-results';
+    results.setAttribute('aria-live', 'polite');
+
+    panel.appendChild(head);
+    panel.appendChild(destNote);
+    panel.appendChild(modeRow);
+    panel.appendChild(rowIn);
+    panel.appendChild(rowOut);
+    panel.appendChild(dtRow);
+    panel.appendChild(paxRow);
+    panel.appendChild(searchBtn);
+    panel.appendChild(results);
+
+    modal.appendChild(backdrop);
+    modal.appendChild(panel);
+    document.body.appendChild(modal);
+
+    var els = {
+      mode: modeSel,
+      originSel: oSel,
+      originCustom: oCustom,
+      destOut: dSel,
+      destCustom: dCustom,
+      dt: dt,
+      paxSync: paxSync,
+      lang: lang,
+    };
+
+    function syncModalFromForm() {
+      var form = getForm(block);
+      var iso = defaultOutboundFromCalendar(form);
+      if (iso) dt.value = iso.slice(0, 16);
+      var pe = block.querySelector('input[name="transfer_hb_pax"]');
+      if (pe && pe.value) paxSync.value = pe.value;
+    }
+
+    openBtn.addEventListener('click', function () {
+      syncModalFromForm();
+      if (modeSel.value === 'to_burgos' && !oSel.value) {
+        oSel.value = 'MAD';
+      }
+      if (modeSel.value === 'from_burgos' && !dSel.value) {
+        dSel.value = 'MAD';
+      }
+      openModal(modal, modeSel);
+    });
+
+    closeBtn.addEventListener('click', function () {
+      closeModal(modal);
+    });
+    backdrop.addEventListener('click', function () {
+      closeModal(modal);
+    });
+
+    searchBtn.addEventListener('click', function () {
+      runAvailability(block, hiddenRk, els, results, searchBtn);
+    });
+
+    var cb = block.querySelector('input[name="transfer_hb_interes"]');
+    if (cb) {
+      cb.addEventListener('change', syncModalFromForm);
+    }
+  }
+
   function bindBlock(block) {
+    setupTransferModal(block);
     var cb = block.querySelector('input[name="transfer_hb_interes"]');
     var det = block.querySelector('.transfer-hb-detalles');
     if (!cb || !det) return;
     function sync() {
       det.hidden = !cb.checked;
-      if (cb.checked) injectLiveUi(block);
     }
     cb.addEventListener('change', sync);
     sync();
@@ -392,6 +615,7 @@
   }
 
   function init() {
+    ensureEscapeClosesModal();
     var blocks = document.querySelectorAll('.paquete-transfer-hb-block');
     if (!blocks.length) return;
     blocks.forEach(bindBlock);

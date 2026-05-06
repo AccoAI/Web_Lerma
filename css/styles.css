@@ -2444,6 +2444,154 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     cursor: pointer;
 }
 
+/* Modal transfer Burgos (Hotelbeds availability) */
+body.transfer-hb-modal-open {
+    overflow: hidden;
+}
+.transfer-hb-modal-launch-wrap {
+    margin: 0.75rem 0 1rem;
+}
+.btn-transfer-hb-modal-open {
+    display: inline-block;
+    padding: 0.55rem 1rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-radius: 6px;
+    border: none;
+    background: var(--color-primary);
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+.btn-transfer-hb-modal-open:hover {
+    filter: brightness(1.05);
+}
+.transfer-hb-modal-launch-hint {
+    margin: 0.45rem 0 0;
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+    line-height: 1.4;
+    max-width: 42rem;
+}
+.transfer-hb-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 12000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+.transfer-hb-modal[hidden] {
+    display: none !important;
+}
+.transfer-hb-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 24, 22, 0.45);
+    backdrop-filter: blur(2px);
+}
+.transfer-hb-modal-panel {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 520px;
+    max-height: min(90vh, 640px);
+    overflow: auto;
+    background: #faf9f6;
+    border-radius: 10px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(26, 77, 58, 0.15);
+    padding: 1rem 1.15rem 1.25rem;
+}
+.transfer-hb-modal-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.65rem;
+}
+.transfer-hb-modal-title {
+    margin: 0;
+    font-size: 1.05rem;
+    color: var(--color-primary);
+    font-weight: 700;
+}
+.transfer-hb-modal-close {
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.06);
+    font-size: 1.35rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--color-text);
+}
+.transfer-hb-modal-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+.transfer-hb-modal-note {
+    font-size: 0.78rem;
+    color: var(--color-text-light);
+    margin: 0 0 0.85rem;
+    line-height: 1.45;
+}
+.transfer-hb-modal-field {
+    margin-bottom: 0.65rem;
+}
+.transfer-hb-modal-field label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 0.25rem;
+}
+.transfer-hb-modal-select,
+.transfer-hb-modal-input,
+.transfer-hb-modal-datetime,
+.transfer-hb-modal-pax {
+    width: 100%;
+    max-width: 100%;
+    padding: 0.45rem 0.5rem;
+    font-size: 0.88rem;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 5px;
+    font-family: var(--font-primary);
+    box-sizing: border-box;
+}
+.btn-transfer-hb-modal-search {
+    width: 100%;
+    margin-top: 0.35rem;
+    padding: 0.55rem 1rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    background: var(--color-primary);
+    color: #fff;
+}
+.btn-transfer-hb-modal-search:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+.transfer-hb-modal-results {
+    margin-top: 0.85rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    font-size: 0.84rem;
+}
+.transfer-hb-modal-msg {
+    margin: 0 0 0.5rem;
+    color: var(--color-text);
+}
+.transfer-hb-modal-msg--warn {
+    color: #8a2431;
+}
+
 @media (max-width: 640px) {
     .transfer-hb-grid {
         grid-template-columns: 1fr;
