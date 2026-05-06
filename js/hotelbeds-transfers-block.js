@@ -1,14 +1,19 @@
 /**
- * Transfer Hotelbeds en paquetes: ping + modal «transporte desde/hacia Burgos»
- * con disponibilidad en vivo (GET /api/hotelbeds-transfers).
- *
- * Destino/salida Burgos: IATA RGS (hub estándar catálogo HB). Fechas: fechas[] del formulario.
+ * Transfer Hotelbeds en paquetes: ping + modal transporte hacia/desde Lerma o Burgos.
+ * Disponibilidad: GET /api/hotelbeds-transfers. Puntos zona = GPS centro (IATA local no siempre en catálogo HB).
  */
 (function () {
-  /** Punto Burgos en Hotelbeds Transfers (aeropuerto / referencia IATA España). */
-  var BURGOS_HB = { toType: 'IATA', toCode: 'RGS', label: 'Burgos (IATA RGS)' };
+  /** Centro aproximado por ciudad (Transfer API · tipo GPS, código lat,lon). */
+  var ZONA_GPS = {
+    lerma: { toType: 'GPS', toCode: '42.0270,-3.7545', label: 'Lerma (centro)' },
+    burgos: { toType: 'GPS', toCode: '42.3408,-3.6997', label: 'Burgos (centro)' },
+  };
 
-  /** Orígenes habituales hacia Burgos (solo IATA). */
+  function zonaHb(key) {
+    return ZONA_GPS[key === 'lerma' ? 'lerma' : 'burgos'];
+  }
+
+  /** Orígenes habituales hacia la zona (solo IATA). */
   var ORIGINS_IN = [
     { label: 'Madrid-Barajas (MAD)', code: 'MAD' },
     { label: 'Valladolid (VLL)', code: 'VLL' },
@@ -17,7 +22,7 @@
     { label: 'Zaragoza (ZAZ)', code: 'ZAZ' },
   ];
 
-  /** Destinos habituales saliendo desde Burgos. */
+  /** Destinos habituales saliendo desde Lerma/Burgos. */
   var DESTINATIONS_OUT = [
     { label: 'Madrid-Barajas (MAD)', code: 'MAD' },
     { label: 'Valladolid (VLL)', code: 'VLL' },
@@ -121,14 +126,21 @@
     if (!res || res.ok === false) {
       var err = document.createElement('p');
       err.className = 'transfer-hb-modal-msg transfer-hb-modal-msg--warn';
+      var hbErrMsg = '';
+      if (res && res.data && Array.isArray(res.data.errors) && res.data.errors.length) {
+        var e0 = res.data.errors[0];
+        hbErrMsg = (e0 && (e0.message || e0.description)) ? String(e0.message || e0.description) : '';
+      }
       var detail =
         res && res.error === 'missing_credentials'
           ? 'Faltan credenciales de Transfer en el servidor.'
-          : res && res.data && res.data.error
-            ? String(res.data.error)
-            : res && res.snippet
-              ? res.snippet
-              : JSON.stringify(res || {}).slice(0, 280);
+          : hbErrMsg
+            ? hbErrMsg
+            : res && res.data && res.data.error
+              ? String(res.data.error)
+              : res && res.snippet
+                ? res.snippet
+                : JSON.stringify(res || {}).slice(0, 280);
       err.textContent =
         'No se pudo obtener disponibilidad (' + (res && res.httpStatus != null ? res.httpStatus : '?') + '). ' + detail;
       if (res && res.httpStatus === 403) {
@@ -244,19 +256,23 @@
       outboundIso = outboundRaw + ':00';
     }
 
-    var mode = els.mode.value === 'from_burgos' ? 'from_burgos' : 'to_burgos';
+    var zonaKey = els.zonaSel && els.zonaSel.value === 'lerma' ? 'lerma' : 'burgos';
+    if (els.zonaHidden) els.zonaHidden.value = zonaKey;
+    var zonaPt = zonaHb(zonaKey);
+
+    var mode = els.mode.value === 'from_zona' ? 'from_zona' : 'to_zona';
     var fromType = 'IATA';
     var fromCode = '';
     var toType = 'IATA';
     var toCode = '';
 
-    if (mode === 'to_burgos') {
+    if (mode === 'to_zona') {
       fromCode = els.originSel.value === '__custom__' ? (els.originCustom.value || '').trim().toUpperCase() : els.originSel.value;
-      toType = BURGOS_HB.toType;
-      toCode = BURGOS_HB.toCode;
+      toType = zonaPt.toType;
+      toCode = zonaPt.toCode;
     } else {
-      fromType = BURGOS_HB.toType;
-      fromCode = BURGOS_HB.toCode;
+      fromType = zonaPt.toType;
+      fromCode = zonaPt.toCode;
       toCode = els.destOut.value === '__custom__' ? (els.destCustom.value || '').trim().toUpperCase() : els.destOut.value;
     }
 
@@ -331,16 +347,22 @@
     hiddenRk.value = '';
     block.appendChild(hiddenRk);
 
+    var zonaHidden = document.createElement('input');
+    zonaHidden.type = 'hidden';
+    zonaHidden.name = 'transfer_hb_zona';
+    zonaHidden.value = 'burgos';
+    block.appendChild(zonaHidden);
+
     var launchWrap = document.createElement('div');
     launchWrap.className = 'transfer-hb-modal-launch-wrap';
     var openBtn = document.createElement('button');
     openBtn.type = 'button';
     openBtn.className = 'btn-transfer-hb-modal-open';
-    openBtn.textContent = 'Transporte desde / hacia Burgos — ver disponibilidad Hotelbeds';
+    openBtn.textContent = 'Transporte desde / hacia Lerma o Burgos — ver disponibilidad Hotelbeds';
     var launchHint = document.createElement('p');
     launchHint.className = 'transfer-hb-modal-launch-hint';
     launchHint.textContent =
-      'Se abre un buscador: el punto Burgos va fijo al catálogo (IATA RGS). La fecha/hora se toma de tu calendario cuando ya hay fechas.';
+      'Elige Lerma o Burgos como punto de la zona; Hotelbeds usa GPS centro (los IATA locales no siempre están en Transfer). La fecha/hora sale de tu calendario cuando ya hay fechas.';
     launchWrap.appendChild(openBtn);
     launchWrap.appendChild(launchHint);
 
@@ -371,7 +393,7 @@
     var title = document.createElement('h4');
     title.id = 'transfer-hb-modal-title-' + uid;
     title.className = 'transfer-hb-modal-title';
-    title.textContent = 'Transfer hacia / desde Burgos';
+    title.textContent = 'Transfer hacia / desde Lerma o Burgos';
     var closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'transfer-hb-modal-close';
@@ -382,15 +404,24 @@
 
     var destNote = document.createElement('p');
     destNote.className = 'transfer-hb-modal-note';
-    destNote.appendChild(document.createTextNode('Punto Burgos en Hotelbeds: '));
-    var s1 = document.createElement('strong');
-    s1.textContent = 'IATA RGS';
-    destNote.appendChild(s1);
-    destNote.appendChild(
-      document.createTextNode(
-        ' (referencia aeropuerto / catálogo). Otro punto (hotel ATLAS/GIATA): indicarlo en notas o usar la página técnica transfers-cert.'
-      )
-    );
+    destNote.textContent =
+      'La zona de estancia es siempre Lerma o Burgos: abajo eliges cuál. Hotelbeds recibe el punto como GPS centro de esa ciudad (Transfer API). Para dirección exacta de hotel, ATLAS/GIATA en transfers-cert o en notas.';
+
+    var zonaRow = document.createElement('div');
+    zonaRow.className = 'transfer-hb-modal-field';
+    var zonaLab = document.createElement('label');
+    zonaLab.textContent = 'Zona de destino / origen en tu viaje';
+    var zonaSel = document.createElement('select');
+    zonaSel.className = 'transfer-hb-modal-select';
+    zonaSel.setAttribute('aria-label', 'Lerma o Burgos');
+    zonaSel.innerHTML =
+      '<option value="burgos">Burgos — centro ciudad (GPS)</option>' +
+      '<option value="lerma">Lerma — centro población (GPS)</option>';
+    zonaSel.addEventListener('change', function () {
+      zonaHidden.value = zonaSel.value;
+    });
+    zonaLab.appendChild(zonaSel);
+    zonaRow.appendChild(zonaLab);
 
     var modeRow = document.createElement('div');
     modeRow.className = 'transfer-hb-modal-field';
@@ -399,8 +430,8 @@
     var modeSel = document.createElement('select');
     modeSel.className = 'transfer-hb-modal-select';
     modeSel.innerHTML =
-      '<option value="to_burgos">Llego a Burgos (desde aeropuerto/otro punto → RGS)</option>' +
-      '<option value="from_burgos">Salgo de Burgos (desde RGS → otro destino)</option>';
+      '<option value="to_zona">Llego a la zona elegida (aeropuerto u otro punto → Lerma o Burgos)</option>' +
+      '<option value="from_zona">Salgo de la zona elegida (Lerma o Burgos → otro destino)</option>';
     modeLab.appendChild(modeSel);
     modeRow.appendChild(modeLab);
 
@@ -442,7 +473,7 @@
     rowOut.className = 'transfer-hb-modal-field transfer-hb-modal-field--out';
     rowOut.hidden = true;
     var dLab = document.createElement('label');
-    dLab.textContent = 'Destino fuera de Burgos (IATA)';
+    dLab.textContent = 'Destino fuera de Lerma/Burgos (IATA)';
     var dSel = document.createElement('select');
     dSel.className = 'transfer-hb-modal-select';
     var d0 = document.createElement('option');
@@ -474,7 +505,7 @@
     rowOut.appendChild(dLab);
 
     modeSel.addEventListener('change', function () {
-      var fromB = modeSel.value === 'from_burgos';
+      var fromB = modeSel.value === 'from_zona';
       rowIn.hidden = fromB;
       rowOut.hidden = !fromB;
     });
@@ -517,6 +548,7 @@
 
     panel.appendChild(head);
     panel.appendChild(destNote);
+    panel.appendChild(zonaRow);
     panel.appendChild(modeRow);
     panel.appendChild(rowIn);
     panel.appendChild(rowOut);
@@ -531,6 +563,8 @@
 
     var els = {
       mode: modeSel,
+      zonaSel: zonaSel,
+      zonaHidden: zonaHidden,
       originSel: oSel,
       originCustom: oCustom,
       destOut: dSel,
@@ -550,13 +584,14 @@
 
     openBtn.addEventListener('click', function () {
       syncModalFromForm();
-      if (modeSel.value === 'to_burgos' && !oSel.value) {
+      zonaHidden.value = zonaSel.value;
+      if (modeSel.value === 'to_zona' && !oSel.value) {
         oSel.value = 'MAD';
       }
-      if (modeSel.value === 'from_burgos' && !dSel.value) {
+      if (modeSel.value === 'from_zona' && !dSel.value) {
         dSel.value = 'MAD';
       }
-      openModal(modal, modeSel);
+      openModal(modal, zonaSel);
     });
 
     closeBtn.addEventListener('click', function () {
