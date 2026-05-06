@@ -2327,6 +2327,123 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     resize: vertical;
     min-height: 2.5rem;
 }
+
+.transfer-hb-live-wrap {
+    margin-top: 1rem;
+    padding: 0.85rem 0.95rem;
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(26, 77, 58, 0.18);
+    border-radius: 6px;
+}
+.transfer-hb-live-intro {
+    font-size: 0.82rem;
+    color: var(--color-text);
+    margin: 0 0 0.65rem;
+    line-height: 1.45;
+}
+.transfer-hb-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-bottom: 0.65rem;
+}
+.transfer-hb-preset-btn {
+    font-size: 0.78rem;
+    padding: 0.35rem 0.55rem;
+    cursor: pointer;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 4px;
+    background: #fafafa;
+    color: var(--color-text);
+}
+.transfer-hb-preset-btn:hover {
+    background: rgba(26, 77, 58, 0.08);
+}
+.transfer-hb-codes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.5rem 0.75rem;
+    margin-bottom: 0.65rem;
+}
+.transfer-hb-code-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+.transfer-hb-code-field span:first-child {
+    font-weight: 600;
+}
+.transfer-hb-code-field input {
+    font-weight: 400;
+    padding: 0.4rem 0.45rem;
+    font-size: 0.85rem;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    font-family: var(--font-primary);
+}
+.transfer-hb-code-field--full {
+    grid-column: 1 / -1;
+}
+.btn-transfer-hb-search {
+    margin-top: 0.25rem;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    border: none;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 0.88rem;
+}
+.btn-transfer-hb-search:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+.transfer-hb-results {
+    margin-top: 0.75rem;
+    font-size: 0.84rem;
+}
+.transfer-hb-results-msg {
+    margin: 0;
+    color: var(--color-text);
+}
+.transfer-hb-results-msg--warn {
+    color: #8a2431;
+}
+.transfer-hb-svc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.transfer-hb-svc-card {
+    padding: 0.55rem 0.65rem;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.transfer-hb-svc-card-title {
+    font-weight: 600;
+    font-size: 0.86rem;
+    color: var(--color-primary);
+}
+.transfer-hb-svc-card-price {
+    font-size: 0.92rem;
+    font-weight: 700;
+    margin-top: 0.2rem;
+}
+.transfer-hb-svc-pick {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
 @media (max-width: 640px) {
     .transfer-hb-grid {
         grid-template-columns: 1fr;
