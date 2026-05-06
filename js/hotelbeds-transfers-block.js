@@ -106,6 +106,95 @@
     return raw;
   }
 
+  /** Extrae lista plana de servicios según varias formas de respuesta Availability (Hotelbeds). */
+  function collectServicesFromAvailability(data) {
+    if (!data || typeof data !== 'object') return [];
+    if (Array.isArray(data.routes) && data.routes.length) {
+      var all = [];
+      data.routes.forEach(function (route) {
+        normalizeServiceList(route.services).forEach(function (s) {
+          all.push(s);
+        });
+      });
+      return all;
+    }
+    if (data.service != null) return normalizeServiceList(data.service);
+    if (Array.isArray(data.services)) return normalizeServiceList(data.services);
+    if (data.services && typeof data.services === 'object') {
+      if (data.services.service != null) return normalizeServiceList(data.services.service);
+      if (Array.isArray(data.services.services)) return normalizeServiceList(data.services.services);
+      if (data.services.rateKey != null || data.services.id != null) return normalizeServiceList(data.services);
+    }
+    return [];
+  }
+
+  function renderNoServicesHelp(container, data) {
+    var wrap = document.createElement('div');
+    wrap.className = 'transfer-hb-modal-empty';
+
+    var p1 = document.createElement('p');
+    p1.className = 'transfer-hb-modal-msg';
+    p1.appendChild(
+      document.createTextNode(
+        'Hotelbeds no devolvió ningún servicio para esta ruta. En entorno '
+      )
+    );
+    var st = document.createElement('strong');
+    st.textContent = 'test';
+    p1.appendChild(st);
+    p1.appendChild(
+      document.createTextNode(
+        ' suele pasar: sin inventario para GPS+IATA, fecha sin cobertura o catálogo limitado. No es un fallo de tu web si la API contesta bien.'
+      )
+    );
+    wrap.appendChild(p1);
+
+    var ul = document.createElement('ul');
+    ul.className = 'transfer-hb-modal-tips';
+    var tips = [
+      'Prueba otro origen IATA (p. ej. Valladolid VLL) u otra fecha/hora.',
+      'Idioma de la petición: usa «English (API)» si no hay resultados con español.',
+      'Comprueba la misma ruta en transfers-cert con los mismos parámetros.',
+      'Para hotel concreto, ATLAS/GIATA en transfers-cert; aquí solo GPS centro Lerma/Burgos.',
+    ];
+    tips.forEach(function (t) {
+      var li = document.createElement('li');
+      li.textContent = t;
+      ul.appendChild(li);
+    });
+    wrap.appendChild(ul);
+
+    if (data && Array.isArray(data.errors) && data.errors.length) {
+      var pe = document.createElement('p');
+      pe.className = 'transfer-hb-modal-msg transfer-hb-modal-msg--warn';
+      var e0 = data.errors[0];
+      pe.textContent = 'Hotelbeds: ' + (e0 && (e0.message || e0.description) ? String(e0.message || e0.description) : JSON.stringify(e0));
+      wrap.appendChild(pe);
+    }
+
+    var keys = data && typeof data === 'object' ? Object.keys(data).filter(function (k) {
+      return k !== 'auditData';
+    }) : [];
+    if (keys.length) {
+      var det = document.createElement('details');
+      det.className = 'transfer-hb-modal-debug';
+      var sum = document.createElement('summary');
+      sum.textContent = 'Detalle técnico (depuración)';
+      det.appendChild(sum);
+      var pre = document.createElement('pre');
+      pre.className = 'transfer-hb-modal-debug-pre';
+      try {
+        pre.textContent = JSON.stringify(data, null, 2).slice(0, 3500);
+      } catch (e) {
+        pre.textContent = String(keys);
+      }
+      det.appendChild(pre);
+      wrap.appendChild(det);
+    }
+
+    container.appendChild(wrap);
+  }
+
   function pickPrice(s) {
     if (!s || typeof s !== 'object') return '';
     var p = s.price;
@@ -163,31 +252,10 @@
       return;
     }
 
-    var services = [];
-    if (Array.isArray(data.routes) && data.routes.length) {
-      data.routes.forEach(function (route) {
-        var svcs = normalizeServiceList(route.services);
-        svcs.forEach(function (s) {
-          services.push(s);
-        });
-      });
-    } else {
-      var raw = data.services && data.services.service != null ? data.services.service : data.service;
-      if (raw == null) {
-        var n = document.createElement('p');
-        n.className = 'transfer-hb-modal-msg';
-        n.textContent = 'No hay servicios para esta ruta (prueba otro origen o fecha).';
-        container.appendChild(n);
-        return;
-      }
-      services = normalizeServiceList(raw);
-    }
+    var services = collectServicesFromAvailability(data);
 
     if (!services.length) {
-      var z = document.createElement('p');
-      z.className = 'transfer-hb-modal-msg';
-      z.textContent = 'Sin servicios disponibles para estos datos.';
-      container.appendChild(z);
+      renderNoServicesHelp(container, data);
       return;
     }
 
@@ -290,7 +358,7 @@
     }
 
     var qs = new URLSearchParams({
-      language: (els.lang.value || 'es').trim(),
+      language: (els.lang.value || 'en').trim(),
       fromType: fromType,
       fromCode: fromCode,
       toType: toType,
@@ -533,9 +601,18 @@
     paxLab.appendChild(paxSync);
     paxRow.appendChild(paxLab);
 
-    var lang = document.createElement('input');
-    lang.type = 'hidden';
-    lang.value = 'es';
+    var langRow = document.createElement('div');
+    langRow.className = 'transfer-hb-modal-field';
+    var langLab = document.createElement('label');
+    langLab.textContent = 'Idioma petición API (Hotelbeds)';
+    var langSel = document.createElement('select');
+    langSel.className = 'transfer-hb-modal-select';
+    langSel.innerHTML =
+      '<option value="en">English — recomendado (doc. / catálogo)</option>' +
+      '<option value="es">Español</option>';
+    langSel.value = 'en';
+    langLab.appendChild(langSel);
+    langRow.appendChild(langLab);
 
     var searchBtn = document.createElement('button');
     searchBtn.type = 'button';
@@ -554,6 +631,7 @@
     panel.appendChild(rowOut);
     panel.appendChild(dtRow);
     panel.appendChild(paxRow);
+    panel.appendChild(langRow);
     panel.appendChild(searchBtn);
     panel.appendChild(results);
 
@@ -571,7 +649,7 @@
       destCustom: dCustom,
       dt: dt,
       paxSync: paxSync,
-      lang: lang,
+      lang: langSel,
     };
 
     function syncModalFromForm() {
