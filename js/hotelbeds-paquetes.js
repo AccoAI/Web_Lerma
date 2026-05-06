@@ -216,12 +216,19 @@
       });
   }
 
-  function renderStarsBadge(categoryName) {
+  function renderStarsBadge(categoryName, categoryStars) {
     var s = (categoryName || '').trim();
+    var sn =
+      typeof categoryStars === 'number' && categoryStars >= 1 && categoryStars <= 5 ? categoryStars : 0;
+    if (sn >= 1 && sn <= 5) {
+      var title = s || sn + ' estrellas';
+      return '<span class="hotelbeds-stars" title="' + escapeHtml(title) + '">' + '★'.repeat(sn) + '</span>';
+    }
     if (!s) return '';
     var m =
       s.match(/([1-5])\s*(?:star|stars|estrella|estrellas|\*|★)/i) ||
-      s.match(/^([1-5])(?:\s|$|\*|★)/);
+      s.match(/^([1-5])(?:\s|$|\*|★)/) ||
+      s.match(/\b([1-5])\s*EST\b/i);
     var n = m ? parseInt(m[1], 10) : 0;
     if (n >= 1 && n <= 5) {
       return '<span class="hotelbeds-stars" title="' + escapeHtml(s) + '">' + '★'.repeat(n) + '</span>';
@@ -251,6 +258,7 @@
 
     var img = meta && meta.imageUrl ? meta.imageUrl : '';
     var catLabel = meta && (meta.categoryName || meta.categoryCode) ? meta.categoryName || meta.categoryCode : '';
+    var catStars = meta && typeof meta.categoryStars === 'number' ? meta.categoryStars : null;
     var desc = meta && meta.descriptionShort ? meta.descriptionShort : '';
     var paidFac = (meta && meta.facilitiesWithCharge) || [];
     var hf = (meta && meta.hotelFacilities) || [];
@@ -317,7 +325,7 @@
       imgHtml +
       '<div class="hotelbeds-card-main">' +
       '<header class="hotelbeds-card-head">' +
-      renderStarsBadge(catLabel) +
+      renderStarsBadge(catLabel, catStars) +
       '<span class="hotelbeds-card-title">' +
       escapeHtml(displayName) +
       selSuffix +

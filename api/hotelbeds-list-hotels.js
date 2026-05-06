@@ -12,6 +12,7 @@
  */
 import { createHash } from 'crypto';
 import { mapContentHotelForUi } from '../lib/hotelbeds-enriched-content.js';
+import { loadFacilityTypeDescriptionMap } from '../lib/hotelbeds-facility-types.js';
 
 function getSignature(apiKey, secret) {
   const ts = Math.floor(Date.now() / 1000);
@@ -122,8 +123,14 @@ async function fetchFromContent(apiKey, secret, dest, country, from, to, lang, b
   const hotels = Array.isArray(data.hotels) ? data.hotels : [];
   const getStr = (v) => (typeof v === 'string' ? v : (v && v.content) ? v.content : '');
   if (enrich) {
+    let facilityMap = null;
+    try {
+      facilityMap = await loadFacilityTypeDescriptionMap(apiKey, secret, baseUrl, lang);
+    } catch {
+      facilityMap = null;
+    }
     return {
-      list: hotels.map((h) => mapContentHotelForUi(h)),
+      list: hotels.map((h) => mapContentHotelForUi(h, facilityMap)),
       rawHotels: hotels.slice(0, 2),
     };
   }
