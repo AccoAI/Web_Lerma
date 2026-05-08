@@ -2444,6 +2444,85 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     cursor: pointer;
 }
 
+/* Presupuesto rápido Transfers (paquetes) */
+.transfer-hb-quick {
+    margin: 0.75rem 0 0.9rem;
+    padding: 0.85rem 0.95rem;
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(26, 77, 58, 0.18);
+    border-radius: 8px;
+}
+.transfer-hb-quick-head {
+    margin-bottom: 0.5rem;
+}
+.transfer-hb-quick-title {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--color-primary);
+}
+.transfer-hb-quick-sub {
+    margin: 0.25rem 0 0;
+    font-size: 0.82rem;
+    color: var(--color-text-light);
+    line-height: 1.4;
+}
+.transfer-hb-quick-dates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem 0.65rem;
+    align-items: center;
+    font-size: 0.82rem;
+    color: var(--color-text);
+    margin: 0.6rem 0 0.75rem;
+}
+.transfer-hb-quick-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.75rem;
+}
+.transfer-hb-quick-card {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    padding: 0.75rem 0.85rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.transfer-hb-quick-card-head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    margin-bottom: 0.55rem;
+}
+.transfer-hb-quick-card-label {
+    display: inline-block;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    font-size: 0.72rem;
+    color: var(--color-primary);
+}
+.transfer-hb-quick-card-route {
+    font-size: 0.88rem;
+    font-weight: 650;
+    color: var(--color-text);
+}
+.btn-transfer-hb-quick {
+    width: 100%;
+    padding: 0.55rem 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 6px;
+    border: none;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 0.88rem;
+}
+.btn-transfer-hb-quick:hover {
+    filter: brightness(1.05);
+}
+.transfer-hb-quick-results {
+    margin-top: 0.65rem;
+}
+
 /* Modal transfer Burgos (Hotelbeds availability) */
 body.transfer-hb-modal-open {
     overflow: hidden;

@@ -1,49 +1,19 @@
 /**
- * Transfer Hotelbeds en paquetes: ping + modal transporte hacia/desde Lerma o Burgos.
- * Disponibilidad: GET /api/hotelbeds-transfers. Puntos zona = GPS centro (IATA local no siempre en catálogo HB).
+ * Transfer Hotelbeds en paquetes: bloque de presupuesto rápido.
+ * - Ping: GET /api/hotelbeds-transfers?ping=1
+ * - Availability simple: GET /api/hotelbeds-transfers?... (MAD ↔ GPS Lerma/Burgos)
+ *
+ * Requisitos del cliente:
+ * - Dos opciones por sentido (IDA / VUELTA).
+ * - Destino siempre Lerma o Burgos.
+ * - Fecha/hora: primera fecha (ida) y última fecha (vuelta) del calendario.
  */
 (function () {
-  /** Centro aproximado por ciudad (Transfer API · tipo GPS, código lat,lon). */
-  var ZONA_GPS = {
-    lerma: { toType: 'GPS', toCode: '42.0270,-3.7545', label: 'Lerma (centro)' },
-    burgos: { toType: 'GPS', toCode: '42.3408,-3.6997', label: 'Burgos (centro)' },
+  var MAD = { type: 'IATA', code: 'MAD', label: 'Madrid (MAD)' };
+  var ZONAS = {
+    burgos: { type: 'GPS', code: '42.3408,-3.6997', label: 'Burgos (centro)' },
+    lerma: { type: 'GPS', code: '42.0270,-3.7545', label: 'Lerma (centro)' },
   };
-
-  function zonaHb(key) {
-    return ZONA_GPS[key === 'lerma' ? 'lerma' : 'burgos'];
-  }
-
-  /** Orígenes habituales hacia la zona (solo IATA). */
-  var ORIGINS_IN = [
-    { label: 'Madrid-Barajas (MAD)', code: 'MAD' },
-    { label: 'Valladolid (VLL)', code: 'VLL' },
-    { label: 'Bilbao (BIO)', code: 'BIO' },
-    { label: 'Santander (SDR)', code: 'SDR' },
-    { label: 'Zaragoza (ZAZ)', code: 'ZAZ' },
-  ];
-
-  /** Destinos habituales saliendo desde Lerma/Burgos. */
-  var DESTINATIONS_OUT = [
-    { label: 'Madrid-Barajas (MAD)', code: 'MAD' },
-    { label: 'Valladolid (VLL)', code: 'VLL' },
-    { label: 'Bilbao (BIO)', code: 'BIO' },
-    { label: 'Barcelona (BCN)', code: 'BCN' },
-  ];
-
-  var escapeModalBound = false;
-  function ensureEscapeClosesModal() {
-    if (escapeModalBound) return;
-    escapeModalBound = true;
-    document.addEventListener('keydown', function (ev) {
-      if (ev.key !== 'Escape') return;
-      document.querySelectorAll('.transfer-hb-modal').forEach(function (m) {
-        if (!m.hidden) {
-          m.hidden = true;
-          document.body.classList.remove('transfer-hb-modal-open');
-        }
-      });
-    });
-  }
 
   function setBadge(el, text, state) {
     if (!el) return;
@@ -90,6 +60,18 @@
     var fechas = getFechasSorted(form);
     if (!fechas.length) return '';
     var day = fechas[0];
+    var hm = pickTimeFromForm(form).split(':');
+    var h = String(parseInt(hm[0], 10) || 12);
+    var m = String(parseInt(hm[1], 10) || 0);
+    if (h.length === 1) h = '0' + h;
+    if (m.length === 1) m = '0' + m;
+    return day + 'T' + h + ':' + m + ':00';
+  }
+
+  function defaultReturnFromCalendar(form) {
+    var fechas = getFechasSorted(form);
+    if (!fechas.length) return '';
+    var day = fechas[fechas.length - 1];
     var hm = pickTimeFromForm(form).split(':');
     var h = String(parseInt(hm[0], 10) || 12);
     var m = String(parseInt(hm[1], 10) || 0);
@@ -208,7 +190,9 @@
   }
 
   function renderServices(container, hiddenRateKey, res, block) {
-    var pickName = 'transfer_hb_svc_pick_' + (block && block.getAttribute ? block.getAttribute('data-hb-transfer-page') || 'x' : 'x');
+    var pickName =
+      'transfer_hb_svc_pick_' +
+      (block && block.getAttribute ? block.getAttribute('data-hb-transfer-page') || 'x' : 'x');
     hiddenRateKey.value = '';
     container.innerHTML = '';
 
@@ -303,66 +287,27 @@
     container.appendChild(list);
   }
 
-  function runAvailability(block, hiddenRk, els, resultsEl, btnSearch) {
-    var form = getForm(block);
-    var outboundRaw = els.dt.value.trim();
-    if (!outboundRaw) {
-      var hint = defaultOutboundFromCalendar(form);
-      if (hint) {
-        els.dt.value = hint.slice(0, 16);
-        outboundRaw = els.dt.value.trim();
-      }
-    }
-    if (!outboundRaw) {
-      resultsEl.innerHTML =
-        '<p class="transfer-hb-modal-msg transfer-hb-modal-msg--warn">Selecciona antes las fechas del viaje en el calendario (arriba), o indica fecha y hora del transfer aquí.</p>';
-      return;
-    }
+  function formatDate(isoDate) {
+    if (!isoDate) return '—';
+    return String(isoDate);
+  }
 
-    var outboundIso = outboundRaw;
-    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(outboundRaw)) {
-      outboundIso = outboundRaw + ':00';
-    }
+  function pickCalendarRange(form) {
+    var fechas = getFechasSorted(form);
+    if (!fechas.length) return { first: '', last: '' };
+    return { first: fechas[0], last: fechas[fechas.length - 1] };
+  }
 
-    var zonaKey = els.zonaSel && els.zonaSel.value === 'lerma' ? 'lerma' : 'burgos';
-    if (els.zonaHidden) els.zonaHidden.value = zonaKey;
-    var zonaPt = zonaHb(zonaKey);
-
-    var mode = els.mode.value === 'from_zona' ? 'from_zona' : 'to_zona';
-    var fromType = 'IATA';
-    var fromCode = '';
-    var toType = 'IATA';
-    var toCode = '';
-
-    if (mode === 'to_zona') {
-      fromCode = els.originSel.value === '__custom__' ? (els.originCustom.value || '').trim().toUpperCase() : els.originSel.value;
-      toType = zonaPt.toType;
-      toCode = zonaPt.toCode;
-    } else {
-      fromType = zonaPt.toType;
-      fromCode = zonaPt.toCode;
-      toCode = els.destOut.value === '__custom__' ? (els.destCustom.value || '').trim().toUpperCase() : els.destOut.value;
-    }
-
-    if (!fromCode || !toCode) {
-      resultsEl.innerHTML =
-        '<p class="transfer-hb-modal-msg transfer-hb-modal-msg--warn">Indica origen y destino (o código IATA en «Otro»).</p>';
-      return;
-    }
-
-    var paxEl = block.querySelector('input[name="transfer_hb_pax"]');
+  function fetchAvailability(block, resultsEl, hiddenRateKey, from, to, outboundIso) {
+    var paxEl = block.querySelector('input[name=\"transfer_hb_pax\"]');
     var adults = Math.max(1, parseInt(paxEl && paxEl.value ? paxEl.value : '2', 10) || 2);
-    if (els.paxSync && els.paxSync.value) {
-      adults = Math.max(1, parseInt(els.paxSync.value, 10) || adults);
-      if (paxEl) paxEl.value = String(adults);
-    }
 
     var qs = new URLSearchParams({
-      language: (els.lang.value || 'en').trim(),
-      fromType: fromType,
-      fromCode: fromCode,
-      toType: toType,
-      toCode: toCode,
+      language: 'en',
+      fromType: from.type,
+      fromCode: from.code,
+      toType: to.type,
+      toCode: to.code,
       outbound: outboundIso,
       inbound: '',
       adults: String(adults),
@@ -370,9 +315,7 @@
       infants: '0',
     });
 
-    resultsEl.innerHTML = '<p class="transfer-hb-modal-msg">Consultando Hotelbeds…</p>';
-    btnSearch.disabled = true;
-
+    resultsEl.innerHTML = '<p class=\"transfer-hb-modal-msg\">Consultando Hotelbeds…</p>';
     fetch(originBase() + '/api/hotelbeds-transfers?' + qs.toString())
       .then(function (r) {
         return r.text().then(function (text) {
@@ -384,314 +327,135 @@
         });
       })
       .then(function (data) {
-        renderServices(resultsEl, hiddenRk, data, block);
+        renderServices(resultsEl, hiddenRateKey, data, block);
       })
       .catch(function () {
         resultsEl.innerHTML =
-          '<p class="transfer-hb-modal-msg transfer-hb-modal-msg--warn">Error de red al consultar transfers.</p>';
-      })
-      .then(function () {
-        btnSearch.disabled = false;
+          '<p class=\"transfer-hb-modal-msg transfer-hb-modal-msg--warn\">Error de red al consultar transfers.</p>';
       });
   }
 
-  function openModal(root, focusEl) {
-    root.hidden = false;
-    document.body.classList.add('transfer-hb-modal-open');
-    if (focusEl && focusEl.focus) focusEl.focus();
-  }
+  function ensureQuickUi(block) {
+    if (block.querySelector('.transfer-hb-quick')) return;
 
-  function closeModal(root) {
-    root.hidden = true;
-    document.body.classList.remove('transfer-hb-modal-open');
-  }
+    var form = getForm(block);
 
-  function setupTransferModal(block) {
-    if (block.querySelector('.transfer-hb-modal-launch-wrap')) return;
+    var hiddenRateKey = document.createElement('input');
+    hiddenRateKey.type = 'hidden';
+    hiddenRateKey.name = 'transfer_hb_rate_key';
+    hiddenRateKey.value = '';
+    block.appendChild(hiddenRateKey);
 
-    var hiddenRk = document.createElement('input');
-    hiddenRk.type = 'hidden';
-    hiddenRk.name = 'transfer_hb_rate_key';
-    hiddenRk.value = '';
-    block.appendChild(hiddenRk);
+    var quick = document.createElement('div');
+    quick.className = 'transfer-hb-quick';
 
-    var zonaHidden = document.createElement('input');
-    zonaHidden.type = 'hidden';
-    zonaHidden.name = 'transfer_hb_zona';
-    zonaHidden.value = 'burgos';
-    block.appendChild(zonaHidden);
+    var head = document.createElement('div');
+    head.className = 'transfer-hb-quick-head';
+    var title = document.createElement('h4');
+    title.className = 'transfer-hb-quick-title';
+    title.textContent = 'Presupuesto rápido (Hotelbeds Transfers)';
+    var sub = document.createElement('p');
+    sub.className = 'transfer-hb-quick-sub';
+    sub.textContent = 'Origen fijo: Madrid (MAD). Destino: Lerma o Burgos. Fechas: primera (ida) y última (vuelta) del calendario.';
+    head.appendChild(title);
+    head.appendChild(sub);
 
-    var launchWrap = document.createElement('div');
-    launchWrap.className = 'transfer-hb-modal-launch-wrap';
-    var openBtn = document.createElement('button');
-    openBtn.type = 'button';
-    openBtn.className = 'btn-transfer-hb-modal-open';
-    openBtn.textContent = 'Transporte desde / hacia Lerma o Burgos — ver disponibilidad Hotelbeds';
-    var launchHint = document.createElement('p');
-    launchHint.className = 'transfer-hb-modal-launch-hint';
-    launchHint.textContent =
-      'Elige Lerma o Burgos como punto de la zona; Hotelbeds usa GPS centro (los IATA locales no siempre están en Transfer). La fecha/hora sale de tu calendario cuando ya hay fechas.';
-    launchWrap.appendChild(openBtn);
-    launchWrap.appendChild(launchHint);
+    var dates = document.createElement('div');
+    dates.className = 'transfer-hb-quick-dates';
+    dates.innerHTML = '<span>Ida:</span> <strong class=\"transfer-hb-date-ida\">—</strong> <span>Vuelta:</span> <strong class=\"transfer-hb-date-vuelta\">—</strong>';
+
+    function syncDates() {
+      var rng = pickCalendarRange(form);
+      var ida = rng.first ? rng.first : '';
+      var vuelta = rng.last && rng.last !== rng.first ? rng.last : rng.last;
+      var idaEl = dates.querySelector('.transfer-hb-date-ida');
+      var vEl = dates.querySelector('.transfer-hb-date-vuelta');
+      if (idaEl) idaEl.textContent = ida ? formatDate(ida) : '—';
+      if (vEl) vEl.textContent = vuelta ? formatDate(vuelta) : '—';
+    }
+    syncDates();
+
+    var grid = document.createElement('div');
+    grid.className = 'transfer-hb-quick-grid';
+
+    function mkCard(label, from, to, whenFn) {
+      var card = document.createElement('div');
+      card.className = 'transfer-hb-quick-card';
+      var h = document.createElement('div');
+      h.className = 'transfer-hb-quick-card-head';
+      var l = document.createElement('span');
+      l.className = 'transfer-hb-quick-card-label';
+      l.textContent = label;
+      var route = document.createElement('span');
+      route.className = 'transfer-hb-quick-card-route';
+      route.textContent = from.label + ' → ' + to.label;
+      h.appendChild(l);
+      h.appendChild(route);
+
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn-transfer-hb-quick';
+      btn.textContent = 'Ver disponibilidad y precios';
+
+      var out = document.createElement('div');
+      out.className = 'transfer-hb-quick-results';
+      out.setAttribute('aria-live', 'polite');
+
+      btn.addEventListener('click', function () {
+        var iso = whenFn();
+        if (!iso) {
+          out.innerHTML =
+            '<p class=\"transfer-hb-modal-msg transfer-hb-modal-msg--warn\">Selecciona antes las fechas en el calendario.</p>';
+          return;
+        }
+        fetchAvailability(block, out, hiddenRateKey, from, to, iso);
+      });
+
+      card.appendChild(h);
+      card.appendChild(btn);
+      card.appendChild(out);
+      return card;
+    }
+
+    var idaBurgos = mkCard('IDA', MAD, ZONAS.burgos, function () {
+      return defaultOutboundFromCalendar(form);
+    });
+    var idaLerma = mkCard('IDA', MAD, ZONAS.lerma, function () {
+      return defaultOutboundFromCalendar(form);
+    });
+    var vueltaBurgos = mkCard('VUELTA', ZONAS.burgos, MAD, function () {
+      return defaultReturnFromCalendar(form);
+    });
+    var vueltaLerma = mkCard('VUELTA', ZONAS.lerma, MAD, function () {
+      return defaultReturnFromCalendar(form);
+    });
+
+    grid.appendChild(idaBurgos);
+    grid.appendChild(idaLerma);
+    grid.appendChild(vueltaBurgos);
+    grid.appendChild(vueltaLerma);
+
+    quick.appendChild(head);
+    quick.appendChild(dates);
+    quick.appendChild(grid);
 
     var apiLine = block.querySelector('.hotelbeds-transfer-api-line');
     if (apiLine && apiLine.parentNode) {
-      apiLine.parentNode.insertBefore(launchWrap, apiLine.nextSibling);
+      apiLine.parentNode.insertBefore(quick, apiLine.nextSibling);
     } else {
-      block.insertBefore(launchWrap, block.firstChild);
+      block.insertBefore(quick, block.firstChild);
     }
 
-    var uid = block.getAttribute('data-hb-transfer-page') || 'x';
-    var modal = document.createElement('div');
-    modal.className = 'transfer-hb-modal';
-    modal.setAttribute('hidden', '');
-    modal.setAttribute('role', 'dialog');
-    modal.setAttribute('aria-modal', 'true');
-    modal.setAttribute('aria-labelledby', 'transfer-hb-modal-title-' + uid);
-
-    var backdrop = document.createElement('div');
-    backdrop.className = 'transfer-hb-modal-backdrop';
-    backdrop.tabIndex = -1;
-
-    var panel = document.createElement('div');
-    panel.className = 'transfer-hb-modal-panel';
-
-    var head = document.createElement('div');
-    head.className = 'transfer-hb-modal-head';
-    var title = document.createElement('h4');
-    title.id = 'transfer-hb-modal-title-' + uid;
-    title.className = 'transfer-hb-modal-title';
-    title.textContent = 'Transfer hacia / desde Lerma o Burgos';
-    var closeBtn = document.createElement('button');
-    closeBtn.type = 'button';
-    closeBtn.className = 'transfer-hb-modal-close';
-    closeBtn.setAttribute('aria-label', 'Cerrar');
-    closeBtn.textContent = '\u00d7';
-    head.appendChild(title);
-    head.appendChild(closeBtn);
-
-    var destNote = document.createElement('p');
-    destNote.className = 'transfer-hb-modal-note';
-    destNote.textContent =
-      'La zona de estancia es siempre Lerma o Burgos: abajo eliges cuál. Hotelbeds recibe el punto como GPS centro de esa ciudad (Transfer API). Para dirección exacta de hotel, ATLAS/GIATA en transfers-cert o en notas.';
-
-    var zonaRow = document.createElement('div');
-    zonaRow.className = 'transfer-hb-modal-field';
-    var zonaLab = document.createElement('label');
-    zonaLab.textContent = 'Zona de destino / origen en tu viaje';
-    var zonaSel = document.createElement('select');
-    zonaSel.className = 'transfer-hb-modal-select';
-    zonaSel.setAttribute('aria-label', 'Lerma o Burgos');
-    zonaSel.innerHTML =
-      '<option value="burgos">Burgos — centro ciudad (GPS)</option>' +
-      '<option value="lerma">Lerma — centro población (GPS)</option>';
-    zonaSel.addEventListener('change', function () {
-      zonaHidden.value = zonaSel.value;
-    });
-    zonaLab.appendChild(zonaSel);
-    zonaRow.appendChild(zonaLab);
-
-    var modeRow = document.createElement('div');
-    modeRow.className = 'transfer-hb-modal-field';
-    var modeLab = document.createElement('label');
-    modeLab.textContent = 'Sentido';
-    var modeSel = document.createElement('select');
-    modeSel.className = 'transfer-hb-modal-select';
-    modeSel.innerHTML =
-      '<option value="to_zona">Llego a la zona elegida (aeropuerto u otro punto → Lerma o Burgos)</option>' +
-      '<option value="from_zona">Salgo de la zona elegida (Lerma o Burgos → otro destino)</option>';
-    modeLab.appendChild(modeSel);
-    modeRow.appendChild(modeLab);
-
-    var rowIn = document.createElement('div');
-    rowIn.className = 'transfer-hb-modal-field transfer-hb-modal-field--in';
-    var oLab = document.createElement('label');
-    oLab.textContent = 'Origen (IATA)';
-    var oSel = document.createElement('select');
-    oSel.className = 'transfer-hb-modal-select';
-    var o0 = document.createElement('option');
-    o0.value = '';
-    o0.textContent = 'Elige aeropuerto / ciudad…';
-    oSel.appendChild(o0);
-    ORIGINS_IN.forEach(function (o) {
-      var opt = document.createElement('option');
-      opt.value = o.code;
-      opt.textContent = o.label;
-      oSel.appendChild(opt);
-    });
-    var ocust = document.createElement('option');
-    ocust.value = '__custom__';
-    ocust.textContent = 'Otro (código IATA)';
-    oSel.appendChild(ocust);
-    var oCustom = document.createElement('input');
-    oCustom.type = 'text';
-    oCustom.className = 'transfer-hb-modal-input transfer-hb-modal-input--custom';
-    oCustom.placeholder = 'Ej. OVD';
-    oCustom.maxLength = 4;
-    oCustom.style.marginTop = '0.35rem';
-    oCustom.hidden = true;
-    oSel.addEventListener('change', function () {
-      oCustom.hidden = oSel.value !== '__custom__';
-    });
-    oLab.appendChild(oSel);
-    oLab.appendChild(oCustom);
-    rowIn.appendChild(oLab);
-
-    var rowOut = document.createElement('div');
-    rowOut.className = 'transfer-hb-modal-field transfer-hb-modal-field--out';
-    rowOut.hidden = true;
-    var dLab = document.createElement('label');
-    dLab.textContent = 'Destino fuera de Lerma/Burgos (IATA)';
-    var dSel = document.createElement('select');
-    dSel.className = 'transfer-hb-modal-select';
-    var d0 = document.createElement('option');
-    d0.value = '';
-    d0.textContent = 'Elige destino…';
-    dSel.appendChild(d0);
-    DESTINATIONS_OUT.forEach(function (o) {
-      var opt = document.createElement('option');
-      opt.value = o.code;
-      opt.textContent = o.label;
-      dSel.appendChild(opt);
-    });
-    var dcust = document.createElement('option');
-    dcust.value = '__custom__';
-    dcust.textContent = 'Otro (código IATA)';
-    dSel.appendChild(dcust);
-    var dCustom = document.createElement('input');
-    dCustom.type = 'text';
-    dCustom.className = 'transfer-hb-modal-input transfer-hb-modal-input--custom';
-    dCustom.placeholder = 'Ej. MAD';
-    dCustom.maxLength = 4;
-    dCustom.style.marginTop = '0.35rem';
-    dCustom.hidden = true;
-    dSel.addEventListener('change', function () {
-      dCustom.hidden = dSel.value !== '__custom__';
-    });
-    dLab.appendChild(dSel);
-    dLab.appendChild(dCustom);
-    rowOut.appendChild(dLab);
-
-    modeSel.addEventListener('change', function () {
-      var fromB = modeSel.value === 'from_zona';
-      rowIn.hidden = fromB;
-      rowOut.hidden = !fromB;
-    });
-
-    var dtRow = document.createElement('div');
-    dtRow.className = 'transfer-hb-modal-field';
-    var dtLab = document.createElement('label');
-    dtLab.textContent = 'Fecha y hora del transfer (salida)';
-    var dt = document.createElement('input');
-    dt.type = 'datetime-local';
-    dt.className = 'transfer-hb-modal-datetime';
-    dtLab.appendChild(dt);
-    dtRow.appendChild(dtLab);
-
-    var paxRow = document.createElement('div');
-    paxRow.className = 'transfer-hb-modal-field';
-    var paxLab = document.createElement('label');
-    paxLab.textContent = 'Pasajeros';
-    var paxSync = document.createElement('input');
-    paxSync.type = 'number';
-    paxSync.min = '1';
-    paxSync.max = '54';
-    paxSync.value = '2';
-    paxSync.className = 'transfer-hb-modal-pax';
-    paxLab.appendChild(paxSync);
-    paxRow.appendChild(paxLab);
-
-    var langRow = document.createElement('div');
-    langRow.className = 'transfer-hb-modal-field';
-    var langLab = document.createElement('label');
-    langLab.textContent = 'Idioma petición API (Hotelbeds)';
-    var langSel = document.createElement('select');
-    langSel.className = 'transfer-hb-modal-select';
-    langSel.innerHTML =
-      '<option value="en">English — recomendado (doc. / catálogo)</option>' +
-      '<option value="es">Español</option>';
-    langSel.value = 'en';
-    langLab.appendChild(langSel);
-    langRow.appendChild(langLab);
-
-    var searchBtn = document.createElement('button');
-    searchBtn.type = 'button';
-    searchBtn.className = 'btn-transfer-hb-modal-search';
-    searchBtn.textContent = 'Buscar disponibilidad y precios';
-
-    var results = document.createElement('div');
-    results.className = 'transfer-hb-modal-results';
-    results.setAttribute('aria-live', 'polite');
-
-    panel.appendChild(head);
-    panel.appendChild(destNote);
-    panel.appendChild(zonaRow);
-    panel.appendChild(modeRow);
-    panel.appendChild(rowIn);
-    panel.appendChild(rowOut);
-    panel.appendChild(dtRow);
-    panel.appendChild(paxRow);
-    panel.appendChild(langRow);
-    panel.appendChild(searchBtn);
-    panel.appendChild(results);
-
-    modal.appendChild(backdrop);
-    modal.appendChild(panel);
-    document.body.appendChild(modal);
-
-    var els = {
-      mode: modeSel,
-      zonaSel: zonaSel,
-      zonaHidden: zonaHidden,
-      originSel: oSel,
-      originCustom: oCustom,
-      destOut: dSel,
-      destCustom: dCustom,
-      dt: dt,
-      paxSync: paxSync,
-      lang: langSel,
-    };
-
-    function syncModalFromForm() {
-      var form = getForm(block);
-      var iso = defaultOutboundFromCalendar(form);
-      if (iso) dt.value = iso.slice(0, 16);
-      var pe = block.querySelector('input[name="transfer_hb_pax"]');
-      if (pe && pe.value) paxSync.value = pe.value;
-    }
-
-    openBtn.addEventListener('click', function () {
-      syncModalFromForm();
-      zonaHidden.value = zonaSel.value;
-      if (modeSel.value === 'to_zona' && !oSel.value) {
-        oSel.value = 'MAD';
-      }
-      if (modeSel.value === 'from_zona' && !dSel.value) {
-        dSel.value = 'MAD';
-      }
-      openModal(modal, zonaSel);
-    });
-
-    closeBtn.addEventListener('click', function () {
-      closeModal(modal);
-    });
-    backdrop.addEventListener('click', function () {
-      closeModal(modal);
-    });
-
-    searchBtn.addEventListener('click', function () {
-      runAvailability(block, hiddenRk, els, results, searchBtn);
-    });
-
-    var cb = block.querySelector('input[name="transfer_hb_interes"]');
-    if (cb) {
-      cb.addEventListener('change', syncModalFromForm);
+    // Re-sincronizar fechas cuando cambian inputs típicos.
+    if (form) {
+      form.addEventListener('change', syncDates);
+      form.addEventListener('input', syncDates);
     }
   }
 
   function bindBlock(block) {
-    setupTransferModal(block);
-    var cb = block.querySelector('input[name="transfer_hb_interes"]');
+    ensureQuickUi(block);
+    var cb = block.querySelector('input[name=\"transfer_hb_interes\"]');
     var det = block.querySelector('.transfer-hb-detalles');
     if (!cb || !det) return;
     function sync() {
@@ -728,7 +492,6 @@
   }
 
   function init() {
-    ensureEscapeClosesModal();
     var blocks = document.querySelectorAll('.paquete-transfer-hb-block');
     if (!blocks.length) return;
     blocks.forEach(bindBlock);

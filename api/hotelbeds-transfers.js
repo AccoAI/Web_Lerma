@@ -106,7 +106,8 @@ async function fetchBookingDetailJson(baseUrl, apiKey, secret, language, referen
  */
 function buildAvailabilityPath(baseUrl, q) {
   const lang = q.get('language') || 'en';
-  const fromType = q.get('fromType') || 'ATLAS';
+  /** IATA por defecto: códigos tipo MAD no son ATLAS (evita 400 con aeropuertos). */
+  const fromType = q.get('fromType') || 'IATA';
   const fromCode = q.get('fromCode') || '';
   const toType = q.get('toType') || 'IATA';
   const toCode = q.get('toCode') || '';
