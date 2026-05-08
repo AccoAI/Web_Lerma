@@ -321,7 +321,7 @@
     }
 
     return (
-      '<article class="hotelbeds-card">' +
+      '<article class="hotelbeds-card hotelbeds-card--selectable" role="button" tabindex="0" data-hb-hotel-code="' + escapeHtml(code) + '">' +
       imgHtml +
       '<div class="hotelbeds-card-main">' +
       '<header class="hotelbeds-card-head">' +
@@ -341,6 +341,74 @@
       rateExtraBlock +
       '</div></article>'
     );
+  }
+
+  function ensureHiddenHotelInputs(form, noches) {
+    if (!form) return;
+    var n = Math.max(1, parseInt(noches || '1', 10) || 1);
+    for (var i = 1; i <= n; i++) {
+      var name = 'hotel-noche-' + i;
+      var existing = form.querySelector('input[name="' + name + '"]');
+      if (!existing) {
+        var hid = document.createElement('input');
+        hid.type = 'hidden';
+        hid.name = name;
+        hid.value = '';
+        form.appendChild(hid);
+      }
+    }
+  }
+
+  function bindSelectableHotelCards() {
+    var o = pageOpts();
+    var formId = o.formId || 'configuradorForm';
+    var form = document.getElementById(formId);
+    if (!form) return;
+    var nochesInput = form.querySelector('input[name="noches"]');
+    var noches = nochesInput ? nochesInput.value : '1';
+    ensureHiddenHotelInputs(form, noches);
+
+    function setSelected(code) {
+      var n = Math.max(1, parseInt(noches || '1', 10) || 1);
+      for (var i = 1; i <= n; i++) {
+        var inp = form.querySelector('input[name="hotel-noche-' + i + '"]');
+        if (inp) inp.value = 'hb-' + code;
+      }
+      // UI feedback
+      document.querySelectorAll('.hotelbeds-card--selectable').forEach(function (el) {
+        var c = el.getAttribute('data-hb-hotel-code');
+        if (c === String(code)) el.classList.add('hotelbeds-card--picked');
+        else el.classList.remove('hotelbeds-card--picked');
+      });
+      triggerResumenUpdate();
+
+      // Llevar al usuario al botón reservar.
+      var reservar = document.querySelector('button.btn-reservar-paquete');
+      if (reservar && reservar.scrollIntoView) {
+        reservar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        reservar.focus({ preventScroll: true });
+      }
+    }
+
+    function onActivate(ev) {
+      var card = ev.target && ev.target.closest ? ev.target.closest('.hotelbeds-card--selectable') : null;
+      if (!card) return;
+      // Evitar que clicks en enlaces internos actúen como selección.
+      if (ev.target && ev.target.tagName === 'A') return;
+      var code = card.getAttribute('data-hb-hotel-code');
+      if (!code) return;
+      setSelected(code);
+    }
+
+    // Delegación a nivel de bloque de resultados (más robusto tras re-render).
+    var root = document.getElementById(o.preciosBlockId || 'hotelbeds-precios-block');
+    if (!root) return;
+    root.removeEventListener('click', onActivate);
+    root.addEventListener('click', onActivate);
+    root.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      onActivate(e);
+    });
   }
 
   function triggerResumenUpdate() {
@@ -531,6 +599,7 @@
     window.LIVE_HOTEL_PRICES = Object.keys(live).length ? live : null;
     setBookingWidgetVisible(!window.LIVE_HOTEL_PRICES);
     renderBlock(html);
+    bindSelectableHotelCards();
     triggerResumenUpdate();
     document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
   }
@@ -590,6 +659,7 @@
       '</ul><p class="hotelbeds-note">Elige el hotel para cada noche en los desplegables. Ficha enriquecida con Content API. Cargos e instalaciones de pago cuando los devuelve la API.</p></div>';
     setBookingWidgetVisible(false);
     renderBlock(html);
+    bindSelectableHotelCards();
     document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
     triggerResumenUpdate();
   }

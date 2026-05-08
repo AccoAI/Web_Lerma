@@ -593,8 +593,8 @@ function initConfiguradorPaquete() {
     function actualizarBloqueHotel() {
         var noches = parseInt(((form && form.querySelector('input[name="noches"]')) || {}).value || '0', 10);
         if (noches >= 1) {
-            if (hotelPorNocheBlock) hotelPorNocheBlock.style.display = 'block';
-            generarHotelesPorNoche(noches);
+            // UI antigua “hotel por noche” retirada: la selección se hace en tarjetas Hotelbeds.
+            if (hotelPorNocheBlock) hotelPorNocheBlock.style.display = 'none';
         } else {
             if (hotelPorNocheBlock) hotelPorNocheBlock.style.display = 'none';
         }
