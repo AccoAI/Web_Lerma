@@ -1009,6 +1009,21 @@ function initConfiguradorPaquete() {
     }
 
     document.addEventListener('hotelbeds-dynamic-ready', function () {
+        // Evitar reconstruir el DOM de hoteles mientras el usuario interactúa con los selects:
+        // al regenerar el bloque, el dropdown nativo se cierra y parece que “no deja seleccionar”.
+        try {
+            var active = document.activeElement;
+            if (active && hotelesPorNocheContainer && hotelesPorNocheContainer.contains(active)) {
+                // Solo refrescar opciones en el select actual (sin regenerar filas).
+                var noches = parseInt(((form && form.querySelector('input[name="noches"]')) || {}).value || '0', 10);
+                for (var i = 1; i <= noches; i++) {
+                    var lSel = form && form.querySelector('select[name="lugar-noche-' + i + '"]');
+                    var lugar = (lSel && lSel.value) ? String(lSel.value) : '';
+                    if (lugar === 'lerma' || lugar === 'burgos') refillHotelSelect(i, lugar);
+                }
+                return;
+            }
+        } catch (e) { /* ignore */ }
         actualizarBloqueHotel();
     });
 
