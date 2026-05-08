@@ -59,13 +59,7 @@
   }
 
   function pickTimeFromForm(form) {
-    if (!form) return '12:00';
-    var t =
-      (form.querySelector('#hora-salida-torneos') && form.querySelector('#hora-salida-torneos').value) ||
-      (form.querySelector('#hora-salida') && form.querySelector('#hora-salida').value) ||
-      (form.querySelector('input[name="hora_salida"]') && form.querySelector('input[name="hora_salida"]').value) ||
-      '';
-    if (t && /^\d{1,2}:\d{2}$/.test(t)) return t.length === 5 ? t : t;
+    // Transfers: hora por defecto fija (no depende de tee-time).
     return '12:00';
   }
 
@@ -131,8 +125,8 @@
     var legs = [];
     if (!fechas.length) return legs;
 
-    var firstIso = defaultOutboundFromCalendar(form); // includes time
-    var lastIso = defaultReturnFromCalendar(form);
+    var firstIso = defaultOutboundFromCalendar(form); // includes time (12:00)
+    var lastIso = defaultReturnFromCalendar(form); // includes time (12:00)
     var firstDate = fechas[0];
     var lastDate = fechas[fechas.length - 1];
 
@@ -160,14 +154,14 @@
     for (var d = 0; d < zonasPorDia.length; d++) {
       if (zonasPorDia[d] !== 'lerma') continue;
       var date = fechas[d];
-      // Go Burgos -> Lerma in the morning of that day.
+      // Go Burgos -> Lerma that day (default 12:00).
       legs.push({
         id: 'burgos_lerma_' + (d + 1),
         title: 'TRAYECTO',
         label: 'Burgos → Lerma (día ' + (d + 1) + ')',
         from: ZONAS.burgos,
         to: ZONAS.lerma,
-        datetimeIso: date ? date + 'T08:30:00' : '',
+        datetimeIso: date ? date + 'T12:00:00' : '',
       });
       // If there is any later Burgos day (Saldaña) OR the return is from Burgos, suggest Lerma -> Burgos same day evening.
       var needsBackToBurgos = false;
@@ -181,7 +175,7 @@
           label: 'Lerma → Burgos (día ' + (d + 1) + ')',
           from: ZONAS.lerma,
           to: ZONAS.burgos,
-          datetimeIso: date ? date + 'T18:00:00' : '',
+          datetimeIso: date ? date + 'T12:00:00' : '',
         });
       }
     }
@@ -194,7 +188,7 @@
       label: (returnFrom === ZONAS.lerma ? 'Desde Lerma a ' : 'Desde Burgos a ') + originCode,
       from: returnFrom,
       to: iata(originCode),
-      datetimeIso: lastIso || (lastDate ? lastDate + 'T18:00:00' : ''),
+      datetimeIso: lastIso || (lastDate ? lastDate + 'T12:00:00' : ''),
     });
 
     return legs;
