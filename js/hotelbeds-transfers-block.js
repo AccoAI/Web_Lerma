@@ -571,9 +571,6 @@
       }
     });
 
-    // Estado inicial.
-    setOrigin(DEFAULT_ORIGIN, (ORIGIN_PRESETS[0] && ORIGIN_PRESETS[0].code === DEFAULT_ORIGIN) ? ORIGIN_PRESETS[0].label : 'Madrid (MAD)');
-
     originLab.appendChild(originInput);
     originLab.appendChild(originHidden);
     originLab.appendChild(originSuggest);
@@ -713,6 +710,12 @@
         })(legs[i]);
       }
     }
+
+    // Estado inicial (ahora que datesLine/legsWrap existen).
+    setOrigin(
+      DEFAULT_ORIGIN,
+      (ORIGIN_PRESETS[0] && ORIGIN_PRESETS[0].code === DEFAULT_ORIGIN) ? ORIGIN_PRESETS[0].label : 'Madrid (MAD)'
+    );
 
     renderLegs();
 
