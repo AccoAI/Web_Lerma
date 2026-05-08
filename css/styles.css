@@ -2555,6 +2555,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     font-size: 0.8rem;
     font-weight: 650;
     color: var(--color-text);
+    position: relative;
 }
 .transfer-hb-select,
 .transfer-hb-input {
@@ -2567,6 +2568,35 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     font-family: var(--font-primary);
     box-sizing: border-box;
     margin-top: 0.25rem;
+}
+
+.transfer-hb-suggest {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 0.35rem);
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+    padding: 0.35rem;
+    z-index: 5;
+    max-height: 240px;
+    overflow: auto;
+}
+.transfer-hb-suggest-item {
+    width: 100%;
+    text-align: left;
+    padding: 0.45rem 0.55rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    color: var(--color-text);
+}
+.transfer-hb-suggest-item:hover {
+    background: rgba(26, 77, 58, 0.08);
 }
 .transfer-hb-planner-dates {
     display: flex;
@@ -2621,12 +2651,14 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     grid-template-columns: 1fr auto;
     gap: 0.65rem;
     align-items: end;
+    min-width: 0;
 }
 .transfer-hb-leg-controls label {
     display: block;
     font-size: 0.78rem;
     font-weight: 650;
     color: var(--color-text);
+    min-width: 0;
 }
 .btn-transfer-hb-leg {
     padding: 0.55rem 0.85rem;
@@ -2637,7 +2669,10 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     background: var(--color-primary);
     color: #fff;
     font-size: 0.86rem;
-    white-space: nowrap;
+    max-width: 100%;
+    box-sizing: border-box;
+    justify-self: stretch;
+    white-space: normal;
 }
 .btn-transfer-hb-leg:hover { filter: brightness(1.05); }
 .transfer-hb-leg-results { margin-top: 0.65rem; }

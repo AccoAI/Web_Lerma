@@ -459,6 +459,8 @@
     if (block.querySelector('.transfer-hb-planner')) return;
 
     var form = getForm(block);
+    var paxAutoSync = true;
+    var originSelectedCode = DEFAULT_ORIGIN;
 
     var planner = document.createElement('div');
     planner.className = 'transfer-hb-planner';
@@ -475,37 +477,106 @@
     var controls = document.createElement('div');
     controls.className = 'transfer-hb-planner-controls';
 
-    // Origen libre: select + custom.
+    // Origen libre: input con autocompletar (guarda IATA por debajo).
     var originField = document.createElement('div');
     originField.className = 'transfer-hb-field';
     var originLab = document.createElement('label');
-    originLab.textContent = 'Ciudad/aeropuerto de origen (IATA)';
-    var originSel = document.createElement('select');
-    originSel.className = 'transfer-hb-select';
-    ORIGIN_PRESETS.forEach(function (o) {
-      var opt = document.createElement('option');
-      opt.value = o.code;
-      opt.textContent = o.label;
-      originSel.appendChild(opt);
-    });
-    var optCustom = document.createElement('option');
-    optCustom.value = '__custom__';
-    optCustom.textContent = 'Otro (código IATA)';
-    originSel.appendChild(optCustom);
-    originSel.value = DEFAULT_ORIGIN;
-    var originCustom = document.createElement('input');
-    originCustom.type = 'text';
-    originCustom.className = 'transfer-hb-input';
-    originCustom.placeholder = 'Ej. BCN';
-    originCustom.maxLength = 4;
-    originCustom.hidden = true;
-    originSel.addEventListener('change', function () {
-      originCustom.hidden = originSel.value !== '__custom__';
+    originLab.textContent = 'Ciudad / aeropuerto de origen';
+    var originInput = document.createElement('input');
+    originInput.type = 'text';
+    originInput.className = 'transfer-hb-input';
+    originInput.placeholder = 'Ej. Madrid, Bilbao, Santander…';
+    originInput.autocomplete = 'off';
+    originInput.spellcheck = false;
+    originInput.value = ORIGIN_PRESETS[0] && ORIGIN_PRESETS[0].code === DEFAULT_ORIGIN ? ORIGIN_PRESETS[0].label : 'Madrid (MAD)';
+
+    var originHidden = document.createElement('input');
+    originHidden.type = 'hidden';
+    originHidden.name = 'transfer_hb_origin_iata';
+    originHidden.value = DEFAULT_ORIGIN;
+
+    var originSuggest = document.createElement('div');
+    originSuggest.className = 'transfer-hb-suggest';
+    originSuggest.hidden = true;
+
+    function norm(s) {
+      return String(s || '')
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function setOrigin(code, label) {
+      originSelectedCode = String(code || '').trim().toUpperCase() || DEFAULT_ORIGIN;
+      originHidden.value = originSelectedCode;
+      originInput.value = label || originSelectedCode;
+      originSuggest.hidden = true;
       renderLegs();
+    }
+
+    function renderOriginSuggestions(q) {
+      var query = norm(q);
+      originSuggest.innerHTML = '';
+      if (!query) {
+        originSuggest.hidden = true;
+        return;
+      }
+      var matches = [];
+      for (var i = 0; i < ORIGIN_PRESETS.length; i++) {
+        var o = ORIGIN_PRESETS[i];
+        var hay = norm(o.label + ' ' + o.code);
+        if (hay.indexOf(query) >= 0) matches.push(o);
+        if (matches.length >= 8) break;
+      }
+      if (!matches.length) {
+        originSuggest.hidden = true;
+        return;
+      }
+      matches.forEach(function (o) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'transfer-hb-suggest-item';
+        btn.textContent = o.label;
+        btn.addEventListener('click', function () {
+          setOrigin(o.code, o.label);
+        });
+        originSuggest.appendChild(btn);
+      });
+      originSuggest.hidden = false;
+    }
+
+    originInput.addEventListener('input', function () {
+      renderOriginSuggestions(originInput.value);
     });
-    originCustom.addEventListener('input', renderLegs);
-    originLab.appendChild(originSel);
-    originLab.appendChild(originCustom);
+    originInput.addEventListener('focus', function () {
+      renderOriginSuggestions(originInput.value);
+    });
+    originInput.addEventListener('blur', function () {
+      // Delay para permitir click en sugerencia.
+      setTimeout(function () {
+        originSuggest.hidden = true;
+      }, 120);
+    });
+    originInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        // Si el usuario escribió exactamente un IATA de 3 letras, lo aceptamos.
+        var t = String(originInput.value || '').trim().toUpperCase();
+        var m = t.match(/\b([A-Z]{3})\b$/);
+        if (m) {
+          originSelectedCode = m[1];
+          originHidden.value = originSelectedCode;
+          renderLegs();
+        }
+      }
+    });
+
+    // Estado inicial.
+    setOrigin(DEFAULT_ORIGIN, (ORIGIN_PRESETS[0] && ORIGIN_PRESETS[0].code === DEFAULT_ORIGIN) ? ORIGIN_PRESETS[0].label : 'Madrid (MAD)');
+
+    originLab.appendChild(originInput);
+    originLab.appendChild(originHidden);
+    originLab.appendChild(originSuggest);
     originField.appendChild(originLab);
 
     // Passengers override (optional)
@@ -519,7 +590,13 @@
     pax.max = '54';
     pax.className = 'transfer-hb-input';
     pax.value = '2';
-    pax.addEventListener('change', renderLegs);
+    pax.addEventListener('input', function () {
+      paxAutoSync = false;
+    });
+    pax.addEventListener('change', function () {
+      paxAutoSync = false;
+      renderLegs();
+    });
     paxLab.appendChild(pax);
     paxField.appendChild(paxLab);
 
@@ -539,9 +616,19 @@
     planner.appendChild(legsWrap);
 
     function getOriginCode() {
-      var v = originSel.value;
-      if (v === '__custom__') return String(originCustom.value || '').trim().toUpperCase();
-      return String(v || '').trim().toUpperCase();
+      return String(originHidden.value || originSelectedCode || DEFAULT_ORIGIN).trim().toUpperCase() || DEFAULT_ORIGIN;
+    }
+
+    function getDefaultPaxFromGolfGroup() {
+      if (!form) return 2;
+      var tg =
+        form.querySelector('#tamanio-grupo') ||
+        form.querySelector('#tamanio-grupo-torneos') ||
+        form.querySelector('input[name="tamanio_grupo"]') ||
+        null;
+      var n = tg && tg.value != null ? parseInt(String(tg.value), 10) : 0;
+      if (!n || n < 1) return 2;
+      return Math.min(54, n);
     }
 
     function syncDates() {
@@ -555,6 +642,9 @@
     function renderLegs() {
       syncDates();
       var originCode = getOriginCode() || DEFAULT_ORIGIN;
+      if (paxAutoSync) {
+        pax.value = String(getDefaultPaxFromGolfGroup());
+      }
       var legs = computeSuggestedLegs(form, originCode);
       legsWrap.innerHTML = '';
       hiddenWrap.innerHTML = '';
@@ -629,8 +719,13 @@
     if (form) {
       form.addEventListener('change', renderLegs);
       form.addEventListener('input', function (e) {
-        // avoid rerendering on every keystroke except custom origin
-        if (e && e.target === originCustom) return;
+        // if they change group size and pax wasn't manually overridden, resync.
+        if (paxAutoSync) {
+          var t = e && e.target;
+          if (t && (t.id === 'tamanio-grupo' || t.id === 'tamanio-grupo-torneos' || t.name === 'tamanio_grupo')) {
+            pax.value = String(getDefaultPaxFromGolfGroup());
+          }
+        }
         renderLegs();
       });
     }
