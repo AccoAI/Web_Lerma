@@ -1,15 +1,28 @@
 /**
- * Transfer Hotelbeds en paquetes: bloque de presupuesto rápido.
+ * Transfer Hotelbeds en paquetes: planificador de transfers.
  * - Ping: GET /api/hotelbeds-transfers?ping=1
  * - Availability simple: GET /api/hotelbeds-transfers?... (MAD ↔ GPS Lerma/Burgos)
  *
  * Requisitos del cliente:
- * - Dos opciones por sentido (IDA / VUELTA).
- * - Destino siempre Lerma o Burgos.
- * - Fecha/hora: primera fecha (ida) y última fecha (vuelta) del calendario.
+ * - Origen libre (normalmente MAD/BIO/SDR...) y vuelta automática al origen.
+ * - Fechas por defecto (primera/última del calendario) pero editables.
+ * - Destinos por defecto según green fees (campo por día): Saldaña=Burgos, Lerma=Lerma.
+ * - Noches por defecto en Burgos: si hay día en Lerma, sugerir Burgos↔Lerma (i/v) según el orden.
  */
 (function () {
-  var MAD = { type: 'IATA', code: 'MAD', label: 'Madrid (MAD)' };
+  var DEFAULT_ORIGIN = 'MAD';
+  var ORIGIN_PRESETS = [
+    { code: 'MAD', label: 'Madrid (MAD)' },
+    { code: 'BIO', label: 'Bilbao (BIO)' },
+    { code: 'SDR', label: 'Santander (SDR)' },
+    { code: 'VLL', label: 'Valladolid (VLL)' },
+    { code: 'OVD', label: 'Asturias (OVD)' },
+  ];
+
+  function iata(code) {
+    return { type: 'IATA', code: String(code || '').trim().toUpperCase(), label: String(code || '').trim().toUpperCase() };
+  }
+
   var ZONAS = {
     burgos: { type: 'GPS', code: '42.3408,-3.6997', label: 'Burgos (centro)' },
     lerma: { type: 'GPS', code: '42.0270,-3.7545', label: 'Lerma (centro)' },
@@ -78,6 +91,113 @@
     if (h.length === 1) h = '0' + h;
     if (m.length === 1) m = '0' + m;
     return day + 'T' + h + ':' + m + ':00';
+  }
+
+  function isoToLocalInput(iso) {
+    if (!iso) return '';
+    // ISO in this file is always YYYY-MM-DDTHH:mm:ss (no TZ)
+    return String(iso).slice(0, 16);
+  }
+
+  function localInputToIso(v) {
+    var s = String(v || '').trim();
+    if (!s) return '';
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) return s + ':00';
+    return s;
+  }
+
+  function getCamposPorDia(form) {
+    if (!form) return [];
+    var out = [];
+    // Días se llaman campo-dia-1, campo-dia-2, ...
+    for (var i = 1; i <= 10; i++) {
+      var sel = form.querySelector('select[name="campo-dia-' + i + '"]');
+      if (!sel) break;
+      out.push(String(sel.value || '').trim());
+    }
+    return out;
+  }
+
+  function campoToZona(campoVal) {
+    // Saldaña Golf es Burgos (zona)
+    if (campoVal === 'lerma') return 'lerma';
+    if (campoVal === 'saldana') return 'burgos';
+    return '';
+  }
+
+  function computeSuggestedLegs(form, originCode) {
+    var fechas = getFechasSorted(form);
+    var campos = getCamposPorDia(form);
+    var legs = [];
+    if (!fechas.length) return legs;
+
+    var firstIso = defaultOutboundFromCalendar(form); // includes time
+    var lastIso = defaultReturnFromCalendar(form);
+    var firstDate = fechas[0];
+    var lastDate = fechas[fechas.length - 1];
+
+    // Determine if any day is in Lerma.
+    var zonasPorDia = [];
+    for (var i = 0; i < fechas.length; i++) {
+      zonasPorDia[i] = campoToZona(campos[i] || '');
+    }
+    var firstPlayZona = '';
+    for (var j = 0; j < zonasPorDia.length; j++) { if (zonasPorDia[j]) { firstPlayZona = zonasPorDia[j]; break; } }
+    var lastPlayZona = '';
+    for (var k = zonasPorDia.length - 1; k >= 0; k--) { if (zonasPorDia[k]) { lastPlayZona = zonasPorDia[k]; break; } }
+
+    // Default: arrival always to Burgos (noches en Burgos).
+    legs.push({
+      id: 'ida_burgos',
+      title: 'IDA',
+      label: 'Desde ' + originCode + ' a Burgos',
+      from: iata(originCode),
+      to: ZONAS.burgos,
+      datetimeIso: firstIso || (firstDate ? firstDate + 'T12:00:00' : ''),
+    });
+
+    // If there is at least one Lerma day, suggest inter-city transfer(s).
+    for (var d = 0; d < zonasPorDia.length; d++) {
+      if (zonasPorDia[d] !== 'lerma') continue;
+      var date = fechas[d];
+      // Go Burgos -> Lerma in the morning of that day.
+      legs.push({
+        id: 'burgos_lerma_' + (d + 1),
+        title: 'TRAYECTO',
+        label: 'Burgos → Lerma (día ' + (d + 1) + ')',
+        from: ZONAS.burgos,
+        to: ZONAS.lerma,
+        datetimeIso: date ? date + 'T08:30:00' : '',
+      });
+      // If there is any later Burgos day (Saldaña) OR the return is from Burgos, suggest Lerma -> Burgos same day evening.
+      var needsBackToBurgos = false;
+      for (var dd = d + 1; dd < zonasPorDia.length; dd++) {
+        if (zonasPorDia[dd] === 'burgos') { needsBackToBurgos = true; break; }
+      }
+      if (needsBackToBurgos) {
+        legs.push({
+          id: 'lerma_burgos_' + (d + 1),
+          title: 'TRAYECTO',
+          label: 'Lerma → Burgos (día ' + (d + 1) + ')',
+          from: ZONAS.lerma,
+          to: ZONAS.burgos,
+          datetimeIso: date ? date + 'T18:00:00' : '',
+        });
+      }
+    }
+
+    // Return: from last play zona if defined, else from Burgos.
+    var returnFrom = lastPlayZona === 'lerma' ? ZONAS.lerma : ZONAS.burgos;
+    legs.push({
+      id: 'vuelta_origen',
+      title: 'VUELTA',
+      label: (returnFrom === ZONAS.lerma ? 'Desde Lerma a ' : 'Desde Burgos a ') + originCode,
+      from: returnFrom,
+      to: iata(originCode),
+      datetimeIso: lastIso || (lastDate ? lastDate + 'T18:00:00' : ''),
+    });
+
+    return legs;
   }
 
   function normalizeServiceList(servicesRoot) {
@@ -298,9 +418,9 @@
     return { first: fechas[0], last: fechas[fechas.length - 1] };
   }
 
-  function fetchAvailability(block, resultsEl, hiddenRateKey, from, to, outboundIso) {
+  function fetchAvailability(block, resultsEl, hiddenRateKey, from, to, outboundIso, adultsOverride) {
     var paxEl = block.querySelector('input[name=\"transfer_hb_pax\"]');
-    var adults = Math.max(1, parseInt(paxEl && paxEl.value ? paxEl.value : '2', 10) || 2);
+    var adults = Math.max(1, parseInt(adultsOverride != null ? adultsOverride : (paxEl && paxEl.value ? paxEl.value : '2'), 10) || 2);
 
     var qs = new URLSearchParams({
       language: 'en',
@@ -335,126 +455,196 @@
       });
   }
 
-  function ensureQuickUi(block) {
-    if (block.querySelector('.transfer-hb-quick')) return;
+  function ensurePlannerUi(block) {
+    if (block.querySelector('.transfer-hb-planner')) return;
 
     var form = getForm(block);
 
-    var hiddenRateKey = document.createElement('input');
-    hiddenRateKey.type = 'hidden';
-    hiddenRateKey.name = 'transfer_hb_rate_key';
-    hiddenRateKey.value = '';
-    block.appendChild(hiddenRateKey);
+    var planner = document.createElement('div');
+    planner.className = 'transfer-hb-planner';
 
-    var quick = document.createElement('div');
-    quick.className = 'transfer-hb-quick';
+    // Hidden rateKeys per leg.
+    var hiddenWrap = document.createElement('div');
+    hiddenWrap.className = 'transfer-hb-hidden';
+    planner.appendChild(hiddenWrap);
 
     var head = document.createElement('div');
-    head.className = 'transfer-hb-quick-head';
-    var title = document.createElement('h4');
-    title.className = 'transfer-hb-quick-title';
-    title.textContent = 'Presupuesto rápido (Hotelbeds Transfers)';
-    var sub = document.createElement('p');
-    sub.className = 'transfer-hb-quick-sub';
-    sub.textContent = 'Origen fijo: Madrid (MAD). Destino: Lerma o Burgos. Fechas: primera (ida) y última (vuelta) del calendario.';
-    head.appendChild(title);
-    head.appendChild(sub);
+    head.className = 'transfer-hb-planner-head';
+    head.innerHTML = '<h4 class=\"transfer-hb-planner-title\">Transfers sugeridos</h4><p class=\"transfer-hb-planner-sub\">Basados en fechas y green fees (Saldaña=Burgos). Puedes ajustar origen y horarios.</p>';
 
-    var dates = document.createElement('div');
-    dates.className = 'transfer-hb-quick-dates';
-    dates.innerHTML = '<span>Ida:</span> <strong class=\"transfer-hb-date-ida\">—</strong> <span>Vuelta:</span> <strong class=\"transfer-hb-date-vuelta\">—</strong>';
+    var controls = document.createElement('div');
+    controls.className = 'transfer-hb-planner-controls';
+
+    // Origen libre: select + custom.
+    var originField = document.createElement('div');
+    originField.className = 'transfer-hb-field';
+    var originLab = document.createElement('label');
+    originLab.textContent = 'Ciudad/aeropuerto de origen (IATA)';
+    var originSel = document.createElement('select');
+    originSel.className = 'transfer-hb-select';
+    ORIGIN_PRESETS.forEach(function (o) {
+      var opt = document.createElement('option');
+      opt.value = o.code;
+      opt.textContent = o.label;
+      originSel.appendChild(opt);
+    });
+    var optCustom = document.createElement('option');
+    optCustom.value = '__custom__';
+    optCustom.textContent = 'Otro (código IATA)';
+    originSel.appendChild(optCustom);
+    originSel.value = DEFAULT_ORIGIN;
+    var originCustom = document.createElement('input');
+    originCustom.type = 'text';
+    originCustom.className = 'transfer-hb-input';
+    originCustom.placeholder = 'Ej. BCN';
+    originCustom.maxLength = 4;
+    originCustom.hidden = true;
+    originSel.addEventListener('change', function () {
+      originCustom.hidden = originSel.value !== '__custom__';
+      renderLegs();
+    });
+    originCustom.addEventListener('input', renderLegs);
+    originLab.appendChild(originSel);
+    originLab.appendChild(originCustom);
+    originField.appendChild(originLab);
+
+    // Passengers override (optional)
+    var paxField = document.createElement('div');
+    paxField.className = 'transfer-hb-field';
+    var paxLab = document.createElement('label');
+    paxLab.textContent = 'Pasajeros';
+    var pax = document.createElement('input');
+    pax.type = 'number';
+    pax.min = '1';
+    pax.max = '54';
+    pax.className = 'transfer-hb-input';
+    pax.value = '2';
+    pax.addEventListener('change', renderLegs);
+    paxLab.appendChild(pax);
+    paxField.appendChild(paxLab);
+
+    controls.appendChild(originField);
+    controls.appendChild(paxField);
+
+    var datesLine = document.createElement('div');
+    datesLine.className = 'transfer-hb-planner-dates';
+    datesLine.innerHTML = '<span>Ida (1ª fecha):</span> <strong class=\"hb-ida-date\">—</strong> <span>Vuelta (última):</span> <strong class=\"hb-vuelta-date\">—</strong>';
+
+    var legsWrap = document.createElement('div');
+    legsWrap.className = 'transfer-hb-legs';
+
+    planner.appendChild(head);
+    planner.appendChild(controls);
+    planner.appendChild(datesLine);
+    planner.appendChild(legsWrap);
+
+    function getOriginCode() {
+      var v = originSel.value;
+      if (v === '__custom__') return String(originCustom.value || '').trim().toUpperCase();
+      return String(v || '').trim().toUpperCase();
+    }
 
     function syncDates() {
-      var rng = pickCalendarRange(form);
-      var ida = rng.first ? rng.first : '';
-      var vuelta = rng.last && rng.last !== rng.first ? rng.last : rng.last;
-      var idaEl = dates.querySelector('.transfer-hb-date-ida');
-      var vEl = dates.querySelector('.transfer-hb-date-vuelta');
-      if (idaEl) idaEl.textContent = ida ? formatDate(ida) : '—';
-      if (vEl) vEl.textContent = vuelta ? formatDate(vuelta) : '—';
+      var fechas = getFechasSorted(form);
+      var idaEl = datesLine.querySelector('.hb-ida-date');
+      var vEl = datesLine.querySelector('.hb-vuelta-date');
+      if (idaEl) idaEl.textContent = fechas[0] ? formatDate(fechas[0]) : '—';
+      if (vEl) vEl.textContent = fechas.length ? formatDate(fechas[fechas.length - 1]) : '—';
     }
-    syncDates();
 
-    var grid = document.createElement('div');
-    grid.className = 'transfer-hb-quick-grid';
+    function renderLegs() {
+      syncDates();
+      var originCode = getOriginCode() || DEFAULT_ORIGIN;
+      var legs = computeSuggestedLegs(form, originCode);
+      legsWrap.innerHTML = '';
+      hiddenWrap.innerHTML = '';
 
-    function mkCard(label, from, to, whenFn) {
-      var card = document.createElement('div');
-      card.className = 'transfer-hb-quick-card';
-      var h = document.createElement('div');
-      h.className = 'transfer-hb-quick-card-head';
-      var l = document.createElement('span');
-      l.className = 'transfer-hb-quick-card-label';
-      l.textContent = label;
-      var route = document.createElement('span');
-      route.className = 'transfer-hb-quick-card-route';
-      route.textContent = from.label + ' → ' + to.label;
-      h.appendChild(l);
-      h.appendChild(route);
+      for (var i = 0; i < legs.length; i++) {
+        (function (leg) {
+          // hidden ratekey per leg
+          var hidden = document.createElement('input');
+          hidden.type = 'hidden';
+          hidden.name = 'transfer_hb_rate_key_' + leg.id;
+          hidden.value = '';
+          hiddenWrap.appendChild(hidden);
 
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'btn-transfer-hb-quick';
-      btn.textContent = 'Ver disponibilidad y precios';
+          var card = document.createElement('div');
+          card.className = 'transfer-hb-leg';
 
-      var out = document.createElement('div');
-      out.className = 'transfer-hb-quick-results';
-      out.setAttribute('aria-live', 'polite');
+          var top = document.createElement('div');
+          top.className = 'transfer-hb-leg-top';
+          top.innerHTML =
+            '<span class=\"transfer-hb-leg-badge\">' +
+            leg.title +
+            '</span><span class=\"transfer-hb-leg-label\">' +
+            leg.label +
+            '</span><span class=\"transfer-hb-leg-route\">' +
+            leg.from.label +
+            ' → ' +
+            leg.to.label +
+            '</span>';
 
-      btn.addEventListener('click', function () {
-        var iso = whenFn();
-        if (!iso) {
-          out.innerHTML =
-            '<p class=\"transfer-hb-modal-msg transfer-hb-modal-msg--warn\">Selecciona antes las fechas en el calendario.</p>';
-          return;
-        }
-        fetchAvailability(block, out, hiddenRateKey, from, to, iso);
+          var dtRow = document.createElement('div');
+          dtRow.className = 'transfer-hb-leg-controls';
+          var dtLab = document.createElement('label');
+          dtLab.textContent = 'Fecha y hora';
+          var dt = document.createElement('input');
+          dt.type = 'datetime-local';
+          dt.className = 'transfer-hb-input';
+          dt.value = isoToLocalInput(leg.datetimeIso);
+          dtLab.appendChild(dt);
+
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'btn-transfer-hb-leg';
+          btn.textContent = 'Buscar disponibilidad';
+
+          var out = document.createElement('div');
+          out.className = 'transfer-hb-leg-results';
+          out.setAttribute('aria-live', 'polite');
+
+          btn.addEventListener('click', function () {
+            var iso = localInputToIso(dt.value);
+            if (!iso) {
+              out.innerHTML =
+                '<p class=\"transfer-hb-modal-msg transfer-hb-modal-msg--warn\">Indica fecha y hora (o selecciona fechas en el calendario).</p>';
+              return;
+            }
+            fetchAvailability(block, out, hidden, leg.from, leg.to, iso, pax.value);
+          });
+
+          dtRow.appendChild(dtLab);
+          dtRow.appendChild(btn);
+
+          card.appendChild(top);
+          card.appendChild(dtRow);
+          card.appendChild(out);
+          legsWrap.appendChild(card);
+        })(legs[i]);
+      }
+    }
+
+    renderLegs();
+
+    if (form) {
+      form.addEventListener('change', renderLegs);
+      form.addEventListener('input', function (e) {
+        // avoid rerendering on every keystroke except custom origin
+        if (e && e.target === originCustom) return;
+        renderLegs();
       });
-
-      card.appendChild(h);
-      card.appendChild(btn);
-      card.appendChild(out);
-      return card;
     }
-
-    var idaBurgos = mkCard('IDA', MAD, ZONAS.burgos, function () {
-      return defaultOutboundFromCalendar(form);
-    });
-    var idaLerma = mkCard('IDA', MAD, ZONAS.lerma, function () {
-      return defaultOutboundFromCalendar(form);
-    });
-    var vueltaBurgos = mkCard('VUELTA', ZONAS.burgos, MAD, function () {
-      return defaultReturnFromCalendar(form);
-    });
-    var vueltaLerma = mkCard('VUELTA', ZONAS.lerma, MAD, function () {
-      return defaultReturnFromCalendar(form);
-    });
-
-    grid.appendChild(idaBurgos);
-    grid.appendChild(idaLerma);
-    grid.appendChild(vueltaBurgos);
-    grid.appendChild(vueltaLerma);
-
-    quick.appendChild(head);
-    quick.appendChild(dates);
-    quick.appendChild(grid);
 
     var apiLine = block.querySelector('.hotelbeds-transfer-api-line');
     if (apiLine && apiLine.parentNode) {
-      apiLine.parentNode.insertBefore(quick, apiLine.nextSibling);
+      apiLine.parentNode.insertBefore(planner, apiLine.nextSibling);
     } else {
-      block.insertBefore(quick, block.firstChild);
-    }
-
-    // Re-sincronizar fechas cuando cambian inputs típicos.
-    if (form) {
-      form.addEventListener('change', syncDates);
-      form.addEventListener('input', syncDates);
+      block.insertBefore(planner, block.firstChild);
     }
   }
 
   function bindBlock(block) {
-    ensureQuickUi(block);
+    ensurePlannerUi(block);
     var cb = block.querySelector('input[name=\"transfer_hb_interes\"]');
     var det = block.querySelector('.transfer-hb-detalles');
     if (!cb || !det) return;
