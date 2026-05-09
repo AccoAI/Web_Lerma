@@ -2265,6 +2265,128 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     border: 2px solid var(--color-primary);
 }
 
+/* Hotelbeds funnel modal (ocupación + checkrate) */
+body.hb-hotel-funnel-open {
+    overflow: hidden;
+}
+.hb-hotel-funnel-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(0, 0, 0, 0.55);
+    display: grid;
+    place-items: center;
+    padding: 1.25rem;
+}
+.hb-hotel-funnel-modal {
+    width: min(560px, 96vw);
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+.hb-hotel-funnel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.9rem 1.05rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+.hb-hotel-funnel-head h3 {
+    font-size: 1.05rem;
+    margin: 0;
+}
+.hb-hotel-funnel-close {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--color-text-light);
+    padding: 0.15rem 0.35rem;
+}
+.hb-hotel-funnel-body {
+    padding: 1rem 1.05rem 1.1rem;
+}
+.hb-hotel-funnel-hotel {
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+}
+.hb-hotel-funnel-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+.hb-hotel-funnel-grid label {
+    display: grid;
+    gap: 0.35rem;
+    font-size: 0.9rem;
+}
+.hb-hotel-funnel-grid input {
+    width: 100%;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid rgba(0, 0, 0, 0.18);
+    border-radius: 8px;
+    font-family: var(--font-secondary);
+}
+.hb-hotel-funnel-note {
+    font-size: 0.82rem;
+    color: var(--color-text-light);
+    margin-bottom: 0.9rem;
+}
+.hb-hotel-funnel-actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.85rem;
+}
+.hb-hotel-funnel-btn {
+    border: 0;
+    cursor: pointer;
+    border-radius: 8px;
+    padding: 0.65rem 0.9rem;
+    background: var(--color-primary);
+    color: #fff;
+    font-weight: 500;
+}
+.hb-hotel-funnel-btn[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+.hb-hotel-funnel-btn--secondary {
+    background: rgba(26, 77, 58, 0.12);
+    color: var(--color-primary);
+}
+.hb-hotel-funnel-result {
+    font-size: 0.9rem;
+}
+.hb-funnel-warn {
+    padding: 0.65rem 0.8rem;
+    background: rgba(179, 51, 68, 0.08);
+    border-left: 4px solid #b33344;
+    border-radius: 8px;
+}
+.hb-funnel-ok {
+    padding: 0.65rem 0.8rem;
+    background: rgba(26, 77, 58, 0.10);
+    border-left: 4px solid var(--color-primary);
+    border-radius: 8px;
+}
+.hb-funnel-small {
+    margin-top: 0.35rem;
+    font-size: 0.82rem;
+    color: var(--color-text-light);
+}
+
+@media (max-width: 520px) {
+    .hb-hotel-funnel-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Transfer opcional (Hotelbeds Transfers) — paquetes con hotel */
 .paquete-transfer-hb-block {
     margin-top: 0.25rem;
