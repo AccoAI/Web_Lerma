@@ -574,6 +574,14 @@
     var contentBy = window.__HB_CONTENT_BY_CODE || {};
     var html =
       '<div class="hotelbeds-block hotelbeds-results"><h4 class="hotelbeds-title">Precios en tiempo real (Hotelbeds)</h4><ul class="hotelbeds-list hotelbeds-list--cards">';
+    // Hotelbeds Availability suele devolver minRate como total de la estancia.
+    // Para evitar confusión, mostramos total estancia + (aprox) por noche según nº de noches.
+    var noches = 1;
+    try {
+      var fdTmp = getFormData();
+      var nTmp = fdTmp && fdTmp.get ? parseInt(fdTmp.get('noches') || '1', 10) : 1;
+      if (nTmp && nTmp > 0) noches = nTmp;
+    } catch (e0) { /* ignore */ }
     hotels.forEach(function (h) {
       var code = String(h.code);
       var ourId = codeToId[code];
@@ -585,7 +593,16 @@
       }
       if (typeof rate === 'string') rate = parseFloat(rate) || null;
       if (ourId && rate != null) live[ourId] = rate;
-      var priceStr = rate != null ? (Math.round(rate * 100) / 100) + ' €/noche' : '—';
+      var priceStr = '—';
+      if (rate != null) {
+        var total = Math.round(rate * 100) / 100;
+        if (noches >= 2) {
+          var pn = Math.round((total / noches) * 100) / 100;
+          priceStr = total + ' € (estancia) · ' + pn + ' €/noche';
+        } else {
+          priceStr = total + ' € (estancia)';
+        }
+      }
       var sel = selectedHotels.indexOf(code) >= 0 ? ' <span class="hotelbeds-selected">(elegido)</span>' : '';
       var pick = rateBy[code];
       var meta = contentBy[code];
@@ -643,11 +660,26 @@
     var contentBy = window.__HB_CONTENT_BY_CODE || {};
     var html =
       '<div class="hotelbeds-block hotelbeds-results"><h4 class="hotelbeds-title">Precios en tiempo real (Hotelbeds) · Lerma y Burgos</h4><ul class="hotelbeds-list hotelbeds-list--cards">';
+    var noches = 1;
+    try {
+      var fdTmp = getFormData();
+      var nTmp = fdTmp && fdTmp.get ? parseInt(fdTmp.get('noches') || '1', 10) : 1;
+      if (nTmp && nTmp > 0) noches = nTmp;
+    } catch (e0) { /* ignore */ }
     hotels.forEach(function (h) {
       var code = String(h.code);
       var key = 'hb-' + code;
       var rate = live[key];
-      var priceStr = rate != null ? (Math.round(rate * 100) / 100) + ' €/noche' : '—';
+      var priceStr = '—';
+      if (rate != null) {
+        var total = Math.round(rate * 100) / 100;
+        if (noches >= 2) {
+          var pn = Math.round((total / noches) * 100) / 100;
+          priceStr = total + ' € (estancia) · ' + pn + ' €/noche';
+        } else {
+          priceStr = total + ' € (estancia)';
+        }
+      }
       var pick = rateBy[code];
       var meta = contentBy[code];
       html +=
