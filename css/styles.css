@@ -2265,83 +2265,49 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     border: 2px solid var(--color-primary);
 }
 
-/* Hotelbeds funnel modal (ocupación + checkrate) */
-body.hb-hotel-funnel-open {
-    overflow: hidden;
-}
-.hb-hotel-funnel-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 2000;
-    background: rgba(0, 0, 0, 0.55);
-    display: grid;
-    place-items: center;
-    padding: 1.25rem;
-}
-.hb-hotel-funnel-modal {
-    width: min(560px, 96vw);
-    background: #fff;
+/* Hotelbeds funnel inline (ocupación + checkrate) */
+.hb-hotel-funnel-inline {
+    margin: 0.75rem 0 1rem;
+    padding: 0.95rem 1rem;
     border-radius: 10px;
-    box-shadow: var(--shadow-lg);
-    overflow: hidden;
+    background: rgba(26, 77, 58, 0.06);
+    border: 1px solid rgba(26, 77, 58, 0.15);
 }
-.hb-hotel-funnel-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding: 0.9rem 1.05rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+.hb-hotel-funnel-inline__head {
+    display: grid;
+    gap: 0.35rem;
+    margin-bottom: 0.65rem;
 }
-.hb-hotel-funnel-head h3 {
-    font-size: 1.05rem;
-    margin: 0;
+.hb-hotel-funnel-inline__title {
+    font-weight: 600;
 }
-.hb-hotel-funnel-close {
-    appearance: none;
-    border: 0;
-    background: transparent;
-    font-size: 1.4rem;
-    line-height: 1;
-    cursor: pointer;
+.hb-hotel-funnel-inline__hotel {
     color: var(--color-text-light);
-    padding: 0.15rem 0.35rem;
+    font-size: 0.9rem;
 }
-.hb-hotel-funnel-body {
-    padding: 1rem 1.05rem 1.1rem;
-}
-.hb-hotel-funnel-hotel {
-    margin-bottom: 0.75rem;
-    font-weight: 500;
-}
-.hb-hotel-funnel-grid {
+.hb-hotel-funnel-inline__grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
     margin-bottom: 0.75rem;
 }
-.hb-hotel-funnel-grid label {
+.hb-hotel-funnel-inline__grid label {
     display: grid;
     gap: 0.35rem;
     font-size: 0.9rem;
 }
-.hb-hotel-funnel-grid input {
+.hb-hotel-funnel-inline__grid input {
     width: 100%;
     padding: 0.55rem 0.65rem;
     border: 1px solid rgba(0, 0, 0, 0.18);
     border-radius: 8px;
     font-family: var(--font-secondary);
 }
-.hb-hotel-funnel-note {
-    font-size: 0.82rem;
-    color: var(--color-text-light);
-    margin-bottom: 0.9rem;
-}
-.hb-hotel-funnel-actions {
+.hb-hotel-funnel-inline__actions {
     display: flex;
     gap: 0.6rem;
     flex-wrap: wrap;
-    margin-bottom: 0.85rem;
+    margin-bottom: 0.65rem;
 }
 .hb-hotel-funnel-btn {
     border: 0;
@@ -2360,7 +2326,7 @@ body.hb-hotel-funnel-open {
     background: rgba(26, 77, 58, 0.12);
     color: var(--color-primary);
 }
-.hb-hotel-funnel-result {
+.hb-hotel-funnel-inline__result {
     font-size: 0.9rem;
 }
 .hb-funnel-warn {
@@ -2382,7 +2348,7 @@ body.hb-hotel-funnel-open {
 }
 
 @media (max-width: 520px) {
-    .hb-hotel-funnel-grid {
+    .hb-hotel-funnel-inline__grid {
         grid-template-columns: 1fr;
     }
 }
