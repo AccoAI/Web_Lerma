@@ -432,8 +432,8 @@
       '  <div class="hb-hotel-funnel-inline__hotel" id="hb-funnel-inline-hotel">Elige un hotel para continuar.</div>' +
       '</div>' +
       '<div class="hb-hotel-funnel-inline__grid">' +
-      '  <label>Adultos <input type="number" min="1" max="54" value="2" id="hb-funnel-inline-adults"></label>' +
-      '  <label>Habitaciones <input type="number" min="1" max="20" value="1" id="hb-funnel-inline-rooms"></label>' +
+      '  <label>Adultos <input type="number" min="1" max="54" id="hb-funnel-inline-adults" placeholder=""></label>' +
+      '  <label>Habitaciones <input type="number" min="1" max="20" id="hb-funnel-inline-rooms" placeholder=""></label>' +
       '</div>' +
       '<div class="hb-hotel-funnel-inline__actions">' +
       '  <button type="button" class="hb-hotel-funnel-btn hb-hotel-funnel-btn--secondary" id="hb-funnel-inline-check" disabled>Precio final (CheckRate)</button>' +
@@ -498,6 +498,28 @@
     }).then(function (r) { return r.json(); });
   }
 
+  function readTamanioGrupo(form) {
+    var tg = form.querySelector('input[name="tamanio_grupo"]');
+    return tg ? String(tg.value || '').trim() : '';
+  }
+
+  function adultsRoomsFromGroupSize(form) {
+    var raw = readTamanioGrupo(form);
+    var adults = clamp(getInt(raw, 2), 1, 54);
+    var rooms = clamp(Math.ceil(adults / 2), 1, 20);
+    return { adults: adults, rooms: rooms, raw: raw };
+  }
+
+  function syncFunnelAdultsFromGroup(host, form, adultsInp, roomsInp, force) {
+    if (!host || !adultsInp || !roomsInp) return;
+    var sug = adultsRoomsFromGroupSize(form);
+    var tgNow = sug.raw;
+    if (!force && host.__hbLastTg === tgNow) return;
+    host.__hbLastTg = tgNow;
+    adultsInp.value = String(sug.adults);
+    roomsInp.value = String(sug.rooms);
+  }
+
   function wireHotelFunnelInlineHandlers(root, form) {
     var host = ensureHotelFunnelInlineUi(root);
     if (!host) return;
@@ -509,12 +531,10 @@
     var btnConfirm = host.querySelector('#hb-funnel-inline-confirm');
     var result = host.querySelector('#hb-funnel-inline-result');
 
-    // Defaults from group size.
-    var tg = form.querySelector('#tamanio-grupo') || form.querySelector('input[name="tamanio_grupo"]');
-    var adultsDefault = clamp(getInt(tg && tg.value, 2), 1, 54);
-    var roomsDefault = clamp(Math.ceil(adultsDefault / 2), 1, 20);
-    if (!adultsInp.value) adultsInp.value = String(adultsDefault);
-    if (!roomsInp.value) roomsInp.value = String(roomsDefault);
+    var sug0 = adultsRoomsFromGroupSize(form);
+    var adultsDefault = sug0.adults;
+    var roomsDefault = sug0.rooms;
+    syncFunnelAdultsFromGroup(host, form, adultsInp, roomsInp, false);
 
     function getSelectedHotelCode() {
       return (form.querySelector('input[name="hb_selected_hotel_code"]') || {}).value || '';
@@ -537,6 +557,18 @@
 
     if (!host.__hbBound) {
       host.__hbBound = true;
+
+      if (!form.__hbTamanioSyncListener) {
+        form.__hbTamanioSyncListener = true;
+        form.addEventListener('input', function (ev) {
+          if (!ev.target || ev.target.name !== 'tamanio_grupo') return;
+          var h = document.getElementById('hb-hotel-funnel-inline');
+          if (!h) return;
+          var ai = h.querySelector('#hb-funnel-inline-adults');
+          var ri = h.querySelector('#hb-funnel-inline-rooms');
+          syncFunnelAdultsFromGroup(h, form, ai, ri, true);
+        });
+      }
 
       btnCheck.addEventListener('click', function () {
         var hotelCode = getSelectedHotelCode();
@@ -660,6 +692,11 @@
       if (root) {
         wireHotelFunnelInlineHandlers(root, form);
         var host = root.querySelector('#hb-hotel-funnel-inline');
+        if (host) {
+          var ai = host.querySelector('#hb-funnel-inline-adults');
+          var ri = host.querySelector('#hb-funnel-inline-rooms');
+          syncFunnelAdultsFromGroup(host, form, ai, ri, true);
+        }
         if (host && host.scrollIntoView) host.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
