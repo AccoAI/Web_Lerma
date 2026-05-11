@@ -231,8 +231,31 @@
     return String(amt) + ' ' + (rate.currency || 'EUR');
   }
 
+  function rateOfferListHint(offer) {
+    if (!offer) return '';
+    var parts = [];
+    if (offer.cancellation) {
+      parts.push(offer.cancellation);
+    } else {
+      parts.push('Cancelación no detallada en el listado');
+    }
+    if (offer.promotions && offer.promotions.length) {
+      parts.push(offer.promotions.join(', '));
+    }
+    if (offer.rateComments && offer.rateComments.length) {
+      parts.push(offer.rateComments[0]);
+    }
+    if (offer.rateExtrasPaid && offer.rateExtrasPaid.length) {
+      parts.push(offer.rateExtrasPaid.join(' · '));
+    }
+    if (offer.paymentType) {
+      parts.push('Pago: ' + offer.paymentType);
+    }
+    return truncateText(parts.join(' · '), 220);
+  }
+
   function mapRateOffer(room, rate) {
-    return {
+    var offer = {
       rateKey: String(rate.rateKey),
       rateType: String(rate.rateType || 'BOOKABLE').toUpperCase(),
       roomName: roomNameFrom(room),
@@ -243,7 +266,10 @@
       rateComments: rateCommentsFromRate(rate),
       cancellation: cancellationFromRate(rate),
       promotions: promotionsFromRate(rate),
+      paymentType: rate.paymentType ? String(rate.paymentType) : '',
     };
+    offer.listHint = rateOfferListHint(offer);
+    return offer;
   }
 
   function collectRateOffersFromHotel(hotel) {
@@ -665,7 +691,19 @@
     return merged;
   }
 
-  function renderFunnelRateChoices(host, hotelCode) {
+  function getSelectedRateKeyFromFunnel(host, form) {
+    if (host) {
+      var picked = host.querySelector('input[name="hb-funnel-rate-pick"]:checked');
+      if (picked && picked.value) return String(picked.value);
+    }
+    if (form) {
+      var hidden = form.querySelector('input[name="hb_selected_rate_key"]');
+      if (hidden && hidden.value) return String(hidden.value);
+    }
+    return '';
+  }
+
+  function renderFunnelRateChoices(host, hotelCode, preferredRateKey) {
     var box = host.querySelector('#hb-funnel-inline-rates');
     if (!box) return;
     var offers = (window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || [];
@@ -673,21 +711,36 @@
       box.innerHTML = '<p class="hb-funnel-small">Selecciona fechas y pulsa «Ver condiciones y precio final» para cargar tarifas.</p>';
       return;
     }
+    var pick = preferredRateKey ? String(preferredRateKey) : '';
+    var checkedIdx = 0;
+    if (pick) {
+      for (var pi = 0; pi < offers.length; pi++) {
+        if (offers[pi].rateKey === pick) {
+          checkedIdx = pi;
+          break;
+        }
+      }
+    }
     var html = '<p class="hb-funnel-small">Elige habitación y régimen:</p><ul class="hb-funnel-rate-list">';
     offers.forEach(function (o, idx) {
       var label = (o.roomName || 'Habitación') + ' · ' + (o.boardName || o.boardCode || 'Régimen');
       if (o.price) label += ' · ' + o.price;
       label += ' · ' + o.rateType;
+      var hint = o.listHint || rateOfferListHint(o);
       html +=
         '<li><label class="hb-funnel-rate-pick"><input type="radio" name="hb-funnel-rate-pick" value="' +
         escapeHtml(o.rateKey) +
         '" data-rate-type="' +
         escapeHtml(o.rateType) +
         '"' +
-        (idx === 0 ? ' checked' : '') +
-        '> ' +
+        (idx === checkedIdx ? ' checked' : '') +
+        '><span class="hb-funnel-rate-pick__body"><span class="hb-funnel-rate-pick__main">' +
         escapeHtml(label) +
-        '</label></li>';
+        '</span>' +
+        (hint
+          ? '<span class="hb-funnel-rate-pick__sub">' + escapeHtml(hint) + '</span>'
+          : '') +
+        '</span></label></li>';
     });
     html += '</ul>';
     box.innerHTML = html;
@@ -787,10 +840,16 @@
       btnConfirm.disabled = !hotelCode || !isRateValidated();
       if (!hotelCode) {
         hotelLine.textContent = 'Elige un hotel para continuar.';
-      } else {
-        hotelLine.textContent = hotelNameForCode(hotelCode);
-        renderFunnelRateChoices(host, hotelCode);
+        host.__hbRatesHotel = '';
+        return;
       }
+      hotelLine.textContent = hotelNameForCode(hotelCode);
+      var ratesBox = host.querySelector('#hb-funnel-inline-rates');
+      var hasList = ratesBox && ratesBox.querySelector('input[name="hb-funnel-rate-pick"]');
+      if (hasList && host.__hbRatesHotel === hotelCode) return;
+      var priorKey = getSelectedRateKeyFromFunnel(host, form);
+      host.__hbRatesHotel = hotelCode;
+      renderFunnelRateChoices(host, hotelCode, priorKey);
     }
 
     if (!host.__hbBound) {
@@ -812,7 +871,12 @@
         if (!ev.target || ev.target.name !== 'hb-funnel-rate-pick') return;
         form.querySelector('input[name="hb_rate_validated"]').value = '';
         form.querySelector('input[name="hb_funnel_ready"]').value = '';
-        refreshUiState();
+        var offer = getPickedOfferFromFunnel(host, getSelectedHotelCode());
+        if (offer) {
+          form.querySelector('input[name="hb_selected_rate_key"]').value = offer.rateKey;
+          form.querySelector('input[name="hb_selected_rate_type"]').value = offer.rateType;
+        }
+        btnConfirm.disabled = true;
       });
 
       function resetFunnelValidation() {
@@ -836,6 +900,7 @@
         adultsInp.value = String(adults);
         roomsInp.value = String(rooms);
 
+        var previousRateKey = getSelectedRateKeyFromFunnel(host, form);
         setSelectedHotelInHiddenInputs(form, hotelCode, '', adults, rooms, '');
         refreshUiState();
 
@@ -869,7 +934,8 @@
             if (!offers.length) throw new Error('No hay tarifas para esa ocupación.');
             window.__HB_RATE_OFFERS_BY_CODE__ = window.__HB_RATE_OFFERS_BY_CODE__ || {};
             window.__HB_RATE_OFFERS_BY_CODE__[String(hotelCode)] = offers;
-            renderFunnelRateChoices(host, hotelCode);
+            host.__hbRatesHotel = String(hotelCode);
+            renderFunnelRateChoices(host, hotelCode, previousRateKey);
             var offer = getPickedOfferFromFunnel(host, hotelCode);
             if (!offer) throw new Error('Selecciona una tarifa.');
             if (offer.rateType === 'RECHECK') {

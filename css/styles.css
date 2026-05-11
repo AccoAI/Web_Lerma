@@ -2363,6 +2363,15 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     font-size: 0.88rem;
     line-height: 1.35;
 }
+.hb-funnel-rate-pick__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+.hb-funnel-rate-pick__sub {
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+}
 .hb-funnel-rate-pick input {
     margin-top: 0.2rem;
 }
