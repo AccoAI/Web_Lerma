@@ -8,9 +8,15 @@
   var ALL_HOTEL_IDS = ['alisa', 'ceres', 'parador', 'silken', 'palacio-blasones', 'hotel-centro'];
   /** Hotel API: destination.code solo 1–3 caracteres (p. ej. BRG). «BUR2» no es válido y devuelve 400. */
   var DESTINATIONS_LERMA_BURGOS = ['BRG'];
+  /** Oferta curada Hotelbeds (códigos Content API BRG). Lerma pueblo: vacío hasta añadir códigos. */
   var ALLOWED_HOTEL_CODES = {
-    lerma: { '62060': 1, '8116': 1, '194680': 1, '134469': 1 },
-    burgos: { '87356': 1, '23103': 1, '54825': 1, '35657': 1 },
+    lerma: {},
+    burgos: { '87356': 1, '23103': 1, '934': 1 },
+  };
+  var CURATED_HOTEL_LABELS = {
+    '87356': 'Silken Gran Teatro',
+    '23103': 'NH Collection Palacio de Burgos',
+    '934': 'Hotel Maria Luisa',
   };
 
   function pageOpts() {
@@ -1071,29 +1077,9 @@
     return !!(ALLOWED_HOTEL_CODES.lerma[c] || ALLOWED_HOTEL_CODES.burgos[c]);
   }
 
-  function hotelTextBlob(h) {
-    if (!h) return '';
-    function getStr(v) {
-      return (typeof v === 'string' ? v : v && v.content ? v.content : '') || '';
-    }
-    var bits = [getStr(h.name), getStr(h.description), getStr(h.city), getStr(h.destinationName)];
-    if (h.address) bits.push(getStr(h.address.city), getStr(h.address.content));
-    return bits.join(' ').toUpperCase();
-  }
-
-  /** Misma lógica que api/hotelbeds-list-hotels (zona Burgos/Lerma), no solo códigos fijos. */
-  function hotelInLermaBurgosZone(h) {
-    if (!h) return false;
-    var s = hotelTextBlob(h);
-    return (
-      /BURGOS|LERMA|SALDAÑA|ARANDA|MIRANDA|BRIVIESCA|09\d{3}/.test(s) ||
-      /PARADOR|ALISA|SILKEN|LANDA|\bNH\b|NH COLLECTION/.test(s)
-    );
-  }
-
   function shouldListHotel(h) {
     if (!h || h.code == null) return false;
-    return isAllowedHotel(h.code) || hotelInLermaBurgosZone(h);
+    return isAllowedHotel(h.code);
   }
 
   function getAllowedHotelCodeList() {
@@ -1113,6 +1099,7 @@
 
   function catalogNameForCode(code) {
     var c = String(code || '');
+    if (CURATED_HOTEL_LABELS[c]) return CURATED_HOTEL_LABELS[c];
     var contentBy = window.__HB_CONTENT_BY_CODE || {};
     if (contentBy[c] && contentBy[c].name) return contentBy[c].name;
     var opts = window.HOTELBEDS_DYNAMIC_OPTS || {};
@@ -1458,10 +1445,12 @@
 
     var cfg = window.HOTELBEDS_CONFIG;
     var selectedCodes = cfg && cfg.getCodesForSelectedHotels ? cfg.getCodesForSelectedHotels(formData, noches) : [];
+    var curatedCodes = getAllowedHotelCodeList();
 
     var occ = getListOccupancyForAvailability(formData);
-    var hbPromise = selectedCodes.length > 0
-      ? fetchHotelbeds(range.checkIn, range.checkOut, selectedCodes, occ)
+    var queryCodes = selectedCodes.length > 0 ? selectedCodes : curatedCodes;
+    var hbPromise = queryCodes.length > 0
+      ? fetchHotelbeds(range.checkIn, range.checkOut, queryCodes, occ)
       : fetchHotelbedsByDestination(range.checkIn, range.checkOut, occ);
 
     hbPromise
@@ -1476,7 +1465,7 @@
         });
       })
       .then(function (hb) {
-        if (selectedCodes.length > 0) {
+        if (queryCodes.length > 0) {
           renderHotelbedsResults(hb, selectedCodes);
         } else {
           renderHotelbedsResultsByDestination(hb);
