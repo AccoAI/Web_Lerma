@@ -94,6 +94,32 @@
     return div.innerHTML;
   }
 
+  function parseHotelbedsResponse(r) {
+    var ct = (r.headers && r.headers.get ? r.headers.get('content-type') : '') || '';
+    return r.text().then(function (text) {
+      var trimmed = (text || '').trim();
+      if (
+        !trimmed ||
+        (ct.indexOf('application/json') < 0 &&
+          (trimmed.indexOf('<!DOCTYPE') === 0 || trimmed.indexOf('<html') === 0 || trimmed.indexOf('<') === 0))
+      ) {
+        throw new Error(
+          'La API /api de Hotelbeds no devolvió JSON (suele ser HTML de un servidor solo estático). Usa vercel dev o el despliegue en Vercel.'
+        );
+      }
+      try {
+        return JSON.parse(trimmed);
+      } catch (e) {
+        throw new Error('Respuesta no válida de Hotelbeds: ' + (e.message || 'JSON inválido'));
+      }
+    });
+  }
+
+  function isHotelbedsApiUnavailableError(err) {
+    var msg = err && err.message ? String(err.message) : '';
+    return /<!DOCTYPE|no devolvió JSON|servidor solo estático|vercel dev|Respuesta no válida de Hotelbeds/i.test(msg);
+  }
+
   function pickPreferredRate(rates) {
     if (!rates) return null;
     var list = Array.isArray(rates) ? rates : [rates];
@@ -244,6 +270,13 @@
     return { adults: adults, rooms: rooms, children: 0 };
   }
 
+  /** Listado inicial: 2 adultos salvo que el funnel ya fijó ocupación (evita listas vacías con grupos grandes). */
+  function getListOccupancyForAvailability(fd) {
+    if (!fd || !fd.get) return { adults: 2, rooms: 1, children: 0 };
+    if (String(fd.get('hb_occ_adults') || '').trim()) return getOccupancyFromFormData(fd);
+    return { adults: 2, rooms: 1, children: 0 };
+  }
+
   function buildAvailCacheKey(checkIn, checkOut, occ, hotelCode) {
     return [checkIn, checkOut, occ.rooms, occ.adults, occ.children || 0, String(hotelCode || '')].join('|');
   }
@@ -288,7 +321,7 @@
             '&source=content&enrich=1&filter=none&from=1&to=200&language=ENG'
         )
           .then(function (r) {
-            return r.json();
+            return parseHotelbedsResponse(r);
           })
           .then(function (data) {
             return data.hotels || [];
@@ -694,7 +727,7 @@
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-    }).then(function (r) { return r.json(); });
+    }).then(function (r) { return parseHotelbedsResponse(r); });
   }
 
   function readTamanioGrupo(form) {
@@ -963,7 +996,7 @@
         children: (occ && occ.children) || 0,
         hotelCodes: hotelCodes,
       }),
-    }).then(function (r) { return r.json(); });
+    }).then(function (r) { return parseHotelbedsResponse(r); });
   }
 
   function fetchHotelbedsByDestination(checkIn, checkOut, occ) {
@@ -984,6 +1017,7 @@
         }
       });
     }
+    var lastError = null;
     var seq = DESTINATIONS_LERMA_BURGOS.reduce(function (promise, dest) {
       return promise.then(function () {
         return fetch(base + '/api/hotelbeds-availability', {
@@ -997,13 +1031,25 @@
             children: (occ && occ.children) || 0,
             destinationCode: dest,
           }),
-        }).then(function (r) { return r.json(); }).then(function (data) {
-          if (!data.error) addHotels(data.hotels || data);
+        }).then(function (r) { return parseHotelbedsResponse(r); }).then(function (data) {
+          if (data && data.error) {
+            lastError = new Error(typeof data.error === 'string' ? data.error : (data.error && data.error.message) || 'Hotelbeds error');
+            return data;
+          }
+          addHotels(data.hotels || data);
           return data;
-        }).catch(function () { return {}; });
+        }).catch(function (err) {
+          lastError = err;
+          return {};
+        });
       });
     }, Promise.resolve());
-    return seq.then(function () { return merged; });
+    return seq.then(function () {
+      if (merged.hotels.hotels.length === 0 && lastError) {
+        return Promise.reject(lastError);
+      }
+      return merged;
+    });
   }
 
   function cityForHotel(h) {
@@ -1025,47 +1071,169 @@
     return !!(ALLOWED_HOTEL_CODES.lerma[c] || ALLOWED_HOTEL_CODES.burgos[c]);
   }
 
+  function hotelTextBlob(h) {
+    if (!h) return '';
+    function getStr(v) {
+      return (typeof v === 'string' ? v : v && v.content ? v.content : '') || '';
+    }
+    var bits = [getStr(h.name), getStr(h.description), getStr(h.city), getStr(h.destinationName)];
+    if (h.address) bits.push(getStr(h.address.city), getStr(h.address.content));
+    return bits.join(' ').toUpperCase();
+  }
+
+  /** Misma lógica que api/hotelbeds-list-hotels (zona Burgos/Lerma), no solo códigos fijos. */
+  function hotelInLermaBurgosZone(h) {
+    if (!h) return false;
+    var s = hotelTextBlob(h);
+    return (
+      /BURGOS|LERMA|SALDAÑA|ARANDA|MIRANDA|BRIVIESCA|09\d{3}/.test(s) ||
+      /PARADOR|ALISA|SILKEN|LANDA|\bNH\b|NH COLLECTION/.test(s)
+    );
+  }
+
+  function shouldListHotel(h) {
+    if (!h || h.code == null) return false;
+    return isAllowedHotel(h.code) || hotelInLermaBurgosZone(h);
+  }
+
+  function getAllowedHotelCodeList() {
+    var out = [];
+    var seen = {};
+    ['lerma', 'burgos'].forEach(function (zona) {
+      var bucket = ALLOWED_HOTEL_CODES[zona] || {};
+      Object.keys(bucket).forEach(function (code) {
+        if (!seen[code]) {
+          seen[code] = 1;
+          out.push(code);
+        }
+      });
+    });
+    return out;
+  }
+
+  function catalogNameForCode(code) {
+    var c = String(code || '');
+    var contentBy = window.__HB_CONTENT_BY_CODE || {};
+    if (contentBy[c] && contentBy[c].name) return contentBy[c].name;
+    var opts = window.HOTELBEDS_DYNAMIC_OPTS || {};
+    function findIn(arr) {
+      var key = 'hb-' + c;
+      for (var i = 0; i < (arr || []).length; i++) {
+        if (arr[i].v === key) return arr[i].l;
+      }
+      return null;
+    }
+    return findIn(opts.lerma) || findIn(opts.burgos) || ('Hotel ' + c);
+  }
+
+  function buildStaticCatalogHotels() {
+    return getAllowedHotelCodeList().map(function (code) {
+      return { code: code, name: catalogNameForCode(code), city: cityForCode(code) };
+    });
+  }
+
+  function catalogResultsNoteHtml(totalHotels) {
+    if (window.__HB_API_DOWN__) {
+      return (
+        '<p class="hotelbeds-note">No se pudo consultar tarifas en tiempo real (' +
+        escapeHtml(window.__HB_API_DOWN__) +
+        '). Se muestran <strong>' +
+        totalHotels +
+        ' hoteles</strong> del catálogo: elige uno y configura habitaciones.</p>'
+      );
+    }
+    return (
+      '<p class="hotelbeds-note">Sin precio en vivo para estas fechas. Se muestran <strong>' +
+      totalHotels +
+      ' hoteles</strong> del catálogo: haz clic en uno y usa el bloque de habitaciones para revalidar con tu grupo.</p>'
+    );
+  }
+
+  function showCatalogAfterAvailabilityFailure(err) {
+    if (isHotelbedsApiUnavailableError(err)) {
+      renderError(err.message);
+      document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
+      return;
+    }
+    window.__HB_API_DOWN__ = err && err.message ? err.message : 'Error de conexión';
+    setBookingWidgetVisible(true);
+    fetchHotelbedsListHotels()
+      .then(function (list) {
+        renderFullHotelListFromContent(list);
+      })
+      .catch(function () {
+        renderFullHotelListFromContent(buildStaticCatalogHotels());
+      });
+  }
+
   var DEFAULT_PRICE_PER_NIGHT = 75;
 
   function fetchHotelbedsListHotels() {
     var base = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
     var all = [];
     var byCode = {};
+    var range = null;
+    try {
+      var fd = getFormData();
+      if (fd) range = getCheckInCheckOut(fd);
+    } catch (e0) { /* ignore */ }
     function addFromResponse(data) {
       var list = (data && data.hotels) ? data.hotels : [];
       if (!Array.isArray(list)) return;
       list.forEach(function (h) {
         var code = String(h.code || h);
-        if (!isAllowedHotel(code)) return;
+        if (!shouldListHotel(h)) return;
         if (!byCode[code]) {
           byCode[code] = true;
           all.push({ code: code, name: h.name || ('Hotel ' + code), city: h.city || '' });
         }
       });
     }
-    return Promise.all(DESTINATIONS_LERMA_BURGOS.map(function (dest) {
+    var allowedCodes = getAllowedHotelCodeList();
+    var tasks = DESTINATIONS_LERMA_BURGOS.map(function (dest) {
       return fetch(
         base +
           '/api/hotelbeds-list-hotels?destination=' +
           encodeURIComponent(dest) +
           '&source=content&filter=none&from=1&to=200&language=ENG'
       )
-        .then(function (r) { return r.json(); })
+        .then(function (r) { return parseHotelbedsResponse(r); })
         .then(function (data) { if (!data.error) addFromResponse(data); return data; })
         .catch(function () { return {}; });
-    })).then(function () { return all; });
+    });
+    if (allowedCodes.length > 0) {
+      var codesQuery = encodeURIComponent(allowedCodes.join(','));
+      var availUrl =
+        base +
+        '/api/hotelbeds-list-hotels?hotelCodes=' +
+        codesQuery +
+        '&source=availability&filter=none';
+      if (range && range.checkIn && range.checkOut) {
+        availUrl += '&checkIn=' + encodeURIComponent(range.checkIn) + '&checkOut=' + encodeURIComponent(range.checkOut);
+      }
+      tasks.push(
+        fetch(availUrl)
+          .then(function (r) { return parseHotelbedsResponse(r); })
+          .then(function (data) { if (!data.error) addFromResponse(data); return data; })
+          .catch(function () { return {}; })
+      );
+    }
+    return Promise.all(tasks).then(function () {
+      if (!all.length) all = buildStaticCatalogHotels();
+      return all;
+    });
   }
 
   function renderFullHotelListFromContent(hotelList) {
-    hotelList = (hotelList || []).filter(function (h) { return isAllowedHotel(h && h.code); });
+    hotelList = (hotelList || []).filter(function (h) { return shouldListHotel(h); });
+    if (!hotelList || hotelList.length === 0) hotelList = buildStaticCatalogHotels();
     if (!hotelList || hotelList.length === 0) {
       window.LIVE_HOTEL_PRICES = null;
       window.HOTELBEDS_DYNAMIC_OPTS = null;
       setBookingWidgetVisible(true);
       renderBlock(
         '<div class="hotelbeds-block hotelbeds-info">' +
-        'Hotelbeds no devolvió catálogo ni disponibilidad para Burgos/Lerma con estas fechas (es habitual en entorno de pruebas o sin inventario). ' +
-        'Puedes elegir un <strong>hotel de referencia</strong> en los desplegables (precios orientativos de la web) o reservar con los enlaces a Booking más abajo.' +
+        'No hay hoteles configurados para Lerma y Burgos. Revisa los códigos permitidos o prueba otras fechas.' +
         '</div>'
       );
       document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
@@ -1083,26 +1251,51 @@
     window.HOTELBEDS_DYNAMIC_OPTS = { lerma: lerma, burgos: burgos };
     setBookingWidgetVisible(true);
     var totalHotels = lerma.length + burgos.length;
-    renderBlock(
-      '<div class="hotelbeds-block hotelbeds-results">' +
-      '<h4 class="hotelbeds-title">Hoteles en Lerma y Burgos (Hotelbeds)</h4>' +
-      '<p class="hotelbeds-note">Se muestran <strong>' + totalHotels + ' hoteles</strong> en la zona. Elige <strong>Lugar</strong> y <strong>Hotel</strong> en los desplegables. Precio orientativo ' + DEFAULT_PRICE_PER_NIGHT + ' €/noche (a confirmar según disponibilidad).</p>' +
-      '</div>'
-    );
-    document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
-    triggerResumenUpdate();
+    var priceStr = DEFAULT_PRICE_PER_NIGHT + ' €/noche (orientativo)';
+    loadHotelContentEnrichment()
+      .then(function () {
+        var contentBy = window.__HB_CONTENT_BY_CODE || {};
+        var html =
+          '<div class="hotelbeds-block hotelbeds-results">' +
+          '<h4 class="hotelbeds-title">Hoteles en Lerma y Burgos (Hotelbeds)</h4>' +
+          catalogResultsNoteHtml(totalHotels) +
+          '<ul class="hotelbeds-list hotelbeds-list--cards">';
+        hotelList.forEach(function (h) {
+          var code = String(h.code);
+          var meta = contentBy[code] || null;
+          var stub = { code: code, name: meta && meta.name ? meta.name : h.name };
+          html +=
+            '<li class="hotelbeds-item-wrap">' +
+            hotelRichCardHtml(stub, meta, null, priceStr, '') +
+            '</li>';
+        });
+        html += '</ul></div>';
+        renderBlock(html);
+        bindSelectableHotelCards();
+        document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
+        triggerResumenUpdate();
+      })
+      .catch(function () {
+        renderBlock(
+          '<div class="hotelbeds-block hotelbeds-info">No se pudieron cargar las fichas de hotel. Prueba de nuevo en unos segundos.</div>'
+        );
+        document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
+      });
   }
 
   function renderHotelbedsResults(data, selectedHotels) {
     window.HOTELBEDS_DYNAMIC_OPTS = null;
     var hotels = ((data.hotels && data.hotels.hotels) || []).filter(function (h) {
-      return isAllowedHotel(h && h.code);
+      return shouldListHotel(h);
     });
     if (hotels.length === 0) {
-      window.LIVE_HOTEL_PRICES = null;
-      setBookingWidgetVisible(true);
-      renderBlock('<div class="hotelbeds-block hotelbeds-info">No hay disponibilidad para las fechas seleccionadas. Puedes continuar con precios por defecto.</div>');
-      document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
+      fetchHotelbedsListHotels()
+        .then(function (list) {
+          renderFullHotelListFromContent(list);
+        })
+        .catch(function () {
+          renderFullHotelListFromContent(buildStaticCatalogHotels());
+        });
       return;
     }
     var cfg = window.HOTELBEDS_CONFIG;
@@ -1165,13 +1358,13 @@
 
   function renderHotelbedsResultsByDestination(data) {
     var hotels = ((data.hotels && data.hotels.hotels) || []).filter(function (h) {
-      return isAllowedHotel(h && h.code);
+      return shouldListHotel(h);
     });
     if (hotels.length === 0) {
       fetchHotelbedsListHotels().then(function (list) {
         renderFullHotelListFromContent(list);
       }).catch(function () {
-        renderFullHotelListFromContent([]);
+        renderFullHotelListFromContent(buildStaticCatalogHotels());
       });
       return;
     }
@@ -1261,13 +1454,14 @@
     }
 
     renderLoading();
+    window.__HB_API_DOWN__ = '';
 
     var cfg = window.HOTELBEDS_CONFIG;
-    var codes = cfg && cfg.getCodesForSelectedHotels ? cfg.getCodesForSelectedHotels(formData, noches) : (cfg && cfg.getAllHotelCodes ? cfg.getAllHotelCodes() : []);
+    var selectedCodes = cfg && cfg.getCodesForSelectedHotels ? cfg.getCodesForSelectedHotels(formData, noches) : [];
 
-    var occ = getOccupancyFromFormData(formData);
-    var hbPromise = codes.length > 0
-      ? fetchHotelbeds(range.checkIn, range.checkOut, codes, occ)
+    var occ = getListOccupancyForAvailability(formData);
+    var hbPromise = selectedCodes.length > 0
+      ? fetchHotelbeds(range.checkIn, range.checkOut, selectedCodes, occ)
       : fetchHotelbedsByDestination(range.checkIn, range.checkOut, occ);
 
     hbPromise
@@ -1282,18 +1476,14 @@
         });
       })
       .then(function (hb) {
-        if (codes.length > 0) {
-          var fd = getFormData();
-          var n = parseInt(fd.get('noches') || '0', 10);
-          var selectedCodes = cfg && cfg.getCodesForSelectedHotels ? cfg.getCodesForSelectedHotels(fd, n) : [];
+        if (selectedCodes.length > 0) {
           renderHotelbedsResults(hb, selectedCodes);
         } else {
           renderHotelbedsResultsByDestination(hb);
         }
       })
       .catch(function (err) {
-        renderError(err.message);
-        document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
+        showCatalogAfterAvailabilityFailure(err);
       });
   }
 
@@ -1420,7 +1610,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       }).then(function (r) {
-        return r.json();
+        return parseHotelbedsResponse(r);
       });
     }
 

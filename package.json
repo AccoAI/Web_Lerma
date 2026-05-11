@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Golf Lerma y Saldaña Golf - Web y API de pagos",
+  "scripts": {
+    "dev": "vercel dev"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.95.3",
     "stripe": "^14.0.0"
