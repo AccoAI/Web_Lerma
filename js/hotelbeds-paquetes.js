@@ -223,6 +223,21 @@
     return bits.join(', ');
   }
 
+  function cancellationFingerprintFromRate(rate) {
+    if (!rate || typeof rate !== 'object') return '';
+    var pol = rate.cancellationPolicies;
+    if (!Array.isArray(pol) || !pol.length) return '';
+    return pol
+      .map(function (p) {
+        if (!p) return '';
+        var from = formatPolicyDate(p.from || p.date || '');
+        var nr = p.nonRefundable === true || p.nonRefundable === 'true' ? 'nr' : 'ref';
+        return (from || 'sin-fecha') + '/' + nr;
+      })
+      .filter(Boolean)
+      .join('|');
+  }
+
   function cancellationFromRate(rate) {
     if (!rate || typeof rate !== 'object') return '';
     var pol = rate.cancellationPolicies;
@@ -260,9 +275,65 @@
 
   function ratePriceLabel(rate) {
     if (!rate) return '';
-    var amt = rate.net != null ? rate.net : rate.sellingRate != null ? rate.sellingRate : rate.gross;
+    var amt = rateNetAmount(rate);
     if (amt == null || amt === '') return '';
     return String(amt) + ' ' + (rate.currency || 'EUR');
+  }
+
+  function rateNetAmount(rate) {
+    if (!rate) return null;
+    var amt = rate.net != null ? rate.net : rate.sellingRate != null ? rate.sellingRate : rate.gross;
+    if (amt == null || amt === '') return null;
+    var n = parseFloat(amt);
+    return isNaN(n) ? null : n;
+  }
+
+  function rateOfferFingerprint(offer) {
+    if (!offer) return '';
+    return [
+      offer.roomName || '',
+      offer.boardCode || offer.boardName || '',
+      offer.rateClass || '',
+      offer.packaging ? '1' : '0',
+      offer.cancelFingerprint || '',
+      offer.rateCommentsId || '',
+      (offer.promotions || []).join('\u001f'),
+      (offer.rateComments || []).join('\u001f'),
+      offer.paymentType || '',
+      offer.allotment || '',
+      offer.occupancyLabel || '',
+      (offer.rateExtrasPaid || []).join('\u001f'),
+    ].join('|');
+  }
+
+  function dedupeSimilarRateOffers(offers) {
+    var best = {};
+    var omitted = 0;
+    (offers || []).forEach(function (o) {
+      var fp = rateOfferFingerprint(o);
+      var existing = best[fp];
+      if (!existing) {
+        best[fp] = o;
+        return;
+      }
+      omitted++;
+      var en = existing.netValue;
+      var on = o.netValue;
+      if (on != null && en != null && on < en) {
+        best[fp] = o;
+      } else if (on != null && en == null) {
+        best[fp] = o;
+      }
+    });
+    var out = Object.keys(best).map(function (k) {
+      return best[k];
+    });
+    out.sort(function (a, b) {
+      var an = a.netValue == null ? 1e12 : a.netValue;
+      var bn = b.netValue == null ? 1e12 : b.netValue;
+      return an - bn;
+    });
+    return { offers: out, omitted: omitted };
   }
 
   function rateOfferListHint(offer) {
@@ -275,7 +346,11 @@
     if (offer.allotment != null && offer.allotment !== '') {
       parts.push('Cupo HB ' + offer.allotment);
     }
-    if (offer.packaging) parts.push('Tarifa empaquetada');
+    if (offer.packaging) {
+      parts.push('Tarifa empaquetada (paquete Hotelbeds, no solo alojamiento suelto)');
+    } else {
+      parts.push('Solo alojamiento (sin paquete)');
+    }
     if (offer.rateCommentsId) parts.push('Ref. condiciones HB ' + offer.rateCommentsId);
     if (offer.cancellation) {
       parts.push(offer.cancellation);
@@ -310,6 +385,7 @@
       rateExtrasPaid: paidExtrasFromRate(rate),
       rateComments: rateCommentsFromRate(rate),
       cancellation: cancellationFromRate(rate),
+      cancelFingerprint: cancellationFingerprintFromRate(rate),
       promotions: promotionsFromRate(rate),
       paymentType: rate.paymentType ? String(rate.paymentType) : '',
       rateClass: rate.rateClass ? String(rate.rateClass) : '',
@@ -317,6 +393,7 @@
       packaging: rate.packaging === true || rate.packaging === 'true',
       rateCommentsId: rate.rateCommentsId ? String(rate.rateCommentsId) : '',
       occupancyLabel: occupancyFromRate(rate),
+      netValue: rateNetAmount(rate),
     };
     offer.listHint = rateOfferListHint(offer);
     return offer;
@@ -332,7 +409,12 @@
         offers.push(mapRateOffer(room, rate));
       });
     });
-    return offers;
+    var deduped = dedupeSimilarRateOffers(offers);
+    if (hotel && hotel.code != null) {
+      window.__HB_RATE_OFFERS_OMITTED__ = window.__HB_RATE_OFFERS_OMITTED__ || {};
+      window.__HB_RATE_OFFERS_OMITTED__[String(hotel.code)] = deduped.omitted;
+    }
+    return deduped.offers;
   }
 
   function findHotelInAvailability(av, hotelCode) {
@@ -352,10 +434,24 @@
     return { adults: adults, rooms: rooms, children: 0 };
   }
 
-  /** Listado inicial: 2 adultos salvo que el funnel ya fijó ocupación (evita listas vacías con grupos grandes). */
+  function getOccupancyFromTamanioGrupo(fd) {
+    if (!fd || !fd.get) return null;
+    var raw = String(fd.get('tamanio_grupo') || '').trim();
+    if (!raw) return null;
+    var adults = clamp(getInt(raw, 2), 1, 54);
+    return {
+      adults: adults,
+      rooms: clamp(Math.ceil(adults / 2), 1, 20),
+      children: 0,
+    };
+  }
+
+  /** Listado inicial: misma ocupación que el funnel (tamaño de grupo) cuando exista. */
   function getListOccupancyForAvailability(fd) {
     if (!fd || !fd.get) return { adults: 2, rooms: 1, children: 0 };
     if (String(fd.get('hb_occ_adults') || '').trim()) return getOccupancyFromFormData(fd);
+    var fromGroup = getOccupancyFromTamanioGrupo(fd);
+    if (fromGroup) return fromGroup;
     return { adults: 2, rooms: 1, children: 0 };
   }
 
@@ -780,7 +876,15 @@
         }
       }
     }
-    var html = '<p class="hb-funnel-small">Elige habitación y régimen:</p><ul class="hb-funnel-rate-list">';
+    var omitted = (window.__HB_RATE_OFFERS_OMITTED__ || {})[String(hotelCode)] || 0;
+    var html = '<p class="hb-funnel-small">Elige habitación y régimen:</p>';
+    if (omitted > 0) {
+      html +=
+        '<p class="hb-funnel-small">Se ocultan ' +
+        omitted +
+        ' tarifa(s) HB equivalentes; se muestra la más barata de cada grupo.</p>';
+    }
+    html += '<ul class="hb-funnel-rate-list">';
     offers.forEach(function (o, idx) {
       var label = (o.roomName || 'Habitación') + ' · ' + (o.boardName || o.boardCode || 'Régimen');
       if (o.price) label += ' · Total estancia ' + o.price;
@@ -897,6 +1001,10 @@
       var hotelCode = getSelectedHotelCode();
       btnCheck.disabled = !hotelCode;
       btnConfirm.disabled = !hotelCode || !isRateValidated();
+      btnConfirm.title =
+        hotelCode && !isRateValidated()
+          ? 'Primero pulsa «Ver condiciones y precio final».'
+          : '';
       if (!hotelCode) {
         hotelLine.textContent = 'Elige un hotel para continuar.';
         host.__hbRatesHotel = '';
@@ -991,7 +1099,26 @@
         avPromise
           .then(function (av) {
             var hotel = findHotelInAvailability(av, hotelCode);
-            if (!hotel) throw new Error('Sin disponibilidad para ese hotel y ocupación.');
+            if (!hotel) {
+              var listOcc = window.__HB_LAST_AVAIL_OCC__;
+              var occMismatch =
+                listOcc &&
+                (listOcc.adults !== adults || listOcc.rooms !== rooms);
+              if (occMismatch) {
+                throw new Error(
+                  'Sin disponibilidad para ' +
+                    adults +
+                    ' adulto(s) en ' +
+                    rooms +
+                    ' habitación(es). Las tarifas del listado eran para ' +
+                    listOcc.adults +
+                    ' adulto(s) en ' +
+                    listOcc.rooms +
+                    ' habitación(es); ajusta la ocupación o cambia fechas.'
+                );
+              }
+              throw new Error('Sin disponibilidad para ese hotel y ocupación.');
+            }
             var offers = collectRateOffersFromHotel(hotel);
             if (!offers.length) throw new Error('No hay tarifas para esa ocupación.');
             window.__HB_RATE_OFFERS_BY_CODE__ = window.__HB_RATE_OFFERS_BY_CODE__ || {};
@@ -1587,6 +1714,7 @@
           throw new Error(typeof hb.error === 'string' ? hb.error : (hb.error && hb.error.message) || 'Hotelbeds error');
         }
         window.__HB_LAST_AVAIL__ = hb;
+        window.__HB_LAST_AVAIL_OCC__ = occ;
         window.__HB_RATE_BY_CODE = indexRatesByHotelCode(hb);
         return loadHotelContentEnrichment().then(function () {
           return hb;
