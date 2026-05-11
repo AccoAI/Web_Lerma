@@ -75,6 +75,8 @@
   function clearHotelbedsBookingContext() {
     window.__HB_LAST_AVAIL__ = null;
     window.__HB_RATE_BY_CODE = null;
+    window.__HB_RATE_OFFERS_BY_CODE__ = null;
+    window.__HB_FUNNEL_LAST__ = null;
     window.__HB_CONTENT_BY_CODE = null;
   }
 
@@ -136,6 +138,10 @@
     var out = [];
     if (!rate) return out;
     var rc = rate.rateComments;
+    if (typeof rc === 'string' && rc.trim()) {
+      out.push(rc.trim());
+      return out;
+    }
     if (!Array.isArray(rc)) return out;
     rc.forEach(function (c) {
       if (typeof c === 'string') out.push(c);
@@ -144,36 +150,126 @@
     return out;
   }
 
+  function roomNameFrom(room) {
+    if (!room) return '';
+    if (typeof room.name === 'string') return room.name.trim();
+    if (room.name && room.name.content) return String(room.name.content).trim();
+    return String(room.description || '').trim();
+  }
+
+  function cancellationFromRate(rate) {
+    if (!rate || typeof rate !== 'object') return '';
+    var pol = rate.cancellationPolicies;
+    if (typeof pol === 'string') return pol.trim();
+    if (!Array.isArray(pol)) return '';
+    return pol
+      .map(function (p) {
+        if (!p) return '';
+        if (typeof p === 'string') return p;
+        if (p.text) return String(p.text).trim();
+        var from = p.from || p.date || '';
+        var amount = p.amount != null ? p.amount : p.clientAmount;
+        var cur = p.currency || 'EUR';
+        if (from && amount != null) return from + ': ' + amount + ' ' + cur;
+        if (from) return String(from);
+        if (amount != null) return String(amount) + ' ' + cur;
+        return '';
+      })
+      .filter(Boolean)
+      .join('; ');
+  }
+
+  function promotionsFromRate(rate) {
+    var out = [];
+    if (!rate || !rate.promotions) return out;
+    var list = Array.isArray(rate.promotions) ? rate.promotions : [rate.promotions];
+    list.forEach(function (p) {
+      if (!p) return;
+      if (typeof p === 'string') out.push(p);
+      else if (p.name) out.push(String(p.name));
+      else if (p.code) out.push(String(p.code));
+    });
+    return out;
+  }
+
+  function ratePriceLabel(rate) {
+    if (!rate) return '';
+    var amt = rate.net != null ? rate.net : rate.sellingRate != null ? rate.sellingRate : rate.gross;
+    if (amt == null || amt === '') return '';
+    return String(amt) + ' ' + (rate.currency || 'EUR');
+  }
+
+  function mapRateOffer(room, rate) {
+    return {
+      rateKey: String(rate.rateKey),
+      rateType: String(rate.rateType || 'BOOKABLE').toUpperCase(),
+      roomName: roomNameFrom(room),
+      boardCode: rate.boardCode || '',
+      boardName: boardFullFromRate(rate),
+      price: ratePriceLabel(rate),
+      rateExtrasPaid: paidExtrasFromRate(rate),
+      rateComments: rateCommentsFromRate(rate),
+      cancellation: cancellationFromRate(rate),
+      promotions: promotionsFromRate(rate),
+    };
+  }
+
+  function collectRateOffersFromHotel(hotel) {
+    var offers = [];
+    if (!hotel || !hotel.rooms) return offers;
+    hotel.rooms.forEach(function (room) {
+      var rates = room.rates || [];
+      rates.forEach(function (rate) {
+        if (!rate || !rate.rateKey) return;
+        offers.push(mapRateOffer(room, rate));
+      });
+    });
+    return offers;
+  }
+
+  function findHotelInAvailability(av, hotelCode) {
+    var hotels = (av && av.hotels && av.hotels.hotels) || (av && av.data && av.data.hotels && av.data.hotels.hotels) || [];
+    if (!Array.isArray(hotels)) return null;
+    var wanted = String(hotelCode || '');
+    for (var i = 0; i < hotels.length; i++) {
+      if (hotels[i] && String(hotels[i].code || '') === wanted) return hotels[i];
+    }
+    return null;
+  }
+
+  function getOccupancyFromFormData(fd) {
+    if (!fd || !fd.get) return { adults: 2, rooms: 1, children: 0 };
+    var adults = clamp(getInt(fd.get('hb_occ_adults') || fd.get('tamanio_grupo'), 2), 1, 54);
+    var rooms = clamp(getInt(fd.get('hb_occ_rooms') || Math.ceil(adults / 2), 1), 1, 20);
+    return { adults: adults, rooms: rooms, children: 0 };
+  }
+
+  function buildAvailCacheKey(checkIn, checkOut, occ, hotelCode) {
+    return [checkIn, checkOut, occ.rooms, occ.adults, occ.children || 0, String(hotelCode || '')].join('|');
+  }
+
   function indexRatesByHotelCode(data) {
     var map = {};
+    var offersByCode = {};
     var hotels = (data && data.hotels && data.hotels.hotels) || [];
     var hi;
     for (hi = 0; hi < hotels.length; hi++) {
       var h = hotels[hi];
       var code = String(h.code || '');
-      var rooms = h.rooms || [];
-      var ri;
-      for (ri = 0; ri < rooms.length; ri++) {
-        var room = rooms[ri];
-        var rates = room.rates || [];
-        var rate = pickPreferredRate(rates);
-        if (rate && code) {
-          map[code] = {
-            rateKey: rate.rateKey,
-            rateType: rate.rateType || 'BOOKABLE',
-            roomName:
-              (typeof room.name === 'string' ? room.name : room.name && room.name.content) ||
-              room.description ||
-              '',
-            boardCode: rate.boardCode || rate.boardName || '',
-            boardName: boardFullFromRate(rate),
-            rateExtrasPaid: paidExtrasFromRate(rate),
-            rateComments: rateCommentsFromRate(rate),
-          };
+      if (!code) continue;
+      var offers = collectRateOffersFromHotel(h);
+      if (!offers.length) continue;
+      offersByCode[code] = offers;
+      var pick = null;
+      for (var oi = 0; oi < offers.length; oi++) {
+        if (offers[oi].rateType === 'BOOKABLE') {
+          pick = offers[oi];
           break;
         }
       }
+      map[code] = pick || offers[0];
     }
+    window.__HB_RATE_OFFERS_BY_CODE__ = offersByCode;
     return map;
   }
 
@@ -367,6 +463,9 @@
       'hb_occ_children',
       'hb_selected_hotel_code',
       'hb_selected_rate_key',
+      'hb_selected_rate_type',
+      'hb_rate_validated',
+      'hb_funnel_ready',
     ];
     names.forEach(function (n) {
       if (form.querySelector('input[name="' + n + '"]')) return;
@@ -435,8 +534,9 @@
       '  <label>Adultos <input type="number" min="1" max="54" id="hb-funnel-inline-adults" placeholder=""></label>' +
       '  <label>Habitaciones <input type="number" min="1" max="20" id="hb-funnel-inline-rooms" placeholder=""></label>' +
       '</div>' +
+      '<div class="hb-hotel-funnel-inline__rates" id="hb-funnel-inline-rates"></div>' +
       '<div class="hb-hotel-funnel-inline__actions">' +
-      '  <button type="button" class="hb-hotel-funnel-btn hb-hotel-funnel-btn--secondary" id="hb-funnel-inline-check" disabled>Precio final (CheckRate)</button>' +
+      '  <button type="button" class="hb-hotel-funnel-btn hb-hotel-funnel-btn--secondary" id="hb-funnel-inline-check" disabled>Ver condiciones y precio final</button>' +
       '  <button type="button" class="hb-hotel-funnel-btn" id="hb-funnel-inline-confirm" disabled>Confirmar hotel</button>' +
       '</div>' +
       '<div class="hb-hotel-funnel-inline__result" id="hb-funnel-inline-result" aria-live="polite"></div>';
@@ -458,13 +558,112 @@
     return 'Hotel ' + code;
   }
 
-  function setSelectedHotelInHiddenInputs(form, hotelCode, rateKey, adults, rooms) {
+  function setSelectedHotelInHiddenInputs(form, hotelCode, rateKey, adults, rooms, rateType) {
     ensureHotelFunnelHiddenInputs(form);
     form.querySelector('input[name="hb_selected_hotel_code"]').value = String(hotelCode || '');
     form.querySelector('input[name="hb_selected_rate_key"]').value = String(rateKey || '');
+    form.querySelector('input[name="hb_selected_rate_type"]').value = String(rateType || '');
     form.querySelector('input[name="hb_occ_adults"]').value = String(adults || '');
     form.querySelector('input[name="hb_occ_rooms"]').value = String(rooms || '');
     form.querySelector('input[name="hb_occ_children"]').value = '0';
+    form.querySelector('input[name="hb_rate_validated"]').value = '';
+    form.querySelector('input[name="hb_funnel_ready"]').value = '';
+  }
+
+  function markRateValidated(form, rateKey, rateType) {
+    ensureHotelFunnelHiddenInputs(form);
+    form.querySelector('input[name="hb_selected_rate_key"]').value = String(rateKey || '');
+    form.querySelector('input[name="hb_selected_rate_type"]').value = String(rateType || '');
+    form.querySelector('input[name="hb_rate_validated"]').value = '1';
+    form.querySelector('input[name="hb_funnel_ready"]').value = '';
+  }
+
+  function renderFunnelConditionsHtml(offer) {
+    if (!offer) return '';
+    var html = '<div class="hb-funnel-ok"><strong>Condiciones de la tarifa</strong>';
+    html += '<div class="hb-funnel-small">' + escapeHtml(offer.roomName || 'Habitación') + ' · ' + escapeHtml(offer.boardName || offer.boardCode || 'Régimen') + '</div>';
+    if (offer.price) html += '<div class="hb-funnel-small">Total estancia: <strong>' + escapeHtml(offer.price) + '</strong></div>';
+    if (offer.promotions && offer.promotions.length) {
+      html += '<div class="hb-funnel-legal"><strong>Promociones</strong><ul>';
+      offer.promotions.forEach(function (p) {
+        html += '<li>' + escapeHtml(p) + '</li>';
+      });
+      html += '</ul></div>';
+    }
+    if (offer.rateExtrasPaid && offer.rateExtrasPaid.length) {
+      html += '<div class="hb-funnel-legal"><strong>Cargos adicionales</strong><ul>';
+      offer.rateExtrasPaid.forEach(function (line) {
+        html += '<li>' + escapeHtml(line) + '</li>';
+      });
+      html += '</ul></div>';
+    }
+    if (offer.rateComments && offer.rateComments.length) {
+      html += '<div class="hb-funnel-legal"><strong>Observaciones de tarifa</strong><ul>';
+      offer.rateComments.forEach(function (line) {
+        html += '<li>' + escapeHtml(line) + '</li>';
+      });
+      html += '</ul></div>';
+    }
+    if (offer.cancellation) {
+      html += '<div class="hb-funnel-legal"><strong>Política de cancelación</strong><p>' + escapeHtml(offer.cancellation) + '</p></div>';
+    } else {
+      html += '<div class="hb-funnel-legal"><strong>Política de cancelación</strong><p>No informada por la API en esta consulta.</p></div>';
+    }
+    html += '<div class="hb-funnel-small">Pulsa «Confirmar hotel» para fijar esta tarifa antes del pago.</div></div>';
+    return html;
+  }
+
+  function offerFromCheckrateData(crData, baseOffer) {
+    var h = (crData && crData.hotel) ? crData.hotel : crData;
+    var rooms = (h && h.rooms) || [];
+    var room = rooms[0] || null;
+    var rate = null;
+    if (room && room.rates) rate = Array.isArray(room.rates) ? room.rates[0] : room.rates;
+    if (!rate) return baseOffer;
+    var merged = mapRateOffer(room || {}, rate);
+    if (baseOffer && baseOffer.roomName && !merged.roomName) merged.roomName = baseOffer.roomName;
+    if (baseOffer && baseOffer.boardName && !merged.boardName) merged.boardName = baseOffer.boardName;
+    return merged;
+  }
+
+  function renderFunnelRateChoices(host, hotelCode) {
+    var box = host.querySelector('#hb-funnel-inline-rates');
+    if (!box) return;
+    var offers = (window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || [];
+    if (!offers.length) {
+      box.innerHTML = '<p class="hb-funnel-small">Selecciona fechas y pulsa «Ver condiciones y precio final» para cargar tarifas.</p>';
+      return;
+    }
+    var html = '<p class="hb-funnel-small">Elige habitación y régimen:</p><ul class="hb-funnel-rate-list">';
+    offers.forEach(function (o, idx) {
+      var label = (o.roomName || 'Habitación') + ' · ' + (o.boardName || o.boardCode || 'Régimen');
+      if (o.price) label += ' · ' + o.price;
+      label += ' · ' + o.rateType;
+      html +=
+        '<li><label class="hb-funnel-rate-pick"><input type="radio" name="hb-funnel-rate-pick" value="' +
+        escapeHtml(o.rateKey) +
+        '" data-rate-type="' +
+        escapeHtml(o.rateType) +
+        '"' +
+        (idx === 0 ? ' checked' : '') +
+        '> ' +
+        escapeHtml(label) +
+        '</label></li>';
+    });
+    html += '</ul>';
+    box.innerHTML = html;
+  }
+
+  function getPickedOfferFromFunnel(host, hotelCode) {
+    var picked = host.querySelector('input[name="hb-funnel-rate-pick"]:checked');
+    var offers = (window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || [];
+    if (picked) {
+      var rk = picked.value;
+      for (var i = 0; i < offers.length; i++) {
+        if (offers[i].rateKey === rk) return offers[i];
+      }
+    }
+    return offers.length ? offers[0] : null;
   }
 
   function deriveRateKeyFromAvailabilityForHotel(av, hotelCode) {
@@ -539,19 +738,19 @@
     function getSelectedHotelCode() {
       return (form.querySelector('input[name="hb_selected_hotel_code"]') || {}).value || '';
     }
-    function getSelectedRateKey() {
-      return (form.querySelector('input[name="hb_selected_rate_key"]') || {}).value || '';
+    function isRateValidated() {
+      return (form.querySelector('input[name="hb_rate_validated"]') || {}).value === '1';
     }
 
     function refreshUiState() {
       var hotelCode = getSelectedHotelCode();
-      var rk = getSelectedRateKey();
       btnCheck.disabled = !hotelCode;
-      btnConfirm.disabled = !hotelCode || !rk;
+      btnConfirm.disabled = !hotelCode || !isRateValidated();
       if (!hotelCode) {
         hotelLine.textContent = 'Elige un hotel para continuar.';
       } else {
         hotelLine.textContent = hotelNameForCode(hotelCode);
+        renderFunnelRateChoices(host, hotelCode);
       }
     }
 
@@ -570,6 +769,21 @@
         });
       }
 
+      host.addEventListener('change', function (ev) {
+        if (!ev.target || ev.target.name !== 'hb-funnel-rate-pick') return;
+        form.querySelector('input[name="hb_rate_validated"]').value = '';
+        form.querySelector('input[name="hb_funnel_ready"]').value = '';
+        refreshUiState();
+      });
+
+      function resetFunnelValidation() {
+        form.querySelector('input[name="hb_rate_validated"]').value = '';
+        form.querySelector('input[name="hb_funnel_ready"]').value = '';
+        refreshUiState();
+      }
+      adultsInp.addEventListener('input', resetFunnelValidation);
+      roomsInp.addEventListener('input', resetFunnelValidation);
+
       btnCheck.addEventListener('click', function () {
         var hotelCode = getSelectedHotelCode();
         if (!hotelCode) return;
@@ -583,47 +797,58 @@
         adultsInp.value = String(adults);
         roomsInp.value = String(rooms);
 
-        // Clear previous revalidation until success.
-        setSelectedHotelInHiddenInputs(form, hotelCode, '', adults, rooms);
+        setSelectedHotelInHiddenInputs(form, hotelCode, '', adults, rooms, '');
         refreshUiState();
 
         result.textContent = 'Consultando disponibilidad...';
         btnCheck.disabled = true;
 
         var base = window.location.origin || '';
-        fetchJson(base + '/api/hotelbeds-availability', {
-          checkIn: checkInOut.checkIn,
-          checkOut: checkInOut.checkOut,
-          rooms: rooms,
-          adults: adults,
-          children: 0,
-          hotelCodes: [String(hotelCode)],
-        })
+        var occ = { rooms: rooms, adults: adults, children: 0 };
+        var cacheKey = buildAvailCacheKey(checkInOut.checkIn, checkInOut.checkOut, occ, hotelCode);
+        var cached = window.__HB_FUNNEL_LAST__ && window.__HB_FUNNEL_LAST__.key === cacheKey ? window.__HB_FUNNEL_LAST__.av : null;
+        var avPromise = cached
+          ? Promise.resolve(cached)
+          : fetchJson(base + '/api/hotelbeds-availability', {
+              checkIn: checkInOut.checkIn,
+              checkOut: checkInOut.checkOut,
+              rooms: rooms,
+              adults: adults,
+              children: 0,
+              hotelCodes: [String(hotelCode)],
+            }).then(function (av) {
+              if (!av || av.error) throw new Error(av && av.error ? av.error : 'Availability sin respuesta válida');
+              window.__HB_FUNNEL_LAST__ = { key: cacheKey, av: av };
+              return av;
+            });
+
+        avPromise
           .then(function (av) {
-            if (!av || av.error) throw new Error(av && av.error ? av.error : 'Availability sin respuesta válida');
-            var rk = deriveRateKeyFromAvailabilityForHotel(av, hotelCode);
-            if (!rk) throw new Error('No se encontró rateKey para esa ocupación (no hay tarifas bookable).');
-            return fetchJson(base + '/api/hotelbeds-availability', { action: 'checkrates', rooms: [{ rateKey: rk }] })
-              .then(function (cr) { return { rk: rk, cr: cr }; });
+            var hotel = findHotelInAvailability(av, hotelCode);
+            if (!hotel) throw new Error('Sin disponibilidad para ese hotel y ocupación.');
+            var offers = collectRateOffersFromHotel(hotel);
+            if (!offers.length) throw new Error('No hay tarifas para esa ocupación.');
+            window.__HB_RATE_OFFERS_BY_CODE__ = window.__HB_RATE_OFFERS_BY_CODE__ || {};
+            window.__HB_RATE_OFFERS_BY_CODE__[String(hotelCode)] = offers;
+            renderFunnelRateChoices(host, hotelCode);
+            var offer = getPickedOfferFromFunnel(host, hotelCode);
+            if (!offer) throw new Error('Selecciona una tarifa.');
+            if (offer.rateType === 'RECHECK') {
+              return fetchJson(base + '/api/hotelbeds-availability', { action: 'checkrates', rooms: [{ rateKey: offer.rateKey }] }).then(function (cr) {
+                if (!cr || cr.ok !== true) {
+                  throw new Error((cr && (cr.hotelbedsError || cr.error)) || 'CheckRate falló');
+                }
+                return offerFromCheckrateData(cr.data, offer);
+              });
+            }
+            return offer;
           })
-          .then(function (o) {
-            var cr = o.cr;
-            if (!cr || cr.ok !== true) throw new Error((cr && (cr.hotelbedsError || cr.error)) || 'CheckRate falló');
-
-            setSelectedHotelInHiddenInputs(form, hotelCode, o.rk, adults, rooms);
+          .then(function (offer) {
+            markRateValidated(form, offer.rateKey, offer.rateType);
+            form.querySelector('input[name="hb_occ_adults"]').value = String(adults);
+            form.querySelector('input[name="hb_occ_rooms"]').value = String(rooms);
             refreshUiState();
-
-            var h = (cr.data && cr.data.hotel) ? cr.data.hotel : cr.data;
-            var total = '';
-            try {
-              var rms = h.rooms || [];
-              var rt = rms[0] && rms[0].rates ? (Array.isArray(rms[0].rates) ? rms[0].rates[0] : rms[0].rates) : null;
-              if (rt) total = (rt.net || rt.sellingRate || rt.gross || '') + ' ' + (rt.currency || 'EUR');
-            } catch (e2) {}
-            result.innerHTML =
-              '<div class="hb-funnel-ok"><strong>Precio revalidado.</strong>' +
-              (total ? ' Total: ' + escapeHtml(String(total)) : '') +
-              '<div class="hb-funnel-small">Ahora puedes «Confirmar hotel».</div></div>';
+            result.innerHTML = renderFunnelConditionsHtml(offer);
           })
           .catch(function (e) {
             refreshUiState();
@@ -636,13 +861,12 @@
 
       btnConfirm.addEventListener('click', function () {
         var hotelCode = getSelectedHotelCode();
-        var rateKey = getSelectedRateKey();
         if (!hotelCode) return;
-        if (!rateKey) {
-          result.innerHTML = '<p class="hb-funnel-warn">Antes pulsa «Precio final (CheckRate)» para revalidar.</p>';
+        if (!isRateValidated()) {
+          result.innerHTML = '<p class="hb-funnel-warn">Antes revisa condiciones y precio final.</p>';
           return;
         }
-        // Fill hotel-noche-* so the rest of the system knows which hotel is picked.
+        form.querySelector('input[name="hb_funnel_ready"]').value = '1';
         var nochesInput = form.querySelector('input[name="noches"]');
         var noches = nochesInput ? nochesInput.value : '1';
         var n = Math.max(1, parseInt(noches || '1', 10) || 1);
@@ -650,7 +874,6 @@
           var inp = form.querySelector('input[name="hotel-noche-' + i + '"]');
           if (inp) inp.value = 'hb-' + String(hotelCode);
         }
-        // UI feedback
         document.querySelectorAll('.hotelbeds-card--selectable').forEach(function (el) {
           var c = el.getAttribute('data-hb-hotel-code');
           if (c === String(hotelCode)) el.classList.add('hotelbeds-card--picked');
@@ -687,7 +910,7 @@
       var code = card.getAttribute('data-hb-hotel-code');
       if (!code) return;
       // Select hotel and focus inline funnel
-      setSelectedHotelInHiddenInputs(form, String(code), '', '', '');
+      setSelectedHotelInHiddenInputs(form, String(code), '', '', '', '');
       var root = document.getElementById(o.preciosBlockId || 'hotelbeds-precios-block');
       if (root) {
         wireHotelFunnelInlineHandlers(root, form);
@@ -727,16 +950,23 @@
     if (typeof window.actualizarResumenRyder === 'function') window.actualizarResumenRyder();
   }
 
-  function fetchHotelbeds(checkIn, checkOut, hotelCodes) {
+  function fetchHotelbeds(checkIn, checkOut, hotelCodes, occ) {
     var base = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
     return fetch(base + '/api/hotelbeds-availability', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ checkIn: checkIn, checkOut: checkOut, rooms: 1, adults: 2, hotelCodes: hotelCodes }),
+      body: JSON.stringify({
+        checkIn: checkIn,
+        checkOut: checkOut,
+        rooms: (occ && occ.rooms) || 1,
+        adults: (occ && occ.adults) || 2,
+        children: (occ && occ.children) || 0,
+        hotelCodes: hotelCodes,
+      }),
     }).then(function (r) { return r.json(); });
   }
 
-  function fetchHotelbedsByDestination(checkIn, checkOut) {
+  function fetchHotelbedsByDestination(checkIn, checkOut, occ) {
     var base = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
     var merged = { hotels: { hotels: [] } };
     var byCode = {};
@@ -759,7 +989,14 @@
         return fetch(base + '/api/hotelbeds-availability', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ checkIn: checkIn, checkOut: checkOut, rooms: 1, adults: 2, destinationCode: dest }),
+          body: JSON.stringify({
+            checkIn: checkIn,
+            checkOut: checkOut,
+            rooms: (occ && occ.rooms) || 1,
+            adults: (occ && occ.adults) || 2,
+            children: (occ && occ.children) || 0,
+            destinationCode: dest,
+          }),
         }).then(function (r) { return r.json(); }).then(function (data) {
           if (!data.error) addHotels(data.hotels || data);
           return data;
@@ -1028,9 +1265,10 @@
     var cfg = window.HOTELBEDS_CONFIG;
     var codes = cfg && cfg.getCodesForSelectedHotels ? cfg.getCodesForSelectedHotels(formData, noches) : (cfg && cfg.getAllHotelCodes ? cfg.getAllHotelCodes() : []);
 
+    var occ = getOccupancyFromFormData(formData);
     var hbPromise = codes.length > 0
-      ? fetchHotelbeds(range.checkIn, range.checkOut, codes)
-      : fetchHotelbedsByDestination(range.checkIn, range.checkOut);
+      ? fetchHotelbeds(range.checkIn, range.checkOut, codes, occ)
+      : fetchHotelbedsByDestination(range.checkIn, range.checkOut, occ);
 
     hbPromise
       .then(function (hb) {
@@ -1138,9 +1376,18 @@
     var adults = Math.max(1, parseInt((fd.get('hb_occ_adults') || fd.get('tamanio_grupo') || '2'), 10) || 2);
     var roomsCount = Math.max(1, parseInt((fd.get('hb_occ_rooms') || Math.ceil(adults / 2)), 10) || 1);
 
+    var funnelReady = (fd.get('hb_funnel_ready') || '').trim() === '1';
+    var selectedHotel = (fd.get('hb_selected_hotel_code') || '').trim();
+    if (selectedHotel && !funnelReady) {
+      return Promise.reject(new Error('Confirma el hotel en la sección Hotelbeds antes de pagar.'));
+    }
+
     var pick = null;
     if (selectedRateKey) {
-      pick = { rateKey: selectedRateKey, rateType: 'BOOKABLE' };
+      pick = {
+        rateKey: selectedRateKey,
+        rateType: String(fd.get('hb_selected_rate_type') || 'BOOKABLE').toUpperCase(),
+      };
     } else {
       var hotelCode = getActiveHotelCodeForBooking(fd, noches, cfg);
       if (!hotelCode) return Promise.resolve(null);
@@ -1288,6 +1535,8 @@
     if (linkLerma) linkLerma.href = baseLerma + suffix;
     if (linkBurgos) linkBurgos.href = baseBurgos + suffix;
   }
+
+  window.HOTELBEDS_STRICT_PREBOOK = true;
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

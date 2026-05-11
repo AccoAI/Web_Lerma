@@ -85,6 +85,15 @@
       submitButton.textContent = 'Procesando...';
     }
 
+    var strictHb = options.hotelbedsStrictPrebook === true || window.HOTELBEDS_STRICT_PREBOOK === true;
+    if (options.formId) {
+      var hbForm = document.getElementById(options.formId);
+      if (hbForm) {
+        var hbHotel = hbForm.querySelector('input[name="hb_selected_hotel_code"]');
+        if (hbHotel && String(hbHotel.value || '').trim()) strictHb = true;
+      }
+    }
+
     var prebook = Promise.resolve(null);
     if (typeof window.tryHotelbedsBookForStripe === 'function' && window.HOTELBEDS_SKIP_PREBOOK !== true) {
       prebook = window
@@ -93,7 +102,7 @@
           formId: options.formId,
         })
         .catch(function (err) {
-          if (options.hotelbedsStrictPrebook === true || window.HOTELBEDS_STRICT_PREBOOK === true) {
+          if (strictHb) {
             return Promise.reject(err);
           }
           console.warn('[Hotelbeds] Sin pre-reserva antes de Stripe:', err && err.message ? err.message : err);

@@ -386,10 +386,6 @@
       radio.addEventListener('change', function () {
         if (radio.checked && s.rateKey) {
           hiddenRateKey.value = s.rateKey;
-          var cb = block.querySelector('input[name="transfer_hb_interes"]');
-          if (cb) cb.checked = true;
-          var det = block.querySelector('.transfer-hb-detalles');
-          if (det) det.hidden = false;
         }
       });
       pick.appendChild(radio);
@@ -737,14 +733,6 @@
 
   function bindBlock(block) {
     ensurePlannerUi(block);
-    var cb = block.querySelector('input[name=\"transfer_hb_interes\"]');
-    var det = block.querySelector('.transfer-hb-detalles');
-    if (!cb || !det) return;
-    function sync() {
-      det.hidden = !cb.checked;
-    }
-    cb.addEventListener('change', sync);
-    sync();
   }
 
   function pingApi() {
