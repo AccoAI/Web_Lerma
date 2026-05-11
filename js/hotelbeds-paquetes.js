@@ -189,6 +189,40 @@
     return String(room.description || '').trim();
   }
 
+  function formatPolicyDate(from) {
+    if (!from) return '';
+    var d = new Date(from);
+    if (isNaN(d.getTime())) return String(from);
+    return d.toLocaleString('es-ES', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  function rateClassLabel(code) {
+    var c = String(code || '').toUpperCase();
+    if (!c) return '';
+    if (c === 'NOR') return 'Tarifa normal (NOR)';
+    if (c === 'NRF') return 'No reembolsable (NRF)';
+    return 'Clase de tarifa ' + c;
+  }
+
+  function occupancyFromRate(rate) {
+    if (!rate) return '';
+    var rooms = rate.rooms != null ? parseInt(rate.rooms, 10) : 0;
+    var adults = rate.adults != null ? parseInt(rate.adults, 10) : 0;
+    var children = rate.children != null ? parseInt(rate.children, 10) : 0;
+    if (!rooms && !adults) return '';
+    var bits = [];
+    if (rooms) bits.push(rooms + ' hab.');
+    if (adults) bits.push(adults + ' adultos');
+    if (children) bits.push(children + ' niños');
+    return bits.join(', ');
+  }
+
   function cancellationFromRate(rate) {
     if (!rate || typeof rate !== 'object') return '';
     var pol = rate.cancellationPolicies;
@@ -199,16 +233,16 @@
         if (!p) return '';
         if (typeof p === 'string') return p;
         if (p.text) return String(p.text).trim();
-        var from = p.from || p.date || '';
+        var from = formatPolicyDate(p.from || p.date || '');
         var amount = p.amount != null ? p.amount : p.clientAmount;
         var cur = p.currency || 'EUR';
-        if (from && amount != null) return from + ': ' + amount + ' ' + cur;
-        if (from) return String(from);
-        if (amount != null) return String(amount) + ' ' + cur;
+        if (from && amount != null) return 'Gastos de cancelación ' + amount + ' ' + cur + ' desde ' + from;
+        if (from) return 'Cancelación desde ' + from;
+        if (amount != null) return 'Gastos de cancelación ' + amount + ' ' + cur;
         return '';
       })
       .filter(Boolean)
-      .join('; ');
+      .join(' · ');
   }
 
   function promotionsFromRate(rate) {
@@ -234,6 +268,15 @@
   function rateOfferListHint(offer) {
     if (!offer) return '';
     var parts = [];
+    if (offer.occupancyLabel) {
+      parts.push('Precio para ' + offer.occupancyLabel + ' (total estancia)');
+    }
+    if (offer.rateClass) parts.push(rateClassLabel(offer.rateClass));
+    if (offer.allotment != null && offer.allotment !== '') {
+      parts.push('Cupo HB ' + offer.allotment);
+    }
+    if (offer.packaging) parts.push('Tarifa empaquetada');
+    if (offer.rateCommentsId) parts.push('Ref. condiciones HB ' + offer.rateCommentsId);
     if (offer.cancellation) {
       parts.push(offer.cancellation);
     } else {
@@ -243,7 +286,9 @@
       parts.push(offer.promotions.join(', '));
     }
     if (offer.rateComments && offer.rateComments.length) {
-      parts.push(offer.rateComments[0]);
+      parts.push(offer.rateComments.join(' · '));
+    } else if (offer.rateCommentsId) {
+      parts.push('Texto legal completo al pulsar «Ver condiciones y precio final»');
     }
     if (offer.rateExtrasPaid && offer.rateExtrasPaid.length) {
       parts.push(offer.rateExtrasPaid.join(' · '));
@@ -251,7 +296,7 @@
     if (offer.paymentType) {
       parts.push('Pago: ' + offer.paymentType);
     }
-    return truncateText(parts.join(' · '), 220);
+    return truncateText(parts.join(' · '), 280);
   }
 
   function mapRateOffer(room, rate) {
@@ -267,6 +312,11 @@
       cancellation: cancellationFromRate(rate),
       promotions: promotionsFromRate(rate),
       paymentType: rate.paymentType ? String(rate.paymentType) : '',
+      rateClass: rate.rateClass ? String(rate.rateClass) : '',
+      allotment: rate.allotment != null && rate.allotment !== '' ? String(rate.allotment) : '',
+      packaging: rate.packaging === true || rate.packaging === 'true',
+      rateCommentsId: rate.rateCommentsId ? String(rate.rateCommentsId) : '',
+      occupancyLabel: occupancyFromRate(rate),
     };
     offer.listHint = rateOfferListHint(offer);
     return offer;
@@ -647,6 +697,15 @@
     if (!offer) return '';
     var html = '<div class="hb-funnel-ok"><strong>Condiciones de la tarifa</strong>';
     html += '<div class="hb-funnel-small">' + escapeHtml(offer.roomName || 'Habitación') + ' · ' + escapeHtml(offer.boardName || offer.boardCode || 'Régimen') + '</div>';
+    if (offer.occupancyLabel) {
+      html += '<div class="hb-funnel-small">Ocupación: ' + escapeHtml(offer.occupancyLabel) + '</div>';
+    }
+    if (offer.rateClass) {
+      html += '<div class="hb-funnel-small">' + escapeHtml(rateClassLabel(offer.rateClass)) + '</div>';
+    }
+    if (offer.rateCommentsId) {
+      html += '<div class="hb-funnel-small">Ref. condiciones HB: ' + escapeHtml(offer.rateCommentsId) + '</div>';
+    }
     if (offer.price) html += '<div class="hb-funnel-small">Total estancia: <strong>' + escapeHtml(offer.price) + '</strong></div>';
     if (offer.promotions && offer.promotions.length) {
       html += '<div class="hb-funnel-legal"><strong>Promociones</strong><ul>';
@@ -724,7 +783,7 @@
     var html = '<p class="hb-funnel-small">Elige habitación y régimen:</p><ul class="hb-funnel-rate-list">';
     offers.forEach(function (o, idx) {
       var label = (o.roomName || 'Habitación') + ' · ' + (o.boardName || o.boardCode || 'Régimen');
-      if (o.price) label += ' · ' + o.price;
+      if (o.price) label += ' · Total estancia ' + o.price;
       label += ' · ' + o.rateType;
       var hint = o.listHint || rateOfferListHint(o);
       html +=
@@ -854,6 +913,9 @@
 
     if (!host.__hbBound) {
       host.__hbBound = true;
+      host.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+      });
 
       if (!form.__hbTamanioSyncListener) {
         form.__hbTamanioSyncListener = true;
@@ -1727,6 +1789,25 @@
     return doBooking(rk);
   };
 
+  function shouldIgnoreHotelbedsFormRefresh(target) {
+    if (!target) return false;
+    var name = target.name || '';
+    var id = target.id || '';
+    if (name === 'hb-funnel-rate-pick') return true;
+    if (name.indexOf('hb_') === 0) return true;
+    if (id === 'hb-funnel-inline-adults' || id === 'hb-funnel-inline-rooms') return true;
+    if (target.closest && target.closest('#hb-hotel-funnel-inline')) {
+      var tag = (target.tagName || '').toUpperCase();
+      if (tag === 'BUTTON' || tag === 'INPUT' || tag === 'LABEL') return true;
+    }
+    return false;
+  }
+
+  function scheduleFromForm(ev) {
+    if (ev && shouldIgnoreHotelbedsFormRefresh(ev.target)) return;
+    schedule();
+  }
+
   function schedule() {
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(run, DEBOUNCE_MS);
@@ -1752,8 +1833,8 @@
 
     var form = getForm();
     if (form) {
-      form.addEventListener('change', schedule);
-      form.addEventListener('input', schedule);
+      form.addEventListener('change', scheduleFromForm);
+      form.addEventListener('input', scheduleFromForm);
     }
 
     if (typeof CalendarioDias !== 'undefined' && CalendarioDias._instances) {
