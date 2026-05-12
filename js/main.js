@@ -1210,8 +1210,7 @@ function initConfiguradorPaquete() {
                     var hv = (formData.get('hotel-noche-' + inx) || '').trim();
                     if (!hv) continue;
                     var price = (typeof window.precioNocheDesdeHotelSelect === 'function') ? window.precioNocheDesdeHotelSelect(hv) : null;
-                    if (price == null) price = 75;
-                    aloj += price;
+                    if (price != null) aloj += price;
                 }
             }
 

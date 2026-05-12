@@ -1495,7 +1495,7 @@
       });
   }
 
-  var DEFAULT_PRICE_PER_NIGHT = 75;
+  var PRICE_ON_REQUEST_LABEL = 'Precio a consultar';
 
   function fetchHotelbedsListHotels() {
     var base = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
@@ -1581,12 +1581,12 @@
     var burgos = [];
     var live = {};
     var noches = getNochesFromForm();
-    var fallbackPriceStr = DEFAULT_PRICE_PER_NIGHT + ' €/noche (orientativo)';
+    var fallbackPriceStr = PRICE_ON_REQUEST_LABEL;
     hotelList.forEach(function (h) {
       var name = (typeof h.name === 'string' ? h.name : (h.name && h.name.content) ? h.name.content : '') || ('Hotel ' + h.code);
       var ciudad = cityForCode(h.code, h);
       var rate = parseHotelMinRate(h);
-      var opt = { v: 'hb-' + h.code, l: name, p: rate != null ? rate : DEFAULT_PRICE_PER_NIGHT };
+      var opt = { v: 'hb-' + h.code, l: name, p: rate };
       if (rate != null) live['hb-' + h.code] = rate;
       if (ciudad === 'lerma') lerma.push(opt); else burgos.push(opt);
     });
@@ -1660,7 +1660,7 @@
       var ourId = codeToId[code];
       var rate = parseHotelMinRate(h);
       if (ourId && rate != null) live[ourId] = rate;
-      var priceStr = formatHotelListPriceStr(rate, noches) || '—';
+      var priceStr = formatHotelListPriceStr(rate, noches) || PRICE_ON_REQUEST_LABEL;
       var sel = selectedHotels.indexOf(code) >= 0 ? ' <span class="hotelbeds-selected">(elegido)</span>' : '';
       var pick = rateBy[code];
       var meta = contentBy[code];
@@ -1717,7 +1717,7 @@
       var code = String(h.code);
       var key = 'hb-' + code;
       var rate = live[key];
-      var priceStr = formatHotelListPriceStr(rate, noches) || '—';
+      var priceStr = formatHotelListPriceStr(rate, noches) || PRICE_ON_REQUEST_LABEL;
       var pick = rateBy[code];
       var meta = contentBy[code];
       html +=
