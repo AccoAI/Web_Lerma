@@ -74,6 +74,7 @@
 
   function renderLoading() {
     window.LIVE_HOTEL_PRICES = null;
+    window.__HB_FUNNEL_LAST__ = null;
     setBookingWidgetVisible(false);
     renderBlock('<div class="hotelbeds-block hotelbeds-loading"><span class="hotelbeds-spinner"></span> Consultando precios en tiempo real...</div>');
   }
@@ -473,28 +474,65 @@
     return true;
   }
 
+  function getFunnelOccupancyForAvailability(form, adultsInp, roomsInp, adultsDefault, roomsDefault) {
+    var adults = clamp(getInt(adultsInp && adultsInp.value, adultsDefault), 1, 54);
+    var rooms = clamp(getInt(roomsInp && roomsInp.value, roomsDefault), 1, 20);
+    var occ = { adults: adults, rooms: rooms, children: 0 };
+    if (!form) return occ;
+    var listOcc = window.__HB_LAST_AVAIL_OCC__;
+    if (!listOcc) return occ;
+    var groupOcc = getListOccupancyForAvailability(new FormData(form));
+    if (groupOcc.adults === occ.adults && groupOcc.rooms === occ.rooms) {
+      return {
+        adults: listOcc.adults,
+        rooms: listOcc.rooms,
+        children: listOcc.children || 0,
+      };
+    }
+    if (occ.adults === adultsDefault && occ.rooms === roomsDefault) {
+      return {
+        adults: listOcc.adults,
+        rooms: listOcc.rooms,
+        children: listOcc.children || 0,
+      };
+    }
+    return occ;
+  }
+
   function fetchFunnelAvailabilityOffers(hotelCode, checkInOut, occ) {
     var base = window.location.origin || '';
     var cacheKey = buildAvailCacheKey(checkInOut.checkIn, checkInOut.checkOut, occ, hotelCode);
-    var cached = window.__HB_FUNNEL_LAST__ && window.__HB_FUNNEL_LAST__.key === cacheKey ? window.__HB_FUNNEL_LAST__.av : null;
-    var avPromise = cached
-      ? Promise.resolve(cached)
-      : fetchJson(base + '/api/hotelbeds-availability', {
-          checkIn: checkInOut.checkIn,
-          checkOut: checkInOut.checkOut,
-          rooms: occ.rooms,
-          adults: occ.adults,
-          children: occ.children || 0,
-          hotelCodes: [String(hotelCode)],
-        }).then(function (av) {
-          if (!av || av.error) {
-            throw new Error(av && av.error ? av.error : 'Availability sin respuesta válida');
-          }
+
+    function requestAvailability() {
+      return fetchJson(base + '/api/hotelbeds-availability', {
+        checkIn: checkInOut.checkIn,
+        checkOut: checkInOut.checkOut,
+        rooms: occ.rooms,
+        adults: occ.adults,
+        children: occ.children || 0,
+        hotelCodes: [String(hotelCode)],
+      }).then(function (av) {
+        if (!av || av.error) {
+          throw new Error(av && av.error ? av.error : 'Availability sin respuesta válida');
+        }
+        if (findHotelInAvailability(av, hotelCode)) {
           window.__HB_FUNNEL_LAST__ = { key: cacheKey, av: av };
-          return av;
-        });
+        } else if (window.__HB_FUNNEL_LAST__ && window.__HB_FUNNEL_LAST__.key === cacheKey) {
+          window.__HB_FUNNEL_LAST__ = null;
+        }
+        return av;
+      });
+    }
+
+    var cached = window.__HB_FUNNEL_LAST__;
+    var avPromise =
+      cached && cached.key === cacheKey && findHotelInAvailability(cached.av, hotelCode)
+        ? Promise.resolve(cached.av)
+        : requestAvailability();
+
     return avPromise.then(function (av) {
       var hotel = findHotelInAvailability(av, hotelCode);
+      if (!hotel) hotel = findHotelInAvailability(window.__HB_LAST_AVAIL__, hotelCode);
       if (!hotel) {
         var listOcc = window.__HB_LAST_AVAIL_OCC__;
         var occMismatch =
@@ -513,7 +551,9 @@
               ' habitación(es); ajusta la ocupación o cambia fechas.'
           );
         }
-        throw new Error('Sin disponibilidad para ese hotel y ocupación.');
+        throw new Error(
+          'Sin disponibilidad para ese hotel y ocupación. Revisa fechas y tamaño de grupo, o prueba otras fechas.'
+        );
       }
       var offers = collectRateOffersFromHotel(hotel);
       if (!offers.length) throw new Error('No hay tarifas para esa ocupación.');
@@ -663,9 +703,6 @@
     var catLabel = meta && (meta.categoryName || meta.categoryCode) ? meta.categoryName || meta.categoryCode : '';
     var catStars = meta && typeof meta.categoryStars === 'number' ? meta.categoryStars : null;
     var desc = meta && meta.descriptionShort ? meta.descriptionShort : '';
-    var paidFac = (meta && meta.facilitiesWithCharge) || [];
-    var hf = (meta && meta.hotelFacilities) || [];
-    var rf = (meta && meta.roomFacilities) || [];
     var boardLine = pick && pick.boardName ? pick.boardName : pick && pick.boardCode ? String(pick.boardCode) : '';
     var roomLine = pick && pick.roomName ? pick.roomName : '';
     var ratePaid = (pick && pick.rateExtrasPaid) || [];
@@ -674,27 +711,6 @@
     var imgHtml = img
       ? '<div class="hotelbeds-card-media"><img src="' + escapeHtml(img) + '" alt="" loading="lazy" width="120" height="90"></div>'
       : '<div class="hotelbeds-card-media hotelbeds-card-media--empty" aria-hidden="true"></div>';
-
-    var paidBlock = '';
-    if (paidFac.length) {
-      paidBlock +=
-        '<div class="hotelbeds-paid-facilities"><strong>Servicios con coste adicional (hotel):</strong><ul class="hotelbeds-mini-list">' +
-        paidFac
-          .slice(0, 25)
-          .map(function (x) {
-            return '<li>' + escapeHtml(x) + '</li>';
-          })
-          .join('') +
-        '</ul></div>';
-    }
-    var facBlock = '';
-    var facCombined = hf.slice(0, 12).concat(rf.length ? ['— Habitación —'] : []).concat(rf.slice(0, 12));
-    if (facCombined.length) {
-      facBlock =
-        '<div class="hotelbeds-facilities"><strong>Instalaciones (extracto Content API):</strong> ' +
-        escapeHtml(truncateText(facCombined.join(' · '), 420)) +
-        '</div>';
-    }
 
     var boardBlock = '';
     if (boardLine || roomLine) {
@@ -739,8 +755,6 @@
       '</header>' +
       (desc ? '<p class="hotelbeds-desc">' + escapeHtml(truncateText(desc, 380)) + '</p>' : '') +
       boardBlock +
-      paidBlock +
-      facBlock +
       rateExtraBlock +
       '</div></article>'
     );
@@ -1124,9 +1138,8 @@
           if (ratesBox) {
             ratesBox.innerHTML = '<p class="hb-funnel-small">Cargando tarifas para este hotel...</p>';
           }
-          var adults = clamp(getInt(adultsInp.value, adultsDefault), 1, 54);
-          var rooms = clamp(getInt(roomsInp.value, roomsDefault), 1, 20);
-          fetchFunnelAvailabilityOffers(hotelCode, checkInOut, { rooms: rooms, adults: adults, children: 0 })
+          var occ = getFunnelOccupancyForAvailability(form, adultsInp, roomsInp, adultsDefault, roomsDefault);
+          fetchFunnelAvailabilityOffers(hotelCode, checkInOut, occ)
             .then(function () {
               if (getSelectedHotelCode() !== hotelCode) return;
               host.__hbRatesHotel = '';
@@ -1194,19 +1207,16 @@
           result.innerHTML = '<p class="hb-funnel-warn">Selecciona fechas antes.</p>';
           return;
         }
-        var adults = clamp(getInt(adultsInp.value, adultsDefault), 1, 54);
-        var rooms = clamp(getInt(roomsInp.value, roomsDefault), 1, 20);
-        adultsInp.value = String(adults);
-        roomsInp.value = String(rooms);
-
+        var occ = getFunnelOccupancyForAvailability(form, adultsInp, roomsInp, adultsDefault, roomsDefault);
+        adultsInp.value = String(occ.adults);
+        roomsInp.value = String(occ.rooms);
         var previousRateKey = getSelectedRateKeyFromFunnel(host, form);
-        setSelectedHotelInHiddenInputs(form, hotelCode, '', adults, rooms, '');
+        setSelectedHotelInHiddenInputs(form, hotelCode, '', occ.adults, occ.rooms, '');
         refreshUiState();
 
         result.textContent = 'Consultando disponibilidad...';
         btnCheck.disabled = true;
 
-        var occ = { rooms: rooms, adults: adults, children: 0 };
         fetchFunnelAvailabilityOffers(hotelCode, checkInOut, occ)
           .then(function () {
             host.__hbRatesHotel = String(hotelCode);
@@ -1226,8 +1236,8 @@
           })
           .then(function (offer) {
             markRateValidated(form, offer.rateKey, offer.rateType);
-            form.querySelector('input[name="hb_occ_adults"]').value = String(adults);
-            form.querySelector('input[name="hb_occ_rooms"]').value = String(rooms);
+            form.querySelector('input[name="hb_occ_adults"]').value = String(occ.adults);
+            form.querySelector('input[name="hb_occ_rooms"]').value = String(occ.rooms);
             refreshUiState();
             result.innerHTML = renderFunnelConditionsHtml(offer);
           })
@@ -1269,6 +1279,7 @@
       });
     }
 
+    host.__hbRefreshUiState = refreshUiState;
     refreshUiState();
   }
 
@@ -1292,6 +1303,7 @@
       if (!code) return;
       // Select hotel and focus inline funnel
       setSelectedHotelInHiddenInputs(form, String(code), '', '', '', '');
+      window.__HB_FUNNEL_LAST__ = null;
       var root = document.getElementById(o.preciosBlockId || 'hotelbeds-precios-block');
       if (root) {
         wireHotelFunnelInlineHandlers(root, form);
@@ -1300,6 +1312,11 @@
           var ai = host.querySelector('#hb-funnel-inline-adults');
           var ri = host.querySelector('#hb-funnel-inline-rooms');
           syncFunnelAdultsFromGroup(host, form, ai, ri, true);
+          var sug = adultsRoomsFromGroupSize(form);
+          setSelectedHotelInHiddenInputs(form, String(code), '', String(sug.adults), String(sug.rooms), '');
+          host.__hbRatesHotel = '';
+          host.__hbAutoRatesPending = false;
+          if (typeof host.__hbRefreshUiState === 'function') host.__hbRefreshUiState();
         }
         if (host && host.scrollIntoView) host.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
@@ -1670,7 +1687,7 @@
         '</li>';
     });
     html +=
-      '</ul><p class="hotelbeds-note">Ficha enriquecida con Hotelbeds Content API (estrellas, imagen, descripción, instalaciones). Los <strong>servicios con coste adicional</strong> y cargos de tarifa se muestran cuando la API los incluye. Precios orientativos por noche.</p></div>';
+      '</ul><p class="hotelbeds-note">Ficha enriquecida con Hotelbeds Content API (estrellas, imagen y descripción). Los cargos de tarifa se muestran cuando la API los incluye.</p></div>';
     window.LIVE_HOTEL_PRICES = Object.keys(live).length ? live : null;
     setBookingWidgetVisible(!window.LIVE_HOTEL_PRICES);
     renderBlock(html);
@@ -1726,7 +1743,7 @@
         '</li>';
     });
     html +=
-      '</ul><p class="hotelbeds-note">Elige el hotel para cada noche en los desplegables. Ficha enriquecida con Content API. Cargos e instalaciones de pago cuando los devuelve la API.</p></div>';
+      '</ul><p class="hotelbeds-note">Elige el hotel para cada noche en los desplegables. Ficha enriquecida con Content API. Cargos de tarifa cuando los devuelve la API.</p></div>';
     setBookingWidgetVisible(false);
     renderBlock(html);
     bindSelectableHotelCards();
