@@ -427,6 +427,102 @@
     return null;
   }
 
+  function parseHotelMinRate(h) {
+    if (!h) return null;
+    var rate = h.minRate;
+    if (rate == null && h.rooms && h.rooms[0]) {
+      var r0 = h.rooms[0];
+      var rr = r0.rates && r0.rates[0] ? r0.rates[0] : null;
+      if (rr) rate = parseFloat(rr.net || rr.gross || rr.sellingRate) || null;
+    }
+    if (typeof rate === 'string') rate = parseFloat(rate) || null;
+    return rate != null ? rate : null;
+  }
+
+  function getNochesFromForm() {
+    var noches = 1;
+    try {
+      var fdTmp = getFormData();
+      var nTmp = fdTmp && fdTmp.get ? parseInt(fdTmp.get('noches') || '1', 10) : 1;
+      if (nTmp && nTmp > 0) noches = nTmp;
+    } catch (e0) { /* ignore */ }
+    return noches;
+  }
+
+  function formatHotelListPriceStr(rate, noches) {
+    if (rate == null) return null;
+    var total = Math.round(rate * 100) / 100;
+    if (noches >= 2) {
+      var pn = Math.round((total / noches) * 100) / 100;
+      return total + ' € (estancia) · ' + pn + ' €/noche';
+    }
+    return total + ' € (estancia)';
+  }
+
+  function hydrateRateOffersFromLastAvailability(hotelCode) {
+    var key = String(hotelCode || '');
+    if (!key) return false;
+    var offersBy = window.__HB_RATE_OFFERS_BY_CODE__ || {};
+    if (offersBy[key] && offersBy[key].length) return true;
+    var hotel = findHotelInAvailability(window.__HB_LAST_AVAIL__, key);
+    if (!hotel) return false;
+    var offers = collectRateOffersFromHotel(hotel);
+    if (!offers.length) return false;
+    offersBy[key] = offers;
+    window.__HB_RATE_OFFERS_BY_CODE__ = offersBy;
+    return true;
+  }
+
+  function fetchFunnelAvailabilityOffers(hotelCode, checkInOut, occ) {
+    var base = window.location.origin || '';
+    var cacheKey = buildAvailCacheKey(checkInOut.checkIn, checkInOut.checkOut, occ, hotelCode);
+    var cached = window.__HB_FUNNEL_LAST__ && window.__HB_FUNNEL_LAST__.key === cacheKey ? window.__HB_FUNNEL_LAST__.av : null;
+    var avPromise = cached
+      ? Promise.resolve(cached)
+      : fetchJson(base + '/api/hotelbeds-availability', {
+          checkIn: checkInOut.checkIn,
+          checkOut: checkInOut.checkOut,
+          rooms: occ.rooms,
+          adults: occ.adults,
+          children: occ.children || 0,
+          hotelCodes: [String(hotelCode)],
+        }).then(function (av) {
+          if (!av || av.error) {
+            throw new Error(av && av.error ? av.error : 'Availability sin respuesta válida');
+          }
+          window.__HB_FUNNEL_LAST__ = { key: cacheKey, av: av };
+          return av;
+        });
+    return avPromise.then(function (av) {
+      var hotel = findHotelInAvailability(av, hotelCode);
+      if (!hotel) {
+        var listOcc = window.__HB_LAST_AVAIL_OCC__;
+        var occMismatch =
+          listOcc &&
+          (listOcc.adults !== occ.adults || listOcc.rooms !== occ.rooms);
+        if (occMismatch) {
+          throw new Error(
+            'Sin disponibilidad para ' +
+              occ.adults +
+              ' adulto(s) en ' +
+              occ.rooms +
+              ' habitación(es). Las tarifas del listado eran para ' +
+              listOcc.adults +
+              ' adulto(s) en ' +
+              listOcc.rooms +
+              ' habitación(es); ajusta la ocupación o cambia fechas.'
+          );
+        }
+        throw new Error('Sin disponibilidad para ese hotel y ocupación.');
+      }
+      var offers = collectRateOffersFromHotel(hotel);
+      if (!offers.length) throw new Error('No hay tarifas para esa ocupación.');
+      window.__HB_RATE_OFFERS_BY_CODE__ = window.__HB_RATE_OFFERS_BY_CODE__ || {};
+      window.__HB_RATE_OFFERS_BY_CODE__[String(hotelCode)] = offers;
+      return offers;
+    });
+  }
+
   function getOccupancyFromFormData(fd) {
     if (!fd || !fd.get) return { adults: 2, rooms: 1, children: 0 };
     var adults = clamp(getInt(fd.get('hb_occ_adults') || fd.get('tamanio_grupo'), 2), 1, 54);
@@ -863,7 +959,7 @@
     if (!box) return;
     var offers = (window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || [];
     if (!offers.length) {
-      box.innerHTML = '<p class="hb-funnel-small">Selecciona fechas y pulsa «Ver condiciones y precio final» para cargar tarifas.</p>';
+      box.innerHTML = '<p class="hb-funnel-small">Cargando tarifas para este hotel… Si no aparecen, pulsa «Ver condiciones y precio final».</p>';
       return;
     }
     var pick = preferredRateKey ? String(preferredRateKey) : '';
@@ -1008,15 +1104,48 @@
       if (!hotelCode) {
         hotelLine.textContent = 'Elige un hotel para continuar.';
         host.__hbRatesHotel = '';
+        host.__hbAutoRatesHotel = '';
         return;
       }
       hotelLine.textContent = hotelNameForCode(hotelCode);
+      hydrateRateOffersFromLastAvailability(hotelCode);
       var ratesBox = host.querySelector('#hb-funnel-inline-rates');
       var hasList = ratesBox && ratesBox.querySelector('input[name="hb-funnel-rate-pick"]');
       if (hasList && host.__hbRatesHotel === hotelCode) return;
       var priorKey = getSelectedRateKeyFromFunnel(host, form);
       host.__hbRatesHotel = hotelCode;
       renderFunnelRateChoices(host, hotelCode, priorKey);
+      var offers = (window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || [];
+      if (!offers.length && !host.__hbAutoRatesPending) {
+        var checkInOut = getCheckInCheckOut(new FormData(form));
+        if (checkInOut) {
+          host.__hbAutoRatesPending = true;
+          host.__hbAutoRatesHotel = hotelCode;
+          if (ratesBox) {
+            ratesBox.innerHTML = '<p class="hb-funnel-small">Cargando tarifas para este hotel...</p>';
+          }
+          var adults = clamp(getInt(adultsInp.value, adultsDefault), 1, 54);
+          var rooms = clamp(getInt(roomsInp.value, roomsDefault), 1, 20);
+          fetchFunnelAvailabilityOffers(hotelCode, checkInOut, { rooms: rooms, adults: adults, children: 0 })
+            .then(function () {
+              if (getSelectedHotelCode() !== hotelCode) return;
+              host.__hbRatesHotel = '';
+              refreshUiState();
+            })
+            .catch(function (e) {
+              if (getSelectedHotelCode() !== hotelCode) return;
+              if (ratesBox) {
+                ratesBox.innerHTML =
+                  '<p class="hb-funnel-warn">' +
+                  escapeHtml(e.message || String(e)) +
+                  '</p><p class="hb-funnel-small">Puedes pulsar «Ver condiciones y precio final» para reintentar.</p>';
+              }
+            })
+            .finally(function () {
+              host.__hbAutoRatesPending = false;
+            });
+        }
+      }
     }
 
     if (!host.__hbBound) {
@@ -1077,57 +1206,15 @@
         result.textContent = 'Consultando disponibilidad...';
         btnCheck.disabled = true;
 
-        var base = window.location.origin || '';
         var occ = { rooms: rooms, adults: adults, children: 0 };
-        var cacheKey = buildAvailCacheKey(checkInOut.checkIn, checkInOut.checkOut, occ, hotelCode);
-        var cached = window.__HB_FUNNEL_LAST__ && window.__HB_FUNNEL_LAST__.key === cacheKey ? window.__HB_FUNNEL_LAST__.av : null;
-        var avPromise = cached
-          ? Promise.resolve(cached)
-          : fetchJson(base + '/api/hotelbeds-availability', {
-              checkIn: checkInOut.checkIn,
-              checkOut: checkInOut.checkOut,
-              rooms: rooms,
-              adults: adults,
-              children: 0,
-              hotelCodes: [String(hotelCode)],
-            }).then(function (av) {
-              if (!av || av.error) throw new Error(av && av.error ? av.error : 'Availability sin respuesta válida');
-              window.__HB_FUNNEL_LAST__ = { key: cacheKey, av: av };
-              return av;
-            });
-
-        avPromise
-          .then(function (av) {
-            var hotel = findHotelInAvailability(av, hotelCode);
-            if (!hotel) {
-              var listOcc = window.__HB_LAST_AVAIL_OCC__;
-              var occMismatch =
-                listOcc &&
-                (listOcc.adults !== adults || listOcc.rooms !== rooms);
-              if (occMismatch) {
-                throw new Error(
-                  'Sin disponibilidad para ' +
-                    adults +
-                    ' adulto(s) en ' +
-                    rooms +
-                    ' habitación(es). Las tarifas del listado eran para ' +
-                    listOcc.adults +
-                    ' adulto(s) en ' +
-                    listOcc.rooms +
-                    ' habitación(es); ajusta la ocupación o cambia fechas.'
-                );
-              }
-              throw new Error('Sin disponibilidad para ese hotel y ocupación.');
-            }
-            var offers = collectRateOffersFromHotel(hotel);
-            if (!offers.length) throw new Error('No hay tarifas para esa ocupación.');
-            window.__HB_RATE_OFFERS_BY_CODE__ = window.__HB_RATE_OFFERS_BY_CODE__ || {};
-            window.__HB_RATE_OFFERS_BY_CODE__[String(hotelCode)] = offers;
+        fetchFunnelAvailabilityOffers(hotelCode, checkInOut, occ)
+          .then(function () {
             host.__hbRatesHotel = String(hotelCode);
             renderFunnelRateChoices(host, hotelCode, previousRateKey);
             var offer = getPickedOfferFromFunnel(host, hotelCode);
             if (!offer) throw new Error('Selecciona una tarifa.');
             if (offer.rateType === 'RECHECK') {
+              var base = window.location.origin || '';
               return fetchJson(base + '/api/hotelbeds-availability', { action: 'checkrates', rooms: [{ rateKey: offer.rateKey }] }).then(function (cr) {
                 if (!cr || cr.ok !== true) {
                   throw new Error((cr && (cr.hotelbedsError || cr.error)) || 'CheckRate falló');
@@ -1425,9 +1512,17 @@
       list.forEach(function (h) {
         var code = String(h.code || h);
         if (!shouldListHotel(h)) return;
+        var rate = parseHotelMinRate(h);
         if (!byCode[code]) {
-          byCode[code] = true;
-          all.push({ code: code, name: h.name || ('Hotel ' + code), city: h.city || '' });
+          byCode[code] = {
+            code: code,
+            name: h.name || ('Hotel ' + code),
+            city: h.city || '',
+            minRate: rate,
+          };
+          all.push(byCode[code]);
+        } else if (rate != null) {
+          byCode[code].minRate = rate;
         }
       });
     }
@@ -1484,16 +1579,21 @@
     window.LIVE_HOTEL_PRICES = null;
     var lerma = [];
     var burgos = [];
+    var live = {};
+    var noches = getNochesFromForm();
+    var fallbackPriceStr = DEFAULT_PRICE_PER_NIGHT + ' €/noche (orientativo)';
     hotelList.forEach(function (h) {
       var name = (typeof h.name === 'string' ? h.name : (h.name && h.name.content) ? h.name.content : '') || ('Hotel ' + h.code);
       var ciudad = cityForCode(h.code, h);
-      var opt = { v: 'hb-' + h.code, l: name, p: DEFAULT_PRICE_PER_NIGHT };
+      var rate = parseHotelMinRate(h);
+      var opt = { v: 'hb-' + h.code, l: name, p: rate != null ? rate : DEFAULT_PRICE_PER_NIGHT };
+      if (rate != null) live['hb-' + h.code] = rate;
       if (ciudad === 'lerma') lerma.push(opt); else burgos.push(opt);
     });
     window.HOTELBEDS_DYNAMIC_OPTS = { lerma: lerma, burgos: burgos };
-    setBookingWidgetVisible(true);
+    if (Object.keys(live).length) window.LIVE_HOTEL_PRICES = live;
+    setBookingWidgetVisible(!Object.keys(live).length);
     var totalHotels = lerma.length + burgos.length;
-    var priceStr = DEFAULT_PRICE_PER_NIGHT + ' €/noche (orientativo)';
     loadHotelContentEnrichment()
       .then(function () {
         var contentBy = window.__HB_CONTENT_BY_CODE || {};
@@ -1506,6 +1606,7 @@
           var code = String(h.code);
           var meta = contentBy[code] || null;
           var stub = { code: code, name: meta && meta.name ? meta.name : h.name };
+          var priceStr = formatHotelListPriceStr(parseHotelMinRate(h), noches) || fallbackPriceStr;
           html +=
             '<li class="hotelbeds-item-wrap">' +
             hotelRichCardHtml(stub, meta, null, priceStr, '') +
@@ -1553,33 +1654,13 @@
       '<div class="hotelbeds-block hotelbeds-results"><h4 class="hotelbeds-title">Precios en tiempo real (Hotelbeds)</h4><ul class="hotelbeds-list hotelbeds-list--cards">';
     // Hotelbeds Availability suele devolver minRate como total de la estancia.
     // Para evitar confusión, mostramos total estancia + (aprox) por noche según nº de noches.
-    var noches = 1;
-    try {
-      var fdTmp = getFormData();
-      var nTmp = fdTmp && fdTmp.get ? parseInt(fdTmp.get('noches') || '1', 10) : 1;
-      if (nTmp && nTmp > 0) noches = nTmp;
-    } catch (e0) { /* ignore */ }
+    var noches = getNochesFromForm();
     hotels.forEach(function (h) {
       var code = String(h.code);
       var ourId = codeToId[code];
-      var rate = h.minRate;
-      if (rate == null && h.rooms && h.rooms[0]) {
-        var r0 = h.rooms[0];
-        var rr = r0.rates && r0.rates[0] ? r0.rates[0] : null;
-        if (rr) rate = parseFloat(rr.net || rr.gross || rr.sellingRate) || null;
-      }
-      if (typeof rate === 'string') rate = parseFloat(rate) || null;
+      var rate = parseHotelMinRate(h);
       if (ourId && rate != null) live[ourId] = rate;
-      var priceStr = '—';
-      if (rate != null) {
-        var total = Math.round(rate * 100) / 100;
-        if (noches >= 2) {
-          var pn = Math.round((total / noches) * 100) / 100;
-          priceStr = total + ' € (estancia) · ' + pn + ' €/noche';
-        } else {
-          priceStr = total + ' € (estancia)';
-        }
-      }
+      var priceStr = formatHotelListPriceStr(rate, noches) || '—';
       var sel = selectedHotels.indexOf(code) >= 0 ? ' <span class="hotelbeds-selected">(elegido)</span>' : '';
       var pick = rateBy[code];
       var meta = contentBy[code];
@@ -1614,16 +1695,11 @@
     var lerma = [];
     var burgos = [];
     function getStr(v) { return (typeof v === 'string' ? v : (v && v.content) ? v.content : '') || ''; }
+    var noches = getNochesFromForm();
     hotels.forEach(function (h) {
       var code = String(h.code);
       var name = getStr(h.name) || getStr(h.description) || ('Hotel ' + code);
-      var rate = h.minRate;
-      if (rate == null && h.rooms && h.rooms[0]) {
-        var r0 = h.rooms[0];
-        var rr = (r0.rates && r0.rates[0]) ? r0.rates[0] : null;
-        if (rr) rate = parseFloat(rr.net || rr.gross || rr.sellingRate) || null;
-      }
-      if (typeof rate === 'string') rate = parseFloat(rate) || null;
+      var rate = parseHotelMinRate(h);
       var ciudad = cityForCode(code, h);
       var key = 'hb-' + code;
       live[key] = rate != null ? rate : null;
@@ -1637,26 +1713,11 @@
     var contentBy = window.__HB_CONTENT_BY_CODE || {};
     var html =
       '<div class="hotelbeds-block hotelbeds-results"><h4 class="hotelbeds-title">Precios en tiempo real (Hotelbeds) · Lerma y Burgos</h4><ul class="hotelbeds-list hotelbeds-list--cards">';
-    var noches = 1;
-    try {
-      var fdTmp = getFormData();
-      var nTmp = fdTmp && fdTmp.get ? parseInt(fdTmp.get('noches') || '1', 10) : 1;
-      if (nTmp && nTmp > 0) noches = nTmp;
-    } catch (e0) { /* ignore */ }
     hotels.forEach(function (h) {
       var code = String(h.code);
       var key = 'hb-' + code;
       var rate = live[key];
-      var priceStr = '—';
-      if (rate != null) {
-        var total = Math.round(rate * 100) / 100;
-        if (noches >= 2) {
-          var pn = Math.round((total / noches) * 100) / 100;
-          priceStr = total + ' € (estancia) · ' + pn + ' €/noche';
-        } else {
-          priceStr = total + ' € (estancia)';
-        }
-      }
+      var priceStr = formatHotelListPriceStr(rate, noches) || '—';
       var pick = rateBy[code];
       var meta = contentBy[code];
       html +=
