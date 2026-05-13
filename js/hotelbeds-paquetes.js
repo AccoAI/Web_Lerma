@@ -579,8 +579,18 @@
     return true;
   }
 
+  /** Solo errores típicos de cuota/rate limit; evitar falsos positivos con "exceeded" o "límite" sueltos. */
   function isHbQuotaLikeMessage(msg) {
-    return /quota|rate limit|429|too many requests|exceeded|throttl|l[ií]mite/i.test(String(msg || ''));
+    var s = String(msg || '').trim();
+    if (!s) return false;
+    var lower = s.toLowerCase();
+    if (/\b429\b/.test(lower)) return true;
+    if (/too\s+many\s+requests/.test(lower)) return true;
+    if (/rate[\s_-]*limit|ratelimit|rate\s+exceeded/i.test(s)) return true;
+    if (/throttl/i.test(lower)) return true;
+    if (/quota/.test(lower)) return true;
+    if (/cuota\s+de\s+consultas|consultas\s+superad|peticiones\s+excedid/i.test(lower)) return true;
+    return false;
   }
 
   function getHbFunnelOffersKey(checkInOut, occ, hotelCode) {
