@@ -77,6 +77,7 @@
     window.__HB_FUNNEL_LAST__ = null;
     window.__HB_LAST_AVAIL__ = null;
     window.__HB_LAST_AVAIL_OCC__ = null;
+    window.__HB_WIDEN_AVAIL_CACHE__ = null;
     setBookingWidgetVisible(false);
     renderBlock('<div class="hotelbeds-block hotelbeds-loading"><span class="hotelbeds-spinner"></span> Consultando precios en tiempo real...</div>');
   }
@@ -86,6 +87,7 @@
     window.__HB_RATE_BY_CODE = null;
     window.__HB_RATE_OFFERS_BY_CODE__ = null;
     window.__HB_FUNNEL_LAST__ = null;
+    window.__HB_WIDEN_AVAIL_CACHE__ = null;
     window.__HB_CONTENT_BY_CODE = null;
   }
 
@@ -535,20 +537,31 @@
     function tryWidenAvailabilityForHotel() {
       var want = String(hotelCode || '');
       if (!want) return Promise.resolve(null);
+      var widenKey = [checkInOut.checkIn, checkInOut.checkOut, occ.rooms, occ.adults, occ.children || 0].join('|');
+      var cache = window.__HB_WIDEN_AVAIL_CACHE__;
+      if (cache && cache.key === widenKey && cache.av && !cache.av.error) {
+        var h0 = findHotelInAvailability(cache.av, want);
+        if (h0) return Promise.resolve(h0);
+      }
       var codes = getAllowedHotelCodeList();
-      var p =
+      var fetchWiden =
         codes.length > 0
-          ? fetchHotelbeds(checkInOut.checkIn, checkInOut.checkOut, codes, occ).then(function (av) {
-              if (!av || av.error) return null;
-              return findHotelInAvailability(av, want);
-            })
-          : Promise.resolve(null);
-      return p.then(function (found) {
-        if (found) return found;
-        return fetchHotelbedsByDestination(checkInOut.checkIn, checkInOut.checkOut, occ).then(function (av) {
-          if (!av || av.error) return null;
-          return findHotelInAvailability(av, want);
-        });
+          ? fetchHotelbeds(checkInOut.checkIn, checkInOut.checkOut, codes, occ)
+          : fetchHotelbedsByDestination(checkInOut.checkIn, checkInOut.checkOut, occ);
+      return fetchWiden.then(function (av) {
+        if (!av) return null;
+        if (av.error) {
+          var msg =
+            typeof av.error === 'string'
+              ? av.error
+              : av.error && av.error.message
+                ? String(av.error.message)
+                : '';
+          if (msg) throw new Error(msg);
+          return null;
+        }
+        window.__HB_WIDEN_AVAIL_CACHE__ = { key: widenKey, av: av };
+        return findHotelInAvailability(av, want) || null;
       });
     }
 
