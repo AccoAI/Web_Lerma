@@ -532,11 +532,15 @@
                 var nNochesH = parseInt((fd.get('noches') || '0'), 10);
                 var aloj = 0;
                 if (fechas.length === 2 && nNochesH >= 1) {
-                    for (var inx = 1; inx <= nNochesH; inx++) {
-                        var hvv = (fd.get('hotel-noche-' + inx) || '').trim();
-                        if (!hvv) continue;
-                        var pa = (typeof window.precioNocheDesdeHotelSelect === 'function') ? window.precioNocheDesdeHotelSelect(hvv) : null;
-                        if (pa != null) aloj += pa;
+                    if (typeof window.calcularAlojamientoResumenEuros === 'function') {
+                        aloj = window.calcularAlojamientoResumenEuros(fd, nNochesH);
+                    } else {
+                        for (var inx = 1; inx <= nNochesH; inx++) {
+                            var hvv = (fd.get('hotel-noche-' + inx) || '').trim();
+                            if (!hvv) continue;
+                            var pa = (typeof window.precioNocheDesdeHotelSelect === 'function') ? window.precioNocheDesdeHotelSelect(hvv) : null;
+                            if (pa != null) aloj += pa;
+                        }
                     }
                 }
 

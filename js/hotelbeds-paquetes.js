@@ -1,6 +1,7 @@
 /**
  * Precios Hotelbeds en tiempo real para cualquier paquete con calendario + alojamiento.
- * Configurar antes de cargar el script: window.HOTELBEDS_PAGE = { formId, hotelWrapId, preciosBlockId, ... onResumen }
+ * Opciones en window.HOTELBEDS_PAGE: formId, preciosBlockId, onResumen, hideHotelEuroUi (false = mostrar € en tarjetas y funnel).
+ * Con hideHotelEuroUi por defecto, el resumen del paquete sigue usando internamente hb_hotel_stay_ref_net (lista no empaquetada) vía calcularAlojamientoResumenEuros mientras el booking usa la tarifa empaquetada.
  */
 (function () {
   var DEBOUNCE_MS = 800;
@@ -28,8 +29,18 @@
       linkLermaId: 'booking-link-lerma',
       linkBurgosId: 'booking-link-burgos',
       onResumen: null,
+      /** Si no es `false`, no se muestran importes € de Hotelbeds en tarjetas ni funnel (el total del paquete usa internamente hb_hotel_stay_ref_net). */
+      hideHotelEuroUi: true,
     };
     return Object.assign({}, d, window.HOTELBEDS_PAGE || {});
+  }
+
+  function hbHideHotelEuroUi() {
+    return pageOpts().hideHotelEuroUi !== false;
+  }
+
+  function hbFunnelConditionsButtonText() {
+    return hbHideHotelEuroUi() ? 'Ver condiciones (Hotelbeds)' : 'Ver condiciones y precio final';
   }
 
   function getForm() {
@@ -293,6 +304,66 @@
     return isNaN(n) ? null : n;
   }
 
+  /**
+   * Hotelbeds «packaging» (glosario HB): tarifa pensada para venderse combinada con otro servicio;
+   * no es lo mismo que «opaque» legal en sentido turístico, pero comparte la idea de paquete API.
+   */
+  function coarseRateKeyForPackaging(offer) {
+    if (!offer) return '';
+    return [
+      String(offer.roomName || '').trim().toLowerCase(),
+      String(offer.boardCode || offer.boardName || '').trim(),
+      String(offer.rateClass || '').trim(),
+    ].join('\u0001');
+  }
+
+  /** Si hay tarifa empaquetada y otra no empaquetada para la misma habitación+régimen+clase, oculta la no empaquetada y guarda su net como referencia de resumen (margen vs lo que se reserva). */
+  function preferPackagingOffersAndAttachRef(offers) {
+    var groups = {};
+    (offers || []).forEach(function (o) {
+      var k = coarseRateKeyForPackaging(o);
+      if (!groups[k]) groups[k] = { hasPack: false, unpack: [], pack: [] };
+      if (o.packaging) {
+        groups[k].hasPack = true;
+        groups[k].pack.push(o);
+      } else {
+        groups[k].unpack.push(o);
+      }
+    });
+    var maxUnpackNetByKey = {};
+    Object.keys(groups).forEach(function (k) {
+      var maxN = null;
+      groups[k].unpack.forEach(function (o) {
+        var n = o.netValue;
+        if (n != null && !isNaN(n) && (maxN == null || n > maxN)) maxN = n;
+      });
+      maxUnpackNetByKey[k] = maxN;
+    });
+    var out = [];
+    (offers || []).forEach(function (o) {
+      var k = coarseRateKeyForPackaging(o);
+      var g = groups[k];
+      if (o.packaging) {
+        var refN = maxUnpackNetByKey[k];
+        o.resumenHotelRefNet = refN != null ? refN : o.netValue;
+        o.resumenHotelBookNet = o.netValue;
+        out.push(o);
+        return;
+      }
+      if (!g.hasPack) {
+        o.resumenHotelRefNet = o.netValue;
+        o.resumenHotelBookNet = o.netValue;
+        out.push(o);
+      }
+    });
+    out.sort(function (a, b) {
+      var an = a.netValue == null ? 1e12 : a.netValue;
+      var bn = b.netValue == null ? 1e12 : b.netValue;
+      return an - bn;
+    });
+    return out;
+  }
+
   function rateOfferFingerprint(offer) {
     if (!offer) return '';
     return [
@@ -352,9 +423,9 @@
       parts.push('Cupo HB ' + offer.allotment);
     }
     if (offer.packaging) {
-      parts.push('Tarifa empaquetada (paquete Hotelbeds, no solo alojamiento suelto)');
+      parts.push('Tarifa paquete Hotelbeds (combinable con otros servicios en el mismo pedido)');
     } else {
-      parts.push('Solo alojamiento (sin paquete)');
+      parts.push('Tarifa de alojamiento estándar (sin flag paquete HB)');
     }
     if (offer.rateCommentsId) parts.push('Ref. condiciones HB ' + offer.rateCommentsId);
     if (offer.cancellation) {
@@ -368,7 +439,7 @@
     if (offer.rateComments && offer.rateComments.length) {
       parts.push(offer.rateComments.join(' · '));
     } else if (offer.rateCommentsId) {
-      parts.push('Texto legal completo al pulsar «Ver condiciones y precio final»');
+      parts.push('Texto legal completo tras «' + hbFunnelConditionsButtonText() + '»');
     }
     if (offer.rateExtrasPaid && offer.rateExtrasPaid.length) {
       parts.push(offer.rateExtrasPaid.join(' · '));
@@ -377,6 +448,22 @@
       parts.push('Pago: ' + offer.paymentType);
     }
     return truncateText(parts.join(' · '), 280);
+  }
+
+  function funnelRatePickSubhint(offer) {
+    if (!offer) return '';
+    var parts = [];
+    if (offer.occupancyLabel) parts.push('Ocupación: ' + offer.occupancyLabel);
+    if (offer.rateClass) parts.push(rateClassLabel(offer.rateClass));
+    if (offer.allotment != null && offer.allotment !== '') parts.push('Cupo HB ' + offer.allotment);
+    if (offer.packaging) parts.push('Tarifa paquete Hotelbeds');
+    parts.push('Importe del alojamiento integrado en el total del paquete');
+    return truncateText(parts.join(' · '), 280);
+  }
+
+  function funnelRatePickLabel(offer) {
+    if (!offer) return '';
+    return (offer.roomName || 'Habitación') + ' · ' + (offer.boardName || offer.boardCode || 'Régimen') + ' · ' + offer.rateType;
   }
 
   function mapRateOffer(room, rate) {
@@ -415,11 +502,13 @@
       });
     });
     var deduped = dedupeSimilarRateOffers(offers);
+    var packed = preferPackagingOffersAndAttachRef(deduped.offers);
     if (hotel && hotel.code != null) {
       window.__HB_RATE_OFFERS_OMITTED__ = window.__HB_RATE_OFFERS_OMITTED__ || {};
-      window.__HB_RATE_OFFERS_OMITTED__[String(hotel.code)] = deduped.omitted;
+      window.__HB_RATE_OFFERS_OMITTED__[String(hotel.code)] =
+        deduped.omitted + Math.max(0, deduped.offers.length - packed.length);
     }
-    return deduped.offers;
+    return packed;
   }
 
   function findHotelInAvailability(av, hotelCode) {
@@ -751,6 +840,7 @@
     var roomLine = pick && pick.roomName ? pick.roomName : '';
     var ratePaid = (pick && pick.rateExtrasPaid) || [];
     var rateComm = (pick && pick.rateComments) || [];
+    var hideEur = hbHideHotelEuroUi();
 
     var imgHtml = img
       ? '<div class="hotelbeds-card-media"><img src="' + escapeHtml(img) + '" alt="" loading="lazy" width="120" height="90"></div>'
@@ -766,21 +856,30 @@
     }
 
     var rateExtraBlock = '';
-    if (ratePaid.length) {
-      rateExtraBlock +=
-        '<div class="hotelbeds-rate-paid"><strong>Cargos en la tarifa (API disponibilidad):</strong><ul class="hotelbeds-mini-list">' +
-        ratePaid
-          .map(function (x) {
-            return '<li>' + escapeHtml(x) + '</li>';
-          })
-          .join('') +
-        '</ul></div>';
+    if (!hideEur) {
+      if (ratePaid.length) {
+        rateExtraBlock +=
+          '<div class="hotelbeds-rate-paid"><strong>Cargos en la tarifa (API disponibilidad):</strong><ul class="hotelbeds-mini-list">' +
+          ratePaid
+            .map(function (x) {
+              return '<li>' + escapeHtml(x) + '</li>';
+            })
+            .join('') +
+          '</ul></div>';
+      }
+      if (rateComm.length) {
+        rateExtraBlock +=
+          '<div class="hotelbeds-rate-comments"><strong>Observaciones tarifa:</strong> ' +
+          escapeHtml(truncateText(rateComm.join(' '), 400)) +
+          '</div>';
+      }
     }
-    if (rateComm.length) {
-      rateExtraBlock +=
-        '<div class="hotelbeds-rate-comments"><strong>Observaciones tarifa:</strong> ' +
-        escapeHtml(truncateText(rateComm.join(' '), 400)) +
-        '</div>';
+
+    var priceHtml = '';
+    if (hideEur) {
+      priceHtml = '<span class="hotelbeds-price hotelbeds-price--package-note">Incluido en el paquete</span>';
+    } else {
+      priceHtml = '<span class="hotelbeds-price">' + escapeHtml(priceStr || '') + '</span>';
     }
 
     return (
@@ -793,9 +892,7 @@
       escapeHtml(displayName) +
       selSuffix +
       '</span>' +
-      '<span class="hotelbeds-price">' +
-      escapeHtml(priceStr) +
-      '</span>' +
+      priceHtml +
       '</header>' +
       (desc ? '<p class="hotelbeds-desc">' + escapeHtml(truncateText(desc, 380)) + '</p>' : '') +
       boardBlock +
@@ -831,6 +928,8 @@
       'hb_selected_rate_type',
       'hb_rate_validated',
       'hb_funnel_ready',
+      'hb_hotel_stay_ref_net',
+      'hb_hotel_stay_book_net',
     ];
     names.forEach(function (n) {
       if (form.querySelector('input[name="' + n + '"]')) return;
@@ -901,7 +1000,9 @@
       '</div>' +
       '<div class="hb-hotel-funnel-inline__rates" id="hb-funnel-inline-rates"></div>' +
       '<div class="hb-hotel-funnel-inline__actions">' +
-      '  <button type="button" class="hb-hotel-funnel-btn hb-hotel-funnel-btn--secondary" id="hb-funnel-inline-check" disabled>Ver condiciones y precio final</button>' +
+      '  <button type="button" class="hb-hotel-funnel-btn hb-hotel-funnel-btn--secondary" id="hb-funnel-inline-check" disabled>' +
+      escapeHtml(hbFunnelConditionsButtonText()) +
+      '</button>' +
       '  <button type="button" class="hb-hotel-funnel-btn" id="hb-funnel-inline-confirm" disabled>Confirmar hotel</button>' +
       '</div>' +
       '<div class="hb-hotel-funnel-inline__result" id="hb-funnel-inline-result" aria-live="polite"></div>';
@@ -933,14 +1034,30 @@
     form.querySelector('input[name="hb_occ_children"]').value = '0';
     form.querySelector('input[name="hb_rate_validated"]').value = '';
     form.querySelector('input[name="hb_funnel_ready"]').value = '';
+    var refN = form.querySelector('input[name="hb_hotel_stay_ref_net"]');
+    var bookN = form.querySelector('input[name="hb_hotel_stay_book_net"]');
+    if (refN) refN.value = '';
+    if (bookN) bookN.value = '';
   }
 
-  function markRateValidated(form, rateKey, rateType) {
+  function syncHbResumenPriceHidden(form, offer) {
+    ensureHotelFunnelHiddenInputs(form);
+    var refInp = form.querySelector('input[name="hb_hotel_stay_ref_net"]');
+    var bookInp = form.querySelector('input[name="hb_hotel_stay_book_net"]');
+    if (!refInp || !bookInp) return;
+    var ref = offer && offer.resumenHotelRefNet != null ? Number(offer.resumenHotelRefNet) : null;
+    var book = offer && offer.netValue != null ? Number(offer.netValue) : null;
+    refInp.value = ref != null && isFinite(ref) ? String(Math.round(ref * 100) / 100) : '';
+    bookInp.value = book != null && isFinite(book) ? String(Math.round(book * 100) / 100) : '';
+  }
+
+  function markRateValidated(form, rateKey, rateType, offerForResumen) {
     ensureHotelFunnelHiddenInputs(form);
     form.querySelector('input[name="hb_selected_rate_key"]').value = String(rateKey || '');
     form.querySelector('input[name="hb_selected_rate_type"]').value = String(rateType || '');
     form.querySelector('input[name="hb_rate_validated"]').value = '1';
     form.querySelector('input[name="hb_funnel_ready"]').value = '';
+    if (offerForResumen) syncHbResumenPriceHidden(form, offerForResumen);
   }
 
   function renderFunnelConditionsHtml(offer) {
@@ -956,32 +1073,39 @@
     if (offer.rateCommentsId) {
       html += '<div class="hb-funnel-small">Ref. condiciones HB: ' + escapeHtml(offer.rateCommentsId) + '</div>';
     }
-    if (offer.price) html += '<div class="hb-funnel-small">Total estancia: <strong>' + escapeHtml(offer.price) + '</strong></div>';
-    if (offer.promotions && offer.promotions.length) {
-      html += '<div class="hb-funnel-legal"><strong>Promociones</strong><ul>';
-      offer.promotions.forEach(function (p) {
-        html += '<li>' + escapeHtml(p) + '</li>';
-      });
-      html += '</ul></div>';
-    }
-    if (offer.rateExtrasPaid && offer.rateExtrasPaid.length) {
-      html += '<div class="hb-funnel-legal"><strong>Cargos adicionales</strong><ul>';
-      offer.rateExtrasPaid.forEach(function (line) {
-        html += '<li>' + escapeHtml(line) + '</li>';
-      });
-      html += '</ul></div>';
-    }
-    if (offer.rateComments && offer.rateComments.length) {
-      html += '<div class="hb-funnel-legal"><strong>Observaciones de tarifa</strong><ul>';
-      offer.rateComments.forEach(function (line) {
-        html += '<li>' + escapeHtml(line) + '</li>';
-      });
-      html += '</ul></div>';
-    }
-    if (offer.cancellation) {
-      html += '<div class="hb-funnel-legal"><strong>Política de cancelación</strong><p>' + escapeHtml(offer.cancellation) + '</p></div>';
+    if (hbHideHotelEuroUi()) {
+      html +=
+        '<div class="hb-funnel-small">El alojamiento Hotelbeds se integra en el <strong>importe total del paquete</strong> (green fees y resto de servicios del circuito); no se muestra aquí un precio de habitación desglosado.</div>';
+      html +=
+        '<div class="hb-funnel-legal"><strong>Cancelación y penalizaciones</strong><p>Según la tarifa elegida y las condiciones del proveedor; el detalle contractual lo confirma Hotelbeds al formalizar la reserva.</p></div>';
     } else {
-      html += '<div class="hb-funnel-legal"><strong>Política de cancelación</strong><p>No informada por la API en esta consulta.</p></div>';
+      if (offer.price) html += '<div class="hb-funnel-small">Total estancia: <strong>' + escapeHtml(offer.price) + '</strong></div>';
+      if (offer.promotions && offer.promotions.length) {
+        html += '<div class="hb-funnel-legal"><strong>Promociones</strong><ul>';
+        offer.promotions.forEach(function (p) {
+          html += '<li>' + escapeHtml(p) + '</li>';
+        });
+        html += '</ul></div>';
+      }
+      if (offer.rateExtrasPaid && offer.rateExtrasPaid.length) {
+        html += '<div class="hb-funnel-legal"><strong>Cargos adicionales</strong><ul>';
+        offer.rateExtrasPaid.forEach(function (line) {
+          html += '<li>' + escapeHtml(line) + '</li>';
+        });
+        html += '</ul></div>';
+      }
+      if (offer.rateComments && offer.rateComments.length) {
+        html += '<div class="hb-funnel-legal"><strong>Observaciones de tarifa</strong><ul>';
+        offer.rateComments.forEach(function (line) {
+          html += '<li>' + escapeHtml(line) + '</li>';
+        });
+        html += '</ul></div>';
+      }
+      if (offer.cancellation) {
+        html += '<div class="hb-funnel-legal"><strong>Política de cancelación</strong><p>' + escapeHtml(offer.cancellation) + '</p></div>';
+      } else {
+        html += '<div class="hb-funnel-legal"><strong>Política de cancelación</strong><p>No informada por la API en esta consulta.</p></div>';
+      }
     }
     html += '<div class="hb-funnel-small">Pulsa «Confirmar hotel» para fijar esta tarifa antes del pago.</div></div>';
     return html;
@@ -997,6 +1121,8 @@
     var merged = mapRateOffer(room || {}, rate);
     if (baseOffer && baseOffer.roomName && !merged.roomName) merged.roomName = baseOffer.roomName;
     if (baseOffer && baseOffer.boardName && !merged.boardName) merged.boardName = baseOffer.boardName;
+    if (baseOffer && baseOffer.resumenHotelRefNet != null) merged.resumenHotelRefNet = baseOffer.resumenHotelRefNet;
+    merged.resumenHotelBookNet = merged.netValue;
     return merged;
   }
 
@@ -1017,7 +1143,10 @@
     if (!box) return;
     var offers = (window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || [];
     if (!offers.length) {
-      box.innerHTML = '<p class="hb-funnel-small">Cargando tarifas para este hotel… Si no aparecen, pulsa «Ver condiciones y precio final».</p>';
+      box.innerHTML =
+        '<p class="hb-funnel-small">Cargando tarifas para este hotel… Si no aparecen, pulsa «' +
+        hbFunnelConditionsButtonText() +
+        '».</p>';
       return;
     }
     var pick = preferredRateKey ? String(preferredRateKey) : '';
@@ -1032,18 +1161,27 @@
     }
     var omitted = (window.__HB_RATE_OFFERS_OMITTED__ || {})[String(hotelCode)] || 0;
     var html = '<p class="hb-funnel-small">Elige habitación y régimen:</p>';
-    if (omitted > 0) {
+    if (omitted > 0 && !hbHideHotelEuroUi()) {
       html +=
         '<p class="hb-funnel-small">Se ocultan ' +
         omitted +
         ' tarifa(s) HB equivalentes; se muestra la más barata de cada grupo.</p>';
+    } else if (omitted > 0) {
+      html += '<p class="hb-funnel-small">Se agrupan opciones equivalentes; se muestra la opción paquete aplicable.</p>';
     }
     html += '<ul class="hb-funnel-rate-list">';
     offers.forEach(function (o, idx) {
-      var label = (o.roomName || 'Habitación') + ' · ' + (o.boardName || o.boardCode || 'Régimen');
-      if (o.price) label += ' · Total estancia ' + o.price;
-      label += ' · ' + o.rateType;
-      var hint = o.listHint || rateOfferListHint(o);
+      var label;
+      var hint;
+      if (hbHideHotelEuroUi()) {
+        label = funnelRatePickLabel(o);
+        hint = funnelRatePickSubhint(o);
+      } else {
+        label = (o.roomName || 'Habitación') + ' · ' + (o.boardName || o.boardCode || 'Régimen');
+        if (o.price) label += ' · Total estancia ' + o.price;
+        label += ' · ' + o.rateType;
+        hint = o.listHint || rateOfferListHint(o);
+      }
       html +=
         '<li><label class="hb-funnel-rate-pick"><input type="radio" name="hb-funnel-rate-pick" value="' +
         escapeHtml(o.rateKey) +
@@ -1157,7 +1295,7 @@
       btnConfirm.disabled = !hotelCode || !isRateValidated();
       btnConfirm.title =
         hotelCode && !isRateValidated()
-          ? 'Primero pulsa «Ver condiciones y precio final».'
+          ? 'Primero pulsa «' + hbFunnelConditionsButtonText() + '».'
           : '';
       if (!hotelCode) {
         hotelLine.textContent = 'Elige un hotel para continuar.';
@@ -1195,7 +1333,9 @@
                 ratesBox.innerHTML =
                   '<p class="hb-funnel-warn">' +
                   escapeHtml(e.message || String(e)) +
-                  '</p><p class="hb-funnel-small">Puedes pulsar «Ver condiciones y precio final» para reintentar.</p>';
+                  '</p><p class="hb-funnel-small">Puedes pulsar «' +
+                  hbFunnelConditionsButtonText() +
+                  '» para reintentar.</p>';
               }
             })
             .finally(function () {
@@ -1279,7 +1419,7 @@
             return offer;
           })
           .then(function (offer) {
-            markRateValidated(form, offer.rateKey, offer.rateType);
+            markRateValidated(form, offer.rateKey, offer.rateType, offer);
             form.querySelector('input[name="hb_occ_adults"]').value = String(occ.adults);
             form.querySelector('input[name="hb_occ_rooms"]').value = String(occ.rooms);
             refreshUiState();
@@ -1298,7 +1438,7 @@
         var hotelCode = getSelectedHotelCode();
         if (!hotelCode) return;
         if (!isRateValidated()) {
-          result.innerHTML = '<p class="hb-funnel-warn">Antes revisa condiciones y precio final.</p>';
+          result.innerHTML = '<p class="hb-funnel-warn">Antes revisa las condiciones (Hotelbeds).</p>';
           return;
         }
         form.querySelector('input[name="hb_funnel_ready"]').value = '1';
@@ -1558,6 +1698,11 @@
 
   var PRICE_ON_REQUEST_LABEL = 'Precio a consultar';
 
+  function cardListPriceCaption(rate, noches, fallbackLabel) {
+    if (hbHideHotelEuroUi()) return '';
+    return formatHotelListPriceStr(rate, noches) || (fallbackLabel != null ? fallbackLabel : PRICE_ON_REQUEST_LABEL);
+  }
+
   function fetchHotelbedsListHotels() {
     var base = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
     var all = [];
@@ -1667,7 +1812,7 @@
           var code = String(h.code);
           var meta = contentBy[code] || null;
           var stub = { code: code, name: meta && meta.name ? meta.name : h.name };
-          var priceStr = formatHotelListPriceStr(parseHotelMinRate(h), noches) || fallbackPriceStr;
+          var priceStr = cardListPriceCaption(parseHotelMinRate(h), noches, fallbackPriceStr);
           html +=
             '<li class="hotelbeds-item-wrap">' +
             hotelRichCardHtml(stub, meta, null, priceStr, '') +
@@ -1712,7 +1857,9 @@
     var rateBy = window.__HB_RATE_BY_CODE || {};
     var contentBy = window.__HB_CONTENT_BY_CODE || {};
     var html =
-      '<div class="hotelbeds-block hotelbeds-results"><h4 class="hotelbeds-title">Precios en tiempo real (Hotelbeds)</h4><ul class="hotelbeds-list hotelbeds-list--cards">';
+      '<div class="hotelbeds-block hotelbeds-results"><h4 class="hotelbeds-title">' +
+      (hbHideHotelEuroUi() ? 'Hoteles con disponibilidad (Hotelbeds)' : 'Precios en tiempo real (Hotelbeds)') +
+      '</h4><ul class="hotelbeds-list hotelbeds-list--cards">';
     // Hotelbeds Availability suele devolver minRate como total de la estancia.
     // Para evitar confusión, mostramos total estancia + (aprox) por noche según nº de noches.
     var noches = getNochesFromForm();
@@ -1721,7 +1868,7 @@
       var ourId = codeToId[code];
       var rate = parseHotelMinRate(h);
       if (ourId && rate != null) live[ourId] = rate;
-      var priceStr = formatHotelListPriceStr(rate, noches) || PRICE_ON_REQUEST_LABEL;
+      var priceStr = cardListPriceCaption(rate, noches, null);
       var sel = selectedHotels.indexOf(code) >= 0 ? ' <span class="hotelbeds-selected">(elegido)</span>' : '';
       var pick = rateBy[code];
       var meta = contentBy[code];
@@ -1731,7 +1878,11 @@
         '</li>';
     });
     html +=
-      '</ul><p class="hotelbeds-note">Ficha enriquecida con Hotelbeds Content API (estrellas, imagen y descripción). Los cargos de tarifa se muestran cuando la API los incluye.</p></div>';
+      '</ul><p class="hotelbeds-note">' +
+      (hbHideHotelEuroUi()
+        ? 'Importes de hotel no mostrados; el alojamiento se integra en el total del paquete al confirmar en el funnel.'
+        : 'Ficha enriquecida con Hotelbeds Content API (estrellas, imagen y descripción). Los cargos de tarifa se muestran cuando la API los incluye.') +
+      '</p></div>';
     window.LIVE_HOTEL_PRICES = Object.keys(live).length ? live : null;
     setBookingWidgetVisible(!window.LIVE_HOTEL_PRICES);
     renderBlock(html);
@@ -1773,12 +1924,16 @@
     var rateBy = window.__HB_RATE_BY_CODE || {};
     var contentBy = window.__HB_CONTENT_BY_CODE || {};
     var html =
-      '<div class="hotelbeds-block hotelbeds-results"><h4 class="hotelbeds-title">Precios en tiempo real (Hotelbeds) · Lerma y Burgos</h4><ul class="hotelbeds-list hotelbeds-list--cards">';
+      '<div class="hotelbeds-block hotelbeds-results"><h4 class="hotelbeds-title">' +
+      (hbHideHotelEuroUi()
+        ? 'Hoteles con disponibilidad (Hotelbeds) · Lerma y Burgos'
+        : 'Precios en tiempo real (Hotelbeds) · Lerma y Burgos') +
+      '</h4><ul class="hotelbeds-list hotelbeds-list--cards">';
     hotels.forEach(function (h) {
       var code = String(h.code);
       var key = 'hb-' + code;
       var rate = live[key];
-      var priceStr = formatHotelListPriceStr(rate, noches) || PRICE_ON_REQUEST_LABEL;
+      var priceStr = cardListPriceCaption(rate, noches, null);
       var pick = rateBy[code];
       var meta = contentBy[code];
       html +=
@@ -1787,7 +1942,11 @@
         '</li>';
     });
     html +=
-      '</ul><p class="hotelbeds-note">Elige el hotel para cada noche en los desplegables. Ficha enriquecida con Content API. Cargos de tarifa cuando los devuelve la API.</p></div>';
+      '</ul><p class="hotelbeds-note">' +
+      (hbHideHotelEuroUi()
+        ? 'Elige hotel y régimen en el funnel. Los importes de alojamiento van integrados en el total del paquete.'
+        : 'Elige el hotel para cada noche en los desplegables. Ficha enriquecida con Content API. Cargos de tarifa cuando los devuelve la API.') +
+      '</p></div>';
     setBookingWidgetVisible(false);
     renderBlock(html);
     bindSelectableHotelCards();

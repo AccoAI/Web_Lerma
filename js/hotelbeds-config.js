@@ -47,6 +47,25 @@ window.HOTELBEDS_CONFIG = {
   },
 };
 
+/** Suma alojamiento en el resumen del paquete: con funnel Hotelbeds confirmado usa hb_hotel_stay_ref_net (importe lista no empaquetado, solo en cálculo; el cliente no ve ese desglose si hideHotelEuroUi). El pago a HB sigue siendo la tarifa empaquetada (rateKey). El margen se reparte comercialmente con el resto del paquete (golf). */
+window.calcularAlojamientoResumenEuros = function (formData, nNoches, fallbackPerNoche) {
+  if (!formData || !formData.get) return 0;
+  if (String(formData.get('hb_funnel_ready') || '').trim() === '1') {
+    var raw = String(formData.get('hb_hotel_stay_ref_net') || '').trim().replace(',', '.');
+    var ref = parseFloat(raw);
+    if (isFinite(ref) && ref > 0) return Math.round(ref * 100) / 100;
+  }
+  var total = 0;
+  var fb = fallbackPerNoche != null && isFinite(Number(fallbackPerNoche)) ? Number(fallbackPerNoche) : null;
+  for (var inx = 1; inx <= (nNoches || 0); inx++) {
+    var hv = (formData.get('hotel-noche-' + inx) || '').trim();
+    if (!hv) continue;
+    var pa = typeof window.precioNocheDesdeHotelSelect === 'function' ? window.precioNocheDesdeHotelSelect(hv) : null;
+    total += pa != null ? pa : fb != null ? fb : 0;
+  }
+  return Math.round(total * 100) / 100;
+};
+
 /** Precio €/noche para un valor de select (lerma-id, hb-código, etc.) usando LIVE_HOTEL_PRICES y getHotelesOpts. */
 window.precioNocheDesdeHotelSelect = function (hv) {
   if (!hv || String(hv).indexOf('-') < 0) return null;

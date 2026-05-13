@@ -335,12 +335,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             var aloj = 0;
             if (sectionAlojamientoShown && nNoches >= 1) {
+              if (typeof window.calcularAlojamientoResumenEuros === 'function') {
+                aloj = window.calcularAlojamientoResumenEuros(formData, nNoches);
+              } else {
                 for (var inx = 1; inx <= nNoches; inx++) {
-                    var hv = (formData.get('hotel-noche-' + inx) || '').trim();
-                    if (!hv) continue;
-                    var pa = (typeof window.precioNocheDesdeHotelSelect === 'function') ? window.precioNocheDesdeHotelSelect(hv) : null;
-                    if (pa != null) aloj += pa;
+                  var hv = (formData.get('hotel-noche-' + inx) || '').trim();
+                  if (!hv) continue;
+                  var pa = (typeof window.precioNocheDesdeHotelSelect === 'function') ? window.precioNocheDesdeHotelSelect(hv) : null;
+                  if (pa != null) aloj += pa;
                 }
+              }
             }
 
             var precioComida = (precios.comida && precios.comida.lerma) != null ? precios.comida.lerma : 22;

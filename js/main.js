@@ -1206,12 +1206,16 @@ function initConfiguradorPaquete() {
 
             var aloj = 0;
             if (necesitaHotel && hotelOk) {
+              if (typeof window.calcularAlojamientoResumenEuros === 'function') {
+                aloj = window.calcularAlojamientoResumenEuros(formData, nNoches);
+              } else {
                 for (var inx = 1; inx <= nNoches; inx++) {
-                    var hv = (formData.get('hotel-noche-' + inx) || '').trim();
-                    if (!hv) continue;
-                    var price = (typeof window.precioNocheDesdeHotelSelect === 'function') ? window.precioNocheDesdeHotelSelect(hv) : null;
-                    if (price != null) aloj += price;
+                  var hv = (formData.get('hotel-noche-' + inx) || '').trim();
+                  if (!hv) continue;
+                  var price = (typeof window.precioNocheDesdeHotelSelect === 'function') ? window.precioNocheDesdeHotelSelect(hv) : null;
+                  if (price != null) aloj += price;
                 }
+              }
             }
 
             var precioLaliPp = (precios.paquetes && precios.paquetes.finSemana && precios.paquetes.finSemana.laliComidaPrecioPorPersona != null)
