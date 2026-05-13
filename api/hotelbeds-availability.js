@@ -166,7 +166,13 @@ async function fetchAvailability(apiKey, secret, body) {
   };
 
   if (body.hotelCodes && Array.isArray(body.hotelCodes) && body.hotelCodes.length > 0) {
-    payload.hotels = { hotel: body.hotelCodes.map(String).slice(0, 20) };
+    payload.hotels = {
+      hotel: body.hotelCodes.slice(0, 20).map((c) => {
+        const s = String(c == null ? '' : c).trim();
+        if (/^\d{1,12}$/.test(s)) return parseInt(s, 10);
+        return s;
+      }),
+    };
   } else if (body.destinationCode) {
     payload.destination = { code: String(body.destinationCode) };
   } else {

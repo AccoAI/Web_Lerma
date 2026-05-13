@@ -75,6 +75,8 @@
   function renderLoading() {
     window.LIVE_HOTEL_PRICES = null;
     window.__HB_FUNNEL_LAST__ = null;
+    window.__HB_LAST_AVAIL__ = null;
+    window.__HB_LAST_AVAIL_OCC__ = null;
     setBookingWidgetVisible(false);
     renderBlock('<div class="hotelbeds-block hotelbeds-loading"><span class="hotelbeds-spinner"></span> Consultando precios en tiempo real...</div>');
   }
@@ -530,30 +532,59 @@
         ? Promise.resolve(cached.av)
         : requestAvailability();
 
+    function tryWidenAvailabilityForHotel() {
+      var want = String(hotelCode || '');
+      if (!want) return Promise.resolve(null);
+      var codes = getAllowedHotelCodeList();
+      var p =
+        codes.length > 0
+          ? fetchHotelbeds(checkInOut.checkIn, checkInOut.checkOut, codes, occ).then(function (av) {
+              if (!av || av.error) return null;
+              return findHotelInAvailability(av, want);
+            })
+          : Promise.resolve(null);
+      return p.then(function (found) {
+        if (found) return found;
+        return fetchHotelbedsByDestination(checkInOut.checkIn, checkInOut.checkOut, occ).then(function (av) {
+          if (!av || av.error) return null;
+          return findHotelInAvailability(av, want);
+        });
+      });
+    }
+
     return avPromise.then(function (av) {
       var hotel = findHotelInAvailability(av, hotelCode);
       if (!hotel) hotel = findHotelInAvailability(window.__HB_LAST_AVAIL__, hotelCode);
       if (!hotel) {
-        var listOcc = window.__HB_LAST_AVAIL_OCC__;
-        var occMismatch =
-          listOcc &&
-          (listOcc.adults !== occ.adults || listOcc.rooms !== occ.rooms);
-        if (occMismatch) {
+        return tryWidenAvailabilityForHotel().then(function (h2) {
+          if (h2) {
+            var offersW = collectRateOffersFromHotel(h2);
+            if (!offersW.length) throw new Error('No hay tarifas para esa ocupación.');
+            window.__HB_RATE_OFFERS_BY_CODE__ = window.__HB_RATE_OFFERS_BY_CODE__ || {};
+            window.__HB_RATE_OFFERS_BY_CODE__[String(hotelCode)] = offersW;
+            return offersW;
+          }
+          var listOcc = window.__HB_LAST_AVAIL_OCC__;
+          var occMismatch =
+            listOcc &&
+            (listOcc.adults !== occ.adults || listOcc.rooms !== occ.rooms);
+          if (occMismatch) {
+            throw new Error(
+              'Sin disponibilidad para ' +
+                occ.adults +
+                ' adulto(s) en ' +
+                occ.rooms +
+                ' habitación(es). Las tarifas del listado eran para ' +
+                listOcc.adults +
+                ' adulto(s) en ' +
+                listOcc.rooms +
+                ' habitación(es); ajusta la ocupación o cambia fechas.'
+            );
+          }
           throw new Error(
-            'Sin disponibilidad para ' +
-              occ.adults +
-              ' adulto(s) en ' +
-              occ.rooms +
-              ' habitación(es). Las tarifas del listado eran para ' +
-              listOcc.adults +
-              ' adulto(s) en ' +
-              listOcc.rooms +
-              ' habitación(es); ajusta la ocupación o cambia fechas.'
+            'Sin disponibilidad para ese hotel y ocupación. Revisa fechas y tamaño de grupo, o prueba otras fechas.'
           );
-        }
-        throw new Error(
-          'Sin disponibilidad para ese hotel y ocupación. Revisa fechas y tamaño de grupo, o prueba otras fechas.'
-        );
+        });
       }
       var offers = collectRateOffersFromHotel(hotel);
       if (!offers.length) throw new Error('No hay tarifas para esa ocupación.');
