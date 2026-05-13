@@ -89,6 +89,7 @@
     window.__HB_LAST_AVAIL__ = null;
     window.__HB_LAST_AVAIL_OCC__ = null;
     window.__HB_WIDEN_AVAIL_CACHE__ = null;
+    window.__HB_FUNNEL_OFFERS_KEY_BY_HOTEL__ = null;
     setBookingWidgetVisible(false);
     renderBlock('<div class="hotelbeds-block hotelbeds-loading"><span class="hotelbeds-spinner"></span> Consultando precios en tiempo real...</div>');
   }
@@ -99,6 +100,7 @@
     window.__HB_RATE_OFFERS_BY_CODE__ = null;
     window.__HB_FUNNEL_LAST__ = null;
     window.__HB_WIDEN_AVAIL_CACHE__ = null;
+    window.__HB_FUNNEL_OFFERS_KEY_BY_HOTEL__ = null;
     window.__HB_CONTENT_BY_CODE = null;
   }
 
@@ -564,7 +566,43 @@
     if (!offers.length) return false;
     offersBy[key] = offers;
     window.__HB_RATE_OFFERS_BY_CODE__ = offersBy;
+    try {
+      var fdH = getFormData();
+      if (fdH) {
+        var coH = getCheckInCheckOut(fdH);
+        if (coH) {
+          var occH = window.__HB_LAST_AVAIL_OCC__ || getListOccupancyForAvailability(fdH);
+          markHbFunnelOffersCached(hotelCode, coH, occH);
+        }
+      }
+    } catch (eH) { /* ignore */ }
     return true;
+  }
+
+  function isHbQuotaLikeMessage(msg) {
+    return /quota|rate limit|429|too many requests|exceeded|throttl|l[ií]mite/i.test(String(msg || ''));
+  }
+
+  function getHbFunnelOffersKey(checkInOut, occ, hotelCode) {
+    if (!checkInOut || !checkInOut.checkIn) return '';
+    return buildAvailCacheKey(checkInOut.checkIn, checkInOut.checkOut, occ, hotelCode);
+  }
+
+  function markHbFunnelOffersCached(hotelCode, checkInOut, occ) {
+    var k = String(hotelCode || '');
+    if (!k) return;
+    var key = getHbFunnelOffersKey(checkInOut, occ, hotelCode);
+    if (!key) return;
+    window.__HB_FUNNEL_OFFERS_KEY_BY_HOTEL__ = window.__HB_FUNNEL_OFFERS_KEY_BY_HOTEL__ || {};
+    window.__HB_FUNNEL_OFFERS_KEY_BY_HOTEL__[k] = key;
+  }
+
+  function hbFunnelOffersCacheMatches(hotelCode, checkInOut, occ) {
+    var k = String(hotelCode || '');
+    var map = window.__HB_FUNNEL_OFFERS_KEY_BY_HOTEL__;
+    if (!k || !map) return false;
+    var want = getHbFunnelOffersKey(checkInOut, occ, hotelCode);
+    return want && map[k] === want;
   }
 
   function getFunnelOccupancyForAvailability(form, adultsInp, roomsInp, adultsDefault, roomsDefault) {
@@ -606,7 +644,20 @@
         hotelCodes: [String(hotelCode)],
       }).then(function (av) {
         if (!av || av.error) {
-          throw new Error(av && av.error ? av.error : 'Availability sin respuesta válida');
+          var rawErr =
+            av && av.error
+              ? typeof av.error === 'string'
+                ? av.error
+                : av.error && av.error.message
+                  ? String(av.error.message)
+                  : String(av.error)
+              : '';
+          if (isHbQuotaLikeMessage(rawErr)) {
+            throw new Error(
+              'Cuota de consultas Hotelbeds superada. Espera unos minutos o revisa el límite en tu cuenta.'
+            );
+          }
+          throw new Error(rawErr || 'Availability sin respuesta válida');
         }
         if (findHotelInAvailability(av, hotelCode)) {
           window.__HB_FUNNEL_LAST__ = { key: cacheKey, av: av };
@@ -646,7 +697,14 @@
               : av.error && av.error.message
                 ? String(av.error.message)
                 : '';
-          if (msg) throw new Error(msg);
+          if (msg) {
+            if (isHbQuotaLikeMessage(msg)) {
+              throw new Error(
+                'Cuota de consultas Hotelbeds superada. Espera unos minutos o revisa el límite en tu cuenta.'
+              );
+            }
+            throw new Error(msg);
+          }
           return null;
         }
         window.__HB_WIDEN_AVAIL_CACHE__ = { key: widenKey, av: av };
@@ -664,6 +722,7 @@
             if (!offersW.length) throw new Error('No hay tarifas para esa ocupación.');
             window.__HB_RATE_OFFERS_BY_CODE__ = window.__HB_RATE_OFFERS_BY_CODE__ || {};
             window.__HB_RATE_OFFERS_BY_CODE__[String(hotelCode)] = offersW;
+            markHbFunnelOffersCached(hotelCode, checkInOut, occ);
             return offersW;
           }
           var listOcc = window.__HB_LAST_AVAIL_OCC__;
@@ -692,6 +751,7 @@
       if (!offers.length) throw new Error('No hay tarifas para esa ocupación.');
       window.__HB_RATE_OFFERS_BY_CODE__ = window.__HB_RATE_OFFERS_BY_CODE__ || {};
       window.__HB_RATE_OFFERS_BY_CODE__[String(hotelCode)] = offers;
+      markHbFunnelOffersCached(hotelCode, checkInOut, occ);
       return offers;
     });
   }
@@ -1398,10 +1458,17 @@
         setSelectedHotelInHiddenInputs(form, hotelCode, '', occ.adults, occ.rooms, '');
         refreshUiState();
 
-        result.textContent = 'Consultando disponibilidad...';
+        result.textContent = offersReady
+          ? 'Preparando condiciones de la tarifa…'
+          : 'Consultando disponibilidad...';
         btnCheck.disabled = true;
 
-        fetchFunnelAvailabilityOffers(hotelCode, checkInOut, occ)
+        var offersReady =
+          ((window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || []).length > 0 &&
+          hbFunnelOffersCacheMatches(hotelCode, checkInOut, occ);
+        var fetchStep = offersReady ? Promise.resolve() : fetchFunnelAvailabilityOffers(hotelCode, checkInOut, occ);
+
+        fetchStep
           .then(function () {
             host.__hbRatesHotel = String(hotelCode);
             renderFunnelRateChoices(host, hotelCode, previousRateKey);
@@ -1411,7 +1478,15 @@
               var base = window.location.origin || '';
               return fetchJson(base + '/api/hotelbeds-availability', { action: 'checkrates', rooms: [{ rateKey: offer.rateKey }] }).then(function (cr) {
                 if (!cr || cr.ok !== true) {
-                  throw new Error((cr && (cr.hotelbedsError || cr.error)) || 'CheckRate falló');
+                  var crErr = (cr && (cr.hotelbedsError || cr.error)) || '';
+                  var crMsg =
+                    typeof crErr === 'string' ? crErr : crErr && crErr.message ? String(crErr.message) : String(crErr);
+                  if (isHbQuotaLikeMessage(crMsg)) {
+                    throw new Error(
+                      'Cuota de consultas Hotelbeds superada. Espera unos minutos o revisa el límite en tu cuenta.'
+                    );
+                  }
+                  throw new Error(crMsg || 'CheckRate falló');
                 }
                 return offerFromCheckrateData(cr.data, offer);
               });
