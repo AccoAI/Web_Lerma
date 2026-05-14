@@ -599,9 +599,10 @@
   }
 
   /**
-   * Cuota / rate limit: HTTP 429, code en cuerpo Hotelbeds, o texto explícito (no /quota/ sobre JSON.stringify masivo).
-   * @param {string} msg
-   * @param {{ hotelbedsHttpStatus?: number, httpStatus?: number, hotelbeds?: object, data?: object }|null} envelope
+   * Cuota / rate limit: HTTP 429, o error.code explícito de cuota en el cuerpo Hotelbeds.
+   * Si Hotelbeds envía otro code (p. ej. CLIENT_ERROR) aunque el message diga "Quota exceeded",
+   * no es cuota: evita falso positivo y muestra el error real.
+   * Heurísticas de texto solo en mensajes cortos (evita JSON accidental).
    */
   function isHbQuotaLikeMessage(msg, envelope) {
     envelope = envelope || {};
@@ -611,14 +612,22 @@
 
     var hbRoot = envelope.hotelbeds || envelope.data;
     var errObj = hbRoot && hbRoot.error;
-    if (errObj && typeof errObj === 'object' && errObj.code != null && hbQuotaErrorCode(errObj.code)) {
-      return true;
+    if (errObj && typeof errObj === 'object') {
+      var cTop = errObj.code != null ? String(errObj.code).trim() : '';
+      if (cTop && hbQuotaErrorCode(cTop)) return true;
+      if (cTop && !hbQuotaErrorCode(cTop)) return false;
     }
 
     var s = String(msg || '').trim();
     if (!s) return false;
-    var headCode = /^([A-Za-z0-9_]+)\s*[—:-]\s*/.exec(s);
-    if (headCode && hbQuotaErrorCode(headCode[1])) return true;
+
+    var prefix = /^([A-Za-z0-9_]+)\s*[—:-]\s*/.exec(s);
+    if (prefix) {
+      if (hbQuotaErrorCode(prefix[1])) return true;
+      if (Number(http) !== 429) return false;
+    }
+
+    if (s.length > 600) return false;
 
     var lower = s.toLowerCase();
     if (/\b429\b/.test(lower)) return true;
