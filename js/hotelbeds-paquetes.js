@@ -599,23 +599,32 @@
   }
 
   /**
-   * Cuota / rate limit: HTTP 429, o error.code explícito de cuota en el cuerpo Hotelbeds.
-   * Si Hotelbeds envía otro code (p. ej. CLIENT_ERROR) aunque el message diga "Quota exceeded",
-   * no es cuota: evita falso positivo y muestra el error real.
-   * Heurísticas de texto solo en mensajes cortos (evita JSON accidental).
+   * Cuota / rate limit real de Hotelbeds.
+   * - HTTP 429 → rate limit  (siempre)
+   * - HTTP 403 + texto "quota exceeded" → cuota agotada (Hotelbeds usa 403 para cuota diaria/mensual)
+   * - error.code explícito en la lista de cuota → cuota
+   * - Si hay code explícito que NO es cuota → no es cuota (evita falso positivo)
+   * - Heurísticas de texto solo en mensajes cortos (evita match accidental en JSON serializado)
    */
   function isHbQuotaLikeMessage(msg, envelope) {
     envelope = envelope || {};
     var http =
       envelope.hotelbedsHttpStatus != null ? envelope.hotelbedsHttpStatus : envelope.httpStatus;
-    if (Number(http) === 429) return true;
+    var httpNum = Number(http);
+    if (httpNum === 429) return true;
 
     var hbRoot = envelope.hotelbeds || envelope.data;
     var errObj = hbRoot && hbRoot.error;
     if (errObj && typeof errObj === 'object') {
       var cTop = errObj.code != null ? String(errObj.code).trim() : '';
       if (cTop && hbQuotaErrorCode(cTop)) return true;
-      if (cTop && !hbQuotaErrorCode(cTop)) return false;
+      if (cTop && !hbQuotaErrorCode(cTop)) {
+        var msgLow = String(errObj.message || '').toLowerCase();
+        if (httpNum === 403 && /quota\s+exceeded|quota\s+reached|quota\s+limit|exceed.*quota/i.test(msgLow)) {
+          return true;
+        }
+        return false;
+      }
     }
 
     var s = String(msg || '').trim();
@@ -624,7 +633,7 @@
     var prefix = /^([A-Za-z0-9_]+)\s*[—:-]\s*/.exec(s);
     if (prefix) {
       if (hbQuotaErrorCode(prefix[1])) return true;
-      if (Number(http) !== 429) return false;
+      if (httpNum !== 429 && httpNum !== 403) return false;
     }
 
     if (s.length > 600) return false;
@@ -636,6 +645,7 @@
     if (/throttl/i.test(lower)) return true;
     if (/cuota\s+de\s+consultas|consultas\s+superad|peticiones\s+excedid/i.test(lower)) return true;
     if (/\bquota_exceeded\b|\brate_limit_exceeded\b|\btoo_many_requests\b/i.test(lower)) return true;
+    if (httpNum === 403 && /quota\s+exceeded|quota\s+reached|quota\s+limit|exceed.*quota/i.test(lower)) return true;
     if (
       /_quota|quota_exceed|exceed(?:ed)?\s+quota|quota\s+(?:exceed|reached|limit)|api\s+quota|request\s+quota|daily\s+quota|service\s+quota/i.test(
         lower
@@ -718,12 +728,12 @@
                   ? String(av.error.message)
                   : String(av.error)
               : '';
-          console.warn('[Hotelbeds] Error funnel availability:', {
-            errorMsg: rawErr,
-            hotelbedsHttpStatus: av && av.hotelbedsHttpStatus,
-            hbErrorCode: av && av.hotelbeds && av.hotelbeds.error && av.hotelbeds.error.code,
-            rawHb: av && av.hotelbeds,
-          });
+          console.warn(
+            '[Hotelbeds] Error funnel availability — msg:', rawErr,
+            '| HTTP:', av && av.hotelbedsHttpStatus,
+            '| code:', av && av.hotelbeds && av.hotelbeds.error && av.hotelbeds.error.code,
+            '| rawHb:', JSON.stringify((av && av.hotelbeds) || null)
+          );
           if (isHbQuotaLikeMessage(rawErr, av)) {
             throw new Error(
               'Cuota de consultas Hotelbeds superada. Espera unos minutos o revisa el límite en tu cuenta.'
@@ -2145,13 +2155,12 @@
           var errMsg = typeof hb.error === 'string' ? hb.error : (hb.error && hb.error.message) || 'Hotelbeds error';
           var httpSt = hb.hotelbedsHttpStatus || null;
           var hbErrCode = (hb.hotelbeds && hb.hotelbeds.error && hb.hotelbeds.error.code) || null;
-          console.warn('[Hotelbeds] Error en disponibilidad:', {
-            errorMsg: errMsg,
-            hotelbedsHttpStatus: httpSt,
-            hbErrorCode: hbErrCode,
-            rawHb: hb.hotelbeds || null,
-            rawPreview: hb.rawPreview || null,
-          });
+          console.warn(
+            '[Hotelbeds] Error en disponibilidad — msg:', errMsg,
+            '| HTTP:', httpSt,
+            '| code:', hbErrCode,
+            '| rawHb:', JSON.stringify(hb.hotelbeds || hb.rawPreview || null)
+          );
           var e = new Error(errMsg);
           e.hotelbedsHttpStatus = httpSt;
           e.hbErrorCode = hbErrCode;
