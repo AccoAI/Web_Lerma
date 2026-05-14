@@ -718,6 +718,12 @@
                   ? String(av.error.message)
                   : String(av.error)
               : '';
+          console.warn('[Hotelbeds] Error funnel availability:', {
+            errorMsg: rawErr,
+            hotelbedsHttpStatus: av && av.hotelbedsHttpStatus,
+            hbErrorCode: av && av.hotelbeds && av.hotelbeds.error && av.hotelbeds.error.code,
+            rawHb: av && av.hotelbeds,
+          });
           if (isHbQuotaLikeMessage(rawErr, av)) {
             throw new Error(
               'Cuota de consultas Hotelbeds superada. Espera unos minutos o revisa el límite en tu cuenta.'
@@ -1826,7 +1832,10 @@
       document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
       return;
     }
-    window.__HB_API_DOWN__ = err && err.message ? err.message : 'Error de conexión';
+    var errMsg = (err && err.message) ? err.message : 'Error de conexión';
+    var httpSt = err && err.hotelbedsHttpStatus ? ' [HTTP ' + err.hotelbedsHttpStatus + ']' : '';
+    var errCode = err && err.hbErrorCode ? ' [code: ' + err.hbErrorCode + ']' : '';
+    window.__HB_API_DOWN__ = errMsg + httpSt + errCode;
     setBookingWidgetVisible(true);
     fetchHotelbedsListHotels()
       .then(function (list) {
@@ -2133,7 +2142,20 @@
     hbPromise
       .then(function (hb) {
         if (hb && hb.error) {
-          throw new Error(typeof hb.error === 'string' ? hb.error : (hb.error && hb.error.message) || 'Hotelbeds error');
+          var errMsg = typeof hb.error === 'string' ? hb.error : (hb.error && hb.error.message) || 'Hotelbeds error';
+          var httpSt = hb.hotelbedsHttpStatus || null;
+          var hbErrCode = (hb.hotelbeds && hb.hotelbeds.error && hb.hotelbeds.error.code) || null;
+          console.warn('[Hotelbeds] Error en disponibilidad:', {
+            errorMsg: errMsg,
+            hotelbedsHttpStatus: httpSt,
+            hbErrorCode: hbErrCode,
+            rawHb: hb.hotelbeds || null,
+            rawPreview: hb.rawPreview || null,
+          });
+          var e = new Error(errMsg);
+          e.hotelbedsHttpStatus = httpSt;
+          e.hbErrorCode = hbErrCode;
+          throw e;
         }
         window.__HB_LAST_AVAIL__ = hb;
         window.__HB_LAST_AVAIL_OCC__ = occ;
