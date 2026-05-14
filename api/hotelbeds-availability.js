@@ -210,14 +210,24 @@ async function fetchAvailability(apiKey, secret, body) {
 
   if (!res.ok) {
     const errObj = data && data.error;
-    const errMsg =
-      (typeof errObj === 'string' ? errObj : errObj && errObj.message) ||
-      data.message ||
-      (typeof data === 'string' ? data : JSON.stringify(data));
+    let errMsg = '';
+    if (typeof errObj === 'string') {
+      errMsg = errObj.trim();
+    } else if (errObj && typeof errObj === 'object') {
+      const code = errObj.code != null ? String(errObj.code).trim() : '';
+      const message = errObj.message != null ? String(errObj.message).trim() : '';
+      const desc = errObj.description != null ? String(errObj.description).trim() : '';
+      errMsg = [code, message || desc].filter(Boolean).join(' — ');
+    }
+    if (!errMsg && typeof data?.message === 'string') errMsg = data.message.trim();
+    if (!errMsg && typeof data === 'string') errMsg = data.trim();
+    if (!errMsg) {
+      errMsg = `Error Hotelbeds (HTTP ${res.status})`;
+    }
     return {
       ok: false,
       status: res.status,
-      error: String(errMsg),
+      error: String(errMsg).slice(0, 2000),
       data,
     };
   }

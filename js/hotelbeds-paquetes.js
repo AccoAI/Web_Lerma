@@ -579,17 +579,64 @@
     return true;
   }
 
-  /** Solo errores típicos de cuota/rate limit; evitar falsos positivos con "exceeded" o "límite" sueltos. */
-  function isHbQuotaLikeMessage(msg) {
+  /** Códigos típicos de cuota / rate limit (Hotelbeds y similares). */
+  function hbQuotaErrorCode(code) {
+    var c = String(code || '')
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, '_');
+    if (!c) return false;
+    return (
+      c === 'QUOTA_EXCEEDED' ||
+      c === 'RATE_LIMIT_EXCEEDED' ||
+      c === 'TOO_MANY_REQUESTS' ||
+      c === 'MAX_REQUESTS_EXCEEDED' ||
+      c === 'THROTTLED' ||
+      c === 'THROTTLE' ||
+      /^RATE[_-]?LIMIT/.test(c) ||
+      /QUOTA[_-]?EXCEED|EXCEED(?:ED)?[_-]?QUOTA/.test(c)
+    );
+  }
+
+  /**
+   * Cuota / rate limit: HTTP 429, code en cuerpo Hotelbeds, o texto explícito (no /quota/ sobre JSON.stringify masivo).
+   * @param {string} msg
+   * @param {{ hotelbedsHttpStatus?: number, httpStatus?: number, hotelbeds?: object, data?: object }|null} envelope
+   */
+  function isHbQuotaLikeMessage(msg, envelope) {
+    envelope = envelope || {};
+    var http =
+      envelope.hotelbedsHttpStatus != null ? envelope.hotelbedsHttpStatus : envelope.httpStatus;
+    if (Number(http) === 429) return true;
+
+    var hbRoot = envelope.hotelbeds || envelope.data;
+    var errObj = hbRoot && hbRoot.error;
+    if (errObj && typeof errObj === 'object' && errObj.code != null && hbQuotaErrorCode(errObj.code)) {
+      return true;
+    }
+
     var s = String(msg || '').trim();
     if (!s) return false;
+    var headCode = /^([A-Za-z0-9_]+)\s*[—:-]\s*/.exec(s);
+    if (headCode && hbQuotaErrorCode(headCode[1])) return true;
+
     var lower = s.toLowerCase();
     if (/\b429\b/.test(lower)) return true;
     if (/too\s+many\s+requests/.test(lower)) return true;
     if (/rate[\s_-]*limit|ratelimit|rate\s+exceeded/i.test(s)) return true;
     if (/throttl/i.test(lower)) return true;
-    if (/quota/.test(lower)) return true;
     if (/cuota\s+de\s+consultas|consultas\s+superad|peticiones\s+excedid/i.test(lower)) return true;
+    if (/\bquota_exceeded\b|\brate_limit_exceeded\b|\btoo_many_requests\b/i.test(lower)) return true;
+    if (
+      /_quota|quota_exceed|exceed(?:ed)?\s+quota|quota\s+(?:exceed|reached|limit)|api\s+quota|request\s+quota|daily\s+quota|service\s+quota/i.test(
+        lower
+      )
+    ) {
+      return true;
+    }
+    if (/\bquotas?\b\s*(?:exceed|reached|limit|max)|(?:exceed|reached|limit|max)\s+.{0,48}\bquotas?\b/i.test(lower)) {
+      return true;
+    }
     return false;
   }
 
@@ -662,7 +709,7 @@
                   ? String(av.error.message)
                   : String(av.error)
               : '';
-          if (isHbQuotaLikeMessage(rawErr)) {
+          if (isHbQuotaLikeMessage(rawErr, av)) {
             throw new Error(
               'Cuota de consultas Hotelbeds superada. Espera unos minutos o revisa el límite en tu cuenta.'
             );
@@ -707,12 +754,12 @@
               : av.error && av.error.message
                 ? String(av.error.message)
                 : '';
+          if (isHbQuotaLikeMessage(msg, av)) {
+            throw new Error(
+              'Cuota de consultas Hotelbeds superada. Espera unos minutos o revisa el límite en tu cuenta.'
+            );
+          }
           if (msg) {
-            if (isHbQuotaLikeMessage(msg)) {
-              throw new Error(
-                'Cuota de consultas Hotelbeds superada. Espera unos minutos o revisa el límite en tu cuenta.'
-              );
-            }
             throw new Error(msg);
           }
           return null;
@@ -1491,7 +1538,7 @@
                   var crErr = (cr && (cr.hotelbedsError || cr.error)) || '';
                   var crMsg =
                     typeof crErr === 'string' ? crErr : crErr && crErr.message ? String(crErr.message) : String(crErr);
-                  if (isHbQuotaLikeMessage(crMsg)) {
+                  if (isHbQuotaLikeMessage(crMsg, cr)) {
                     throw new Error(
                       'Cuota de consultas Hotelbeds superada. Espera unos minutos o revisa el límite en tu cuenta.'
                     );
