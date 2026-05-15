@@ -1452,6 +1452,9 @@
 
   function syncFunnelAdultsFromGroup(host, form, adultsInp, roomsInp, force) {
     if (!host || !adultsInp || !roomsInp) return;
+    // Si el usuario ha editado manualmente adultos o habitaciones, no sobreescribir
+    // aunque tamanio_grupo cambie (force=true). Solo se puede forzar en la carga inicial (force=false).
+    if (force && (adultsInp.__hbUserEdited || roomsInp.__hbUserEdited)) return;
     var sug = adultsRoomsFromGroupSize(form);
     var tgNow = sug.raw;
     if (!force && host.__hbLastTg === tgNow) return;
@@ -1574,8 +1577,14 @@
         form.querySelector('input[name="hb_funnel_ready"]').value = '';
         refreshUiState();
       }
-      adultsInp.addEventListener('input', resetFunnelValidation);
-      roomsInp.addEventListener('input', resetFunnelValidation);
+      adultsInp.addEventListener('input', function () {
+        adultsInp.__hbUserEdited = true;
+        resetFunnelValidation();
+      });
+      roomsInp.addEventListener('input', function () {
+        roomsInp.__hbUserEdited = true;
+        resetFunnelValidation();
+      });
 
       btnCheck.addEventListener('click', function () {
         var hotelCode = getSelectedHotelCode();
