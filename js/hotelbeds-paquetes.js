@@ -4,8 +4,9 @@
  * Con hideHotelEuroUi por defecto, el resumen del paquete sigue usando internamente hb_hotel_stay_ref_net (lista no empaquetada) vía calcularAlojamientoResumenEuros mientras el booking usa la tarifa empaquetada.
  */
 (function () {
-  var DEBOUNCE_MS = 800;
+  var DEBOUNCE_MS = 1500;
   var debounceTimer = null;
+  var runAbortCtrl = null;
   var ALL_HOTEL_IDS = ['alisa', 'ceres', 'parador', 'silken', 'palacio-blasones', 'hotel-centro'];
   /** Hotel API: destination.code solo 1–3 caracteres (p. ej. BRG). «BUR2» no es válido y devuelve 400. */
   var DESTINATIONS_LERMA_BURGOS = ['BRG'];
@@ -1904,7 +1905,7 @@
         .then(function (data) { if (!data.error) addFromResponse(data); return data; })
         .catch(function () { return {}; });
     });
-    if (allowedCodes.length > 0) {
+    if (allowedCodes.length > 0 && !window.__HB_API_DOWN__) {
       var codesQuery = encodeURIComponent(allowedCodes.join(','));
       var availUrl =
         base +
@@ -2115,6 +2116,12 @@
   }
 
   function run() {
+    if (runAbortCtrl) {
+      try { runAbortCtrl.abort(); } catch (e) { /* ignore */ }
+    }
+    runAbortCtrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var thisAbort = runAbortCtrl;
+
     var formData = getFormData();
     if (!formData) return;
 
@@ -2151,6 +2158,7 @@
 
     hbPromise
       .then(function (hb) {
+        if (thisAbort && thisAbort.signal && thisAbort.signal.aborted) return;
         if (hb && hb.error) {
           var errMsg = typeof hb.error === 'string' ? hb.error : (hb.error && hb.error.message) || 'Hotelbeds error';
           var httpSt = hb.hotelbedsHttpStatus || null;
@@ -2174,6 +2182,7 @@
         });
       })
       .then(function (hb) {
+        if (thisAbort && thisAbort.signal && thisAbort.signal.aborted) return;
         if (queryCodes.length > 0) {
           renderHotelbedsResults(hb, selectedCodes);
         } else {
@@ -2181,6 +2190,7 @@
         }
       })
       .catch(function (err) {
+        if (thisAbort && thisAbort.signal && thisAbort.signal.aborted) return;
         showCatalogAfterAvailabilityFailure(err);
       });
   }
