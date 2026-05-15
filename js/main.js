@@ -1203,6 +1203,7 @@ function initConfiguradorPaquete() {
             }
             if (numGF === 0) totalGF = (gfLerma.laborable || 33) + (gfSaldana.finDeSemana || 44);
             var gf = totalGF * numParticipants;
+            window.__HB_GF_TOTAL__ = gf;
 
             var aloj = 0;
             if (necesitaHotel && hotelOk) {

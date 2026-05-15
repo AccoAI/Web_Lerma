@@ -319,8 +319,21 @@
     return [
       String(offer.roomName || '').trim().toLowerCase(),
       String(offer.boardCode || offer.boardName || '').trim(),
-      String(offer.rateClass || '').trim(),
     ].join('\u0001');
+  }
+
+  /** Precio total del paquete (greenfee grupo + tarifa de referencia no empaquetada del hotel). */
+  function calcTotalPaquete(offer) {
+    var gf = typeof window.__HB_GF_TOTAL__ === 'number' && isFinite(window.__HB_GF_TOTAL__) ? window.__HB_GF_TOTAL__ : null;
+    if (gf == null) return null;
+    var refNet = offer && offer.resumenHotelRefNet != null ? Number(offer.resumenHotelRefNet) : null;
+    if (refNet == null || !isFinite(refNet)) return null;
+    return Math.round((gf + refNet) * 100) / 100;
+  }
+
+  function fmtEuros(n) {
+    if (n == null || !isFinite(n)) return '';
+    return n.toFixed(2).replace('.', ',');
   }
 
   /** Si hay tarifa empaquetada y otra no empaquetada para la misma habitación+régimen+clase, oculta la no empaquetada y guarda su net como referencia de resumen (margen vs lo que se reserva). */
@@ -460,16 +473,22 @@
     if (!offer) return '';
     var parts = [];
     if (offer.occupancyLabel) parts.push('Ocupación: ' + offer.occupancyLabel);
-    if (offer.rateClass) parts.push(rateClassLabel(offer.rateClass));
     if (offer.allotment != null && offer.allotment !== '') parts.push('Cupo HB ' + offer.allotment);
     if (offer.packaging) parts.push('Tarifa paquete Hotelbeds');
-    parts.push('Importe del alojamiento integrado en el total del paquete');
+    var total = calcTotalPaquete(offer);
+    if (total != null) {
+      parts.push('Precio del paquete: ' + fmtEuros(total) + ' €');
+    } else {
+      parts.push('Importe del alojamiento integrado en el total del paquete');
+    }
     return truncateText(parts.join(' · '), 280);
   }
 
   function funnelRatePickLabel(offer) {
     if (!offer) return '';
-    return (offer.roomName || 'Habitación') + ' · ' + (offer.boardName || offer.boardCode || 'Régimen') + ' · ' + offer.rateType;
+    var label = (offer.roomName || 'Habitación') + ' · ' + (offer.boardName || offer.boardCode || 'Régimen') + ' · ' + offer.rateType;
+    if (offer.rateClass) label += ' · ' + rateClassLabel(offer.rateClass);
+    return label;
   }
 
   function mapRateOffer(room, rate) {
@@ -1353,6 +1372,10 @@
         label += ' · ' + o.rateType;
         hint = o.listHint || rateOfferListHint(o);
       }
+      var pkgTotal = calcTotalPaquete(o);
+      var priceBadge = pkgTotal != null
+        ? '<span class="hb-funnel-rate-price">' + escapeHtml(fmtEuros(pkgTotal) + ' €') + '</span>'
+        : '';
       html +=
         '<li><label class="hb-funnel-rate-pick"><input type="radio" name="hb-funnel-rate-pick" value="' +
         escapeHtml(o.rateKey) +
@@ -1361,7 +1384,7 @@
         '"' +
         (idx === checkedIdx ? ' checked' : '') +
         '><span class="hb-funnel-rate-pick__body"><span class="hb-funnel-rate-pick__main">' +
-        escapeHtml(label) +
+        escapeHtml(label) + priceBadge +
         '</span>' +
         (hint
           ? '<span class="hb-funnel-rate-pick__sub">' + escapeHtml(hint) + '</span>'

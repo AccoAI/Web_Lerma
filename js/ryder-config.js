@@ -332,6 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 totalGF += p;
             }
             var gf = Math.round(totalGF * numParticipants * 100) / 100;
+            window.__HB_GF_TOTAL__ = gf;
 
             var aloj = 0;
             if (sectionAlojamientoShown && nNoches >= 1) {
