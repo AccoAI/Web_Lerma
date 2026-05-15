@@ -2021,19 +2021,27 @@
       });
   }
 
+  function renderNoAvailabilityForDates() {
+    window.LIVE_HOTEL_PRICES = null;
+    window.HOTELBEDS_DYNAMIC_OPTS = null;
+    setBookingWidgetVisible(false);
+    renderBlock(
+      '<div class="hotelbeds-block hotelbeds-info">' +
+      '<strong>Sin disponibilidad para las fechas seleccionadas.</strong><br>' +
+      'Los hoteles consultados no tienen habitaciones libres en ese período. Prueba con otras fechas o modifica la ocupación.' +
+      '</div>'
+    );
+    document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
+    triggerResumenUpdate();
+  }
+
   function renderHotelbedsResults(data, selectedHotels) {
     window.HOTELBEDS_DYNAMIC_OPTS = null;
     var hotels = ((data.hotels && data.hotels.hotels) || []).filter(function (h) {
       return shouldListHotel(h);
     });
     if (hotels.length === 0) {
-      fetchHotelbedsListHotels()
-        .then(function (list) {
-          renderFullHotelListFromContent(list);
-        })
-        .catch(function () {
-          renderFullHotelListFromContent(buildStaticCatalogHotels());
-        });
+      renderNoAvailabilityForDates();
       return;
     }
     var cfg = window.HOTELBEDS_CONFIG;
@@ -2085,11 +2093,7 @@
       return shouldListHotel(h);
     });
     if (hotels.length === 0) {
-      fetchHotelbedsListHotels().then(function (list) {
-        renderFullHotelListFromContent(list);
-      }).catch(function () {
-        renderFullHotelListFromContent(buildStaticCatalogHotels());
-      });
+      renderNoAvailabilityForDates();
       return;
     }
     var live = {};
