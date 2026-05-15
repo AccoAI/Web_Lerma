@@ -89,6 +89,7 @@
     window.__HB_FUNNEL_LAST__ = null;
     window.__HB_LAST_AVAIL__ = null;
     window.__HB_LAST_AVAIL_OCC__ = null;
+    window.__HB_LAST_AVAIL_RANGE__ = null;
     window.__HB_WIDEN_AVAIL_CACHE__ = null;
     window.__HB_FUNNEL_OFFERS_KEY_BY_HOTEL__ = null;
     setBookingWidgetVisible(false);
@@ -97,6 +98,8 @@
 
   function clearHotelbedsBookingContext() {
     window.__HB_LAST_AVAIL__ = null;
+    window.__HB_LAST_AVAIL_OCC__ = null;
+    window.__HB_LAST_AVAIL_RANGE__ = null;
     window.__HB_RATE_BY_CODE = null;
     window.__HB_RATE_OFFERS_BY_CODE__ = null;
     window.__HB_FUNNEL_LAST__ = null;
@@ -752,15 +755,40 @@
     }
 
     var cached = window.__HB_FUNNEL_LAST__;
-    var avPromise =
-      cached && cached.key === cacheKey && findHotelInAvailability(cached.av, hotelCode)
-        ? Promise.resolve(cached.av)
-        : requestAvailability();
+
+    function lastAvailMatchesFunnel() {
+      if (!window.__HB_LAST_AVAIL__) return false;
+      var r = window.__HB_LAST_AVAIL_RANGE__;
+      if (!r || r.checkIn !== checkInOut.checkIn || r.checkOut !== checkInOut.checkOut) return false;
+      var o = window.__HB_LAST_AVAIL_OCC__;
+      if (!o || o.adults !== occ.adults || o.rooms !== occ.rooms || (o.children || 0) !== (occ.children || 0)) return false;
+      return true;
+    }
+
+    var avPromise;
+    if (cached && cached.key === cacheKey && findHotelInAvailability(cached.av, hotelCode)) {
+      avPromise = Promise.resolve(cached.av);
+    } else if (lastAvailMatchesFunnel()) {
+      avPromise = Promise.resolve(window.__HB_LAST_AVAIL__);
+    } else {
+      avPromise = requestAvailability();
+    }
 
     function tryWidenAvailabilityForHotel() {
       var want = String(hotelCode || '');
       if (!want) return Promise.resolve(null);
       var widenKey = [checkInOut.checkIn, checkInOut.checkOut, occ.rooms, occ.adults, occ.children || 0].join('|');
+
+      var lr = window.__HB_LAST_AVAIL_RANGE__;
+      var lo = window.__HB_LAST_AVAIL_OCC__;
+      var lastAvailIsWidenEquivalent =
+        window.__HB_LAST_AVAIL__ &&
+        lr && lr.checkIn === checkInOut.checkIn && lr.checkOut === checkInOut.checkOut &&
+        lo && lo.adults === occ.adults && lo.rooms === occ.rooms && (lo.children || 0) === (occ.children || 0);
+      if (lastAvailIsWidenEquivalent) {
+        return Promise.resolve(findHotelInAvailability(window.__HB_LAST_AVAIL__, want) || null);
+      }
+
       var cache = window.__HB_WIDEN_AVAIL_CACHE__;
       if (cache && cache.key === widenKey && cache.av && !cache.av.error) {
         var h0 = findHotelInAvailability(cache.av, want);
@@ -2176,6 +2204,11 @@
         }
         window.__HB_LAST_AVAIL__ = hb;
         window.__HB_LAST_AVAIL_OCC__ = occ;
+        window.__HB_LAST_AVAIL_RANGE__ = { checkIn: range.checkIn, checkOut: range.checkOut };
+        var widenSeedKey = [range.checkIn, range.checkOut, occ.rooms, occ.adults, occ.children || 0].join('|');
+        if (!window.__HB_WIDEN_AVAIL_CACHE__ || window.__HB_WIDEN_AVAIL_CACHE__.key !== widenSeedKey) {
+          window.__HB_WIDEN_AVAIL_CACHE__ = { key: widenSeedKey, av: hb };
+        }
         window.__HB_RATE_BY_CODE = indexRatesByHotelCode(hb);
         return loadHotelContentEnrichment().then(function () {
           return hb;
