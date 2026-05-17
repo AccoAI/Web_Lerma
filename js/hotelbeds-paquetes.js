@@ -1881,10 +1881,20 @@
   }
 
   function catalogResultsNoteHtml(totalHotels) {
-    if (window.__HB_API_DOWN__) {
+    var down = window.__HB_API_DOWN__ || '';
+    if (down) {
+      var isNoAvail = down.indexOf('Sin disponibilidad') === 0;
+      if (isNoAvail) {
+        return (
+          '<p class="hotelbeds-note hotelbeds-note--noavail">' +
+          'Hotelbeds confirma <strong>sin disponibilidad</strong> para estas fechas y ocupación. ' +
+          'Puedes continuar eligiendo hotel del catálogo y configurar habitaciones manualmente.' +
+          '</p>'
+        );
+      }
       return (
         '<p class="hotelbeds-note">No se pudo consultar tarifas en tiempo real (' +
-        escapeHtml(window.__HB_API_DOWN__) +
+        escapeHtml(down) +
         '). Se muestran <strong>' +
         totalHotels +
         ' hoteles</strong> del catálogo: elige uno y configura habitaciones.</p>'
@@ -2056,23 +2066,34 @@
   function renderNoAvailabilityForDates() {
     window.LIVE_HOTEL_PRICES = null;
     window.HOTELBEDS_DYNAMIC_OPTS = null;
-    setBookingWidgetVisible(false);
-    renderBlock(
-      '<div class="hotelbeds-block hotelbeds-info">' +
-      '<strong>Sin disponibilidad para las fechas seleccionadas.</strong><br>' +
-      'Los hoteles consultados no tienen habitaciones libres en ese período. Prueba con otras fechas o modifica la ocupación.' +
-      '</div>'
-    );
-    document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
-    triggerResumenUpdate();
+    // Mostramos el aviso de sin disponibilidad y, a continuación, el catálogo estático
+    // para que la reserva pueda continuar (Hotelbeds confirma 0 habitaciones, pero el cliente
+    // puede seguir el proceso con los hoteles del catálogo).
+    window.__HB_API_DOWN__ = 'Sin disponibilidad confirmada por Hotelbeds para estas fechas';
+    setBookingWidgetVisible(true);
+    fetchHotelbedsListHotels()
+      .then(function (list) {
+        renderFullHotelListFromContent(list, true);
+      })
+      .catch(function () {
+        renderFullHotelListFromContent(buildStaticCatalogHotels(), true);
+      });
   }
 
   function renderHotelbedsResults(data, selectedHotels) {
     window.HOTELBEDS_DYNAMIC_OPTS = null;
-    var hotels = ((data.hotels && data.hotels.hotels) || []).filter(function (h) {
-      return shouldListHotel(h);
-    });
+    var rawHotels = (data.hotels && data.hotels.hotels) || [];
+    var hotels = rawHotels.filter(function (h) { return shouldListHotel(h); });
     if (hotels.length === 0) {
+      console.warn(
+        '[Hotelbeds] renderHotelbedsResults → 0 hoteles tras filtro.',
+        '| total en respuesta API:', (data.hotels && data.hotels.total) != null ? data.hotels.total : '(sin campo total)',
+        '| hoteles en array raw:', rawHotels.length,
+        '| selectedHotels pedidos:', JSON.stringify(selectedHotels),
+        '| allowedCodes:', JSON.stringify(getAllowedHotelCodeList()),
+        '| códigos recibidos:', JSON.stringify(rawHotels.map(function(h){ return h.code; })),
+        '| data.hotels:', JSON.stringify(data.hotels || null)
+      );
       renderNoAvailabilityForDates();
       return;
     }
@@ -2121,10 +2142,17 @@
   }
 
   function renderHotelbedsResultsByDestination(data) {
-    var hotels = ((data.hotels && data.hotels.hotels) || []).filter(function (h) {
-      return shouldListHotel(h);
-    });
+    var rawHotels = (data.hotels && data.hotels.hotels) || [];
+    var hotels = rawHotels.filter(function (h) { return shouldListHotel(h); });
     if (hotels.length === 0) {
+      console.warn(
+        '[Hotelbeds] renderHotelbedsResultsByDestination → 0 hoteles tras filtro.',
+        '| total en respuesta API:', (data.hotels && data.hotels.total) != null ? data.hotels.total : '(sin campo total)',
+        '| hoteles en array raw:', rawHotels.length,
+        '| allowedCodes:', JSON.stringify(getAllowedHotelCodeList()),
+        '| códigos recibidos:', JSON.stringify(rawHotels.map(function(h){ return h.code; })),
+        '| data.hotels:', JSON.stringify(data.hotels || null)
+      );
       renderNoAvailabilityForDates();
       return;
     }
