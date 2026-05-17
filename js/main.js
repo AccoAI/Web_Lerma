@@ -1206,10 +1206,10 @@ function initConfiguradorPaquete() {
             window.__HB_GF_TOTAL__ = gf;
 
             var aloj = 0;
-            if (necesitaHotel && hotelOk) {
+            if (necesitaHotel) {
               if (typeof window.calcularAlojamientoResumenEuros === 'function') {
                 aloj = window.calcularAlojamientoResumenEuros(formData, nNoches);
-              } else {
+              } else if (hotelOk) {
                 for (var inx = 1; inx <= nNoches; inx++) {
                   var hv = (formData.get('hotel-noche-' + inx) || '').trim();
                   if (!hv) continue;
@@ -1255,14 +1255,11 @@ function initConfiguradorPaquete() {
 
             resumenHTML += '<div class="resumen-subtotal">';
             resumenHTML += '<table class="resumen-subtotal-tabla">';
-            if (necesitaHotel && hotelOk) {
+            if (necesitaHotel) {
                 var packGolfAloj = Math.round((gf + aloj) * 100) / 100;
                 resumenHTML += '<tr><td>Pack golf + alojamiento</td><td>' + packGolfAloj + ' €</td></tr>';
             } else {
                 resumenHTML += '<tr><td>Green fees</td><td>' + gf + ' €</td></tr>';
-                if (necesitaHotel) {
-                    resumenHTML += '<tr><td>Alojamiento</td><td>' + (hotelOk ? (aloj + ' €') : '—') + '</td></tr>';
-                }
             }
             resumenHTML += '<tr><td>Comidas / cenas</td><td>' + (comidaVal > 0 ? comidaVal + ' €' : '—') + '</td></tr>';
             resumenHTML += '<tr><td>Servicios adicionales</td><td>' + (ancVal > 0 ? ancVal + ' €' : '—') + '</td></tr>';

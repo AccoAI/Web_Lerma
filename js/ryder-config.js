@@ -384,14 +384,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             resumenHTML += '<div class="resumen-subtotal">';
             resumenHTML += '<table class="resumen-subtotal-tabla">';
-            if (sectionAlojamientoShown && nNoches >= 1 && hotelOk) {
+            if (sectionAlojamientoShown && nNoches >= 1) {
                 var packRyder = Math.round((gf + aloj) * 100) / 100;
                 resumenHTML += '<tr><td>Pack golf + alojamiento</td><td>' + packRyder + ' €</td></tr>';
             } else {
                 resumenHTML += '<tr><td>Green fees (' + numDias + ' ' + (numDias === 1 ? 'día' : 'días') + ')</td><td>' + gf + ' €</td></tr>';
-                if (sectionAlojamientoShown && nNoches >= 1) {
-                    resumenHTML += '<tr><td>Alojamiento (' + nNoches + ' ' + (nNoches === 1 ? 'noche' : 'noches') + ')</td><td>' + (aloj > 0 ? aloj + ' €' : '—') + '</td></tr>';
-                }
             }
             resumenHTML += '<tr><td>Comidas y cenas</td><td>' + (comidaVal > 0 ? comidaVal + ' €' : '—') + '</td></tr>';
             resumenHTML += '<tr><td>Transporte desde Madrid</td><td>' + (transporteVal > 0 ? transporteVal + ' €' : '—') + '</td></tr>';
