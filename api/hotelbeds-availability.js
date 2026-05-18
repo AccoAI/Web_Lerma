@@ -1,6 +1,8 @@
 import { createHash } from 'crypto';
+import https from 'node:https';
 import { mapHotelbedsBookingToVoucherData } from '../lib/hotelbeds-booking-map.js';
 import { getHotelbedsCredentialsTransfers } from '../lib/hotelbeds-credentials.js';
+import { sendEmail } from '../lib/resend.js';
 
 /**
  * Proxy para Hotelbeds Availability API
@@ -14,8 +16,15 @@ import { getHotelbedsCredentialsTransfers } from '../lib/hotelbeds-credentials.j
  * Transfers status (mismo archivo para límite 12 funciones Hobby): GET /api/hotelbeds-transfers-status?status=1
  * → rewrite en vercel.json a ?__hb_transfers=1
  *
+ * Reconfirmation push (mismo archivo): POST /api/hotelbeds-reconfirmation
+ * → rewrite en vercel.json a ?__hb_reconfirm=1
+ *
  * Variables Hotel API: API_Key, API_Secret (o HOTELBEDS_API_KEY / HOTELBEDS_API_SECRET).
  * Para Transfer status: HOTELBEDS_TRANSFER_API_KEY / HOTELBEDS_TRANSFER_API_SECRET tienen prioridad.
+ *
+ * mTLS (producción): añade HOTELBEDS_MTLS_CERT y HOTELBEDS_MTLS_KEY en Vercel env vars.
+ * El valor puede contener \n literales (se convierten a saltos de línea reales automáticamente).
+ * Cuando estén presentes, el endpoint cambia automáticamente a api-mtls.hotelbeds.com.
  */
 function getSignature(apiKey, secret) {
   const ts = Math.floor(Date.now() / 1000);
@@ -23,10 +32,60 @@ function getSignature(apiKey, secret) {
   return createHash('sha256').update(str, 'utf8').digest('hex');
 }
 
+/** Lee las credenciales mTLS de las variables de entorno (si existen). */
+function getMtlsCreds() {
+  const raw = (v) => (process.env[v] || '').replace(/\\n/g, '\n').trim();
+  const cert = raw('HOTELBEDS_MTLS_CERT');
+  const key = raw('HOTELBEDS_MTLS_KEY');
+  return cert && key ? { cert, key } : null;
+}
+
 function hotelbedsBaseUrl() {
-  return process.env.HOTELBEDS_ENV === 'production'
-    ? 'https://api.hotelbeds.com'
-    : 'https://api.test.hotelbeds.com';
+  const isProd = process.env.HOTELBEDS_ENV === 'production';
+  if (isProd) {
+    const creds = getMtlsCreds();
+    return creds ? 'https://api-mtls.hotelbeds.com' : 'https://api.hotelbeds.com';
+  }
+  return 'https://api.test.hotelbeds.com';
+}
+
+/**
+ * Fetch usando node:https con certificado de cliente (mTLS).
+ * Simula la misma interfaz que fetch() para que el código llamante no cambie.
+ */
+function nodeFetchMtls(url, { method, headers, body, timeoutMs, cert, key }) {
+  return new Promise((resolve, reject) => {
+    const u = new URL(url);
+    const agent = new https.Agent({ cert, key });
+    const req = https.request(
+      {
+        hostname: u.hostname,
+        port: parseInt(u.port || '443', 10),
+        path: u.pathname + u.search,
+        method: method || 'POST',
+        headers: headers || {},
+        agent,
+      },
+      (res) => {
+        const chunks = [];
+        res.on('data', (c) => chunks.push(c));
+        res.on('end', () => {
+          const text = Buffer.concat(chunks).toString('utf8');
+          const status = res.statusCode || 0;
+          resolve({
+            ok: status >= 200 && status < 300,
+            status,
+            text: () => Promise.resolve(text),
+            json: () => Promise.resolve(JSON.parse(text)),
+          });
+        });
+      }
+    );
+    req.on('error', reject);
+    if (timeoutMs) req.setTimeout(timeoutMs, () => req.destroy(new Error('mTLS timeout')));
+    if (body) req.write(body);
+    req.end();
+  });
 }
 
 const BOOKING_TIMEOUT_MS = 65000;
@@ -34,31 +93,37 @@ const BOOKING_TIMEOUT_MS = 65000;
 async function hotelbedsPostJson(apiKey, secret, pathSuffix, jsonBody, timeoutMs) {
   const baseUrl = hotelbedsBaseUrl();
   const signature = getSignature(apiKey, secret);
-  const controller = new AbortController();
-  const tid = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(`${baseUrl}${pathSuffix}`, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        'Api-key': apiKey,
-        'X-Signature': signature,
-      },
-      body: JSON.stringify(jsonBody),
-      signal: controller.signal,
-    });
-    const text = await res.text();
-    let data;
+  const headers = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    'Api-key': apiKey,
+    'X-Signature': signature,
+  };
+  const body = JSON.stringify(jsonBody);
+  const url = `${baseUrl}${pathSuffix}`;
+
+  let res;
+  const creds = getMtlsCreds();
+  if (creds && process.env.HOTELBEDS_ENV === 'production') {
+    res = await nodeFetchMtls(url, { method: 'POST', headers, body, timeoutMs, ...creds });
+  } else {
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      data = JSON.parse(text);
-    } catch {
-      data = { raw: text.slice(0, 1500) };
+      res = await fetch(url, { method: 'POST', headers, body, signal: controller.signal });
+    } finally {
+      clearTimeout(tid);
     }
-    return { res, data };
-  } finally {
-    clearTimeout(tid);
   }
+
+  const text = await res.text();
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = { raw: text.slice(0, 1500) };
+  }
+  return { res, data };
 }
 
 async function handleCheckrates(apiKey, secret, body) {
@@ -297,10 +362,72 @@ async function handleTransfersStatusGET(request) {
   }
 }
 
+/**
+ * Hotelbeds Reconfirmation Push Service handler.
+ * Hotelbeds llama a este endpoint (POST) para entregar el supplierConfirmationCode
+ * de forma asíncrona tras confirmar la reserva con el proveedor.
+ * Debemos responder siempre con HTTP 200; si no, Hotelbeds reintentará.
+ *
+ * Configurar en el portal Hotelbeds: Settings → Reconfirmation → Push URL →
+ *   https://<tu-dominio>/api/hotelbeds-reconfirmation
+ */
+async function handleReconfirmation(request) {
+  let payload = {};
+  try {
+    payload = await request.json().catch(() => ({}));
+  } catch {
+    // cuerpo vacío o inválido — responder 200 de todas formas
+  }
+
+  const booking = payload.booking || {};
+  const ref = booking.reference || payload.reference || '(sin referencia)';
+  const supplierCode = booking.supplierConfirmationCode || payload.supplierConfirmationCode || '(sin código)';
+  const type = payload.type || 'reconfirmation';
+
+  console.log(
+    '[Hotelbeds Reconfirmation] type=%s ref=%s supplierCode=%s raw=%s',
+    type,
+    ref,
+    supplierCode,
+    JSON.stringify(payload).slice(0, 500)
+  );
+
+  // Notificación por email al equipo (no-bloqueante; ignoramos fallos)
+  const adminEmail = process.env.RESEND_EMAIL_EMPRESA || 'eventos@golflerma.com';
+  sendEmail({
+    to: adminEmail,
+    subject: `[Hotelbeds] Reconfirmación reserva ${ref} — código proveedor: ${supplierCode}`,
+    html: `
+      <h2>Reconfirmación de reserva Hotelbeds</h2>
+      <p><strong>Referencia:</strong> ${ref}</p>
+      <p><strong>Código proveedor:</strong> ${supplierCode}</p>
+      <p><strong>Tipo:</strong> ${type}</p>
+      <details><summary>Payload completo</summary>
+        <pre style="font-size:12px;background:#f5f5f5;padding:8px">${JSON.stringify(payload, null, 2)}</pre>
+      </details>`,
+  }).catch((e) => console.warn('[Hotelbeds Reconfirmation] sendEmail failed:', e?.message));
+
+  return new Response(JSON.stringify({ received: true, ref, supplierCode }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
 export async function GET(request) {
   const url = request?.url ? new URL(request.url) : null;
   if (url && url.searchParams.get('__hb_transfers') === '1') {
     return handleTransfersStatusGET(request);
+  }
+  if (url && url.searchParams.get('__hb_reconfirm') === '1') {
+    // Hotelbeds verifica el endpoint con GET antes de activar el push service
+    return new Response(
+      JSON.stringify({
+        ok: true,
+        service: 'hotelbeds-reconfirmation',
+        info: 'POST a este endpoint para recibir supplierConfirmationCode',
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
   }
   if (url && url.searchParams.get('status') === '1') {
     const apiKey = process.env.API_Key || process.env.HOTELBEDS_API_KEY;
@@ -355,6 +482,11 @@ export async function GET(request) {
 const EMPTY_HOTELS = { hotels: { hotels: [] } };
 
 export async function POST(request) {
+  const url = request?.url ? new URL(request.url) : null;
+  if (url && url.searchParams.get('__hb_reconfirm') === '1') {
+    return handleReconfirmation(request);
+  }
+
   const apiKey = process.env.API_Key || process.env.HOTELBEDS_API_KEY;
   const secret = process.env.API_Secret || process.env.HOTELBEDS_API_SECRET;
 

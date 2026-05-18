@@ -6,6 +6,10 @@
       "destination": "/api/hotelbeds-availability?__hb_transfers=1&status=1"
     },
     {
+      "source": "/api/hotelbeds-reconfirmation",
+      "destination": "/api/hotelbeds-availability?__hb_reconfirm=1"
+    },
+    {
       "source": "/api/stripe-checkout-session",
       "destination": "/api/booking-voucher?checkout_json=1"
     }

@@ -949,7 +949,13 @@
         ? window.location.origin
         : '';
     if (!base) return Promise.resolve();
-    return Promise.all(
+    // Skip if already populated (Hotelbeds Content API is static — fetch once per session)
+    if (window.__HB_CONTENT_BY_CODE && Object.keys(window.__HB_CONTENT_BY_CODE).length > 0) {
+      return Promise.resolve();
+    }
+    // Prevent parallel in-flight fetches
+    if (window.__HB_CONTENT_LOADING__) return window.__HB_CONTENT_LOADING__;
+    window.__HB_CONTENT_LOADING__ = Promise.all(
       DESTINATIONS_LERMA_BURGOS.map(function (dest) {
         return fetch(
           base +
@@ -976,10 +982,13 @@
           });
         });
         window.__HB_CONTENT_BY_CODE = byCode;
+        window.__HB_CONTENT_LOADING__ = null;
       })
       .catch(function () {
         window.__HB_CONTENT_BY_CODE = {};
+        window.__HB_CONTENT_LOADING__ = null;
       });
+    return window.__HB_CONTENT_LOADING__;
   }
 
   function renderStarsBadge(categoryName, categoryStars) {
