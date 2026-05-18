@@ -215,9 +215,6 @@ async function handleBooking(apiKey, secret, body) {
  * @returns {{ ok: true, data: object } | { ok: false, error: string, status?: number, raw?: string, data?: object }}
  */
 async function fetchAvailability(apiKey, secret, body) {
-  const signature = getSignature(apiKey, secret);
-  const baseUrl = hotelbedsBaseUrl();
-
   const payload = {
     stay: {
       checkIn: body.checkIn,
@@ -244,32 +241,19 @@ async function fetchAvailability(apiKey, secret, body) {
     payload.destination = { code: 'BRG' };
   }
 
-  let res;
+  let res, data;
   try {
-    res = await fetch(`${baseUrl}/hotel-api/1.0/hotels`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Api-key': apiKey,
-        'X-Signature': signature,
-      },
-      body: JSON.stringify(payload),
-    });
+    ({ res, data } = await hotelbedsPostJson(apiKey, secret, '/hotel-api/1.0/hotels', payload, 30000));
   } catch (e) {
     return { ok: false, error: e.message || 'Error de red al contactar con Hotelbeds' };
   }
 
-  const text = await res.text();
-  let data;
-  try {
-    data = JSON.parse(text);
-  } catch {
+  if (!data || data.raw) {
     return {
       ok: false,
       status: res.status,
       error: `Hotelbeds devolvió una respuesta no JSON (HTTP ${res.status}).`,
-      raw: (text || '').slice(0, 400),
+      raw: data?.raw || '',
     };
   }
 
@@ -286,9 +270,7 @@ async function fetchAvailability(apiKey, secret, body) {
     }
     if (!errMsg && typeof data?.message === 'string') errMsg = data.message.trim();
     if (!errMsg && typeof data === 'string') errMsg = data.trim();
-    if (!errMsg) {
-      errMsg = `Error Hotelbeds (HTTP ${res.status})`;
-    }
+    if (!errMsg) errMsg = `Error Hotelbeds (HTTP ${res.status})`;
     return {
       ok: false,
       status: res.status,
