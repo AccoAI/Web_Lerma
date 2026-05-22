@@ -1,18 +1,17 @@
 /**
  * Lista hoteles por destino.
  *
- * GET /api/hotelbeds-list-hotels?destination=BRG&source=transfer-cache
  * GET /api/hotelbeds-list-hotels?destination=BRG&source=content
  * GET /api/hotelbeds-list-hotels?destination=BRG&source=content&enrich=1 — Content API con estrellas, imagen, descripción, facilities (incl. de pago)
  * GET /api/hotelbeds-list-hotels?hotelCodes=225042,1058754  (Availability por códigos)
  *
- * source=transfer-cache -> Transfer Cache API (campos name, city, code directos)
  * source=content -> Hotel Content API
  * source=availability -> Availability API (precios; BRG es el código correcto Burgos/Lerma)
  */
 import { createHash } from 'crypto';
 import { mapContentHotelForUi } from '../lib/hotelbeds-enriched-content.js';
 import { loadFacilityTypeDescriptionMap } from '../lib/hotelbeds-facility-types.js';
+import { hotelbedsBaseUrl, hotelbedsFetch } from '../lib/hotelbeds-mtls.js';
 
 function getSignature(apiKey, secret) {
   const ts = Math.floor(Date.now() / 1000);
@@ -42,10 +41,10 @@ async function fetchFromAvailability(apiKey, secret, dest, checkIn, checkOut, ba
     payload.destination = { code: dest };
   }
 
-  const res = await fetch(`${baseUrl}/hotel-api/1.0/hotels`, {
+  const res = await hotelbedsFetch(`${baseUrl}/hotel-api/1.0/hotels`, {
     method: 'POST',
     headers: {
-      'Accept': 'application/json',
+      Accept: 'application/json',
       'Content-Type': 'application/json',
       'Api-key': apiKey,
       'X-Signature': getSignature(apiKey, secret),
@@ -65,37 +64,6 @@ async function fetchFromAvailability(apiKey, secret, dest, checkIn, checkOut, ba
       city: getStr(h.destinationName) || getStr(h.city) || (h.address && getStr(h.address.city)) || '',
       minRate: h.minRate,
       currency: h.currency || 'EUR',
-    })),
-    rawHotels: hotels.slice(0, 3),
-  };
-}
-
-async function fetchFromTransferCache(apiKey, secret, dest, country, offset, limit, lang, baseUrl) {
-  const params = new URLSearchParams({
-    fields: 'ALL',
-    language: lang === 'CAS' ? 'es' : lang,
-    destinationCodes: dest,
-    offset: String(offset || 0),
-    limit: String(limit || 100),
-  });
-  if (country) params.set('countryCodes', country);
-  const res = await fetch(`${baseUrl}/transfer-cache-api/1.0/hotels?${params}`, {
-    method: 'GET',
-    headers: {
-      'Accept': 'application/json',
-      'Api-key': apiKey,
-      'X-Signature': getSignature(apiKey, secret),
-    },
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error?.message || data.message || JSON.stringify(data));
-  const hotels = Array.isArray(data.hotels) ? data.hotels : [];
-  return {
-    list: hotels.map((h) => ({
-      code: h.code,
-      name: h.name || '',
-      city: h.city || '',
-      postalCode: h.postalCode || '',
     })),
     rawHotels: hotels.slice(0, 3),
   };
@@ -171,9 +139,7 @@ export async function GET(request) {
   const lang = url?.searchParams?.get('language') || 'CAS';
   const enrich = url?.searchParams?.get('enrich') === '1';
 
-  const baseUrl = process.env.HOTELBEDS_ENV === 'production'
-    ? 'https://api.hotelbeds.com'
-    : 'https://api.test.hotelbeds.com';
+  const baseUrl = hotelbedsBaseUrl();
 
   const esZonaBurgos = (h) => {
     const s = ((h.name || '') + ' ' + (h.city || '')).toUpperCase();
@@ -185,17 +151,7 @@ export async function GET(request) {
 
   try {
     let result;
-    if (source === 'transfer-cache') {
-      try {
-        result = await fetchFromTransferCache(apiKey, secret, dest, country, offset, limit, lang, baseUrl);
-      } catch (tcErr) {
-        return jsonResponse({
-          error: 'Transfer Cache API no disponible: ' + tcErr.message,
-          fallback: 'Usa source=content o source=availability',
-          source: 'transfer-cache',
-        }, 200);
-      }
-    } else if (source === 'content') {
+    if (source === 'content') {
       result = await fetchFromContent(apiKey, secret, dest, country, from, to, lang, baseUrl, enrich);
     } else {
       const dates = checkIn && checkOut ? { checkIn, checkOut } : getFutureDates();

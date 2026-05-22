@@ -27,6 +27,10 @@ import {
   buildHotelbedsVoucherPlainText,
   voucherDataFromStripeMetadata,
 } from '../lib/hotelbeds-voucher-html.js';
+import {
+  buildTravelLogisticsHtml,
+  buildTravelLogisticsPlainText,
+} from '../lib/travel-affiliates-html.js';
 
 function loadLocalWebhookSecret() {
   if (process.env.STRIPE_WEBHOOK_SECRET_LOCAL) return process.env.STRIPE_WEBHOOK_SECRET_LOCAL;
@@ -184,6 +188,13 @@ export async function POST(request) {
       `<hr style="margin: 28px 0; border: none; border-top: 1px solid #ccc;" />` +
       buildHotelbedsVoucherHtml(voucherData);
     textConfirmacion += `\n\n---\n\n` + buildHotelbedsVoucherPlainText(voucherData);
+  }
+
+  const travelHtml = buildTravelLogisticsHtml();
+  const travelText = buildTravelLogisticsPlainText();
+  if (travelHtml) {
+    htmlConfirmacion += travelHtml;
+    textConfirmacion += travelText;
   }
 
   // 1) Correo al cliente (destinatario dinámico: quien pagó)

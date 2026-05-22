@@ -1,7 +1,6 @@
 import { createHash } from 'crypto';
-import https from 'node:https';
 import { mapHotelbedsBookingToVoucherData } from '../lib/hotelbeds-booking-map.js';
-import { getHotelbedsCredentialsTransfers } from '../lib/hotelbeds-credentials.js';
+import { hotelbedsBaseUrl, hotelbedsFetch, getMtlsCreds } from '../lib/hotelbeds-mtls.js';
 import { sendEmail } from '../lib/resend.js';
 
 /**
@@ -13,79 +12,18 @@ import { sendEmail } from '../lib/resend.js';
  * - { "action": "checkrates", "rooms": [ { "rateKey": "..." }, ... ] } (máx. 10)
  * - { "action": "booking", "booking": { ... }, "packageLabel": "opcional" } → POST /bookings (timeout 65s)
  *
- * Transfers status (mismo archivo para límite 12 funciones Hobby): GET /api/hotelbeds-transfers-status?status=1
- * → rewrite en vercel.json a ?__hb_transfers=1
- *
  * Reconfirmation push (mismo archivo): POST /api/hotelbeds-reconfirmation
  * → rewrite en vercel.json a ?__hb_reconfirm=1
  *
  * Variables Hotel API: API_Key, API_Secret (o HOTELBEDS_API_KEY / HOTELBEDS_API_SECRET).
- * Para Transfer status: HOTELBEDS_TRANSFER_API_KEY / HOTELBEDS_TRANSFER_API_SECRET tienen prioridad.
  *
- * mTLS (producción): añade HOTELBEDS_MTLS_CERT y HOTELBEDS_MTLS_KEY en Vercel env vars.
- * El valor puede contener \n literales (se convierten a saltos de línea reales automáticamente).
- * Cuando estén presentes, el endpoint cambia automáticamente a api-mtls.hotelbeds.com.
+ * mTLS: HOTELBEDS_MTLS_CERT + HOTELBEDS_MTLS_KEY (certificado de cliente emitido por CA pública;
+ * ver HOTELBEDS-SETUP.md). Con ellos: api-mtls.hotelbeds.com (prod) o api-mtls.test.hotelbeds.com (test).
  */
 function getSignature(apiKey, secret) {
   const ts = Math.floor(Date.now() / 1000);
   const str = apiKey + secret + ts;
   return createHash('sha256').update(str, 'utf8').digest('hex');
-}
-
-/** Lee las credenciales mTLS de las variables de entorno (si existen). */
-function getMtlsCreds() {
-  const raw = (v) => (process.env[v] || '').replace(/\\n/g, '\n').trim();
-  const cert = raw('HOTELBEDS_MTLS_CERT');
-  const key = raw('HOTELBEDS_MTLS_KEY');
-  return cert && key ? { cert, key } : null;
-}
-
-function hotelbedsBaseUrl() {
-  const isProd = process.env.HOTELBEDS_ENV === 'production';
-  if (isProd) {
-    const creds = getMtlsCreds();
-    return creds ? 'https://api-mtls.hotelbeds.com' : 'https://api.hotelbeds.com';
-  }
-  return 'https://api.test.hotelbeds.com';
-}
-
-/**
- * Fetch usando node:https con certificado de cliente (mTLS).
- * Simula la misma interfaz que fetch() para que el código llamante no cambie.
- */
-function nodeFetchMtls(url, { method, headers, body, timeoutMs, cert, key }) {
-  return new Promise((resolve, reject) => {
-    const u = new URL(url);
-    const agent = new https.Agent({ cert, key });
-    const req = https.request(
-      {
-        hostname: u.hostname,
-        port: parseInt(u.port || '443', 10),
-        path: u.pathname + u.search,
-        method: method || 'POST',
-        headers: headers || {},
-        agent,
-      },
-      (res) => {
-        const chunks = [];
-        res.on('data', (c) => chunks.push(c));
-        res.on('end', () => {
-          const text = Buffer.concat(chunks).toString('utf8');
-          const status = res.statusCode || 0;
-          resolve({
-            ok: status >= 200 && status < 300,
-            status,
-            text: () => Promise.resolve(text),
-            json: () => Promise.resolve(JSON.parse(text)),
-          });
-        });
-      }
-    );
-    req.on('error', reject);
-    if (timeoutMs) req.setTimeout(timeoutMs, () => req.destroy(new Error('mTLS timeout')));
-    if (body) req.write(body);
-    req.end();
-  });
 }
 
 const BOOKING_TIMEOUT_MS = 65000;
@@ -102,19 +40,7 @@ async function hotelbedsPostJson(apiKey, secret, pathSuffix, jsonBody, timeoutMs
   const body = JSON.stringify(jsonBody);
   const url = `${baseUrl}${pathSuffix}`;
 
-  let res;
-  const creds = getMtlsCreds();
-  if (creds && process.env.HOTELBEDS_ENV === 'production') {
-    res = await nodeFetchMtls(url, { method: 'POST', headers, body, timeoutMs, ...creds });
-  } else {
-    const controller = new AbortController();
-    const tid = setTimeout(() => controller.abort(), timeoutMs);
-    try {
-      res = await fetch(url, { method: 'POST', headers, body, signal: controller.signal });
-    } finally {
-      clearTimeout(tid);
-    }
-  }
+  const res = await hotelbedsFetch(url, { method: 'POST', headers, body, timeoutMs });
 
   const text = await res.text();
   let data;
@@ -289,61 +215,6 @@ function jsonResponse(obj, status = 200) {
   });
 }
 
-/** Hotelbeds Transfer API connectivity (antes api/hotelbeds-transfers-status.js). */
-async function handleTransfersStatusGET(request) {
-  const url = request?.url ? new URL(request.url) : new URL('http://localhost/');
-  if (url.searchParams.get('status') !== '1' && url.searchParams.get('ping') !== '1') {
-    return jsonResponse(
-      {
-        hint: 'Use GET ?status=1 para transfer-api/1.0/status (credenciales: HOTELBEDS_TRANSFER_* o hotel API).',
-      },
-      400
-    );
-  }
-
-  const { apiKey, secret } = getHotelbedsCredentialsTransfers();
-  if (!apiKey || !secret) {
-    return jsonResponse(
-      {
-        ok: false,
-        error: 'missing_credentials',
-        message:
-          'Faltan HOTELBEDS_TRANSFER_API_KEY / HOTELBEDS_TRANSFER_API_SECRET o API_Key / HOTELBEDS_API_KEY (+ secret).',
-      },
-      200
-    );
-  }
-
-  const baseUrl = hotelbedsBaseUrl();
-
-  const sig = getSignature(apiKey, secret);
-  try {
-    const res = await fetch(`${baseUrl}/transfer-api/1.0/status`, {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        'Api-key': apiKey,
-        'X-Signature': sig,
-      },
-    });
-    const text = await res.text();
-    let data = {};
-    try {
-      data = JSON.parse(text);
-    } catch {
-      data = { parseError: true, preview: text.slice(0, 200) };
-    }
-    return jsonResponse({
-      ok: res.ok,
-      httpStatus: res.status,
-      environment: process.env.HOTELBEDS_ENV === 'production' ? 'production' : 'test',
-      transferApi: data,
-    });
-  } catch (e) {
-    return jsonResponse({ ok: false, error: 'fetch_failed', message: e.message || String(e) }, 200);
-  }
-}
-
 /**
  * Hotelbeds Reconfirmation Push Service handler.
  * Hotelbeds llama a este endpoint (POST) para entregar el supplierConfirmationCode
@@ -397,9 +268,6 @@ async function handleReconfirmation(request) {
 
 export async function GET(request) {
   const url = request?.url ? new URL(request.url) : null;
-  if (url && url.searchParams.get('__hb_transfers') === '1') {
-    return handleTransfersStatusGET(request);
-  }
   if (url && url.searchParams.get('__hb_reconfirm') === '1') {
     // Hotelbeds verifica el endpoint con GET antes de activar el push service
     return new Response(
@@ -418,8 +286,8 @@ export async function GET(request) {
     const baseUrl = hotelbedsBaseUrl();
     const signature = getSignature(apiKey, secret);
     try {
-      const res = await fetch(`${baseUrl}/hotel-api/1.0/status`, {
-        headers: { 'Accept': 'application/json', 'Api-key': apiKey, 'X-Signature': signature },
+      const res = await hotelbedsFetch(`${baseUrl}/hotel-api/1.0/status`, {
+        headers: { Accept: 'application/json', 'Api-key': apiKey, 'X-Signature': signature },
       });
       const data = await res.json().catch(() => ({}));
       return jsonResponse({ status: res.status, ok: res.ok, hotelbeds: data });
@@ -440,7 +308,17 @@ export async function GET(request) {
     return jsonResponse({
       credentialsOk: !!(apiKey && secret),
       cryptoOk,
-      envVarsChecked: ['API_Key', 'API_Secret', 'HOTELBEDS_API_KEY', 'HOTELBEDS_API_SECRET'],
+      mtlsConfigured: !!getMtlsCreds(),
+      hotelbedsHost: hotelbedsBaseUrl().replace(/^https:\/\//, ''),
+      envVarsChecked: [
+        'API_Key',
+        'API_Secret',
+        'HOTELBEDS_API_KEY',
+        'HOTELBEDS_API_SECRET',
+        'HOTELBEDS_MTLS_CERT',
+        'HOTELBEDS_MTLS_KEY',
+        'HOTELBEDS_ENV',
+      ],
     });
   }
   return jsonResponse(

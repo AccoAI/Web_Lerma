@@ -2,10 +2,6 @@
   "version": 2,
   "rewrites": [
     {
-      "source": "/api/hotelbeds-transfers-status",
-      "destination": "/api/hotelbeds-availability?__hb_transfers=1&status=1"
-    },
-    {
       "source": "/api/hotelbeds-reconfirmation",
       "destination": "/api/hotelbeds-availability?__hb_reconfirm=1"
     },
@@ -25,7 +21,6 @@
     "api/socios-login.js": { "maxDuration": 10 },
     "api/socios-list.js": { "maxDuration": 10 },
     "api/socios-amigos.js": { "maxDuration": 10 },
-    "api/booking-voucher.js": { "maxDuration": 15 },
-    "api/hotelbeds-transfers.js": { "maxDuration": 60 }
+    "api/booking-voucher.js": { "maxDuration": 15 }
   }
 }

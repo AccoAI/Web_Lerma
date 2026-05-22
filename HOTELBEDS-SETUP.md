@@ -47,13 +47,41 @@ La respuesta incluye `{ hotels: [ { code, name, city, ... } ] }`. Busca por nomb
    hotelCodes: { alisa: '12345', ceres: '67890', ... }
    ```
 
-## mTLS (Producción)
+## mTLS (certificado de cliente)
 
-Hotelbeds exige **mTLS** (certificado cliente) para disponibilidad en producción. Con la cuenta de evaluación es posible que aún uses el endpoint estándar.
+Hotelbeds exige **mTLS** para disponibilidad, booking, checkrate, etc. ([documentación](https://developer.hotelbeds.com/documentation/hotels/knowledge-base/mutual-authentication/)).
 
-Si recibes error de certificado:
-- Sube tu certificado en [developer.hotelbeds.com](https://developer.hotelbeds.com) → MY API CERTIFICATES
-- En Vercel, mTLS con certificados requiere configurar el runtime (Node.js con `https.Agent` y certificados). Contacta a Hotelbeds para alternativas en serverless.
+### No sirve un certificado autofirmado
+
+**No uses** `openssl req -x509` (certificado generado en local). El portal devuelve *certificate not authorised* porque solo acepta certificados de **cliente** emitidos por una **CA pública** del [programa Mozilla Root CA](https://wiki.mozilla.org/CA) (Sectigo, DigiCert, GlobalSign, etc.).
+
+El par `hotelbeds-mtls.crt` / `hotelbeds-mtls.key` creado con OpenSSL en el proyecto **no se puede subir** a Hotelbeds. Hay que comprar o solicitar un certificado de **client authentication** a una CA.
+
+### Pasos (cuando tengáis el certificado de la CA)
+
+1. [developer.hotelbeds.com](https://developer.hotelbeds.com) → **MY API CERTIFICATES** → **Add Certificate** → subir solo el `.crt` / `.pem` **público** (no la clave privada).
+2. Asociar el certificado a vuestra **Api Key** (test o producción).
+3. En **Vercel** → Environment Variables:
+   - `HOTELBEDS_MTLS_CERT` — PEM del certificado (una línea con `\n` entre líneas, o multilínea según el panel).
+   - `HOTELBEDS_MTLS_KEY` — clave privada que os entregó la CA (**nunca** en git; ya están en `.gitignore`).
+4. `HOTELBEDS_ENV`:
+   - vacío o distinto de `production` → test (`api.test.hotelbeds.com` o `api-mtls.test.hotelbeds.com` si hay cert mTLS).
+   - `production` → producción (`api-mtls.hotelbeds.com` con cert mTLS).
+
+PowerShell para copiar a Vercel (sustituir nombres de archivo por los de la CA):
+
+```powershell
+(Get-Content tu-certificado-de-ca.crt -Raw) -replace "`r`n","\n" -replace "`n","\n"
+(Get-Content tu-clave-privada.key -Raw) -replace "`r`n","\n" -replace "`n","\n"
+```
+
+### Comprobar configuración en despliegue
+
+`GET /api/hotelbeds-availability?diagnostic=1` devuelve `mtlsConfigured` y `hotelbedsHost`.
+
+### Reconfirmaciones
+
+Push URL: `https://<tu-dominio>/api/hotelbeds-reconfirmation`. Hotelbeds las activa al pasar a **live** (en test pueden estar configuradas pero inactivas).
 
 ## Frontend: `hotelbeds-paquetes.js`
 

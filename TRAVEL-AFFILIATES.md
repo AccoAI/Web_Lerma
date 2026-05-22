@@ -1,0 +1,36 @@
+# Enlaces de afiliado — vuelo y coche (post-reserva)
+
+Tras el pago del paquete, la página `confirmacion-reserva.html` y el correo de confirmación (webhook Stripe) pueden mostrar enlaces a **Skyscanner** (vuelos) y **Rentcars** (coche).
+
+## 1. Darse de alta
+
+- **Rentcars:** [Rentcars Affiliates](https://affiliates.rentcars.com/) (Integrations → Links).
+- **Skyscanner:** programa de afiliados de Skyscanner Partners.
+
+## 2. Configurar URLs en el proyecto
+
+Edita `js/travel-affiliates.js`:
+
+```javascript
+window.TRAVEL_AFFILIATES = {
+  rentalcars: 'https://www.rentcars.com/es/?requestorid=…',  // enlace afiliado Rentcars (es)
+  skyscanner: 'https://…',  // búsqueda vuelos a Madrid
+};
+```
+
+Para el **correo** de confirmación (servidor), añade en **Vercel → Environment Variables** las mismas URLs:
+
+| Variable | Uso |
+|----------|-----|
+| `AFFILIATE_RENTALCARS_URL` | Enlace afiliado Rentcars (misma URL que en `travel-affiliates.js`) |
+| `AFFILIATE_SKYSCANNER_URL` | Enlace afiliado Skyscanner |
+
+Si una URL está vacía, no se muestra ese botón.
+
+## 3. Dónde lo ve el cliente
+
+- **Página de gracias:** `confirmacion-reserva.html?session_id=…` (tras Stripe).
+- **Email:** webhook `checkout.session.completed` (mismo bloque si hay variables en Vercel).
+- **Paquetes:** nota bajo alojamiento: «Una vez confirmado el paquete… vuelo y coche».
+
+Los enlaces abren en **pestaña nueva** (`target="_blank"`, `rel="noopener noreferrer sponsored"`).
