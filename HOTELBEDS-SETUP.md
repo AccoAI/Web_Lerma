@@ -87,23 +87,24 @@ Push URL: `https://<tu-dominio>/api/hotelbeds-reconfirmation`. Hotelbeds las act
 
 ### Lista de hoteles Burgos (BRG)
 
-En `js/hotelbeds-paquetes.js`, array **`BRG_HOTEL_CODES`**: pool de hoteles Burgos admitidos. **Sin orden preferente**: una sola petición availability con todos los códigos (máx. 20) y se muestran hasta **`HB_DISPLAY_MAX`** (3) **con tarifas**, en el orden que devuelva Hotelbeds. Sin stock → no se muestran.
+En `js/hotelbeds-paquetes.js`, array **`BRG_HOTEL_CODES`**: pool de hoteles Burgos admitidos, **ordenados por prioridad** (arriba = más preferido). Una petición availability con todos los códigos; se muestran hasta **`HB_DISPLAY_MAX`** (3) **con tarifas**, respetando ese orden. Sin stock → no se muestran. Solo entran hoteles listados en el array.
 
-Códigos por defecto:
+Orden por defecto:
 
-| Código | Nombre |
-|--------|--------|
-| `23103` | NH Collection Palacio de Burgos |
-| `87356` | Silken Gran Teatro |
-| `934` | Hotel Maria Luisa |
-
-Añade más códigos al array cuando quieras ampliar el pool.
+| Prioridad | Código | Nombre |
+|-----------|--------|--------|
+| 1 | `87356` | Silken Gran Teatro |
+| 2 | `23103` | NH Collection Palacio de Burgos |
+| 3 | `934` | Hotel Maria Luisa |
+| 4 | `1882` | Abba Burgos |
+| 5 | `1021767` | Apartamentos El Cid |
+| 6 | `4177` | Crisol Meson del Cid |
 
 Opcional por página:
 
 ```javascript
 window.HOTELBEDS_PAGE = {
-  brgHotelCodes: ['23103', '87356', '934', '12345'],
+  brgHotelCodes: ['87356', '23103', '934', '1882', '1021767', '4177'],
   displayMaxHotels: 3,
 };
 ```

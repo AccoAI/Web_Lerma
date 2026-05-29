@@ -11,14 +11,17 @@
   /** Hotel API: destination.code solo 1–3 caracteres (p. ej. BRG). «BUR2» no es válido y devuelve 400. */
   var DESTINATIONS_LERMA_BURGOS = ['BRG'];
   /**
-   * Pool de hoteles Burgos (BRG) admitidos en la web. Sin orden preferente:
-   * una sola consulta availability y se muestran hasta HB_DISPLAY_MAX con tarifas
-   * (orden de la respuesta Hotelbeds). Añade códigos; etiquetas en CURATED_HOTEL_LABELS.
+   * Pool de hoteles Burgos (BRG), orden = prioridad (primero más preferido).
+   * Una consulta availability con todos los códigos; se muestran hasta HB_DISPLAY_MAX
+   * con tarifas, respetando este orden. Añade códigos; etiquetas en CURATED_HOTEL_LABELS.
    */
   var BRG_HOTEL_CODES = [
-    '23103', // NH Collection Palacio de Burgos
     '87356', // Silken Gran Teatro
+    '23103', // NH Collection Palacio de Burgos
     '934', // Hotel Maria Luisa
+    '1882', // Abba Burgos
+    '1021767', // Apartamentos El Cid
+    '4177', // Crisol Meson del Cid
   ];
   /** Máximo de hoteles mostrados (solo con disponibilidad real). */
   var HB_DISPLAY_MAX = 3;
@@ -32,6 +35,9 @@
     '87356': 'Silken Gran Teatro',
     '23103': 'NH Collection Palacio de Burgos',
     '934': 'Hotel Maria Luisa',
+    '1882': 'Abba Burgos',
+    '1021767': 'Apartamentos El Cid',
+    '4177': 'Crisol Meson del Cid',
   };
 
   function pageOpts() {
@@ -2076,12 +2082,11 @@
       return Promise.resolve({ hotels: [], poolSize: 0, apiCalls: 0 });
     }
 
-    function pickHotelsWithOffers(hb) {
+    function pickHotelsWithOffers(hb, codeList) {
       var found = [];
-      var list = (hb && hb.hotels && hb.hotels.hotels) || [];
-      for (var i = 0; i < list.length && found.length < maxShow; i++) {
-        var h = list[i];
-        if (shouldListHotel(h) && hotelHasBookableOffers(h)) {
+      for (var i = 0; i < codeList.length && found.length < maxShow; i++) {
+        var h = findHotelInAvailability(hb, codeList[i]);
+        if (h && shouldListHotel(h) && hotelHasBookableOffers(h)) {
           found.push(h);
         }
       }
@@ -2106,7 +2111,7 @@
         throw e;
       }
       return {
-        hotels: pickHotelsWithOffers(hb),
+        hotels: pickHotelsWithOffers(hb, codes),
         poolSize: codes.length,
         apiCalls: 1,
         aborted: false,
