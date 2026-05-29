@@ -569,8 +569,20 @@
       packaging: rate.packaging === true || rate.packaging === 'true',
       rateCommentsId: rate.rateCommentsId ? String(rate.rateCommentsId) : '',
       occupancyLabel: occupancyFromRate(rate),
+      rateRooms: rate.rooms != null && rate.rooms !== '' ? parseInt(rate.rooms, 10) : null,
+      rateAdults: rate.adults != null && rate.adults !== '' ? parseInt(rate.adults, 10) : null,
+      rateChildren:
+        rate.children != null && rate.children !== '' ? parseInt(rate.children, 10) : null,
       netValue: rateNetAmount(rate),
     };
+    if (offer.rateRooms == null || offer.rateAdults == null) {
+      var occKey = parseOccupancyFromRateKey(offer.rateKey);
+      if (occKey) {
+        if (offer.rateRooms == null) offer.rateRooms = occKey.rooms;
+        if (offer.rateAdults == null) offer.rateAdults = occKey.adults;
+        if (offer.rateChildren == null) offer.rateChildren = occKey.children;
+      }
+    }
     offer.listHint = rateOfferListHint(offer);
     return offer;
   }
@@ -1213,10 +1225,57 @@
     return Math.max(min, Math.min(max, n));
   }
 
+  /** Fragmento típico en rateKey: …|1~2~0|…@ (habitaciones~adultos~niños). */
+  function parseOccupancyFromRateKey(rateKey) {
+    var rk = String(rateKey || '');
+    var m = rk.match(/(\d+)~(\d+)~(\d+)/);
+    if (!m) return null;
+    var rooms = parseInt(m[1], 10);
+    var adults = parseInt(m[2], 10);
+    var children = parseInt(m[3], 10);
+    if (!rooms || !adults) return null;
+    return {
+      rooms: rooms,
+      adults: adults,
+      children: Number.isFinite(children) ? Math.max(0, children) : 0,
+    };
+  }
+
+  function findOfferByRateKey(hotelCode, rateKey) {
+    var offers = (window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode || '')] || [];
+    for (var i = 0; i < offers.length; i++) {
+      if (offers[i].rateKey === rateKey) return offers[i];
+    }
+    return null;
+  }
+
+  /** Ocupación que exige la tarifa (rateKey > campos rate > formulario funnel). */
+  function resolveBookingOccupancy(offer, rateKey, fd) {
+    var fromKey = parseOccupancyFromRateKey(rateKey);
+    if (fromKey) {
+      return {
+        rooms: Math.max(1, fromKey.rooms),
+        adults: Math.max(1, fromKey.adults),
+        children: Math.max(0, fromKey.children),
+      };
+    }
+    var adults = Math.max(
+      1,
+      parseInt((fd.get('hb_occ_adults') || fd.get('tamanio_grupo') || '2'), 10) || 2
+    );
+    var rooms = Math.max(1, parseInt((fd.get('hb_occ_rooms') || Math.ceil(adults / 2)), 10) || 1);
+    var children = 0;
+    if (offer) {
+      if (offer.rateRooms != null && offer.rateRooms > 0) rooms = offer.rateRooms;
+      if (offer.rateAdults != null && offer.rateAdults > 0) adults = offer.rateAdults;
+      if (offer.rateChildren != null && offer.rateChildren >= 0) children = offer.rateChildren;
+    }
+    return { rooms: rooms, adults: adults, children: children };
+  }
+
   function splitAdultsIntoRooms(adults, rooms) {
     adults = Math.max(1, adults | 0);
     rooms = Math.max(1, rooms | 0);
-    // Default: distribute 2 per room, remainder 1.
     var alloc = new Array(rooms).fill(0);
     var left = adults;
     for (var i = 0; i < rooms; i++) {
@@ -1225,11 +1284,32 @@
       left -= take;
       if (left <= 0) break;
     }
-    // If adults > rooms*2, cap distribution and leave remainder in last room.
     if (left > 0) {
       alloc[rooms - 1] += left;
     }
     return alloc.map(function (x) { return Math.max(1, x); });
+  }
+
+  function buildBookingRooms(finalRateKey, occ, nameParts) {
+    var roomsCount = Math.max(1, occ.rooms | 0);
+    var adults = Math.max(1, occ.adults | 0);
+    if (roomsCount <= 1) {
+      return [
+        {
+          rateKey: finalRateKey,
+          paxes: buildPaxesForRoom(1, adults, nameParts.name, nameParts.surname),
+        },
+      ];
+    }
+    var alloc = splitAdultsIntoRooms(adults, roomsCount);
+    var out = [];
+    for (var i = 0; i < roomsCount; i++) {
+      out.push({
+        rateKey: finalRateKey,
+        paxes: buildPaxesForRoom(i + 1, alloc[i] || 1, nameParts.name, nameParts.surname),
+      });
+    }
+    return out;
   }
 
   function buildPaxesForRoom(roomId, count, holderName, holderSurname) {
@@ -1772,6 +1852,11 @@
           result.innerHTML = '<p class="hb-funnel-warn">Antes revisa las condiciones (Hotelbeds).</p>';
           return;
         }
+        var rkConfirm = (form.querySelector('input[name="hb_selected_rate_key"]') || {}).value || '';
+        var offerConfirm = getPickedOfferFromFunnel(host, hotelCode);
+        var occConfirm = resolveBookingOccupancy(offerConfirm, rkConfirm, new FormData(form));
+        form.querySelector('input[name="hb_occ_adults"]').value = String(occConfirm.adults);
+        form.querySelector('input[name="hb_occ_rooms"]').value = String(occConfirm.rooms);
         form.querySelector('input[name="hb_funnel_ready"]').value = '1';
         var nochesInput = form.querySelector('input[name="noches"]');
         var noches = nochesInput ? nochesInput.value : '1';
@@ -2620,6 +2705,9 @@
     }
 
     function doBooking(finalRateKey) {
+      var hotelForOffer = selectedHotel || getActiveHotelCodeForBooking(fd, noches, cfg);
+      var offerForOcc = hotelForOffer ? findOfferByRateKey(hotelForOffer, finalRateKey) : null;
+      var bookOcc = resolveBookingOccupancy(offerForOcc, finalRateKey, fd);
       var booking = {
         holder: {
           name: nameParts.name,
@@ -2627,17 +2715,7 @@
           email: mail,
           phone: phone,
         },
-        rooms: (function () {
-          var alloc = splitAdultsIntoRooms(adults, roomsCount);
-          var out = [];
-          for (var i = 0; i < alloc.length; i++) {
-            out.push({
-              rateKey: finalRateKey,
-              paxes: buildPaxesForRoom(i + 1, alloc[i], nameParts.name, nameParts.surname),
-            });
-          }
-          return out;
-        })(),
+        rooms: buildBookingRooms(finalRateKey, bookOcc, nameParts),
         clientReference: buildHbClientReference(paquete),
         remark: 'Web paquete / Stripe: ' + pkgLabel,
         tolerance: '2',
