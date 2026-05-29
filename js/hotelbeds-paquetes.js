@@ -49,6 +49,16 @@
     return id ? document.getElementById(id) : null;
   }
 
+  /** Hotelbeds Booking API: clientReference 1–20 caracteres (no admite GL-fin-semana-{timestamp}). */
+  function buildHbClientReference(paquete) {
+    var slug = String(paquete || 'pk')
+      .replace(/[^a-z0-9]/gi, '')
+      .slice(0, 4)
+      .toUpperCase();
+    if (!slug) slug = 'PKG';
+    return (slug + String(Date.now())).slice(0, 20);
+  }
+
   function getContainer() {
     var id = pageOpts().preciosBlockId;
     return id ? document.getElementById(id) : null;
@@ -2447,7 +2457,7 @@
           }
           return out;
         })(),
-        clientReference: 'GL-' + paquete + '-' + Date.now(),
+        clientReference: buildHbClientReference(paquete),
         remark: 'Web paquete / Stripe: ' + pkgLabel,
         tolerance: '2',
       };

@@ -90,6 +90,14 @@ async function handleCheckrates(apiKey, secret, body) {
   }
 }
 
+/** Hotelbeds exige clientReference entre 1 y 20 caracteres. */
+function normalizeClientReference(ref) {
+  const s = String(ref == null ? '' : ref).trim();
+  if (s.length >= 1 && s.length <= 20) return s;
+  const fallback = ('GL' + Date.now()).slice(0, 20);
+  return fallback.length >= 1 ? fallback : 'GL' + String(Date.now() % 1e16).padStart(16, '0');
+}
+
 async function handleBooking(apiKey, secret, body) {
   const bookingBody = body.booking && typeof body.booking === 'object' ? body.booking : null;
   if (!bookingBody || !bookingBody.holder || !Array.isArray(bookingBody.rooms)) {
@@ -101,6 +109,8 @@ async function handleBooking(apiKey, secret, body) {
       400
     );
   }
+  bookingBody.clientReference = normalizeClientReference(bookingBody.clientReference);
+
   try {
     const { res, data } = await hotelbedsPostJson(
       apiKey,
