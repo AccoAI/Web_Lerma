@@ -10,10 +10,23 @@
   var ALL_HOTEL_IDS = ['alisa', 'ceres', 'parador', 'silken', 'palacio-blasones', 'hotel-centro'];
   /** Hotel API: destination.code solo 1–3 caracteres (p. ej. BRG). «BUR2» no es válido y devuelve 400. */
   var DESTINATIONS_LERMA_BURGOS = ['BRG'];
-  /** Oferta curada Hotelbeds (códigos Content API BRG). Lerma pueblo: vacío hasta añadir códigos. */
+  /**
+   * Pool de hoteles Burgos (BRG) admitidos en la web. Sin orden preferente:
+   * una sola consulta availability y se muestran hasta HB_DISPLAY_MAX con tarifas
+   * (orden de la respuesta Hotelbeds). Añade códigos; etiquetas en CURATED_HOTEL_LABELS.
+   */
+  var BRG_HOTEL_CODES = [
+    '23103', // NH Collection Palacio de Burgos
+    '87356', // Silken Gran Teatro
+    '934', // Hotel Maria Luisa
+  ];
+  /** Máximo de hoteles mostrados (solo con disponibilidad real). */
+  var HB_DISPLAY_MAX = 3;
+
+  /** Oferta curada Hotelbeds (códigos Content API BRG). Lerma: vacío hasta añadir códigos. */
   var ALLOWED_HOTEL_CODES = {
     lerma: {},
-    burgos: { '87356': 1, '23103': 1, '934': 1 },
+    burgos: {},
   };
   var CURATED_HOTEL_LABELS = {
     '87356': 'Silken Gran Teatro',
@@ -32,8 +45,44 @@
       onResumen: null,
       /** Si no es `false`, no se muestran importes € de Hotelbeds en tarjetas ni funnel (el total del paquete usa internamente hb_hotel_stay_ref_net). */
       hideHotelEuroUi: true,
+      /** Opcional: lista de códigos BRG para esta página (sin orden preferente). */
+      brgHotelCodes: null,
+      /** @deprecated Usa brgHotelCodes */
+      brgHotelPriority: null,
+      /** Opcional: sustituye HB_DISPLAY_MAX (por defecto 3). */
+      displayMaxHotels: null,
     };
     return Object.assign({}, d, window.HOTELBEDS_PAGE || {});
+  }
+
+  function getDisplayMaxHotels() {
+    var n = pageOpts().displayMaxHotels;
+    if (n != null && isFinite(Number(n)) && Number(n) >= 1) return Math.min(20, Math.floor(Number(n)));
+    return HB_DISPLAY_MAX;
+  }
+
+  function getBrgHotelCodeList() {
+    var po = pageOpts();
+    var custom = po.brgHotelCodes || po.brgHotelPriority;
+    if (Array.isArray(custom) && custom.length) {
+      return custom.map(function (c) { return String(c).trim(); }).filter(Boolean);
+    }
+    return BRG_HOTEL_CODES.slice();
+  }
+
+  function getBrgHotelPriorityList() {
+    return getBrgHotelCodeList();
+  }
+
+  function syncAllowedBurgosFromCodes() {
+    ALLOWED_HOTEL_CODES.burgos = {};
+    getBrgHotelCodeList().forEach(function (code) {
+      ALLOWED_HOTEL_CODES.burgos[String(code)] = 1;
+    });
+  }
+
+  function syncAllowedBurgosFromPriority() {
+    syncAllowedBurgosFromCodes();
   }
 
   function hbHideHotelEuroUi() {
@@ -526,6 +575,10 @@
     return offer;
   }
 
+  function hotelHasBookableOffers(hotel) {
+    return collectRateOffersFromHotel(hotel).length > 0;
+  }
+
   function collectRateOffersFromHotel(hotel) {
     var offers = [];
     if (!hotel || !hotel.rooms) return offers;
@@ -823,11 +876,12 @@
         var h0 = findHotelInAvailability(cache.av, want);
         if (h0) return Promise.resolve(h0);
       }
-      var codes = getAllowedHotelCodeList();
+      var codes = getDisplayedHotelCodesFromLastAvail();
+      if (!codes.length) codes = getBrgHotelCodeList();
       var fetchWiden =
         codes.length > 0
           ? fetchHotelbeds(checkInOut.checkIn, checkInOut.checkOut, codes, occ)
-          : fetchHotelbedsByDestination(checkInOut.checkIn, checkInOut.checkOut, occ);
+          : Promise.resolve(null);
       return fetchWiden.then(function (av) {
         if (!av) return null;
         if (av.error) {
@@ -1863,18 +1917,76 @@
   }
 
   function getAllowedHotelCodeList() {
-    var out = [];
+    syncAllowedBurgosFromPriority();
+    var out = getBrgHotelPriorityList().slice();
     var seen = {};
-    ['lerma', 'burgos'].forEach(function (zona) {
-      var bucket = ALLOWED_HOTEL_CODES[zona] || {};
-      Object.keys(bucket).forEach(function (code) {
-        if (!seen[code]) {
-          seen[code] = 1;
-          out.push(code);
-        }
-      });
+    out.forEach(function (c) {
+      seen[c] = 1;
+    });
+    Object.keys(ALLOWED_HOTEL_CODES.lerma || {}).forEach(function (code) {
+      if (!seen[code]) {
+        seen[code] = 1;
+        out.push(code);
+      }
     });
     return out;
+  }
+
+  function getDisplayedHotelCodesFromLastAvail() {
+    var hotels =
+      (window.__HB_LAST_AVAIL__ && window.__HB_LAST_AVAIL__.hotels && window.__HB_LAST_AVAIL__.hotels.hotels) || [];
+    if (!Array.isArray(hotels)) return [];
+    return hotels
+      .map(function (h) {
+        return h && h.code != null ? String(h.code) : '';
+      })
+      .filter(Boolean);
+  }
+
+  /** Una petición availability con todos los códigos BRG; hasta HB_DISPLAY_MAX con tarifas (orden API). */
+  function fetchBrgHotelsForDisplay(checkIn, checkOut, occ, abortSignal) {
+    var codes = getBrgHotelCodeList();
+    var maxShow = getDisplayMaxHotels();
+    if (!codes.length) {
+      return Promise.resolve({ hotels: [], poolSize: 0, apiCalls: 0 });
+    }
+
+    function pickHotelsWithOffers(hb) {
+      var found = [];
+      var list = (hb && hb.hotels && hb.hotels.hotels) || [];
+      for (var i = 0; i < list.length && found.length < maxShow; i++) {
+        var h = list[i];
+        if (shouldListHotel(h) && hotelHasBookableOffers(h)) {
+          found.push(h);
+        }
+      }
+      return found;
+    }
+
+    return fetchHotelbeds(checkIn, checkOut, codes, occ).then(function (hb) {
+      if (abortSignal && abortSignal.aborted) {
+        return { hotels: [], poolSize: codes.length, apiCalls: 1, aborted: true };
+      }
+      if (!hb || hb.error) {
+        var raw =
+          hb && hb.error
+            ? typeof hb.error === 'string'
+              ? hb.error
+              : hb.error && hb.error.message
+                ? String(hb.error.message)
+                : String(hb.error)
+            : 'Availability sin respuesta válida';
+        var e = new Error(raw);
+        if (hb && hb.hotelbedsHttpStatus) e.hotelbedsHttpStatus = hb.hotelbedsHttpStatus;
+        throw e;
+      }
+      return {
+        hotels: pickHotelsWithOffers(hb),
+        poolSize: codes.length,
+        apiCalls: 1,
+        aborted: false,
+      };
+    });
   }
 
   function catalogNameForCode(code) {
@@ -1937,13 +2049,16 @@
     var errCode = err && err.hbErrorCode ? ' [code: ' + err.hbErrorCode + ']' : '';
     window.__HB_API_DOWN__ = errMsg + httpSt + errCode;
     setBookingWidgetVisible(true);
-    fetchHotelbedsListHotels()
-      .then(function (list) {
-        renderFullHotelListFromContent(list);
-      })
-      .catch(function () {
-        renderFullHotelListFromContent(buildStaticCatalogHotels());
-      });
+    renderBlock(
+      '<div class="hotelbeds-block hotelbeds-warn">' +
+      '<p><strong>No se pudo consultar disponibilidad en Hotelbeds.</strong></p>' +
+      '<p>' +
+      escapeHtml(errMsg + httpSt + errCode) +
+      '</p>' +
+      '<p>Revisa fechas y ocupación o inténtalo de nuevo en unos minutos.</p>' +
+      '</div>'
+    );
+    document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
   }
 
   var PRICE_ON_REQUEST_LABEL = 'Precio a consultar';
@@ -2082,21 +2197,25 @@
       });
   }
 
-  function renderNoAvailabilityForDates() {
+  function renderNoAvailabilityForDates(scannedCount) {
     window.LIVE_HOTEL_PRICES = null;
     window.HOTELBEDS_DYNAMIC_OPTS = null;
-    // Mostramos el aviso de sin disponibilidad y, a continuación, el catálogo estático
-    // para que la reserva pueda continuar (Hotelbeds confirma 0 habitaciones, pero el cliente
-    // puede seguir el proceso con los hoteles del catálogo).
+    clearHotelbedsBookingContext();
     window.__HB_API_DOWN__ = 'Sin disponibilidad confirmada por Hotelbeds para estas fechas';
     setBookingWidgetVisible(true);
-    fetchHotelbedsListHotels()
-      .then(function (list) {
-        renderFullHotelListFromContent(list, true);
-      })
-      .catch(function () {
-        renderFullHotelListFromContent(buildStaticCatalogHotels(), true);
-      });
+    var extra =
+      scannedCount != null && scannedCount > 0
+        ? ' Se consultaron ' + scannedCount + ' hotel(es) de la lista en Burgos.'
+        : '';
+    renderBlock(
+      '<div class="hotelbeds-block hotelbeds-warn">' +
+      '<p><strong>No hay hoteles con disponibilidad</strong> para las fechas y ocupación seleccionadas.' +
+      extra +
+      '</p>' +
+      '<p>Prueba otras fechas o ajusta el tamaño del grupo.</p>' +
+      '</div>'
+    );
+    document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
   }
 
   function renderHotelbedsResults(data, selectedHotels) {
@@ -2116,6 +2235,7 @@
       renderNoAvailabilityForDates();
       return;
     }
+    var maxShow = getDisplayMaxHotels();
     var cfg = window.HOTELBEDS_CONFIG;
     var codeToId = {};
     ALL_HOTEL_IDS.forEach(function (id) {
@@ -2125,10 +2245,22 @@
     var live = {};
     var rateBy = window.__HB_RATE_BY_CODE || {};
     var contentBy = window.__HB_CONTENT_BY_CODE || {};
+    var partialNote =
+      hotels.length < maxShow
+        ? '<p class="hotelbeds-note">Solo ' +
+          hotels.length +
+          ' de ' +
+          maxShow +
+          ' hoteles con disponibilidad en Burgos para estas fechas.</p>'
+        : '';
     var html =
       '<div class="hotelbeds-block hotelbeds-results"><h4 class="hotelbeds-title">' +
-      (hbHideHotelEuroUi() ? 'Hoteles con disponibilidad (Hotelbeds)' : 'Precios en tiempo real (Hotelbeds)') +
-      '</h4><ul class="hotelbeds-list hotelbeds-list--cards">';
+      (hbHideHotelEuroUi()
+        ? 'Hoteles con disponibilidad en Burgos (Hotelbeds)'
+        : 'Precios en tiempo real · Burgos (Hotelbeds)') +
+      '</h4>' +
+      partialNote +
+      '<ul class="hotelbeds-list hotelbeds-list--cards">';
     // Hotelbeds Availability suele devolver minRate como total de la estancia.
     // Para evitar confusión, mostramos total estancia + (aprox) por noche según nº de noches.
     var noches = getNochesFromForm();
@@ -2257,53 +2389,53 @@
     renderLoading();
     window.__HB_API_DOWN__ = '';
 
-    var cfg = window.HOTELBEDS_CONFIG;
-    var selectedCodes = cfg && cfg.getCodesForSelectedHotels ? cfg.getCodesForSelectedHotels(formData, noches) : [];
-    var curatedCodes = getAllowedHotelCodeList();
-
     var occ = getListOccupancyForAvailability(formData);
-    var queryCodes = selectedCodes.length > 0 ? selectedCodes : curatedCodes;
-    var hbPromise = queryCodes.length > 0
-      ? fetchHotelbeds(range.checkIn, range.checkOut, queryCodes, occ)
-      : fetchHotelbedsByDestination(range.checkIn, range.checkOut, occ);
+    var codePool = getBrgHotelCodeList();
+    if (!codePool.length) {
+      renderBlock(
+        '<div class="hotelbeds-block hotelbeds-info">No hay códigos de hotel configurados (BRG_HOTEL_CODES).</div>'
+      );
+      document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
+      return;
+    }
 
-    hbPromise
-      .then(function (hb) {
+    fetchBrgHotelsForDisplay(
+      range.checkIn,
+      range.checkOut,
+      occ,
+      thisAbort && thisAbort.signal ? thisAbort.signal : null
+    )
+      .then(function (result) {
         if (thisAbort && thisAbort.signal && thisAbort.signal.aborted) return;
-        if (hb && hb.error) {
-          var errMsg = typeof hb.error === 'string' ? hb.error : (hb.error && hb.error.message) || 'Hotelbeds error';
-          var httpSt = hb.hotelbedsHttpStatus || null;
-          var hbErrCode = (hb.hotelbeds && hb.hotelbeds.error && hb.hotelbeds.error.code) || null;
-          console.warn(
-            '[Hotelbeds] Error en disponibilidad — msg:', errMsg,
-            '| HTTP:', httpSt,
-            '| code:', hbErrCode,
-            '| rawHb:', JSON.stringify(hb.hotelbeds || hb.rawPreview || null)
-          );
-          var e = new Error(errMsg);
-          e.hotelbedsHttpStatus = httpSt;
-          e.hbErrorCode = hbErrCode;
-          throw e;
+        var hotels = (result && result.hotels) || [];
+        if (!hotels.length) {
+          renderNoAvailabilityForDates(result && result.poolSize);
+          return;
         }
+        var hb = { hotels: { hotels: hotels, total: hotels.length } };
         window.__HB_LAST_AVAIL__ = hb;
         window.__HB_LAST_AVAIL_OCC__ = occ;
         window.__HB_LAST_AVAIL_RANGE__ = { checkIn: range.checkIn, checkOut: range.checkOut };
         var widenSeedKey = [range.checkIn, range.checkOut, occ.rooms, occ.adults, occ.children || 0].join('|');
-        if (!window.__HB_WIDEN_AVAIL_CACHE__ || window.__HB_WIDEN_AVAIL_CACHE__.key !== widenSeedKey) {
-          window.__HB_WIDEN_AVAIL_CACHE__ = { key: widenSeedKey, av: hb };
-        }
+        window.__HB_WIDEN_AVAIL_CACHE__ = { key: widenSeedKey, av: hb };
         window.__HB_RATE_BY_CODE = indexRatesByHotelCode(hb);
+        console.info(
+          '[Hotelbeds] Mostrando',
+          hotels.length,
+          'hotel(es) con disponibilidad (pool BRG:',
+          result.poolSize,
+          ',',
+          result.apiCalls,
+          'llamada(s) availability).'
+        );
         return loadHotelContentEnrichment().then(function () {
           return hb;
         });
       })
       .then(function (hb) {
         if (thisAbort && thisAbort.signal && thisAbort.signal.aborted) return;
-        if (queryCodes.length > 0) {
-          renderHotelbedsResults(hb, selectedCodes);
-        } else {
-          renderHotelbedsResultsByDestination(hb);
-        }
+        if (!hb) return;
+        renderHotelbedsResults(hb, []);
       })
       .catch(function (err) {
         if (thisAbort && thisAbort.signal && thisAbort.signal.aborted) return;

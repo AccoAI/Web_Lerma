@@ -85,6 +85,29 @@ Push URL: `https://<tu-dominio>/api/hotelbeds-reconfirmation`. Hotelbeds las act
 
 ## Frontend: `hotelbeds-paquetes.js`
 
+### Lista de hoteles Burgos (BRG)
+
+En `js/hotelbeds-paquetes.js`, array **`BRG_HOTEL_CODES`**: pool de hoteles Burgos admitidos. **Sin orden preferente**: una sola petición availability con todos los códigos (máx. 20) y se muestran hasta **`HB_DISPLAY_MAX`** (3) **con tarifas**, en el orden que devuelva Hotelbeds. Sin stock → no se muestran.
+
+Códigos por defecto:
+
+| Código | Nombre |
+|--------|--------|
+| `23103` | NH Collection Palacio de Burgos |
+| `87356` | Silken Gran Teatro |
+| `934` | Hotel Maria Luisa |
+
+Añade más códigos al array cuando quieras ampliar el pool.
+
+Opcional por página:
+
+```javascript
+window.HOTELBEDS_PAGE = {
+  brgHotelCodes: ['23103', '87356', '934', '12345'],
+  displayMaxHotels: 3,
+};
+```
+
 Las páginas con configurador y alojamiento cargan `js/hotelbeds-config.js` y `js/hotelbeds-paquetes.js`. Antes del script, define opciones si no usas los valores por defecto del fin de semana:
 
 ```javascript
