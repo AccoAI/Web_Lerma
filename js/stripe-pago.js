@@ -89,8 +89,8 @@
     if (options.formId) {
       var hbForm = document.getElementById(options.formId);
       if (hbForm) {
-        var hbHotel = hbForm.querySelector('input[name="hb_selected_hotel_code"]');
-        if (hbHotel && String(hbHotel.value || '').trim()) strictHb = true;
+        var hbReady = hbForm.querySelector('input[name="hb_funnel_ready"]');
+        if (hbReady && String(hbReady.value || '').trim() === '1') strictHb = true;
       }
     }
 

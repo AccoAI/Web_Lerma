@@ -2392,8 +2392,15 @@
 
     var funnelReady = (fd.get('hb_funnel_ready') || '').trim() === '1';
     var selectedHotel = (fd.get('hb_selected_hotel_code') || '').trim();
+    var rateValidated = (fd.get('hb_rate_validated') || '').trim() === '1';
     if (selectedHotel && !funnelReady) {
-      return Promise.reject(new Error('Confirma el hotel en la sección Hotelbeds antes de pagar.'));
+      if (rateValidated) {
+        return Promise.reject(
+          new Error('Confirma el hotel en la sección Hotelbeds (botón «Confirmar hotel») antes de pagar.')
+        );
+      }
+      // Hotel clicado en la lista pero sin tarifa/disponibilidad: no bloquear el pago del paquete.
+      return Promise.resolve(null);
     }
 
     var pick = null;
