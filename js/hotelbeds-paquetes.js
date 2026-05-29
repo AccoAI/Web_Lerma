@@ -1323,6 +1323,25 @@
     if (offerForResumen) syncHbResumenPriceHidden(form, offerForResumen);
   }
 
+  /** Tarifas BOOKABLE: basta elegir régimen; RECHECK exige «Ver condiciones» (CheckRate). */
+  function syncFunnelValidationFromPickedRate(host, form) {
+    if (!host || !form) return false;
+    var hotelCode = (form.querySelector('input[name="hb_selected_hotel_code"]') || {}).value || '';
+    if (!hotelCode) return false;
+    var offer = getPickedOfferFromFunnel(host, hotelCode);
+    if (!offer || !offer.rateKey) return false;
+    var rt = String(offer.rateType || 'BOOKABLE').toUpperCase();
+    form.querySelector('input[name="hb_selected_rate_key"]').value = offer.rateKey;
+    form.querySelector('input[name="hb_selected_rate_type"]').value = rt;
+    if (rt === 'BOOKABLE') {
+      markRateValidated(form, offer.rateKey, rt, offer);
+      triggerResumenUpdate();
+      return true;
+    }
+    form.querySelector('input[name="hb_rate_validated"]').value = '';
+    return false;
+  }
+
   function renderFunnelConditionsHtml(offer) {
     if (!offer) return '';
     var html = '<div class="hb-funnel-ok"><strong>Condiciones de la tarifa</strong>';
@@ -1466,6 +1485,8 @@
     });
     html += '</ul>';
     box.innerHTML = html;
+    var funnelForm = getForm();
+    if (funnelForm) syncFunnelValidationFromPickedRate(host, funnelForm);
   }
 
   function getPickedOfferFromFunnel(host, hotelCode) {
@@ -1562,11 +1583,17 @@
     function refreshUiState() {
       var hotelCode = getSelectedHotelCode();
       btnCheck.disabled = !hotelCode;
+      var picked = getPickedOfferFromFunnel(host, hotelCode);
+      var needsCheck =
+        picked && String(picked.rateType || '').toUpperCase() === 'RECHECK' && !isRateValidated();
       btnConfirm.disabled = !hotelCode || !isRateValidated();
-      btnConfirm.title =
-        hotelCode && !isRateValidated()
-          ? 'Primero pulsa «' + hbFunnelConditionsButtonText() + '».'
-          : '';
+      btnConfirm.title = !hotelCode
+        ? 'Elige un hotel.'
+        : needsCheck
+          ? 'Tarifa RECHECK: pulsa «' + hbFunnelConditionsButtonText() + '» antes de confirmar.'
+          : !isRateValidated()
+            ? 'Elige una tarifa (habitación y régimen).'
+            : 'Fijar este hotel y tarifa antes del pago.';
       if (!hotelCode) {
         hotelLine.textContent = 'Elige un hotel para continuar.';
         host.__hbRatesHotel = '';
@@ -1635,14 +1662,28 @@
 
       host.addEventListener('change', function (ev) {
         if (!ev.target || ev.target.name !== 'hb-funnel-rate-pick') return;
-        form.querySelector('input[name="hb_rate_validated"]').value = '';
         form.querySelector('input[name="hb_funnel_ready"]').value = '';
-        var offer = getPickedOfferFromFunnel(host, getSelectedHotelCode());
-        if (offer) {
-          form.querySelector('input[name="hb_selected_rate_key"]').value = offer.rateKey;
-          form.querySelector('input[name="hb_selected_rate_type"]').value = offer.rateType;
+        syncFunnelValidationFromPickedRate(host, form);
+        var hotelCode = getSelectedHotelCode();
+        var offer = getPickedOfferFromFunnel(host, hotelCode);
+        var result = host.querySelector('#hb-funnel-inline-result');
+        if (
+          result &&
+          offer &&
+          String(offer.rateType || '').toUpperCase() === 'BOOKABLE' &&
+          isRateValidated()
+        ) {
+          result.innerHTML =
+            '<p class="hb-funnel-small">Tarifa seleccionada. Puedes pulsar <strong>Confirmar hotel</strong> o «' +
+            escapeHtml(hbFunnelConditionsButtonText()) +
+            '» para ver cancelación y observaciones.</p>';
+        } else if (result && offer && String(offer.rateType || '').toUpperCase() === 'RECHECK') {
+          result.innerHTML =
+            '<p class="hb-funnel-warn">Tarifa RECHECK: pulsa «' +
+            escapeHtml(hbFunnelConditionsButtonText()) +
+            '» antes de confirmar.</p>';
         }
-        btnConfirm.disabled = true;
+        refreshUiState();
       });
 
       function resetFunnelValidation() {
@@ -1674,14 +1715,13 @@
         setSelectedHotelInHiddenInputs(form, hotelCode, '', occ.adults, occ.rooms, '');
         refreshUiState();
 
+        var offersReady =
+          ((window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || []).length > 0 &&
+          hbFunnelOffersCacheMatches(hotelCode, checkInOut, occ);
         result.textContent = offersReady
           ? 'Preparando condiciones de la tarifa…'
           : 'Consultando disponibilidad...';
         btnCheck.disabled = true;
-
-        var offersReady =
-          ((window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || []).length > 0 &&
-          hbFunnelOffersCacheMatches(hotelCode, checkInOut, occ);
         var fetchStep = offersReady ? Promise.resolve() : fetchFunnelAvailabilityOffers(hotelCode, checkInOut, occ);
 
         fetchStep
@@ -2528,7 +2568,9 @@
     if (selectedHotel && !funnelReady) {
       if (rateValidated) {
         return Promise.reject(
-          new Error('Confirma el hotel en la sección Hotelbeds (botón «Confirmar hotel») antes de pagar.')
+          new Error(
+            'Pulsa «Confirmar hotel» en la sección Hotelbeds (debajo de la tarifa elegida) y después «Reservar paquete».'
+          )
         );
       }
       // Hotel clicado en la lista pero sin tarifa/disponibilidad: no bloquear el pago del paquete.
