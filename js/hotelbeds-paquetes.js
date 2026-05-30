@@ -971,8 +971,8 @@
   function getOccupancyFromFormData(fd) {
     if (!fd || !fd.get) return { adults: 2, rooms: 1, children: 0 };
     var adults = clamp(getInt(fd.get('hb_occ_adults') || fd.get('tamanio_grupo'), 2), 1, 54);
-    var rooms = clamp(getInt(fd.get('hb_occ_rooms') || Math.ceil(adults / 2), 1), 1, 20);
-    return { adults: adults, rooms: rooms, children: 0 };
+    var rooms = clamp(getInt(fd.get('hb_occ_rooms') || Math.ceil(adults / 2), 1), 1, HB_MAX_ROOMS);
+    return clampHotelbedsOccupancy({ adults: adults, rooms: rooms, children: 0 });
   }
 
   function getOccupancyFromTamanioGrupo(fd) {
@@ -980,20 +980,33 @@
     var raw = String(fd.get('tamanio_grupo') || '').trim();
     if (!raw) return null;
     var adults = clamp(getInt(raw, 2), 1, 54);
-    return {
+    return clampHotelbedsOccupancy({
       adults: adults,
-      rooms: clamp(Math.ceil(adults / 2), 1, 20),
+      rooms: clamp(Math.ceil(adults / 2), 1, HB_MAX_ROOMS),
       children: 0,
-    };
+    });
   }
 
-  /** Listado inicial: misma ocupación que el funnel (tamaño de grupo) cuando exista. */
+  /** Listado: tamaño de grupo manda; hb_occ solo si el hotel ya está confirmado en el funnel. */
   function getListOccupancyForAvailability(fd) {
     if (!fd || !fd.get) return { adults: 2, rooms: 1, children: 0 };
-    if (String(fd.get('hb_occ_adults') || '').trim()) return getOccupancyFromFormData(fd);
+    if (String(fd.get('hb_funnel_ready') || '').trim() === '1') {
+      return getOccupancyFromFormData(fd);
+    }
     var fromGroup = getOccupancyFromTamanioGrupo(fd);
     if (fromGroup) return fromGroup;
+    if (String(fd.get('hb_occ_adults') || '').trim()) return getOccupancyFromFormData(fd);
     return { adults: 2, rooms: 1, children: 0 };
+  }
+
+  function resetHbOccForGroupSizeChange(form) {
+    if (!form) return;
+    var readyEl = form.querySelector('input[name="hb_funnel_ready"]');
+    if (readyEl && String(readyEl.value || '').trim() === '1') return;
+    ['hb_occ_adults', 'hb_occ_rooms', 'hb_occ_children'].forEach(function (name) {
+      var el = form.querySelector('input[name="' + name + '"]');
+      if (el) el.value = '';
+    });
   }
 
   function buildAvailCacheKey(checkIn, checkOut, occ, hotelCode) {
@@ -1229,6 +1242,18 @@
 
   function clamp(n, min, max) {
     return Math.max(min, Math.min(max, n));
+  }
+
+  /** Hotelbeds Availability: máx. 10 habitaciones por petición. */
+  var HB_MAX_ROOMS = 10;
+
+  function clampHotelbedsOccupancy(occ) {
+    if (!occ) return { adults: 2, rooms: 1, children: 0 };
+    return {
+      adults: clamp(getInt(occ.adults, 2), 1, 54),
+      rooms: clamp(getInt(occ.rooms, 1), 1, HB_MAX_ROOMS),
+      children: clamp(getInt(occ.children, 0), 0, 20),
+    };
   }
 
   /** Fragmento típico en rateKey: …|1~2~0|…@ (habitaciones~adultos~niños). */
@@ -1956,15 +1981,16 @@
 
   function fetchHotelbeds(checkIn, checkOut, hotelCodes, occ) {
     var base = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
+    var safeOcc = clampHotelbedsOccupancy(occ);
     return fetch(base + '/api/hotelbeds-availability', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         checkIn: checkIn,
         checkOut: checkOut,
-        rooms: (occ && occ.rooms) || 1,
-        adults: (occ && occ.adults) || 2,
-        children: (occ && occ.children) || 0,
+        rooms: safeOcc.rooms,
+        adults: safeOcc.adults,
+        children: safeOcc.children || 0,
         hotelCodes: hotelCodes,
       }),
     }).then(function (r) { return parseHotelbedsResponse(r); });
@@ -2108,13 +2134,20 @@
             : 'Availability sin respuesta válida';
         var e = new Error(raw);
         if (hb && hb.hotelbedsHttpStatus) e.hotelbedsHttpStatus = hb.hotelbedsHttpStatus;
+        if (isHbQuotaLikeMessage(raw, hb)) {
+          e.message =
+            'Cuota de consultas Hotelbeds superada. Espera unos minutos e inténtalo de nuevo (no es falta de credenciales).';
+        }
         throw e;
       }
+      var rawList = (hb.hotels && hb.hotels.hotels) || [];
       return {
         hotels: pickHotelsWithOffers(hb, codes),
         poolSize: codes.length,
         apiCalls: 1,
         aborted: false,
+        rawApiCount: rawList.length,
+        occ: clampHotelbedsOccupancy(occ),
       };
     });
   }
@@ -2175,6 +2208,10 @@
       return;
     }
     var errMsg = (err && err.message) ? err.message : 'Error de conexión';
+    if (isHbQuotaLikeMessage(errMsg, err)) {
+      errMsg =
+        'Cuota de consultas Hotelbeds superada. Espera unos minutos e inténtalo de nuevo (no es falta de credenciales).';
+    }
     var httpSt = err && err.hotelbedsHttpStatus ? ' [HTTP ' + err.hotelbedsHttpStatus + ']' : '';
     var errCode = err && err.hbErrorCode ? ' [code: ' + err.hbErrorCode + ']' : '';
     window.__HB_API_DOWN__ = errMsg + httpSt + errCode;
@@ -2327,7 +2364,7 @@
       });
   }
 
-  function renderNoAvailabilityForDates(scannedCount) {
+  function renderNoAvailabilityForDates(scannedCount, occ, rawApiCount) {
     window.LIVE_HOTEL_PRICES = null;
     window.HOTELBEDS_DYNAMIC_OPTS = null;
     clearHotelbedsBookingContext();
@@ -2337,12 +2374,35 @@
       scannedCount != null && scannedCount > 0
         ? ' Se consultaron ' + scannedCount + ' hotel(es) de la lista en Burgos.'
         : '';
+    var occLine =
+      occ && occ.adults
+        ? ' Búsqueda: <strong>' +
+          occ.adults +
+          ' adulto(s)</strong>, <strong>' +
+          (occ.rooms || 1) +
+          ' habitación(es)</strong>.'
+        : '';
+    var tip = '';
+    if (occ && occ.rooms >= HB_MAX_ROOMS) {
+      tip =
+        '<p>Hotelbeds admite como máximo ' +
+        HB_MAX_ROOMS +
+        ' habitaciones por consulta. Reduce el tamaño del grupo o contáctanos para grupos muy grandes.</p>';
+    } else if (occ && (occ.adults > 4 || occ.rooms > 2)) {
+      tip =
+        '<p>Con grupos grandes o varias habitaciones el stock online suele ser muy limitado (sobre todo en el entorno test de Hotelbeds). Prueba con menos jugadores, estancias de 2+ noches u otras fechas.</p>';
+    } else if (rawApiCount === 0) {
+      tip =
+        '<p>Si acabas de probar muchas fechas seguidas, puede haber <strong>cuota de API</strong> de Hotelbeds: espera unos minutos y recarga la página.</p>';
+    }
     renderBlock(
       '<div class="hotelbeds-block hotelbeds-warn">' +
       '<p><strong>No hay hoteles con disponibilidad</strong> para las fechas y ocupación seleccionadas.' +
+      occLine +
       extra +
       '</p>' +
-      '<p>Prueba otras fechas o ajusta el tamaño del grupo.</p>' +
+      '<p>Prueba otras fechas, reduce el <strong>tamaño del grupo</strong> o deja ese campo vacío para ver opciones con 2 adultos.</p>' +
+      tip +
       '</div>'
     );
     document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
@@ -2521,7 +2581,7 @@
 
     syncAllowedBurgosFromPriority();
 
-    var occ = getListOccupancyForAvailability(formData);
+    var occ = clampHotelbedsOccupancy(getListOccupancyForAvailability(formData));
     var codePool = getBrgHotelCodeList();
     if (!codePool.length) {
       renderBlock(
@@ -2541,7 +2601,13 @@
         if (thisAbort && thisAbort.signal && thisAbort.signal.aborted) return;
         var hotels = (result && result.hotels) || [];
         if (!hotels.length) {
-          renderNoAvailabilityForDates(result && result.poolSize);
+          console.warn(
+            '[Hotelbeds] Sin hoteles tras filtro.',
+            'occ:', result.occ,
+            'rawApi:', result.rawApiCount,
+            'pool:', result.poolSize
+          );
+          renderNoAvailabilityForDates(result && result.poolSize, result && result.occ, result && result.rawApiCount);
           return;
         }
         var hb = { hotels: { hotels: hotels, total: hotels.length } };
@@ -2777,6 +2843,9 @@
   }
 
   function scheduleFromForm(ev) {
+    if (ev && ev.target && ev.target.name === 'tamanio_grupo') {
+      resetHbOccForGroupSizeChange(getForm());
+    }
     if (ev && shouldIgnoreHotelbedsFormRefresh(ev.target)) return;
     schedule();
   }
