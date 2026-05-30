@@ -2519,6 +2519,8 @@
     renderLoading();
     window.__HB_API_DOWN__ = '';
 
+    syncAllowedBurgosFromPriority();
+
     var occ = getListOccupancyForAvailability(formData);
     var codePool = getBrgHotelCodeList();
     if (!codePool.length) {
@@ -2801,6 +2803,8 @@
       wrap.appendChild(container);
     }
     setBookingWidgetVisible(false);
+
+    syncAllowedBurgosFromPriority();
 
     var form = getForm();
     if (form) {
