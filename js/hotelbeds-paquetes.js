@@ -539,6 +539,12 @@
     var parts = [];
     if (offer.occupancyLabel) parts.push('Ocupación: ' + offer.occupancyLabel);
     if (offer.allotment != null && offer.allotment !== '') parts.push('Cupo HB ' + offer.allotment);
+    if (offer.rateRooms != null && offer.rateAdults != null) {
+      parts.push('Ocupación tarifa: ' + offer.rateRooms + ' hab., ' + offer.rateAdults + ' adultos');
+    }
+    if (!rateHasSufficientAllotment(offer, { rooms: offer.rateRooms || 1 })) {
+      parts.push('⚠ Cupo bajo para varias habitaciones');
+    }
     if (offer.packaging) parts.push('Tarifa paquete Hotelbeds');
     var total = calcTotalPaquete(offer);
     if (total != null) {
@@ -761,6 +767,33 @@
       return true;
     }
     return false;
+  }
+
+  function humanizeHotelbedsError(msg, envelope) {
+    var s = String(msg || '').trim();
+    if (!s) return s;
+    if (isHbQuotaLikeMessage(s, envelope || {})) {
+      return 'Cuota de consultas Hotelbeds superada. Espera unos minutos e inténtalo de nuevo.';
+    }
+    if (/insufficient\s+allotment/i.test(s)) {
+      return (
+        'Cupo agotado para esa tarifa (stock muy bajo o ya reservado). ' +
+        'Elige otra tarifa u hotel, pulsa «Ver condiciones (Hotelbeds)» y «Confirmar hotel» justo antes de pagar.'
+      );
+    }
+    if (/price\s+change|price\s+difference|tolerance/i.test(s)) {
+      return 'El precio de la tarifa cambió. Vuelve a «Ver condiciones (Hotelbeds)» y confirma de nuevo.';
+    }
+    return s;
+  }
+
+  /** allotment HB suele ser nº de habitaciones disponibles a ese precio. */
+  function rateHasSufficientAllotment(offer, occ) {
+    if (!offer || offer.allotment == null || offer.allotment === '') return true;
+    var allotment = parseInt(String(offer.allotment), 10);
+    if (!Number.isFinite(allotment) || allotment < 1) return true;
+    var roomsNeeded = Math.max(1, (occ && occ.rooms) || 1);
+    return allotment >= roomsNeeded;
   }
 
   function getHbFunnelOffersKey(checkInOut, occ, hotelCode) {
@@ -1912,6 +1945,15 @@
         var rkConfirm = (form.querySelector('input[name="hb_selected_rate_key"]') || {}).value || '';
         var offerConfirm = getPickedOfferFromFunnel(host, hotelCode);
         var occConfirm = resolveBookingOccupancy(offerConfirm, rkConfirm, new FormData(form));
+        if (offerConfirm && !rateHasSufficientAllotment(offerConfirm, occConfirm)) {
+          result.innerHTML =
+            '<p class="hb-funnel-warn">Cupo insuficiente (Cupo HB ' +
+            escapeHtml(String(offerConfirm.allotment)) +
+            ' para ' +
+            occConfirm.rooms +
+            ' habitación(es)). Elige otra tarifa o reduce habitaciones.</p>';
+          return;
+        }
         form.querySelector('input[name="hb_occ_adults"]').value = String(occConfirm.adults);
         form.querySelector('input[name="hb_occ_rooms"]').value = String(occConfirm.rooms);
         form.querySelector('input[name="hb_funnel_ready"]').value = '1';
@@ -2730,6 +2772,23 @@
     return rt && rt.rateKey ? String(rt.rateKey) : null;
   }
 
+  /** CheckRate inmediatamente antes de booking: rateKey fresco y cupo actualizado. */
+  function ensureFreshRateKeyForBooking(postHb, rateKey) {
+    return postHb({ action: 'checkrates', rooms: [{ rateKey: rateKey }] }).then(function (cr) {
+      if (!cr.ok) {
+        var raw =
+          cr.hotelbedsError ||
+          (cr.data && cr.data.error && (cr.data.error.message || cr.data.error)) ||
+          cr.error ||
+          'CheckRate falló';
+        throw new Error(humanizeHotelbedsError(String(raw), cr));
+      }
+      var nk = extractRateKeyAfterCheckrate(cr.data);
+      if (!nk) throw new Error('CheckRate no devolvió rateKey actualizado.');
+      return nk;
+    });
+  }
+
   window.tryHotelbedsBookForStripe = function (opts) {
     opts = opts || {};
     if (window.HOTELBEDS_SKIP_PREBOOK === true) {
@@ -2836,30 +2895,14 @@
               ') pero no se pudo generar el bono: ' +
               (res.voucherMapError || 'datos incompletos en la respuesta');
           }
-          throw new Error(String(msg));
+          throw new Error(humanizeHotelbedsError(String(msg), res));
         }
         return res.voucher;
       });
     }
 
     var rk = pick.rateKey;
-    var rt = String(pick.rateType || '').toUpperCase();
-    if (rt === 'RECHECK') {
-      return postHb({ action: 'checkrates', rooms: [{ rateKey: rk }] }).then(function (cr) {
-        if (!cr.ok) {
-          var e =
-            cr.hotelbedsError ||
-            (cr.data && cr.data.error && (cr.data.error.message || cr.data.error)) ||
-            cr.error ||
-            'CheckRate falló';
-          throw new Error(String(e));
-        }
-        var nk = extractRateKeyAfterCheckrate(cr.data);
-        if (!nk) throw new Error('CheckRate no devolvió rateKey.');
-        return doBooking(nk);
-      });
-    }
-    return doBooking(rk);
+    return ensureFreshRateKeyForBooking(postHb, rk).then(doBooking);
   };
 
   function shouldIgnoreHotelbedsFormRefresh(target) {
