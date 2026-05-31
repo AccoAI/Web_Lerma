@@ -1321,23 +1321,49 @@
     return alloc.map(function (x) { return Math.max(1, x); });
   }
 
+  /**
+   * Hotelbeds Booking: un único elemento en rooms[] por rateKey.
+   * Los paxes llevan roomId 1..N según reparto (no N entradas rooms con el mismo rateKey).
+   */
   function buildBookingRooms(finalRateKey, occ, nameParts) {
     var roomsCount = Math.max(1, occ.rooms | 0);
     var adults = Math.max(1, occ.adults | 0);
+    var children = Math.max(0, occ.children | 0);
+
     if (roomsCount <= 1) {
-      return [
-        {
-          rateKey: finalRateKey,
-          paxes: buildPaxesForRoom(1, adults, nameParts.name, nameParts.surname),
-        },
-      ];
+      var singlePaxes = buildPaxesForRoom(1, adults, nameParts.name, nameParts.surname);
+      if (children > 0) {
+        singlePaxes = singlePaxes.concat(
+          buildChildPaxesForRoom(1, children, nameParts.name, nameParts.surname)
+        );
+      }
+      return [{ rateKey: finalRateKey, paxes: singlePaxes }];
     }
+
     var alloc = splitAdultsIntoRooms(adults, roomsCount);
-    var out = [];
+    var allPaxes = [];
     for (var i = 0; i < roomsCount; i++) {
+      allPaxes = allPaxes.concat(
+        buildPaxesForRoom(i + 1, alloc[i] || 1, nameParts.name, nameParts.surname)
+      );
+    }
+    if (children > 0) {
+      allPaxes = allPaxes.concat(
+        buildChildPaxesForRoom(1, children, nameParts.name, nameParts.surname)
+      );
+    }
+    return [{ rateKey: finalRateKey, paxes: allPaxes }];
+  }
+
+  function buildChildPaxesForRoom(roomId, count, holderName, holderSurname) {
+    var out = [];
+    for (var i = 0; i < count; i++) {
       out.push({
-        rateKey: finalRateKey,
-        paxes: buildPaxesForRoom(i + 1, alloc[i] || 1, nameParts.name, nameParts.surname),
+        roomId: roomId,
+        type: 'CH',
+        age: 8,
+        name: holderName,
+        surname: holderSurname + (count > 1 ? ' Niño ' + (i + 1) : ' Niño'),
       });
     }
     return out;
