@@ -2823,11 +2823,19 @@
         if (!res.ok || !res.voucher) {
           var msg =
             res.hotelbedsError ||
+            res.voucherMapError ||
             (res.data &&
               res.data.error &&
               (typeof res.data.error === 'string' ? res.data.error : res.data.error.message)) ||
             res.error ||
             'La reserva Hotelbeds no devolvió bono (voucher).';
+          if (res.ok && !res.voucher && res.data && res.data.booking && res.data.booking.reference) {
+            msg =
+              'Reserva Hotelbeds confirmada (ref. ' +
+              res.data.booking.reference +
+              ') pero no se pudo generar el bono: ' +
+              (res.voucherMapError || 'datos incompletos en la respuesta');
+          }
           throw new Error(String(msg));
         }
         return res.voucher;

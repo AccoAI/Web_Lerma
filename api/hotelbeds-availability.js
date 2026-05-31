@@ -1,5 +1,5 @@
 import { createHash } from 'crypto';
-import { mapHotelbedsBookingToVoucherData } from '../lib/hotelbeds-booking-map.js';
+import { mapHotelbedsBookingToVoucherData, voucherMapFailureReason } from '../lib/hotelbeds-booking-map.js';
 import { hotelbedsBaseUrl, hotelbedsFetch, getMtlsCreds } from '../lib/hotelbeds-mtls.js';
 import { sendEmail } from '../lib/resend.js';
 
@@ -125,8 +125,12 @@ async function handleBooking(apiKey, secret, body) {
       (typeof data.error === 'string' ? data.error : data.error.message || JSON.stringify(data.error));
     const logicalOk = res.ok && !hbErr;
     let voucher = null;
+    let voucherMapError = null;
     if (logicalOk && data) {
       voucher = mapHotelbedsBookingToVoucherData(data);
+      if (!voucher) {
+        voucherMapError = voucherMapFailureReason(data) || 'No se pudo mapear la respuesta de booking a bono';
+      }
       if (voucher && body.packageLabel) {
         voucher.packageName = String(body.packageLabel).slice(0, 200);
       }
@@ -137,6 +141,7 @@ async function handleBooking(apiKey, secret, body) {
         httpStatus: res.status,
         data,
         voucher,
+        ...(voucherMapError && { voucherMapError }),
         ...(hbErr && { hotelbedsError: hbErr }),
       },
       200
