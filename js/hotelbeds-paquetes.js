@@ -548,9 +548,9 @@
     if (offer.packaging) parts.push('Tarifa paquete Hotelbeds');
     var total = calcTotalPaquete(offer);
     if (total != null) {
-      parts.push('Precio del paquete: ' + fmtEuros(total) + ' €');
+      parts.push('Total paquete (habitación + green fees): ' + fmtEuros(total) + ' €');
     } else {
-      parts.push('Importe del alojamiento integrado en el total del paquete');
+      parts.push('Importe del paquete (habitación + green fees) en el resumen al confirmar');
     }
     return truncateText(parts.join(' · '), 280);
   }
@@ -676,6 +676,50 @@
       return fmtEuros(total) + ' € (estancia) · ' + fmtEuros(pn) + ' €/noche';
     }
     return 'desde ' + fmtEuros(total) + ' € (estancia)';
+  }
+
+  /** Precio mínimo del paquete (green fees + alojamiento ref.) para un hotel de availability. */
+  function getHotelLowestPackageTotal(h) {
+    if (!h) return null;
+    var offers = collectRateOffersFromHotel(h);
+    var min = null;
+    for (var i = 0; i < offers.length; i++) {
+      var t = calcTotalPaquete(offers[i]);
+      if (t != null && (min == null || t < min)) min = t;
+    }
+    return min;
+  }
+
+  /** Leyenda en tarjeta de hotel: solo precio de paquete, nunca solo estancia. */
+  function formatHotelPackageListPriceStr(pkgTotal) {
+    if (pkgTotal == null || !isFinite(pkgTotal)) return null;
+    return 'desde ' + fmtEuros(Math.round(pkgTotal * 100) / 100) + ' € (paquete · green fees incluidos)';
+  }
+
+  function refreshFunnelRatePackagePrices() {
+    var host = document.getElementById('hb-hotel-funnel-inline');
+    if (!host || host.offsetParent === null) return;
+    var form = getForm();
+    if (!form) return;
+    var hotelCode = (form.querySelector('input[name="hb_selected_hotel_code"]') || {}).value || '';
+    if (!hotelCode) return;
+    var priorKey = (form.querySelector('input[name="hb_selected_rate_key"]') || {}).value || '';
+    renderFunnelRateChoices(host, hotelCode, priorKey);
+  }
+
+  function refreshHotelCardPackagePrices() {
+    document.querySelectorAll('.hotelbeds-card[data-hb-hotel-code]').forEach(function (card) {
+      var code = card.getAttribute('data-hb-hotel-code');
+      if (!code) return;
+      var hotel = findHotelInAvailability(window.__HB_LAST_AVAIL__, code);
+      var span = card.querySelector('.hotelbeds-price');
+      if (!span) return;
+      var pkg = hotel ? getHotelLowestPackageTotal(hotel) : null;
+      if (pkg != null) {
+        span.textContent = formatHotelPackageListPriceStr(pkg) || '';
+        span.classList.remove('hotelbeds-price--package-note');
+      }
+    });
   }
 
   function hydrateRateOffersFromLastAvailability(hotelCode) {
@@ -1224,10 +1268,11 @@
     if (priceStr && String(priceStr).trim()) {
       priceHtml = '<span class="hotelbeds-price">' + escapeHtml(priceStr) + '</span>';
     } else if (hideEur) {
-      priceHtml = '<span class="hotelbeds-price hotelbeds-price--package-note">Incluido en el paquete</span>';
+      priceHtml =
+        '<span class="hotelbeds-price hotelbeds-price--package-note">Elige habitación para ver el precio del paquete (green fees incluidos)</span>';
     } else {
       priceHtml =
-        '<span class="hotelbeds-price">' + escapeHtml(priceStr || PRICE_ON_REQUEST_LABEL) + '</span>';
+        '<span class="hotelbeds-price hotelbeds-price--package-note">Elige habitación para ver el precio del paquete (green fees incluidos)</span>';
     }
 
     return (
@@ -1634,7 +1679,9 @@
       }
     }
     var omitted = (window.__HB_RATE_OFFERS_OMITTED__ || {})[String(hotelCode)] || 0;
-    var html = '<p class="hb-funnel-small">Elige habitación y régimen:</p>';
+    var html =
+      '<p class="hb-funnel-small hb-funnel-rates-intro"><strong>Elige habitación y régimen.</strong> ' +
+      'El importe en verde es el <strong>precio total del paquete</strong> (alojamiento + green fees de tu grupo).</p>';
     if (omitted > 0 && !hbHideHotelEuroUi()) {
       html +=
         '<p class="hb-funnel-small">Se ocultan ' +
@@ -1658,8 +1705,14 @@
       }
       var pkgTotal = calcTotalPaquete(o);
       var priceBadge = pkgTotal != null
-        ? '<span class="hb-funnel-rate-price">' + escapeHtml(fmtEuros(pkgTotal) + ' €') + '</span>'
+        ? '<span class="hb-funnel-rate-price" title="Total del paquete: alojamiento + green fees">' +
+          escapeHtml(fmtEuros(pkgTotal) + ' €') +
+          '</span>'
         : '';
+      var pkgNote =
+        pkgTotal != null
+          ? '<span class="hb-funnel-rate-pick__pkg-note">paquete · green fees incl.</span>'
+          : '';
       html +=
         '<li><label class="hb-funnel-rate-pick"><input type="radio" name="hb-funnel-rate-pick" value="' +
         escapeHtml(o.rateKey) +
@@ -1668,7 +1721,8 @@
         '"' +
         (idx === checkedIdx ? ' checked' : '') +
         '><span class="hb-funnel-rate-pick__body"><span class="hb-funnel-rate-pick__main">' +
-        escapeHtml(label) + priceBadge +
+        '<span class="hb-funnel-rate-pick__label">' + escapeHtml(label) + '</span>' +
+        '<span class="hb-funnel-rate-pick__price-col">' + priceBadge + pkgNote + '</span>' +
         '</span>' +
         (hint
           ? '<span class="hb-funnel-rate-pick__sub">' + escapeHtml(hint) + '</span>'
@@ -2059,15 +2113,19 @@
     });
   }
 
-  function triggerResumenUpdate() {
+  /** Recalcula __HB_GF_TOTAL__ vía resumen sin tocar precios en tarjetas (p. ej. antes de pintar la lista). */
+  function syncGfTotalBeforeHotelListRender() {
     var o = pageOpts();
-    if (typeof o.onResumen === 'function') {
-      o.onResumen();
-      return;
-    }
-    if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
-    if (typeof window.actualizarResumenTorneo === 'function') window.actualizarResumenTorneo();
-    if (typeof window.actualizarResumenRyder === 'function') window.actualizarResumenRyder();
+    if (typeof o.onResumen === 'function') o.onResumen();
+    else if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
+    else if (typeof window.actualizarResumenTorneo === 'function') window.actualizarResumenTorneo();
+    else if (typeof window.actualizarResumenRyder === 'function') window.actualizarResumenRyder();
+  }
+
+  function triggerResumenUpdate() {
+    syncGfTotalBeforeHotelListRender();
+    refreshHotelCardPackagePrices();
+    refreshFunnelRatePackagePrices();
   }
 
   function fetchHotelbeds(checkIn, checkOut, hotelCodes, occ) {
@@ -2321,11 +2379,14 @@
 
   var PRICE_ON_REQUEST_LABEL = 'Precio a consultar';
 
-  function cardListPriceCaption(rate, noches, fallbackLabel) {
-    return (
-      formatHotelListPriceStr(rate, noches) ||
-      (fallbackLabel != null ? fallbackLabel : hbHideHotelEuroUi() ? '' : PRICE_ON_REQUEST_LABEL)
-    );
+  function cardListPriceCaption(hotel, noches, fallbackLabel) {
+    if (hotel && typeof hotel === 'object' && hotel.code != null) {
+      var pkg = getHotelLowestPackageTotal(hotel);
+      var pkgStr = formatHotelPackageListPriceStr(pkg);
+      if (pkgStr) return pkgStr;
+    }
+    if (fallbackLabel != null && String(fallbackLabel).trim()) return fallbackLabel;
+    return '';
   }
 
   function fetchHotelbedsListHotels() {
@@ -2437,7 +2498,7 @@
           var code = String(h.code);
           var meta = contentBy[code] || null;
           var stub = { code: code, name: meta && meta.name ? meta.name : h.name };
-          var priceStr = cardListPriceCaption(parseHotelMinRate(h), noches, fallbackPriceStr);
+          var priceStr = cardListPriceCaption(h, noches, '');
           html +=
             '<li class="hotelbeds-item-wrap">' +
             hotelRichCardHtml(stub, meta, null, priceStr, '') +
@@ -2545,12 +2606,13 @@
     // Hotelbeds Availability suele devolver minRate como total de la estancia.
     // Para evitar confusión, mostramos total estancia + (aprox) por noche según nº de noches.
     var noches = getNochesFromForm();
+    syncGfTotalBeforeHotelListRender();
     hotels.forEach(function (h) {
       var code = String(h.code);
       var ourId = codeToId[code];
       var rate = getHotelLowestRate(h);
       if (ourId && rate != null) live[ourId] = rate;
-      var priceStr = cardListPriceCaption(rate, noches, null);
+      var priceStr = cardListPriceCaption(h, noches, null);
       var sel = selectedHotels.indexOf(code) >= 0 ? ' <span class="hotelbeds-selected">(elegido)</span>' : '';
       var pick = rateBy[code];
       var meta = contentBy[code];
@@ -2561,14 +2623,14 @@
     });
     html +=
       '</ul><p class="hotelbeds-note">' +
-      'Precio «desde» por estancia según la tarifa más económica en Hotelbeds para tu ocupación. ' +
-      'Habitación y régimen concretos al elegir hotel y confirmar en el bloque de arriba.' +
+      'El «desde» de cada hotel es el <strong>precio total del paquete</strong> (alojamiento + green fees) con la tarifa más económica para tu ocupación. ' +
+      'Habitación y régimen concretos al elegir hotel arriba.' +
       '</p></div>';
     window.LIVE_HOTEL_PRICES = Object.keys(live).length ? live : null;
     setBookingWidgetVisible(!window.LIVE_HOTEL_PRICES);
     renderBlock(html);
     bindSelectableHotelCards();
-    triggerResumenUpdate();
+    refreshHotelCardPackagePrices();
     document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
   }
 
@@ -2592,6 +2654,7 @@
     var burgos = [];
     function getStr(v) { return (typeof v === 'string' ? v : (v && v.content) ? v.content : '') || ''; }
     var noches = getNochesFromForm();
+    syncGfTotalBeforeHotelListRender();
     hotels.forEach(function (h) {
       var code = String(h.code);
       var name = getStr(h.name) || getStr(h.description) || ('Hotel ' + code);
@@ -2616,8 +2679,7 @@
     hotels.forEach(function (h) {
       var code = String(h.code);
       var key = 'hb-' + code;
-      var rate = live[key];
-      var priceStr = cardListPriceCaption(rate, noches, null);
+      var priceStr = cardListPriceCaption(h, noches, null);
       var pick = rateBy[code];
       var meta = contentBy[code];
       html +=
@@ -2627,15 +2689,13 @@
     });
     html +=
       '</ul><p class="hotelbeds-note">' +
-      (hbHideHotelEuroUi()
-        ? 'Elige hotel y régimen en el funnel. Los importes de alojamiento van integrados en el total del paquete.'
-        : 'Elige el hotel para cada noche en los desplegables. Ficha enriquecida con Content API. Cargos de tarifa cuando los devuelve la API.') +
+      'Precio «desde» = total del paquete (alojamiento + green fees). Elige hotel y habitación en el bloque de configuración.' +
       '</p></div>';
     setBookingWidgetVisible(false);
     renderBlock(html);
     bindSelectableHotelCards();
     document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
-    triggerResumenUpdate();
+    refreshHotelCardPackagePrices();
   }
 
   function run() {
@@ -2957,6 +3017,9 @@
   window.actualizarPreciosHotelbeds = function () {
     schedule();
   };
+
+  window.refreshHotelCardPackagePrices = refreshHotelCardPackagePrices;
+  window.refreshFunnelRatePackagePrices = refreshFunnelRatePackagePrices;
 
   function init() {
     var o = pageOpts();
