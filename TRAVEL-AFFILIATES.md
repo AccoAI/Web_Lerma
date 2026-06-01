@@ -36,6 +36,8 @@ Tras pagar, Stripe debe enviar al usuario a **`confirmacion-reserva.html`** (coc
 
 Si ves solo la pantalla genérica de Stripe («Thanks for your payment»), falta desplegar o definir `PUBLIC_SITE_URL`.
 
+**Error `DNS_PROBE_FINISHED_NXDOMAIN` en `test.golflermaysaldana.com`:** en Vercel tienes `PUBLIC_SITE_URL` apuntando a un dominio que **aún no tiene DNS**. Pon `https://web-lerma.vercel.app` hasta que `test.…` esté configurado en tu registrador y en Vercel → Domains. El código ignora `test.*` salvo que añadas `ALLOW_TEST_PUBLIC_SITE=1`.
+
 ## 4. Dónde lo ve el cliente
 
 - **Página de gracias:** `confirmacion-reserva.html?session_id=…` (tras Stripe).

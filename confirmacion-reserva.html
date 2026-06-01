@@ -57,11 +57,18 @@
 
     <section class="confirmacion-post-pago paquete-detalle">
         <div class="container">
-            <div id="confirmHero" class="confirmacion-hero-estado confirmacion-hero-estado--loading">
-                <p id="confirmStatus" class="confirmacion-status-text">Comprobando el pago…</p>
-                <p id="confirmPaquete" class="confirmacion-paquete-nombre" hidden></p>
-                <p id="confirmEmail" class="confirmacion-email" hidden></p>
+            <div id="confirmPagoBanner" class="confirmacion-pago-banner confirmacion-pago-banner--loading" aria-live="polite">
+                <div class="confirmacion-pago-banner-icon" aria-hidden="true"></div>
+                <div class="confirmacion-pago-banner-main">
+                    <p class="confirmacion-pago-kicker">Pago con tarjeta</p>
+                    <h1 id="confirmPagoTitulo" class="confirmacion-pago-titulo">Comprobando el pago…</h1>
+                    <p id="confirmPagoImporte" class="confirmacion-pago-importe" hidden></p>
+                    <p id="confirmPaquete" class="confirmacion-paquete-nombre" hidden></p>
+                    <p id="confirmEmail" class="confirmacion-email" hidden></p>
+                    <p id="confirmPagoRef" class="confirmacion-pago-ref" hidden></p>
+                </div>
             </div>
+            <p id="confirmStatusFallback" class="confirmacion-status-fallback confirm-loading">Verificando con Stripe…</p>
 
             <div id="confirmExtras" class="confirmacion-extras" hidden>
                 <div id="confirmTravel" class="confirmacion-seccion-card post-travel-box" hidden aria-live="polite"></div>
@@ -120,10 +127,13 @@
 (function () {
   var params = new URLSearchParams(window.location.search);
   var sessionId = params.get('session_id');
-  var heroEl = document.getElementById('confirmHero');
-  var statusEl = document.getElementById('confirmStatus');
+  var bannerEl = document.getElementById('confirmPagoBanner');
+  var tituloEl = document.getElementById('confirmPagoTitulo');
+  var importeEl = document.getElementById('confirmPagoImporte');
   var paqueteEl = document.getElementById('confirmPaquete');
   var emailEl = document.getElementById('confirmEmail');
+  var refEl = document.getElementById('confirmPagoRef');
+  var fallbackEl = document.getElementById('confirmStatusFallback');
   var extrasEl = document.getElementById('confirmExtras');
   var actionsEl = document.getElementById('confirmActions');
   var noVoucherEl = document.getElementById('confirmNoVoucher');
@@ -142,13 +152,23 @@
     torneos: 'Configurador Torneos'
   };
 
-  function setHeroState(state) {
-    heroEl.className = 'confirmacion-hero-estado confirmacion-hero-estado--' + state;
+  function formatImporte(cents, currency) {
+    if (cents == null || isNaN(cents)) return '';
+    var n = (Number(cents) / 100).toFixed(2).replace('.', ',');
+    var sym = (currency || 'eur').toLowerCase() === 'eur' ? ' €' : ' ' + (currency || '').toUpperCase();
+    return n + sym;
+  }
+
+  function setBannerState(state) {
+    bannerEl.className = 'confirmacion-pago-banner confirmacion-pago-banner--' + state;
+    bannerEl.hidden = false;
   }
 
   if (!sessionId) {
-    setHeroState('error');
-    statusEl.textContent = 'No encontramos la referencia del pago. Si acabas de pagar, usa el enlace del correo de confirmación o contacta con el club.';
+    setBannerState('error');
+    tituloEl.textContent = 'No encontramos el pago';
+    fallbackEl.textContent = 'Usa el enlace del correo de confirmación o contacta con el club.';
+    fallbackEl.className = 'confirmacion-status-fallback confirm-error';
     return;
   }
 
@@ -157,31 +177,42 @@
     .then(function (_ref) {
       var ok = _ref.ok, data = _ref.j;
       if (!ok || !data.ok) {
-        setHeroState('error');
-        statusEl.textContent = (data && data.error) || 'No se pudo verificar el pago.';
+        setBannerState('error');
+        tituloEl.textContent = 'No se pudo verificar el pago';
+        fallbackEl.textContent = (data && data.error) || 'Inténtalo de nuevo en unos segundos.';
+        fallbackEl.className = 'confirmacion-status-fallback confirm-error';
         return;
       }
 
+      fallbackEl.hidden = true;
       extrasEl.hidden = false;
 
       if (data.payment_status === 'paid') {
-        setHeroState('ok');
-        statusEl.innerHTML = '<span class="confirmacion-titulo-ok">¡Reserva confirmada!</span> Gracias por tu pago. A continuación puedes organizar el viaje y reservar mesa.';
+        setBannerState('ok');
+        tituloEl.textContent = '¡Pago confirmado!';
       } else {
-        setHeroState('pending');
-        statusEl.textContent = 'Estado del pago: ' + (data.payment_status || 'desconocido') + '.';
+        setBannerState('pending');
+        tituloEl.textContent = 'Pago: ' + (data.payment_status || 'pendiente');
+      }
+
+      if (data.amount_total != null) {
+        importeEl.hidden = false;
+        importeEl.textContent = 'Importe abonado: ' + formatImporte(data.amount_total, data.currency);
       }
 
       if (data.paquete) {
         var nombre = nombresPaquete[data.paquete] || data.paquete;
         paqueteEl.hidden = false;
-        paqueteEl.textContent = nombre;
+        paqueteEl.textContent = 'Paquete: ' + nombre;
       }
 
       if (data.customer_email) {
         emailEl.hidden = false;
         emailEl.textContent = 'Confirmación enviada a ' + data.customer_email;
       }
+
+      refEl.hidden = false;
+      refEl.textContent = 'Referencia Stripe: ' + sessionId.replace(/^cs_(test|live)_/, '').slice(0, 24) + '…';
 
       if (typeof window.renderPostBookingTravel === 'function') {
         window.renderPostBookingTravel('confirmTravel');
@@ -201,8 +232,11 @@
       }
     })
     .catch(function () {
-      setHeroState('error');
-      statusEl.textContent = 'Error de red al verificar el pago. Recarga la página o contacta con el club.';
+      setBannerState('error');
+      tituloEl.textContent = 'Error de conexión';
+      fallbackEl.hidden = false;
+      fallbackEl.textContent = 'Recarga la página o contacta con el club al 947 56 46 30.';
+      fallbackEl.className = 'confirmacion-status-fallback confirm-error';
     });
 })();
     </script>

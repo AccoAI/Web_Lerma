@@ -2549,6 +2549,170 @@ body.hb-tariff-debug-on .hotelbeds-card--picked {
     object-position: center 40%;
 }
 
+/* Banner principal: pago confirmado */
+.confirmacion-pago-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+    padding: 1.75rem 1.5rem;
+    background: linear-gradient(135deg, rgba(44, 85, 48, 0.12) 0%, rgba(255, 255, 255, 0.95) 55%);
+    border: 1px solid rgba(44, 85, 48, 0.25);
+    border-left: 5px solid var(--color-primary, #2c5530);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(44, 85, 48, 0.08);
+}
+
+.confirmacion-pago-banner-icon {
+    flex-shrink: 0;
+    width: 3.75rem;
+    height: 3.75rem;
+    border-radius: 50%;
+    background: var(--color-primary, #2c5530);
+}
+
+.confirmacion-pago-banner--ok .confirmacion-pago-banner-icon::after {
+    content: '✓';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: #fff;
+    font-size: 1.85rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.confirmacion-pago-banner--error {
+    border-left-color: #a33;
+    background: linear-gradient(135deg, rgba(160, 50, 50, 0.08) 0%, #fff 60%);
+}
+
+.confirmacion-pago-banner--error .confirmacion-pago-banner-icon {
+    background: #a33;
+}
+
+.confirmacion-pago-banner--error .confirmacion-pago-banner-icon::after {
+    content: '!';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.confirmacion-pago-banner--loading .confirmacion-pago-banner-icon {
+    background: #888;
+    animation: confirmacion-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes confirmacion-pulse {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+}
+
+.confirmacion-pago-kicker {
+    margin: 0 0 0.25rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-primary, #2c5530);
+}
+
+.confirmacion-pago-titulo {
+    margin: 0 0 0.5rem;
+    font-size: clamp(1.35rem, 4vw, 1.75rem);
+    font-weight: 600;
+    color: #1a1a1a;
+    line-height: 1.25;
+}
+
+.confirmacion-pago-importe {
+    margin: 0 0 0.35rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--color-primary, #2c5530);
+}
+
+.confirmacion-pago-ref {
+    margin: 0.65rem 0 0;
+    font-size: 0.78rem;
+    color: #888;
+    word-break: break-all;
+}
+
+.confirmacion-status-fallback {
+    text-align: center;
+    margin: -1rem 0 1.5rem;
+    font-size: 0.95rem;
+    color: #666;
+}
+
+.confirmacion-post-pago .post-booking-travel-panel,
+.confirmacion-post-pago .post-booking-picker-panel {
+    margin-top: 0;
+    background: rgba(139, 69, 19, 0.05);
+    border-color: rgba(139, 69, 19, 0.22);
+}
+
+.post-booking-embed {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(26, 77, 58, 0.12);
+}
+
+.post-booking-embed:first-of-type {
+    margin-top: 0.75rem;
+    padding-top: 0;
+    border-top: none;
+}
+
+.post-booking-embed-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.post-booking-embed-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-primary, #2c5530);
+}
+
+.post-booking-embed-external {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-primary, #2c5530);
+    text-decoration: underline;
+}
+
+.post-booking-embed-intro {
+    margin: 0 0 0.65rem;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    color: #444;
+}
+
+.post-booking-iframe-wrap {
+    margin-top: 0.35rem;
+}
+
+.post-booking-embed-hint {
+    margin: 0.5rem 0 0;
+    font-size: 0.8rem;
+    color: #777;
+    line-height: 1.4;
+}
+
 .confirmacion-hero-estado {
     text-align: center;
     margin-bottom: 2rem;
