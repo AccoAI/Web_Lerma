@@ -2533,6 +2533,159 @@ body.hb-tariff-debug-on .hotelbeds-card--picked {
     font-size: 0.92rem;
     line-height: 1.45;
 }
+/* —— Confirmación post-pago (confirmacion-reserva.html) —— */
+.confirmacion-post-pago {
+    margin-top: 0;
+    padding-top: calc(var(--header-height) + 1.25rem);
+    padding-bottom: 3rem;
+}
+
+.pagina-hero-foto--compact {
+    max-height: 220px;
+    overflow: hidden;
+}
+
+.pagina-hero-foto--compact .pagina-hero-foto-img {
+    object-position: center 40%;
+}
+
+.confirmacion-hero-estado {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 2rem 1.5rem;
+    background: rgba(44, 85, 48, 0.07);
+    border-radius: 8px;
+    border-left: 4px solid var(--color-primary, #2c5530);
+}
+
+.confirmacion-hero-estado--ok::before {
+    content: '✓';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: var(--color-primary, #2c5530);
+    color: #fff;
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.confirmacion-hero-estado--error {
+    border-left-color: #a33;
+    background: rgba(160, 50, 50, 0.06);
+}
+
+.confirmacion-hero-estado--error::before {
+    content: '!';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: #a33;
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.confirmacion-titulo-ok {
+    display: block;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--color-primary, #2c5530);
+    margin-bottom: 0.35rem;
+}
+
+.confirmacion-status-text {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--color-text, #333);
+}
+
+.confirmacion-paquete-nombre {
+    margin: 0.75rem 0 0;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--color-primary, #2c5530);
+}
+
+.confirmacion-email {
+    margin: 0.5rem 0 0;
+    font-size: 0.95rem;
+    color: #555;
+}
+
+.confirmacion-extras {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.confirmacion-seccion-card {
+    margin-top: 0;
+}
+
+.confirmacion-voucher-actions {
+    padding: 1.25rem 0 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.confirmacion-voucher-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.confirmacion-btn-secondary {
+    background: #444 !important;
+}
+
+.confirmacion-btn-outline {
+    background: transparent !important;
+    color: var(--color-primary, #2c5530) !important;
+    border: 2px solid var(--color-primary, #2c5530);
+}
+
+.confirmacion-btn-outline:hover {
+    background: rgba(44, 85, 48, 0.08) !important;
+}
+
+.confirmacion-aviso {
+    font-size: 0.95rem;
+    color: #555;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.confirmacion-volver {
+    margin-top: 2.5rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.confirmacion-link-inicio {
+    color: var(--color-primary, #2c5530);
+    font-weight: 500;
+    text-decoration: underline;
+}
+
+.confirmacion-post-pago .post-travel-box {
+    background: #fff;
+    border: 1px solid rgba(44, 85, 48, 0.15);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
 .post-travel-box {
     margin-top: 1.25rem;
     padding: 1.25rem 1.35rem;
@@ -2558,21 +2711,16 @@ body.hb-tariff-debug-on .hotelbeds-card--picked {
     gap: 0.65rem;
     margin-top: 0.5rem;
 }
-.post-travel-btn {
+.post-travel-actions .post-travel-btn {
     display: inline-block;
-    padding: 0.65rem 1rem;
-    background: #2c5530;
-    color: #fff !important;
     text-decoration: none;
-    border-radius: 6px;
-    font-weight: 600;
     font-size: 0.92rem;
 }
 .post-travel-btn--car {
-    background: #1a4d8c;
+    background: #1a4d8c !important;
 }
-.post-travel-btn:hover {
-    filter: brightness(1.06);
+.post-travel-btn--car:hover {
+    filter: brightness(1.08);
 }
 
 .post-restaurants-box {

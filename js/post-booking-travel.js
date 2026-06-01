@@ -23,13 +23,13 @@
 
     if (sky) {
       html +=
-        '<a class="button post-travel-btn" href="' +
+        '<a class="btn-reservar-paquete post-travel-btn" href="' +
         escapeHtml(sky) +
         '" target="_blank" rel="noopener noreferrer sponsored">✈️ Vuelos a Madrid (Skyscanner)</a>';
     }
     if (rental) {
       html +=
-        '<a class="button post-travel-btn post-travel-btn--car" href="' +
+        '<a class="btn-reservar-paquete post-travel-btn post-travel-btn--car" href="' +
         escapeHtml(rental) +
         '" target="_blank" rel="noopener noreferrer sponsored">🚙 Alquilar coche en Rentcars</a>';
     }

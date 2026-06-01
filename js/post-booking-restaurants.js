@@ -23,7 +23,7 @@
     if (r.reservaInhouse && r.telefono) {
       var digits = String(r.telefono).replace(/\D/g, '');
       return (
-        '<a class="button post-restaurant-btn" href="tel:+34' +
+        '<a class="btn-reservar-paquete post-restaurant-btn" href="tel:+34' +
         escapeHtml(digits) +
         '">Llamar para reservar · ' +
         escapeHtml(r.telefono) +
@@ -32,7 +32,7 @@
     }
     if (r.url) {
       return (
-        '<a class="button post-restaurant-btn" href="' +
+        '<a class="btn-reservar-paquete post-restaurant-btn" href="' +
         escapeHtml(r.url) +
         '" target="_blank" rel="noopener noreferrer">Reservar online</a>'
       );
