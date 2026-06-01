@@ -51,9 +51,12 @@ window.HOTELBEDS_CONFIG = {
 window.calcularAlojamientoResumenEuros = function (formData, nNoches, fallbackPerNoche) {
   if (!formData || !formData.get) return 0;
   if (String(formData.get('hb_funnel_ready') || '').trim() === '1') {
-    var raw = String(formData.get('hb_hotel_stay_ref_net') || '').trim().replace(',', '.');
-    var ref = parseFloat(raw);
+    var rawRef = String(formData.get('hb_hotel_stay_ref_net') || '').trim().replace(',', '.');
+    var rawBook = String(formData.get('hb_hotel_stay_book_net') || '').trim().replace(',', '.');
+    var ref = parseFloat(rawRef);
+    var book = parseFloat(rawBook);
     if (isFinite(ref) && ref > 0) return Math.round(ref * 100) / 100;
+    if (isFinite(book) && book > 0) return Math.round(book * 100) / 100;
   }
   var total = 0;
   var fb = fallbackPerNoche != null && isFinite(Number(fallbackPerNoche)) ? Number(fallbackPerNoche) : null;

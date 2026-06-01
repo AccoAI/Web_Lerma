@@ -634,15 +634,28 @@
   }
 
   function parseHotelMinRate(h) {
+    return getHotelLowestRate(h);
+  }
+
+  /** Precio más bajo entre minRate y todas las tarifas BOOKABLE de la respuesta availability. */
+  function getHotelLowestRate(h) {
     if (!h) return null;
-    var rate = h.minRate;
-    if (rate == null && h.rooms && h.rooms[0]) {
-      var r0 = h.rooms[0];
-      var rr = r0.rates && r0.rates[0] ? r0.rates[0] : null;
-      if (rr) rate = parseFloat(rr.net || rr.gross || rr.sellingRate) || null;
+    var min = null;
+    function consider(n) {
+      if (n == null || !isFinite(n)) return;
+      if (min == null || n < min) min = n;
     }
-    if (typeof rate === 'string') rate = parseFloat(rate) || null;
-    return rate != null ? rate : null;
+    if (h.minRate != null) consider(parseFloat(h.minRate));
+    var rooms = h.rooms || [];
+    for (var ri = 0; ri < rooms.length; ri++) {
+      var rates = rooms[ri].rates || [];
+      for (var rj = 0; rj < rates.length; rj++) {
+        var rr = rates[rj];
+        if (!rr || !rr.rateKey) continue;
+        consider(parseFloat(rr.net || rr.gross || rr.sellingRate));
+      }
+    }
+    return min;
   }
 
   function getNochesFromForm() {
@@ -660,9 +673,9 @@
     var total = Math.round(rate * 100) / 100;
     if (noches >= 2) {
       var pn = Math.round((total / noches) * 100) / 100;
-      return total + ' € (estancia) · ' + pn + ' €/noche';
+      return fmtEuros(total) + ' € (estancia) · ' + fmtEuros(pn) + ' €/noche';
     }
-    return total + ' € (estancia)';
+    return 'desde ' + fmtEuros(total) + ' € (estancia)';
   }
 
   function hydrateRateOffersFromLastAvailability(hotelCode) {
@@ -1060,9 +1073,14 @@
       offersByCode[code] = offers;
       var pick = null;
       for (var oi = 0; oi < offers.length; oi++) {
-        if (offers[oi].rateType === 'BOOKABLE') {
-          pick = offers[oi];
-          break;
+        var o = offers[oi];
+        if (String(o.rateType || '').toUpperCase() !== 'BOOKABLE') continue;
+        if (
+          !pick ||
+          (o.netValue != null &&
+            (pick.netValue == null || o.netValue < pick.netValue))
+        ) {
+          pick = o;
         }
       }
       map[code] = pick || offers[0];
@@ -1203,10 +1221,13 @@
     }
 
     var priceHtml = '';
-    if (hideEur) {
+    if (priceStr && String(priceStr).trim()) {
+      priceHtml = '<span class="hotelbeds-price">' + escapeHtml(priceStr) + '</span>';
+    } else if (hideEur) {
       priceHtml = '<span class="hotelbeds-price hotelbeds-price--package-note">Incluido en el paquete</span>';
     } else {
-      priceHtml = '<span class="hotelbeds-price">' + escapeHtml(priceStr || '') + '</span>';
+      priceHtml =
+        '<span class="hotelbeds-price">' + escapeHtml(priceStr || PRICE_ON_REQUEST_LABEL) + '</span>';
     }
 
     return (
@@ -1479,6 +1500,7 @@
     var bookInp = form.querySelector('input[name="hb_hotel_stay_book_net"]');
     if (!refInp || !bookInp) return;
     var ref = offer && offer.resumenHotelRefNet != null ? Number(offer.resumenHotelRefNet) : null;
+    if ((ref == null || !isFinite(ref)) && offer && offer.netValue != null) ref = Number(offer.netValue);
     var book = offer && offer.netValue != null ? Number(offer.netValue) : null;
     refInp.value = ref != null && isFinite(ref) ? String(Math.round(ref * 100) / 100) : '';
     bookInp.value = book != null && isFinite(book) ? String(Math.round(book * 100) / 100) : '';
@@ -1956,6 +1978,7 @@
         }
         form.querySelector('input[name="hb_occ_adults"]').value = String(occConfirm.adults);
         form.querySelector('input[name="hb_occ_rooms"]').value = String(occConfirm.rooms);
+        if (offerConfirm) syncHbResumenPriceHidden(form, offerConfirm);
         form.querySelector('input[name="hb_funnel_ready"]').value = '1';
         var nochesInput = form.querySelector('input[name="noches"]');
         var noches = nochesInput ? nochesInput.value : '1';
@@ -2299,8 +2322,10 @@
   var PRICE_ON_REQUEST_LABEL = 'Precio a consultar';
 
   function cardListPriceCaption(rate, noches, fallbackLabel) {
-    if (hbHideHotelEuroUi()) return '';
-    return formatHotelListPriceStr(rate, noches) || (fallbackLabel != null ? fallbackLabel : PRICE_ON_REQUEST_LABEL);
+    return (
+      formatHotelListPriceStr(rate, noches) ||
+      (fallbackLabel != null ? fallbackLabel : hbHideHotelEuroUi() ? '' : PRICE_ON_REQUEST_LABEL)
+    );
   }
 
   function fetchHotelbedsListHotels() {
@@ -2513,9 +2538,7 @@
         : '';
     var html =
       '<div class="hotelbeds-block hotelbeds-results"><h4 class="hotelbeds-title">' +
-      (hbHideHotelEuroUi()
-        ? 'Hoteles con disponibilidad en Burgos (Hotelbeds)'
-        : 'Precios en tiempo real · Burgos (Hotelbeds)') +
+      'Hoteles con disponibilidad en Burgos (Hotelbeds)' +
       '</h4>' +
       partialNote +
       '<ul class="hotelbeds-list hotelbeds-list--cards">';
@@ -2525,7 +2548,7 @@
     hotels.forEach(function (h) {
       var code = String(h.code);
       var ourId = codeToId[code];
-      var rate = parseHotelMinRate(h);
+      var rate = getHotelLowestRate(h);
       if (ourId && rate != null) live[ourId] = rate;
       var priceStr = cardListPriceCaption(rate, noches, null);
       var sel = selectedHotels.indexOf(code) >= 0 ? ' <span class="hotelbeds-selected">(elegido)</span>' : '';
@@ -2538,9 +2561,8 @@
     });
     html +=
       '</ul><p class="hotelbeds-note">' +
-      (hbHideHotelEuroUi()
-        ? 'Importes de hotel no mostrados; el alojamiento se integra en el total del paquete al confirmar en el funnel.'
-        : 'Ficha enriquecida con Hotelbeds Content API (estrellas, imagen y descripción). Los cargos de tarifa se muestran cuando la API los incluye.') +
+      'Precio «desde» por estancia según la tarifa más económica en Hotelbeds para tu ocupación. ' +
+      'Habitación y régimen concretos al elegir hotel y confirmar en el bloque de arriba.' +
       '</p></div>';
     window.LIVE_HOTEL_PRICES = Object.keys(live).length ? live : null;
     setBookingWidgetVisible(!window.LIVE_HOTEL_PRICES);

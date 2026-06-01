@@ -1116,15 +1116,13 @@ function initConfiguradorPaquete() {
         var formData = new FormData(form);
         var noches = formData.get('noches');
         var count = (formData.getAll('fechas[]') || []).length;
-
-        var necesitaHotel = count >= 2;
+        var nNoches = parseInt(noches || '0', 10) || 0;
+        var hbFunnelReady = String(formData.get('hb_funnel_ready') || '').trim() === '1';
+        var necesitaHotel = nNoches >= 1 || hbFunnelReady;
         var hotelOk = !necesitaHotel || (function () {
-            var n = parseInt(noches || '0', 10);
-            for (var i = 1; i <= n; i++) { if ((formData.get('hotel-noche-' + i) || '').trim()) return true; }
-            return false;
+            for (var i = 1; i <= nNoches; i++) { if ((formData.get('hotel-noche-' + i) || '').trim()) return true; }
+            return hbFunnelReady;
         })();
-
-        var nNoches = parseInt(noches || '0', 10);
         if (nNoches >= 1) {
             var fechas = formData.getAll('fechas[]');
             var salidasConCampo = 0;
@@ -1146,7 +1144,7 @@ function initConfiguradorPaquete() {
             resumenHTML += '<p><strong>Comidas y cenas:</strong> ' + (numServicios > 0 ? 'x' + numServicios : '—') + '</p>';
 
             var usuarios = form.querySelectorAll('.usuario-form');
-            var nPart = usuarios.length || (formData.get('tamanio_grupo') || '').trim() || '1';
+            var nPart = Math.max(1, parseInt((formData.get('tamanio_grupo') || '').trim(), 10) || usuarios.length);
             resumenHTML += '<p><strong>Participantes:</strong> ' + nPart + '</p>';
             var grupos = getCorrespondenciaGrupos(form);
             if (grupos.length > 0) resumenHTML += '<p><strong>Correspondencias:</strong> Sí</p>';
@@ -1296,9 +1294,9 @@ function initConfiguradorPaquete() {
                 if (c) camposPorDia[i] = c;
             }
             var hotelPorNoche = {};
-            if (count >= 2) {
-                var n = parseInt(noches, 10);
-                for (var i = 1; i <= n; i++) { hotelPorNoche[i] = formData.get('hotel-noche-' + i); }
+            var nHotelNoches = parseInt(noches, 10) || 0;
+            if (nHotelNoches >= 1) {
+                for (var i = 1; i <= nHotelNoches; i++) { hotelPorNoche[i] = formData.get('hotel-noche-' + i); }
             }
             var corresGrupos = getCorrespondenciaGrupos(form);
             var comidaPorDia = [];
