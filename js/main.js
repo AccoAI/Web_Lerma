@@ -384,6 +384,19 @@ var PRECIO_COMIDA = (function () { var p = getPrecios(); return (p.comida && p.c
 var PRECIO_SERVICIO_BURGOS = (function () { var p = getPrecios(); return (p.comida && p.comida.burgos) != null ? p.comida.burgos : 25; })();
 var DESCUENTO_PACK_PORC = (function () { var p = getPrecios(); return (p.paquetes && p.paquetes.finSemana && p.paquetes.finSemana.descuentoPorcentaje) != null ? p.paquetes.finSemana.descuentoPorcentaje : 15; })();
 
+function roundEuros(n) {
+    var x = Number(n);
+    if (!isFinite(x)) return 0;
+    return Math.round((x + Number.EPSILON) * 100) / 100;
+}
+
+function formatEurosResumen(n) {
+    return roundEuros(n).toFixed(2).replace('.', ',');
+}
+
+window.roundEuros = roundEuros;
+window.formatEurosResumen = formatEurosResumen;
+
 // Función global para obtener grupos de correspondencia
 function getCorrespondenciaGrupos(f) {
     if (!f) return [];
@@ -1200,7 +1213,7 @@ function initConfiguradorPaquete() {
                 totalGF += p;
             }
             if (numGF === 0) totalGF = (gfLerma.laborable || 33) + (gfSaldana.finDeSemana || 44);
-            var gf = totalGF * numParticipants;
+            var gf = roundEuros(totalGF * numParticipants);
             window.__HB_GF_TOTAL__ = gf;
             if (typeof window.refreshHotelCardPackagePrices === 'function') window.refreshHotelCardPackagePrices();
             if (typeof window.refreshFunnelRatePackagePrices === 'function') window.refreshFunnelRatePackagePrices();
@@ -1212,7 +1225,7 @@ function initConfiguradorPaquete() {
                 formData = new FormData(form);
               }
               if (typeof window.calcularAlojamientoResumenEuros === 'function') {
-                aloj = window.calcularAlojamientoResumenEuros(formData, nNoches);
+                aloj = roundEuros(window.calcularAlojamientoResumenEuros(formData, nNoches));
               } else if (hotelOk) {
                 for (var inx = 1; inx <= nNoches; inx++) {
                   var hv = (formData.get('hotel-noche-' + inx) || '').trim();
@@ -1220,6 +1233,7 @@ function initConfiguradorPaquete() {
                   var price = (typeof window.precioNocheDesdeHotelSelect === 'function') ? window.precioNocheDesdeHotelSelect(hv) : null;
                   if (price != null) aloj += price;
                 }
+                aloj = roundEuros(aloj);
               }
             }
 
@@ -1235,7 +1249,7 @@ function initConfiguradorPaquete() {
                 if (cv && cr === 'lali') totalComidaPrepago += precioLaliPp * numParticipants;
                 if (cev && cer === 'lali') totalComidaPrepago += precioLaliPp * numParticipants;
             }
-            var comidaVal = Math.round(totalComidaPrepago * 100) / 100;
+            var comidaVal = roundEuros(totalComidaPrepago);
 
             var anc = precios.ancillaries || {};
             var ancVal = 0;
@@ -1248,29 +1262,30 @@ function initConfiguradorPaquete() {
                 qCarritoMano += Math.max(0, parseInt(formData.get('ancillary_carrito_mano_dia_' + ia2) || '0', 10));
                 qCarritoElec += Math.max(0, parseInt(formData.get('ancillary_carrito_electrico_dia_' + ia2) || '0', 10));
             }
-            ancVal += (anc.buggy || 15) * qBuggy;
-            ancVal += (anc.carritoMano || 3) * qCarritoMano;
-            ancVal += (anc.carritoElectrico || 5) * qCarritoElec;
+            ancVal = roundEuros(
+                (anc.buggy || 15) * qBuggy +
+                (anc.carritoMano || 3) * qCarritoMano +
+                (anc.carritoElectrico || 5) * qCarritoElec
+            );
 
-            var base = gf + aloj + comidaVal + ancVal;
-            // Si hay correspondencia, calcular descuento sobre base real; si no, usar dummy
-            var desc = tieneCorrespondencia ? Math.round(base * DESCUENTO_PACK_PORC / 100) : Math.round(base * 0.12); // dummy: 12% si no hay correspondencia
-            var subtotal = base - desc;
+            var base = roundEuros(gf + aloj + comidaVal + ancVal);
+            var descPct = tieneCorrespondencia ? DESCUENTO_PACK_PORC : 12;
+            var desc = roundEuros(base * descPct / 100);
+            var subtotal = roundEuros(base - desc);
 
             resumenHTML += '<div class="resumen-subtotal">';
             resumenHTML += '<table class="resumen-subtotal-tabla">';
             if (necesitaHotel) {
-                var packGolfAloj = Math.round((gf + aloj) * 100) / 100;
-                resumenHTML += '<tr><td>Pack golf + alojamiento</td><td>' + packGolfAloj + ' €</td></tr>';
+                resumenHTML += '<tr><td>Pack golf + alojamiento</td><td>' + formatEurosResumen(gf + aloj) + ' €</td></tr>';
             } else {
-                resumenHTML += '<tr><td>Green fees</td><td>' + gf + ' €</td></tr>';
+                resumenHTML += '<tr><td>Green fees</td><td>' + formatEurosResumen(gf) + ' €</td></tr>';
             }
-            resumenHTML += '<tr><td>Comidas / cenas</td><td>' + (comidaVal > 0 ? comidaVal + ' €' : '—') + '</td></tr>';
-            resumenHTML += '<tr><td>Servicios adicionales</td><td>' + (ancVal > 0 ? ancVal + ' €' : '—') + '</td></tr>';
-            resumenHTML += '<tr class="resumen-descuento"><td>Descuento pack (-' + DESCUENTO_PACK_PORC + '%)</td><td>-' + desc + ' €</td></tr>';
-            resumenHTML += '<tr class="resumen-total"><td>Total</td><td>' + subtotal + ' €</td></tr>';
+            resumenHTML += '<tr><td>Comidas / cenas</td><td>' + (comidaVal > 0 ? formatEurosResumen(comidaVal) + ' €' : '—') + '</td></tr>';
+            resumenHTML += '<tr><td>Servicios adicionales</td><td>' + (ancVal > 0 ? formatEurosResumen(ancVal) + ' €' : '—') + '</td></tr>';
+            resumenHTML += '<tr class="resumen-descuento"><td>Descuento pack (-' + descPct + '%)</td><td>-' + formatEurosResumen(desc) + ' €</td></tr>';
+            resumenHTML += '<tr class="resumen-total"><td>Total</td><td>' + formatEurosResumen(subtotal) + ' €</td></tr>';
             if (numParticipants > 1) {
-                resumenHTML += '<tr class="resumen-por-persona"><td>Por persona</td><td>' + (Math.round((subtotal / numParticipants) * 100) / 100) + ' €</td></tr>';
+                resumenHTML += '<tr class="resumen-por-persona"><td>Por persona</td><td>' + formatEurosResumen(subtotal / numParticipants) + ' €</td></tr>';
             }
             resumenHTML += '</table>';
             resumenHTML += '<p class="resumen-subtotal-nota">Descuento por pack aplicado.' + (clubId ? ' Tarifa correspondencia aplicada según día de la semana.' : '') + ' Forma de pago: ' + (formaPago === 'por_persona' ? 'por persona (enlaces individuales).' : 'único.') + '</p></div>';
