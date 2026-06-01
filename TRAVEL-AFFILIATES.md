@@ -40,7 +40,7 @@ Si ves solo la pantalla genérica de Stripe («Thanks for your payment»), falta
 
 ## 4. Dónde lo ve el cliente
 
-- **Página de gracias:** `confirmacion-reserva.html?session_id=…` (tras Stripe).
+- **Página de gracias:** `confirmacion-reserva.html?session_id=…` (tras Stripe). Rentcars **no** va en iframe (su API devuelve 403 embebida): botón que abre Rentcars en pestaña nueva con fechas del paquete.
 - **Email:** webhook `checkout.session.completed` (mismo bloque si hay variables en Vercel).
 - **Paquetes:** nota bajo alojamiento: «Una vez confirmado el paquete… vuelo y coche».
 

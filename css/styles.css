@@ -2787,6 +2787,123 @@ body.hb-tariff-debug-on .hotelbeds-card--picked {
     line-height: 1.4;
 }
 
+/* Rentcars post-booking: lanzador (sin iframe) */
+.post-booking-rentcars-launcher {
+    margin-top: 1rem;
+    padding: 1.15rem 1.2rem;
+    background: #fff;
+    border: 1px solid rgba(26, 77, 58, 0.15);
+    border-radius: 8px;
+}
+
+.post-booking-rentcars-note {
+    margin: 0 0 1rem;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: #444;
+}
+
+.post-booking-rentcars-resumen {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 560px) {
+    .post-booking-rentcars-resumen {
+        grid-template-columns: 1fr;
+    }
+}
+
+.post-booking-rentcars-fecha {
+    padding: 0.75rem 0.85rem;
+    background: rgba(44, 85, 48, 0.06);
+    border-left: 3px solid var(--color-primary, #2c5530);
+    border-radius: 4px;
+}
+
+.post-booking-rentcars-fecha-k {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #666;
+    margin-bottom: 0.2rem;
+}
+
+.post-booking-rentcars-fecha-v {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #222;
+    line-height: 1.35;
+}
+
+.post-booking-rentcars-fecha-h {
+    display: block;
+    font-size: 0.82rem;
+    color: #666;
+    margin-top: 0.15rem;
+}
+
+.post-booking-rentcars-loc-label {
+    margin: 0 0 0.4rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #444;
+}
+
+.post-booking-rentcars-locs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.post-booking-rentcars-loc {
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 0.45rem 0.9rem;
+    border: 1px solid rgba(44, 85, 48, 0.35);
+    background: #fff;
+    color: var(--color-primary, #2c5530);
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.post-booking-rentcars-loc.is-active {
+    background: var(--color-primary, #2c5530);
+    color: #fff;
+    border-color: var(--color-primary, #2c5530);
+}
+
+.post-booking-rentcars-cta {
+    display: inline-block;
+    width: 100%;
+    max-width: 28rem;
+    text-align: center;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+.post-booking-rentcars-alt {
+    margin: 0.65rem 0 0;
+    font-size: 0.85rem;
+}
+
+.post-booking-rentcars-alt a {
+    color: var(--color-primary, #2c5530);
+}
+
+.post-booking-sky-launcher {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(26, 77, 58, 0.12);
+}
+
 .confirmacion-hero-estado {
     text-align: center;
     margin-bottom: 2rem;
