@@ -1350,6 +1350,7 @@ function initConfiguradorPaquete() {
                     modo: formaPagoSubmit,
                     numParticipantes: numParticipantes,
                     paquete: 'fin-semana',
+                    formId: 'configuradorForm',
                     submitButton: submitBtn
                 });
             } else {

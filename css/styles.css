@@ -2632,18 +2632,92 @@ body.hb-tariff-debug-on .hotelbeds-card--picked {
     line-height: 1.25;
 }
 
-.confirmacion-pago-importe {
-    margin: 0 0 0.35rem;
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--color-primary, #2c5530);
+.confirmacion-recibo-wrap {
+    margin-bottom: 1.75rem;
 }
 
-.confirmacion-pago-ref {
-    margin: 0.65rem 0 0;
+.confirmacion-recibo-stripe {
+    padding: 1.25rem 1.35rem;
+    background: #fff;
+    border: 1px solid #e2e8e2;
+    border-radius: 8px;
+    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.05);
+}
+
+.confirmacion-recibo-stripe-kicker {
+    margin: 0 0 0.85rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #6772e5;
+}
+
+.confirmacion-recibo-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.confirmacion-recibo-tabla th {
+    text-align: left;
+    font-weight: 500;
+    color: #666;
+    padding: 0.4rem 1rem 0.4rem 0;
+    vertical-align: top;
+    width: 38%;
+}
+
+.confirmacion-recibo-tabla td {
+    padding: 0.4rem 0;
+    color: #1a1a1a;
+    font-weight: 500;
+}
+
+.confirmacion-recibo-estado--paid {
+    color: var(--color-primary, #2c5530);
+    font-weight: 600;
+}
+
+.confirmacion-recibo-lineas {
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid #eee;
+}
+
+.confirmacion-recibo-lineas-titulo {
+    margin: 0 0 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #444;
+}
+
+.confirmacion-recibo-lineas ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.confirmacion-recibo-lineas li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.35rem 0;
+    font-size: 0.92rem;
+}
+
+.confirmacion-recibo-id {
+    margin: 0.85rem 0 0;
     font-size: 0.78rem;
     color: #888;
     word-break: break-all;
+}
+
+.confirmacion-recibo-id code {
+    font-size: 0.76rem;
+    background: #f4f4f4;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
 }
 
 .confirmacion-status-fallback {

@@ -14,6 +14,8 @@ import {
   wrapHotelbedsVoucherDocument,
   voucherDataFromStripeMetadata,
 } from '../lib/hotelbeds-voucher-html.js';
+import { buildCheckoutReceipt } from '../lib/stripe-checkout-receipt.js';
+import { buildRentcarsSearchUrl } from '../lib/rentcars-search-url.js';
 
 function json(obj, status = 200) {
   return new Response(JSON.stringify(obj), {
@@ -55,6 +57,21 @@ export async function GET(request) {
     }
     const meta = session.metadata || {};
     const voucherAvailable = !!(meta.hb_booking_ref && meta.hb_hotel_name && meta.hb_hotel_address);
+    const receipt = await buildCheckoutReceipt(stripe, session);
+
+    const tripPickup = meta.pkg_fecha_inicio || null;
+    const tripDropoff = meta.pkg_fecha_fin || null;
+    const tripLocation = meta.pkg_pickup_loc || 'Madrid, España';
+    let rentcars_embed_url = null;
+    if (tripPickup && tripDropoff) {
+      rentcars_embed_url = buildRentcarsSearchUrl({
+        pickup: tripPickup,
+        dropoff: tripDropoff,
+        locationName: tripLocation,
+        requestorid: '10695',
+      });
+    }
+
     return json({
       ok: true,
       payment_status: session.payment_status,
@@ -62,6 +79,15 @@ export async function GET(request) {
       currency: session.currency,
       customer_email: session.customer_details?.email || null,
       paquete: meta.paquete || null,
+      receipt,
+      trip: tripPickup
+        ? {
+            pickup: tripPickup,
+            dropoff: tripDropoff,
+            pickup_location: tripLocation,
+            rentcars_embed_url,
+          }
+        : null,
       voucher_available: voucherAvailable,
       voucher_url: voucherAvailable
         ? `/api/booking-voucher?session_id=${encodeURIComponent(sessionId)}`

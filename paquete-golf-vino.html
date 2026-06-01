@@ -693,7 +693,7 @@
                     var fp = (new FormData(form).get('forma_pago') || 'unico').trim() || 'unico';
                     var btn = document.querySelector('button[form="formGolfVino"]');
                     if (typeof window.iniciarPagoStripe === 'function') {
-                        window.iniciarPagoStripe({ totalEuros: totalEuros, modo: fp, numParticipantes: n, paquete: 'golf-vino', submitButton: btn });
+                        window.iniciarPagoStripe({ totalEuros: totalEuros, modo: fp, numParticipantes: n, paquete: 'golf-vino', formId: 'formGolfVino', submitButton: btn });
                     } else { alert('Error: módulo de pago no cargado.'); }
                 });
             }

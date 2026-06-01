@@ -60,6 +60,41 @@
     document.body.style.overflow = 'hidden';
   }
 
+  function addDaysIso(iso, days) {
+    var d = new Date(iso + 'T12:00:00');
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0, 10);
+  }
+
+  /** Fechas del paquete (fechas[] / noches) para metadata Stripe y Rentcars post-pago. */
+  window.collectPaqueteTripDates = function (formId) {
+    var form = formId ? document.getElementById(formId) : null;
+    if (!form) return null;
+    var fd = new FormData(form);
+    var fechas = fd
+      .getAll('fechas[]')
+      .map(function (s) {
+        return String(s).trim();
+      })
+      .filter(function (s) {
+        return /^\d{4}-\d{2}-\d{2}$/.test(s);
+      });
+    fechas.sort();
+    if (!fechas.length) return null;
+    var pickup = fechas[0];
+    var lastNight = fechas[fechas.length - 1];
+    var dropoff = addDaysIso(lastNight, 1);
+    var noches = parseInt(fd.get('noches'), 10);
+    if (fechas.length === 1 && noches > 1) {
+      dropoff = addDaysIso(pickup, noches);
+    }
+    return {
+      pickup: pickup,
+      dropoff: dropoff,
+      pickupLocation: 'Madrid, España',
+    };
+  };
+
   window.iniciarPagoStripe = function (options) {
     var totalEuros = options.totalEuros;
     var modo = options.modo || 'unico';
@@ -121,6 +156,13 @@
         if (options.tituloTorneo) body.tituloTorneo = options.tituloTorneo;
         if (hotelbedsVoucher && typeof hotelbedsVoucher === 'object') {
           body.hotelbedsVoucher = hotelbedsVoucher;
+        }
+        var tripDates = options.tripDates;
+        if (!tripDates && options.formId && typeof window.collectPaqueteTripDates === 'function') {
+          tripDates = window.collectPaqueteTripDates(options.formId);
+        }
+        if (tripDates && tripDates.pickup) {
+          body.tripDates = tripDates;
         }
         return fetch('/api/crear-pago', {
           method: 'POST',

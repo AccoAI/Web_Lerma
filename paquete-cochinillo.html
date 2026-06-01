@@ -426,7 +426,7 @@
                     var fp = (new FormData(form).get('forma_pago') || 'unico').trim() || 'unico';
                     var btn = document.querySelector('button[form="formCochinillo"]');
                     if (typeof window.iniciarPagoStripe === 'function') {
-                        window.iniciarPagoStripe({ totalEuros: totalEuros, modo: fp, numParticipantes: n, paquete: 'cochinillo', submitButton: btn });
+                        window.iniciarPagoStripe({ totalEuros: totalEuros, modo: fp, numParticipantes: n, paquete: 'cochinillo', formId: 'formCochinillo', submitButton: btn });
                     } else { alert('Error: módulo de pago no cargado.'); }
                 });
             }

@@ -332,7 +332,7 @@
                     var fp = (new FormData(form).get('forma_pago') || 'unico').trim() || 'unico';
                     var btn = document.querySelector('button[form="formPausaDrive"]');
                     if (typeof window.iniciarPagoStripe === 'function') {
-                        window.iniciarPagoStripe({ totalEuros: totalEuros, modo: fp, numParticipantes: n, paquete: 'pausa-drive', submitButton: btn });
+                        window.iniciarPagoStripe({ totalEuros: totalEuros, modo: fp, numParticipantes: n, paquete: 'pausa-drive', formId: 'formPausaDrive', submitButton: btn });
                     } else { alert('Error: módulo de pago no cargado.'); }
                 });
             }

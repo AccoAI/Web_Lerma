@@ -62,12 +62,10 @@
                 <div class="confirmacion-pago-banner-main">
                     <p class="confirmacion-pago-kicker">Pago con tarjeta</p>
                     <h1 id="confirmPagoTitulo" class="confirmacion-pago-titulo">Comprobando el pago…</h1>
-                    <p id="confirmPagoImporte" class="confirmacion-pago-importe" hidden></p>
                     <p id="confirmPaquete" class="confirmacion-paquete-nombre" hidden></p>
-                    <p id="confirmEmail" class="confirmacion-email" hidden></p>
-                    <p id="confirmPagoRef" class="confirmacion-pago-ref" hidden></p>
                 </div>
             </div>
+            <div id="confirmReceipt" class="confirmacion-recibo-wrap" hidden aria-live="polite"></div>
             <p id="confirmStatusFallback" class="confirmacion-status-fallback confirm-loading">Verificando con Stripe…</p>
 
             <div id="confirmExtras" class="confirmacion-extras" hidden>
@@ -121,6 +119,7 @@
     <script src="js/main.js"></script>
     <script src="js/restaurantes-paquete.js"></script>
     <script src="js/travel-affiliates.js"></script>
+    <script src="js/post-booking-receipt.js"></script>
     <script src="js/post-booking-travel.js"></script>
     <script src="js/post-booking-restaurants.js"></script>
     <script>
@@ -129,10 +128,8 @@
   var sessionId = params.get('session_id');
   var bannerEl = document.getElementById('confirmPagoBanner');
   var tituloEl = document.getElementById('confirmPagoTitulo');
-  var importeEl = document.getElementById('confirmPagoImporte');
   var paqueteEl = document.getElementById('confirmPaquete');
-  var emailEl = document.getElementById('confirmEmail');
-  var refEl = document.getElementById('confirmPagoRef');
+  var receiptEl = document.getElementById('confirmReceipt');
   var fallbackEl = document.getElementById('confirmStatusFallback');
   var extrasEl = document.getElementById('confirmExtras');
   var actionsEl = document.getElementById('confirmActions');
@@ -195,27 +192,25 @@
         tituloEl.textContent = 'Pago: ' + (data.payment_status || 'pendiente');
       }
 
-      if (data.amount_total != null) {
-        importeEl.hidden = false;
-        importeEl.textContent = 'Importe abonado: ' + formatImporte(data.amount_total, data.currency);
-      }
-
       if (data.paquete) {
         var nombre = nombresPaquete[data.paquete] || data.paquete;
         paqueteEl.hidden = false;
-        paqueteEl.textContent = 'Paquete: ' + nombre;
+        paqueteEl.textContent = nombre;
       }
 
-      if (data.customer_email) {
-        emailEl.hidden = false;
-        emailEl.textContent = 'Confirmación enviada a ' + data.customer_email;
+      if (data.receipt && typeof window.renderPostBookingReceipt === 'function') {
+        window.renderPostBookingReceipt('confirmReceipt', data.receipt);
+      } else if (data.amount_total != null) {
+        receiptEl.hidden = false;
+        receiptEl.innerHTML =
+          '<div class="confirmacion-recibo-stripe"><table class="confirmacion-recibo-tabla"><tbody>' +
+          '<tr><th scope="row">Importe pagado</th><td>' + formatImporte(data.amount_total, data.currency) + '</td></tr>' +
+          (data.customer_email ? '<tr><th scope="row">Correo</th><td>' + data.customer_email + '</td></tr>' : '') +
+          '</tbody></table></div>';
       }
-
-      refEl.hidden = false;
-      refEl.textContent = 'Referencia Stripe: ' + sessionId.replace(/^cs_(test|live)_/, '').slice(0, 24) + '…';
 
       if (typeof window.renderPostBookingTravel === 'function') {
-        window.renderPostBookingTravel('confirmTravel');
+        window.renderPostBookingTravel('confirmTravel', data.trip || null);
       }
       if (typeof window.renderPostBookingRestaurants === 'function') {
         window.renderPostBookingRestaurants('confirmRestaurants');

@@ -36,7 +36,8 @@ export async function POST(request) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const { amountCents, modo, numParticipantes, paquete, tituloTorneo, hotelbedsVoucher } = body;
+    const { amountCents, modo, numParticipantes, paquete, tituloTorneo, hotelbedsVoucher, tripDates } =
+      body;
 
     if (!amountCents || amountCents < 50) {
       return jsonResponse({ error: 'Importe inválido (mínimo 0,50 €)' }, 400);
@@ -126,6 +127,13 @@ export async function POST(request) {
         modo: modoPago,
         numParticipantes: String(numPart),
         ...(tituloTorneo ? { torneoTitulo: String(tituloTorneo).slice(0, 200) } : {}),
+        ...(tripDates && typeof tripDates === 'object' && tripDates.pickup
+          ? {
+              pkg_fecha_inicio: String(tripDates.pickup).slice(0, 10),
+              pkg_fecha_fin: String(tripDates.dropoff || tripDates.pickup).slice(0, 10),
+              pkg_pickup_loc: String(tripDates.pickupLocation || 'Madrid, España').slice(0, 80),
+            }
+          : {}),
         ...hbMeta,
       },
     });

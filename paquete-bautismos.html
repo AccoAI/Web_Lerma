@@ -329,7 +329,7 @@
                     var fp = (new FormData(form).get('forma_pago') || 'unico').trim() || 'unico';
                     var btn = document.querySelector('button[form="formBautismos"]');
                     if (typeof window.iniciarPagoStripe === 'function') {
-                        window.iniciarPagoStripe({ totalEuros: totalEuros, modo: fp, numParticipantes: adultos + jovenes, paquete: 'bautismos', submitButton: btn });
+                        window.iniciarPagoStripe({ totalEuros: totalEuros, modo: fp, numParticipantes: adultos + jovenes, paquete: 'bautismos', formId: 'formBautismos', submitButton: btn });
                     } else { alert('Error: módulo de pago no cargado.'); }
                 });
             }

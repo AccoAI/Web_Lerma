@@ -679,7 +679,7 @@
                     var fp = (formData.get('forma_pago') || 'unico').trim() || 'unico';
                     var btn = document.querySelector('button[form="form36Hoyos"]');
                     if (typeof window.iniciarPagoStripe === 'function') {
-                        window.iniciarPagoStripe({ totalEuros: totalEuros, modo: fp, numParticipantes: n, paquete: '36-hoyos', submitButton: btn });
+                        window.iniciarPagoStripe({ totalEuros: totalEuros, modo: fp, numParticipantes: n, paquete: '36-hoyos', formId: 'form36Hoyos', submitButton: btn });
                     } else { alert('Error: módulo de pago no cargado.'); }
                 });
             }
