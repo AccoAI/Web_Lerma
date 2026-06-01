@@ -704,7 +704,41 @@
     var hotelCode = (form.querySelector('input[name="hb_selected_hotel_code"]') || {}).value || '';
     if (!hotelCode) return;
     var priorKey = (form.querySelector('input[name="hb_selected_rate_key"]') || {}).value || '';
-    renderFunnelRateChoices(host, hotelCode, priorKey);
+    var offers = (window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || [];
+    if (!offers.length) return;
+    var byKey = {};
+    offers.forEach(function (o) {
+      if (o && o.rateKey) byKey[o.rateKey] = o;
+    });
+    host.querySelectorAll('input[name="hb-funnel-rate-pick"]').forEach(function (radio) {
+      var o = byKey[radio.value];
+      if (!o) return;
+      var pkgTotal = calcTotalPaquete(o);
+      var label = radio.closest('.hb-funnel-rate-pick');
+      if (!label) return;
+      var priceEl = label.querySelector('.hb-funnel-rate-price');
+      if (priceEl && pkgTotal != null) priceEl.textContent = fmtEuros(pkgTotal) + ' €';
+      var sub = label.querySelector('.hb-funnel-rate-pick__sub');
+      if (sub) sub.textContent = funnelRatePickSubhint(o);
+    });
+    if (!priorKey) {
+      renderFunnelRateChoices(host, hotelCode, '', { skipValidationSync: true });
+    }
+  }
+
+  /** Sincroniza precios ocultos del resumen desde la tarifa HB actual (p. ej. antes de calcular el total). */
+  function syncHbResumenFromCurrentOffer(form) {
+    if (!form) return;
+    var code = (form.querySelector('input[name="hb_selected_hotel_code"]') || {}).value || '';
+    var rk = (form.querySelector('input[name="hb_selected_rate_key"]') || {}).value || '';
+    if (!code || !rk) return;
+    var offers = (window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(code)] || [];
+    for (var i = 0; i < offers.length; i++) {
+      if (offers[i].rateKey === rk) {
+        syncHbResumenPriceHidden(form, offers[i]);
+        return;
+      }
+    }
   }
 
   function refreshHotelCardPackagePrices() {
@@ -1556,7 +1590,6 @@
     form.querySelector('input[name="hb_selected_rate_key"]').value = String(rateKey || '');
     form.querySelector('input[name="hb_selected_rate_type"]').value = String(rateType || '');
     form.querySelector('input[name="hb_rate_validated"]').value = '1';
-    form.querySelector('input[name="hb_funnel_ready"]').value = '';
     if (offerForResumen) syncHbResumenPriceHidden(form, offerForResumen);
   }
 
@@ -1572,7 +1605,6 @@
     form.querySelector('input[name="hb_selected_rate_type"]').value = rt;
     if (rt === 'BOOKABLE') {
       markRateValidated(form, offer.rateKey, rt, offer);
-      triggerResumenUpdate();
       return true;
     }
     form.querySelector('input[name="hb_rate_validated"]').value = '';
@@ -1657,7 +1689,8 @@
     return '';
   }
 
-  function renderFunnelRateChoices(host, hotelCode, preferredRateKey) {
+  function renderFunnelRateChoices(host, hotelCode, preferredRateKey, renderOpts) {
+    renderOpts = renderOpts || {};
     var box = host.querySelector('#hb-funnel-inline-rates');
     if (!box) return;
     var offers = (window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || [];
@@ -1732,7 +1765,7 @@
     html += '</ul>';
     box.innerHTML = html;
     var funnelForm = getForm();
-    if (funnelForm) syncFunnelValidationFromPickedRate(host, funnelForm);
+    if (funnelForm && !renderOpts.skipValidationSync) syncFunnelValidationFromPickedRate(host, funnelForm);
     if (host.__hbAutoConfirmPending && typeof host.__hbRunAutoConfirm === 'function') {
       host.__hbAutoConfirmPending = false;
       setTimeout(function () {
@@ -1805,7 +1838,8 @@
       if (c === String(hotelCode)) el.classList.add('hotelbeds-card--picked');
       else el.classList.remove('hotelbeds-card--picked');
     });
-    triggerResumenUpdate();
+    if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
+    else triggerResumenUpdate();
     if (opts.scrollToPay !== false) {
       var reservar = document.querySelector('button.btn-reservar-paquete');
       if (reservar && reservar.scrollIntoView) {
@@ -3108,6 +3142,7 @@
 
   window.refreshHotelCardPackagePrices = refreshHotelCardPackagePrices;
   window.refreshFunnelRatePackagePrices = refreshFunnelRatePackagePrices;
+  window.syncHbResumenFromCurrentOffer = syncHbResumenFromCurrentOffer;
 
   function init() {
     var o = pageOpts();

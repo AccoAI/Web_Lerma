@@ -1207,6 +1207,10 @@ function initConfiguradorPaquete() {
 
             var aloj = 0;
             if (necesitaHotel) {
+              if (typeof window.syncHbResumenFromCurrentOffer === 'function') {
+                window.syncHbResumenFromCurrentOffer(form);
+                formData = new FormData(form);
+              }
               if (typeof window.calcularAlojamientoResumenEuros === 'function') {
                 aloj = window.calcularAlojamientoResumenEuros(formData, nNoches);
               } else if (hotelOk) {

@@ -50,7 +50,10 @@ window.HOTELBEDS_CONFIG = {
 /** Suma alojamiento en el resumen del paquete: con funnel Hotelbeds confirmado usa hb_hotel_stay_ref_net (importe lista no empaquetado, solo en cálculo; el cliente no ve ese desglose si hideHotelEuroUi). El pago a HB sigue siendo la tarifa empaquetada (rateKey). El margen se reparte comercialmente con el resto del paquete (golf). */
 window.calcularAlojamientoResumenEuros = function (formData, nNoches, fallbackPerNoche) {
   if (!formData || !formData.get) return 0;
-  if (String(formData.get('hb_funnel_ready') || '').trim() === '1') {
+  var funnelReady = String(formData.get('hb_funnel_ready') || '').trim() === '1';
+  var rateValidated = String(formData.get('hb_rate_validated') || '').trim() === '1';
+  var hotelCode = String(formData.get('hb_selected_hotel_code') || '').trim();
+  if (funnelReady || (rateValidated && hotelCode)) {
     var rawRef = String(formData.get('hb_hotel_stay_ref_net') || '').trim().replace(',', '.');
     var rawBook = String(formData.get('hb_hotel_stay_book_net') || '').trim().replace(',', '.');
     var ref = parseFloat(rawRef);
