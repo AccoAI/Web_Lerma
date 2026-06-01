@@ -1,7 +1,7 @@
 /**
  * Precios Hotelbeds en tiempo real para cualquier paquete con calendario + alojamiento.
  * Opciones en window.HOTELBEDS_PAGE: formId, preciosBlockId, onResumen, hideHotelEuroUi (false = mostrar € en tarjetas y funnel).
- * Con hideHotelEuroUi por defecto, el resumen del paquete sigue usando internamente hb_hotel_stay_ref_net (lista no empaquetada) vía calcularAlojamientoResumenEuros mientras el booking usa la tarifa empaquetada.
+ * El resumen y precios visibles usan la tarifa HB de reserva (book net); hb_hotel_stay_ref_net es solo referencia interna cuando hay tarifa empaquetada.
  */
 (function () {
   var DEBOUNCE_MS = 1500;
@@ -387,13 +387,28 @@
     ].join('\u0001');
   }
 
-  /** Precio total del paquete (greenfee grupo + tarifa de referencia no empaquetada del hotel). */
+  /** Neto de hotel que ve el cliente (tarifa empaquetada / la que se reserva en HB), no la de referencia lista. */
+  function hotelStayNetForCustomer(offer) {
+    if (!offer) return null;
+    var book =
+      offer.resumenHotelBookNet != null
+        ? Number(offer.resumenHotelBookNet)
+        : offer.netValue != null
+          ? Number(offer.netValue)
+          : null;
+    if (book != null && isFinite(book) && book > 0) return Math.round(book * 100) / 100;
+    var ref = offer.resumenHotelRefNet != null ? Number(offer.resumenHotelRefNet) : null;
+    if (ref != null && isFinite(ref) && ref > 0) return Math.round(ref * 100) / 100;
+    return null;
+  }
+
+  /** Precio total del paquete mostrado al cliente: green fees del grupo + alojamiento (tarifa HB de reserva). */
   function calcTotalPaquete(offer) {
     var gf = typeof window.__HB_GF_TOTAL__ === 'number' && isFinite(window.__HB_GF_TOTAL__) ? window.__HB_GF_TOTAL__ : null;
     if (gf == null) return null;
-    var refNet = offer && offer.resumenHotelRefNet != null ? Number(offer.resumenHotelRefNet) : null;
-    if (refNet == null || !isFinite(refNet)) return null;
-    return Math.round((gf + refNet) * 100) / 100;
+    var hotelNet = hotelStayNetForCustomer(offer);
+    if (hotelNet == null) return null;
+    return Math.round((gf + hotelNet) * 100) / 100;
   }
 
   function fmtEuros(n) {
@@ -401,8 +416,11 @@
     return n.toFixed(2).replace('.', ',');
   }
 
-  /** Si hay tarifa empaquetada y otra no empaquetada para la misma habitación+régimen+clase, oculta la no empaquetada y guarda su net como referencia de resumen (margen vs lo que se reserva). */
-  function preferPackagingOffersAndAttachRef(offers) {
+  function hbDebugTariffsEnabled() {
+    return window.__HB_SHOW_TARIFF_DEBUG__ === true;
+  }
+
+  function buildPackagingGroups(offers) {
     var groups = {};
     (offers || []).forEach(function (o) {
       var k = coarseRateKeyForPackaging(o);
@@ -423,20 +441,120 @@
       });
       maxUnpackNetByKey[k] = maxN;
     });
+    return { groups: groups, maxUnpackNetByKey: maxUnpackNetByKey };
+  }
+
+  function enrichOfferRefBook(offer, packagingGroups) {
+    if (!offer) return offer;
+    var k = coarseRateKeyForPackaging(offer);
+    var refN = packagingGroups.maxUnpackNetByKey[k];
+    if (offer.packaging) {
+      offer.resumenHotelBookNet = offer.netValue;
+      offer.resumenHotelRefNet = refN != null ? refN : offer.netValue;
+    } else {
+      offer.resumenHotelRefNet = offer.netValue;
+      offer.resumenHotelBookNet = offer.netValue;
+    }
+    return offer;
+  }
+
+  function hbTariffDebugHtmlForOffer(offer) {
+    if (!hbDebugTariffsEnabled() || !offer) return '';
+    var book = hotelStayNetForCustomer(offer);
+    var ref =
+      offer.resumenHotelRefNet != null && isFinite(Number(offer.resumenHotelRefNet))
+        ? Number(offer.resumenHotelRefNet)
+        : null;
+    var gf = typeof window.__HB_GF_TOTAL__ === 'number' && isFinite(window.__HB_GF_TOTAL__) ? window.__HB_GF_TOTAL__ : null;
+    var html =
+      '<span class="hb-tariff-debug">' +
+      '<strong>HB empaquetada (reserva):</strong> ' +
+      escapeHtml(book != null ? fmtEuros(book) + ' €' : '—');
+    if (ref != null) {
+      html += ' · <strong>HB no empaq. (ref):</strong> ' + escapeHtml(fmtEuros(ref) + ' €');
+      if (book != null) {
+        var delta = Math.round((ref - book) * 100) / 100;
+        html +=
+          ' · <strong>Δ estancia:</strong> ' +
+          escapeHtml(fmtEuros(delta) + ' €');
+      }
+    }
+    if (gf != null && book != null) {
+      html +=
+        ' · <strong>Paquete (GF+empaq.):</strong> ' +
+        escapeHtml(fmtEuros(gf + book) + ' €');
+      if (ref != null) {
+        html +=
+          ' · <strong>Paquete (GF+ref):</strong> ' +
+          escapeHtml(fmtEuros(gf + ref) + ' €');
+      }
+    }
+    html +=
+      ' · <code>packaging=' +
+      (offer.packaging ? 'true' : 'false') +
+      '</code></span>';
+    return html;
+  }
+
+  function ensureHbTariffDebugBanner() {
+    var root = getContainer();
+    if (!root) return;
+    var id = 'hb-tariff-debug-banner';
+    var el = document.getElementById(id);
+    if (!hbDebugTariffsEnabled()) {
+      if (el) el.remove();
+      document.body.classList.remove('hb-tariff-debug-on');
+      return;
+    }
+    document.body.classList.add('hb-tariff-debug-on');
+    var msg =
+      '<strong>Modo debug tarifas HB (F4)</strong> — Empaquetada = lo que reserva el cliente. No empaq. = tarifa lista API (referencia). ' +
+      'En el funnel se listan todas las tarifas devueltas por disponibilidad.';
+    if (!el) {
+      el = document.createElement('div');
+      el.id = id;
+      el.className = 'hb-tariff-debug-banner';
+      el.setAttribute('role', 'status');
+      root.insertBefore(el, root.firstChild);
+    }
+    el.innerHTML = msg;
+  }
+
+  function refreshHbTariffDebugViews() {
+    ensureHbTariffDebugBanner();
+    var host = document.getElementById('hb-hotel-funnel-inline');
+    var form = getForm();
+    if (host && form) {
+      var code = (form.querySelector('input[name="hb_selected_hotel_code"]') || {}).value || '';
+      if (code) {
+        var rk = getSelectedRateKeyFromFunnel(host, form);
+        renderFunnelRateChoices(host, code, rk, { skipValidationSync: true });
+      }
+    }
+    refreshHotelCardPackagePrices();
+    if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
+  }
+
+  function toggleHbDebugTariffs() {
+    window.__HB_SHOW_TARIFF_DEBUG__ = !hbDebugTariffsEnabled();
+    refreshHbTariffDebugViews();
+  }
+
+  /** Si hay tarifa empaquetada y otra no empaquetada para la misma habitación+régimen+clase, oculta la no empaquetada y guarda su net como referencia de resumen (margen vs lo que se reserva). */
+  function preferPackagingOffersAndAttachRef(offers) {
+    var packagingGroups = buildPackagingGroups(offers);
+    var groups = packagingGroups.groups;
     var out = [];
     (offers || []).forEach(function (o) {
       var k = coarseRateKeyForPackaging(o);
       var g = groups[k];
       if (o.packaging) {
-        var refN = maxUnpackNetByKey[k];
-        o.resumenHotelRefNet = refN != null ? refN : o.netValue;
-        o.resumenHotelBookNet = o.netValue;
+        enrichOfferRefBook(o, packagingGroups);
         out.push(o);
         return;
       }
       if (!g.hasPack) {
-        o.resumenHotelRefNet = o.netValue;
-        o.resumenHotelBookNet = o.netValue;
+        enrichOfferRefBook(o, packagingGroups);
         out.push(o);
       }
     });
@@ -545,14 +663,15 @@
     if (!rateHasSufficientAllotment(offer, { rooms: offer.rateRooms || 1 })) {
       parts.push('⚠ Cupo bajo para varias habitaciones');
     }
-    if (offer.packaging) parts.push('Tarifa paquete Hotelbeds');
+    if (offer.packaging) parts.push('Tarifa paquete Hotelbeds (packaging=true)');
+    else parts.push('Tarifa estándar API (packaging=false)');
     var total = calcTotalPaquete(offer);
     if (total != null) {
-      parts.push('Total paquete (habitación + green fees): ' + fmtEuros(total) + ' €');
+      parts.push('Total paquete mostrado (GF + empaquetada): ' + fmtEuros(total) + ' €');
     } else {
       parts.push('Importe del paquete (habitación + green fees) en el resumen al confirmar');
     }
-    return truncateText(parts.join(' · '), 280);
+    return truncateText(parts.join(' · '), hbDebugTariffsEnabled() ? 520 : 280);
   }
 
   function funnelRatePickLabel(offer) {
@@ -614,6 +733,14 @@
       });
     });
     var deduped = dedupeSimilarRateOffers(offers);
+    var packagingGroups = buildPackagingGroups(deduped.offers);
+    if (hotel && hotel.code != null) {
+      var codeKey = String(hotel.code);
+      window.__HB_RATE_OFFERS_ALL_BY_CODE__ = window.__HB_RATE_OFFERS_ALL_BY_CODE__ || {};
+      window.__HB_RATE_OFFERS_ALL_BY_CODE__[codeKey] = deduped.offers.map(function (o) {
+        return enrichOfferRefBook(Object.assign({}, o), packagingGroups);
+      });
+    }
     var packed = preferPackagingOffersAndAttachRef(deduped.offers);
     if (hotel && hotel.code != null) {
       window.__HB_RATE_OFFERS_OMITTED__ = window.__HB_RATE_OFFERS_OMITTED__ || {};
@@ -621,6 +748,15 @@
         deduped.omitted + Math.max(0, deduped.offers.length - packed.length);
     }
     return packed;
+  }
+
+  function getFunnelOffersForDisplay(hotelCode) {
+    var key = String(hotelCode || '');
+    if (hbDebugTariffsEnabled()) {
+      var all = (window.__HB_RATE_OFFERS_ALL_BY_CODE__ || {})[key];
+      if (all && all.length) return all;
+    }
+    return (window.__HB_RATE_OFFERS_BY_CODE__ || {})[key] || [];
   }
 
   function findHotelInAvailability(av, hotelCode) {
@@ -704,7 +840,7 @@
     var hotelCode = (form.querySelector('input[name="hb_selected_hotel_code"]') || {}).value || '';
     if (!hotelCode) return;
     var priorKey = (form.querySelector('input[name="hb_selected_rate_key"]') || {}).value || '';
-    var offers = (window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || [];
+    var offers = getFunnelOffersForDisplay(hotelCode);
     if (!offers.length) return;
     var byKey = {};
     offers.forEach(function (o) {
@@ -752,6 +888,34 @@
       if (pkg != null) {
         span.textContent = formatHotelPackageListPriceStr(pkg) || '';
         span.classList.remove('hotelbeds-price--package-note');
+      }
+      if (hbDebugTariffsEnabled() && hotel) {
+        var offers = (window.__HB_RATE_OFFERS_ALL_BY_CODE__ || {})[code] || [];
+        var bestPack = null;
+        var bestRef = null;
+        offers.forEach(function (o) {
+          var b = hotelStayNetForCustomer(o);
+          var r = o.resumenHotelRefNet != null ? Number(o.resumenHotelRefNet) : null;
+          if (b != null && (bestPack == null || b < bestPack.book)) bestPack = { book: b, o: o };
+          if (r != null && (bestRef == null || r < bestRef.ref)) bestRef = { ref: r, o: o };
+        });
+        var dbg = card.querySelector('.hotelbeds-price-debug');
+        if (!dbg) {
+          dbg = document.createElement('div');
+          dbg.className = 'hotelbeds-price-debug';
+          span.parentNode.appendChild(dbg);
+        }
+        var dbgHtml = '';
+        if (bestPack) {
+          dbgHtml += 'Empaq. desde ' + fmtEuros(bestPack.book) + ' €';
+        }
+        if (bestRef && bestRef.ref !== (bestPack && bestPack.book)) {
+          dbgHtml += (dbgHtml ? ' · ' : '') + 'No empaq. desde ' + fmtEuros(bestRef.ref) + ' €';
+        }
+        dbg.textContent = dbgHtml;
+      } else {
+        var oldDbg = card.querySelector('.hotelbeds-price-debug');
+        if (oldDbg) oldDbg.remove();
       }
     });
   }
@@ -1693,7 +1857,7 @@
     renderOpts = renderOpts || {};
     var box = host.querySelector('#hb-funnel-inline-rates');
     if (!box) return;
-    var offers = (window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || [];
+    var offers = getFunnelOffersForDisplay(hotelCode);
     if (!offers.length) {
       box.innerHTML =
         '<p class="hb-funnel-small">Cargando tarifas para este hotel… Si no aparecen, pulsa «' +
@@ -1712,9 +1876,11 @@
       }
     }
     var omitted = (window.__HB_RATE_OFFERS_OMITTED__ || {})[String(hotelCode)] || 0;
-    var html =
-      '<p class="hb-funnel-small hb-funnel-rates-intro">Hemos aplicado la tarifa más económica. ' +
-      'Puedes <strong>cambiar habitación o régimen</strong> abajo (precio en verde = paquete con green fees incluidos).</p>';
+    var html = hbDebugTariffsEnabled()
+      ? '<p class="hb-funnel-small hb-funnel-rates-intro hb-funnel-rates-intro--debug"><strong>Debug F4:</strong> listado completo de tarifas HB. ' +
+        'Verde = paquete con GF usando tarifa <em>empaquetada</em>.</p>'
+      : '<p class="hb-funnel-small hb-funnel-rates-intro">Hemos aplicado la tarifa más económica. ' +
+        'Puedes <strong>cambiar habitación o régimen</strong> abajo (precio en verde = paquete con green fees incluidos).</p>';
     if (omitted > 0 && !hbHideHotelEuroUi()) {
       html +=
         '<p class="hb-funnel-small">Se ocultan ' +
@@ -1760,6 +1926,11 @@
         (hint
           ? '<span class="hb-funnel-rate-pick__sub">' + escapeHtml(hint) + '</span>'
           : '') +
+        (hbTariffDebugHtmlForOffer(o)
+          ? '<span class="hb-funnel-rate-pick__sub hb-funnel-rate-pick__sub--debug">' +
+            hbTariffDebugHtmlForOffer(o) +
+            '</span>'
+          : '') +
         '</span></label></li>';
     });
     html += '</ul>';
@@ -1776,7 +1947,7 @@
 
   function getPickedOfferFromFunnel(host, hotelCode) {
     var picked = host.querySelector('input[name="hb-funnel-rate-pick"]:checked');
-    var offers = (window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || [];
+    var offers = getFunnelOffersForDisplay(hotelCode);
     if (picked) {
       var rk = picked.value;
       for (var i = 0; i < offers.length; i++) {
@@ -3143,6 +3314,31 @@
   window.refreshHotelCardPackagePrices = refreshHotelCardPackagePrices;
   window.refreshFunnelRatePackagePrices = refreshFunnelRatePackagePrices;
   window.syncHbResumenFromCurrentOffer = syncHbResumenFromCurrentOffer;
+  window.toggleHbDebugTariffs = toggleHbDebugTariffs;
+  window.hbDebugTariffsEnabled = hbDebugTariffsEnabled;
+  window.getHbTariffDebugResumenHtml = function (form) {
+    if (!hbDebugTariffsEnabled() || !form) return '';
+    var refInp = form.querySelector('input[name="hb_hotel_stay_ref_net"]');
+    var bookInp = form.querySelector('input[name="hb_hotel_stay_book_net"]');
+    var ref = refInp && refInp.value ? parseFloat(String(refInp.value).replace(',', '.')) : NaN;
+    var book = bookInp && bookInp.value ? parseFloat(String(bookInp.value).replace(',', '.')) : NaN;
+    var gf = typeof window.__HB_GF_TOTAL__ === 'number' ? window.__HB_GF_TOTAL__ : NaN;
+    var html = '<div class="hb-tariff-debug-resumen"><p><strong>Debug tarifas (F4)</strong></p><ul>';
+    html += '<li>Green fees (grupo): ' + (isFinite(gf) ? fmtEuros(gf) + ' €' : '—') + '</li>';
+    html += '<li>Hotel empaquetado (reserva): ' + (isFinite(book) ? fmtEuros(book) + ' €' : '—') + '</li>';
+    html += '<li>Hotel no empaquetado (ref): ' + (isFinite(ref) ? fmtEuros(ref) + ' €' : '—') + '</li>';
+    if (isFinite(ref) && isFinite(book)) {
+      html += '<li>Δ estancia (ref − empaq.): ' + fmtEuros(ref - book) + ' €</li>';
+    }
+    if (isFinite(gf) && isFinite(book)) {
+      html += '<li>Total paquete mostrado (GF + empaq.): ' + fmtEuros(gf + book) + ' €</li>';
+    }
+    if (isFinite(gf) && isFinite(ref)) {
+      html += '<li>Total si usáramos ref (GF + ref): ' + fmtEuros(gf + ref) + ' €</li>';
+    }
+    html += '</ul></div>';
+    return html;
+  };
 
   function init() {
     var o = pageOpts();
@@ -3157,6 +3353,25 @@
       wrap.appendChild(container);
     }
     setBookingWidgetVisible(false);
+
+    if (!window.__HB_TARIFF_DEBUG_KEY_BOUND__) {
+      window.__HB_TARIFF_DEBUG_KEY_BOUND__ = true;
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'F4') return;
+        var t = e.target;
+        if (
+          t &&
+          (t.tagName === 'INPUT' ||
+            t.tagName === 'TEXTAREA' ||
+            t.tagName === 'SELECT' ||
+            t.isContentEditable)
+        ) {
+          return;
+        }
+        e.preventDefault();
+        toggleHbDebugTariffs();
+      });
+    }
 
     syncAllowedBurgosFromPriority();
 

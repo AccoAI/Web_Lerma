@@ -2415,6 +2415,52 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 #hb-funnel-inline-confirm[hidden] {
     display: none !important;
 }
+.hb-tariff-debug-banner {
+    margin: 0 0 0.75rem;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    background: #fff8e6;
+    border: 1px solid #e6c200;
+    border-radius: 6px;
+    color: #3d3500;
+}
+.hb-tariff-debug,
+.hb-funnel-rate-pick__sub--debug {
+    display: block;
+    margin-top: 0.25rem;
+    padding: 0.35rem 0.45rem;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    background: #f4f8ff;
+    border-left: 3px solid #2a6ebb;
+    border-radius: 0 4px 4px 0;
+    color: #1a3050;
+}
+.hb-tariff-debug-resumen {
+    margin: 0.65rem 0 0;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.8rem;
+    background: #f4f8ff;
+    border: 1px dashed #2a6ebb;
+    border-radius: 6px;
+    color: #1a3050;
+}
+.hb-tariff-debug-resumen ul {
+    margin: 0.35rem 0 0 1.1rem;
+    padding: 0;
+}
+.hotelbeds-price-debug {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #2a6ebb;
+}
+body.hb-tariff-debug-on .hotelbeds-card--picked {
+    outline: 2px dashed #2a6ebb;
+    outline-offset: 2px;
+}
 .hb-hotel-funnel-inline__actions .hb-hotel-funnel-btn--secondary {
     font-size: 0.85rem;
 }

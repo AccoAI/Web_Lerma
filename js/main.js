@@ -1288,6 +1288,9 @@ function initConfiguradorPaquete() {
                 resumenHTML += '<tr class="resumen-por-persona"><td>Por persona</td><td>' + formatEurosResumen(subtotal / numParticipants) + ' €</td></tr>';
             }
             resumenHTML += '</table>';
+            if (typeof window.getHbTariffDebugResumenHtml === 'function') {
+                resumenHTML += window.getHbTariffDebugResumenHtml(form);
+            }
             resumenHTML += '<p class="resumen-subtotal-nota">Descuento por pack aplicado.' + (clubId ? ' Tarifa correspondencia aplicada según día de la semana.' : '') + ' Forma de pago: ' + (formaPago === 'por_persona' ? 'por persona (enlaces individuales).' : 'único.') + '</p></div>';
 
             resumenDiv.innerHTML = resumenHTML;
