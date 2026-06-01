@@ -1259,7 +1259,7 @@
   function getOccupancyFromFormData(fd) {
     if (!fd || !fd.get) return { adults: 2, rooms: 1, children: 0 };
     var adults = clamp(getInt(fd.get('hb_occ_adults') || fd.get('tamanio_grupo'), 2), 1, 54);
-    var rooms = clamp(getInt(fd.get('hb_occ_rooms') || Math.ceil(adults / 2), 1), 1, HB_MAX_ROOMS);
+    var rooms = clamp(getInt(fd.get('hb_occ_rooms') || defaultRoomsForAdults(adults), 1), 1, HB_MAX_ROOMS);
     return clampHotelbedsOccupancy({ adults: adults, rooms: rooms, children: 0 });
   }
 
@@ -1270,7 +1270,7 @@
     var adults = clamp(getInt(raw, 2), 1, 54);
     return clampHotelbedsOccupancy({
       adults: adults,
-      rooms: clamp(Math.ceil(adults / 2), 1, HB_MAX_ROOMS),
+      rooms: defaultRoomsForAdults(adults),
       children: 0,
     });
   }
@@ -1591,7 +1591,7 @@
       1,
       parseInt((fd.get('hb_occ_adults') || fd.get('tamanio_grupo') || '2'), 10) || 2
     );
-    var rooms = Math.max(1, parseInt((fd.get('hb_occ_rooms') || Math.ceil(adults / 2)), 10) || 1);
+    var rooms = Math.max(1, parseInt((fd.get('hb_occ_rooms') || defaultRoomsForAdults(adults)), 10) || 1);
     var children = 0;
     if (offer) {
       if (offer.rateRooms != null && offer.rateRooms > 0) rooms = offer.rateRooms;
@@ -2057,10 +2057,21 @@
     return tg ? String(tg.value || '').trim() : '';
   }
 
+  /**
+   * Habitaciones por defecto en disponibilidad HB.
+   * 1–3 adultos → 1 habitación (triple / cama extra), alineado con búsquedas tipo Booking.
+   * 4+ → 2 adultos por habitación (grupos de golf).
+   */
+  function defaultRoomsForAdults(adults) {
+    var n = Math.max(1, parseInt(adults, 10) || 1);
+    if (n <= 3) return 1;
+    return clamp(Math.ceil(n / 2), 1, HB_MAX_ROOMS);
+  }
+
   function adultsRoomsFromGroupSize(form) {
     var raw = readTamanioGrupo(form);
     var adults = clamp(getInt(raw, 2), 1, 54);
-    var rooms = clamp(Math.ceil(adults / 2), 1, 20);
+    var rooms = defaultRoomsForAdults(adults);
     return { adults: adults, rooms: rooms, raw: raw };
   }
 
@@ -3178,7 +3189,7 @@
     // Funnel-selected rateKey (revalidated) has priority.
     var selectedRateKey = (fd.get('hb_selected_rate_key') || '').trim();
     var adults = Math.max(1, parseInt((fd.get('hb_occ_adults') || fd.get('tamanio_grupo') || '2'), 10) || 2);
-    var roomsCount = Math.max(1, parseInt((fd.get('hb_occ_rooms') || Math.ceil(adults / 2)), 10) || 1);
+    var roomsCount = Math.max(1, parseInt((fd.get('hb_occ_rooms') || defaultRoomsForAdults(adults)), 10) || 1);
 
     var funnelReady = (fd.get('hb_funnel_ready') || '').trim() === '1';
     var selectedHotel = (fd.get('hb_selected_hotel_code') || '').trim();

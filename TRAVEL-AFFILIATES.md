@@ -27,7 +27,16 @@ Para el **correo** de confirmación (servidor), añade en **Vercel → Environme
 
 Si una URL está vacía, no se muestra ese botón.
 
-## 3. Dónde lo ve el cliente
+## 3. Redirección tras el pago (importante)
+
+Tras pagar, Stripe debe enviar al usuario a **`confirmacion-reserva.html`** (coche, vuelos, restaurantes, bono). Eso lo configura `api/crear-pago.js` automáticamente si existe:
+
+1. **`PUBLIC_SITE_URL`** en Vercel (recomendado: `https://tu-dominio.com`, sin barra final), o  
+2. **`VERCEL_URL`** del despliegue en Vercel.
+
+Si ves solo la pantalla genérica de Stripe («Thanks for your payment»), falta desplegar esta versión o definir `PUBLIC_SITE_URL`.
+
+## 4. Dónde lo ve el cliente
 
 - **Página de gracias:** `confirmacion-reserva.html?session_id=…` (tras Stripe).
 - **Email:** webhook `checkout.session.completed` (mismo bloque si hay variables en Vercel).

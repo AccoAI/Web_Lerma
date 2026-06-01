@@ -11,6 +11,7 @@
  */
 import Stripe from 'stripe';
 import { voucherToStripeMetadata } from '../lib/hotelbeds-voucher-html.js';
+import { resolvePublicBaseUrl } from '../lib/site-base-url.js';
 
 function jsonResponse(obj, status = 200) {
   return new Response(JSON.stringify(obj), {
@@ -87,19 +88,23 @@ export async function POST(request) {
       if (v != null && String(v).length > 0) hbMeta[k] = String(v);
     }
 
-    /** Solo si defines PUBLIC_SITE_URL (p. ej. https://web-lerma.vercel.app) en Vercel. */
-    const baseUrl = (process.env.PUBLIC_SITE_URL || '').replace(/\/$/, '');
+    const baseUrl = resolvePublicBaseUrl(request);
 
-    /** Tras el pago, redirige a confirmación con session_id para descargar el bono (metadata hb_*). */
-    const afterCompletion =
-      baseUrl ?
-        {
+    /** Tras el pago → confirmación con extras (coche, restaurantes, bono HB). */
+    const afterCompletion = baseUrl
+      ? {
           type: 'redirect',
           redirect: {
             url: `${baseUrl}/confirmacion-reserva.html?session_id={CHECKOUT_SESSION_ID}`,
           },
         }
       : undefined;
+
+    if (!afterCompletion) {
+      console.warn(
+        'crear-pago: sin URL de confirmación post-pago (define PUBLIC_SITE_URL en Vercel)'
+      );
+    }
 
     const paymentLink = await stripe.paymentLinks.create({
       line_items: [

@@ -31,6 +31,7 @@ import {
   buildTravelLogisticsHtml,
   buildTravelLogisticsPlainText,
 } from '../lib/travel-affiliates-html.js';
+import { confirmacionReservaUrl } from '../lib/site-base-url.js';
 
 function loadLocalWebhookSecret() {
   if (process.env.STRIPE_WEBHOOK_SECRET_LOCAL) return process.env.STRIPE_WEBHOOK_SECRET_LOCAL;
@@ -195,6 +196,16 @@ export async function POST(request) {
   if (travelHtml) {
     htmlConfirmacion += travelHtml;
     textConfirmacion += travelText;
+  }
+
+  const confirmUrl = confirmacionReservaUrl(request, session.id);
+  if (confirmUrl) {
+    htmlConfirmacion +=
+      `<div style="margin-top:20px;padding:14px;background:#fafafa;border-radius:8px;border:1px solid #ddd;">` +
+      `<p style="margin:0 0 10px;"><strong>Tras el pago</strong> — alquiler de coche, vuelos y reserva de restaurantes:</p>` +
+      `<p style="margin:0;"><a href="${confirmUrl.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" style="color:#2c5530;font-weight:600;">Abrir tu página de confirmación</a></p>` +
+      `</div>`;
+    textConfirmacion += `\n\nPágina de confirmación (coche, restaurantes, bono):\n${confirmUrl}\n`;
   }
 
   // 1) Correo al cliente (destinatario dinámico: quien pagó)

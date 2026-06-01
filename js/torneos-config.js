@@ -39,6 +39,10 @@ document.addEventListener('DOMContentLoaded', function() {
             horaUnicaWrapTorneos.style.display = 'block';
             if (singleInput) singleInput.setAttribute('required', 'required');
         }
+        if (typeof window.initHoraSalidaPickers === 'function') {
+            window.initHoraSalidaPickers(horaPorDiaWrapTorneos);
+            window.initHoraSalidaPickers(horaUnicaWrapTorneos);
+        }
     }
 
     function getHotelLabelFromValueTorneos(val) {

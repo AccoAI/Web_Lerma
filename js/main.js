@@ -495,6 +495,10 @@ function initConfiguradorPaquete() {
                 else singleInput.removeAttribute('required');
             }
         }
+        if (typeof window.initHoraSalidaPickers === 'function') {
+            window.initHoraSalidaPickers(horaPorDiaWrapFS);
+            window.initHoraSalidaPickers(horaUnicaWrapFS);
+        }
     }
 
     function generarCamposPorDiaFinSemana(numDias) {
@@ -1400,7 +1404,9 @@ function initConfiguradorPaquete() {
 
 // Evitar que la barra Resumen o el chatbot tapen el selector nativo de hora/fecha (botón "Establecer" en Android)
 function initNativePickerFix() {
-    var inputs = document.querySelectorAll('input[type="time"], input[type="date"], input[type="datetime-local"]');
+    var inputs = document.querySelectorAll(
+        'input[type="date"], input[type="datetime-local"], input[type="time"]:not([data-hora-picker-init])'
+    );
     inputs.forEach(function (inp) {
         inp.addEventListener('focus', function () {
             document.body.classList.add('native-picker-open');

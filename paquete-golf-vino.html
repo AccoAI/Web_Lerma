@@ -331,6 +331,7 @@
     <script src="js/correspondencias-data.js"></script>
     <script src="js/correspondencias.js"></script>
     <script src="js/stripe-pago.js"></script>
+    <script src="js/hora-salida-picker.js"></script>
     <script src="js/main.js"></script>
     <script src="js/chatbot.js"></script>
     <script src="js/calendario-dias.js"></script>
@@ -373,6 +374,10 @@
                     horaPorDiaWrapVino.innerHTML = '';
                     horaUnicaWrapVino.style.display = 'block';
                     if (singleInput) singleInput.setAttribute('required', 'required');
+                }
+                if (typeof window.initHoraSalidaPickers === 'function') {
+                    window.initHoraSalidaPickers(horaPorDiaWrapVino);
+                    window.initHoraSalidaPickers(horaUnicaWrapVino);
                 }
             }
 

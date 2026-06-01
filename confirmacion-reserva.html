@@ -24,6 +24,7 @@
       <p id="confirmStatus" class="confirm-loading">Comprobando el pago…</p>
       <p id="confirmEmail" class="confirm-muted" hidden></p>
       <div id="confirmTravel" class="post-travel-box" hidden aria-live="polite"></div>
+      <div id="confirmRestaurants" class="post-travel-box post-restaurants-box" hidden aria-live="polite"></div>
       <div id="confirmActions" class="confirm-actions" hidden>
         <a id="btnVoucher" class="button" href="#" hidden>Descargar bono de confirmación</a>
         <a id="btnVoucherPrint" class="button secondary" href="#" target="_blank" rel="noopener" hidden>Abrir bono (imprimir / PDF)</a>
@@ -34,8 +35,10 @@
       <p class="confirm-muted"><a href="index.html">Volver al inicio</a></p>
     </div>
   </div>
+  <script src="js/restaurantes-paquete.js"></script>
   <script src="js/travel-affiliates.js"></script>
   <script src="js/post-booking-travel.js"></script>
+  <script src="js/post-booking-restaurants.js"></script>
   <script>
 (function () {
   var params = new URLSearchParams(window.location.search);
@@ -74,6 +77,9 @@
       }
       if (typeof window.renderPostBookingTravel === 'function') {
         window.renderPostBookingTravel('confirmTravel');
+      }
+      if (typeof window.renderPostBookingRestaurants === 'function') {
+        window.renderPostBookingRestaurants('confirmRestaurants');
       }
       if (data.voucher_available && data.voucher_download_url && data.voucher_url) {
         actionsEl.hidden = false;
