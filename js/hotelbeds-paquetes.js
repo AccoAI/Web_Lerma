@@ -1490,7 +1490,7 @@
     host.className = 'hb-hotel-funnel-inline';
     host.innerHTML =
       '<div class="hb-hotel-funnel-inline__head">' +
-      '  <div class="hb-hotel-funnel-inline__title">Configurar habitaciones (Hotelbeds)</div>' +
+      '  <div class="hb-hotel-funnel-inline__title">Alojamiento (Hotelbeds)</div>' +
       '  <div class="hb-hotel-funnel-inline__hotel" id="hb-funnel-inline-hotel">Elige un hotel para continuar.</div>' +
       '</div>' +
       '<div class="hb-hotel-funnel-inline__grid">' +
@@ -1502,7 +1502,7 @@
       '  <button type="button" class="hb-hotel-funnel-btn hb-hotel-funnel-btn--secondary" id="hb-funnel-inline-check" disabled>' +
       escapeHtml(hbFunnelConditionsButtonText()) +
       '</button>' +
-      '  <button type="button" class="hb-hotel-funnel-btn" id="hb-funnel-inline-confirm" disabled>Confirmar hotel</button>' +
+      '  <button type="button" class="hb-hotel-funnel-btn hb-hotel-funnel-btn--hidden" id="hb-funnel-inline-confirm" disabled hidden>Confirmar hotel</button>' +
       '</div>' +
       '<div class="hb-hotel-funnel-inline__result" id="hb-funnel-inline-result" aria-live="polite"></div>';
     // Insert just under the H4 title, if present; otherwise at top.
@@ -1626,7 +1626,7 @@
         html += '<div class="hb-funnel-legal"><strong>Política de cancelación</strong><p>No informada por la API en esta consulta.</p></div>';
       }
     }
-    html += '<div class="hb-funnel-small">Pulsa «Confirmar hotel» para fijar esta tarifa antes del pago.</div></div>';
+    html += '<div class="hb-funnel-small">La tarifa queda lista al elegir hotel; puedes cambiar habitación abajo si lo deseas.</div></div>';
     return html;
   }
 
@@ -1680,8 +1680,8 @@
     }
     var omitted = (window.__HB_RATE_OFFERS_OMITTED__ || {})[String(hotelCode)] || 0;
     var html =
-      '<p class="hb-funnel-small hb-funnel-rates-intro"><strong>Elige habitación y régimen.</strong> ' +
-      'El importe en verde es el <strong>precio total del paquete</strong> (alojamiento + green fees de tu grupo).</p>';
+      '<p class="hb-funnel-small hb-funnel-rates-intro">Hemos aplicado la tarifa más económica. ' +
+      'Puedes <strong>cambiar habitación o régimen</strong> abajo (precio en verde = paquete con green fees incluidos).</p>';
     if (omitted > 0 && !hbHideHotelEuroUi()) {
       html +=
         '<p class="hb-funnel-small">Se ocultan ' +
@@ -1733,6 +1733,12 @@
     box.innerHTML = html;
     var funnelForm = getForm();
     if (funnelForm) syncFunnelValidationFromPickedRate(host, funnelForm);
+    if (host.__hbAutoConfirmPending && typeof host.__hbRunAutoConfirm === 'function') {
+      host.__hbAutoConfirmPending = false;
+      setTimeout(function () {
+        host.__hbRunAutoConfirm();
+      }, 0);
+    }
   }
 
   function getPickedOfferFromFunnel(host, hotelCode) {
@@ -1745,6 +1751,69 @@
       }
     }
     return offers.length ? offers[0] : null;
+  }
+
+  /** Tarifa BOOKABLE más barata con cupo suficiente (lista ya ordenada por precio). */
+  function pickDefaultBookableOffer(offers, occ) {
+    if (!offers || !offers.length) return null;
+    for (var i = 0; i < offers.length; i++) {
+      var o = offers[i];
+      if (String(o.rateType || '').toUpperCase() !== 'BOOKABLE') continue;
+      if (!rateHasSufficientAllotment(o, occ)) continue;
+      return o;
+    }
+    return null;
+  }
+
+  /**
+   * Fija hotel + tarifa para resumen y pago (hb_funnel_ready, hotel-noche-*).
+   * @returns {boolean}
+   */
+  function applyHotelConfirm(host, form, resultEl, opts) {
+    opts = opts || {};
+    var hotelCode = (form.querySelector('input[name="hb_selected_hotel_code"]') || {}).value || '';
+    if (!hotelCode) return false;
+    if ((form.querySelector('input[name="hb_rate_validated"]') || {}).value !== '1') return false;
+    var rkConfirm = getSelectedRateKeyFromFunnel(host, form);
+    if (!rkConfirm) return false;
+    var offerConfirm = getPickedOfferFromFunnel(host, hotelCode);
+    var occConfirm = resolveBookingOccupancy(offerConfirm, rkConfirm, new FormData(form));
+    if (offerConfirm && !rateHasSufficientAllotment(offerConfirm, occConfirm)) {
+      if (resultEl) {
+        resultEl.innerHTML =
+          '<p class="hb-funnel-warn">Cupo insuficiente (Cupo HB ' +
+          escapeHtml(String(offerConfirm.allotment)) +
+          ' para ' +
+          occConfirm.rooms +
+          ' habitación(es)). Elige otra tarifa o reduce habitaciones.</p>';
+      }
+      return false;
+    }
+    form.querySelector('input[name="hb_occ_adults"]').value = String(occConfirm.adults);
+    form.querySelector('input[name="hb_occ_rooms"]').value = String(occConfirm.rooms);
+    if (offerConfirm) syncHbResumenPriceHidden(form, offerConfirm);
+    form.querySelector('input[name="hb_funnel_ready"]').value = '1';
+    var nochesInput = form.querySelector('input[name="noches"]');
+    var noches = nochesInput ? nochesInput.value : '1';
+    var n = Math.max(1, parseInt(noches || '1', 10) || 1);
+    for (var hi = 1; hi <= n; hi++) {
+      var inp = form.querySelector('input[name="hotel-noche-' + hi + '"]');
+      if (inp) inp.value = 'hb-' + String(hotelCode);
+    }
+    document.querySelectorAll('.hotelbeds-card--selectable').forEach(function (el) {
+      var c = el.getAttribute('data-hb-hotel-code');
+      if (c === String(hotelCode)) el.classList.add('hotelbeds-card--picked');
+      else el.classList.remove('hotelbeds-card--picked');
+    });
+    triggerResumenUpdate();
+    if (opts.scrollToPay !== false) {
+      var reservar = document.querySelector('button.btn-reservar-paquete');
+      if (reservar && reservar.scrollIntoView) {
+        reservar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        reservar.focus({ preventScroll: true });
+      }
+    }
+    return true;
   }
 
   function deriveRateKeyFromAvailabilityForHotel(av, hotelCode) {
@@ -1850,7 +1919,15 @@
       hydrateRateOffersFromLastAvailability(hotelCode);
       var ratesBox = host.querySelector('#hb-funnel-inline-rates');
       var hasList = ratesBox && ratesBox.querySelector('input[name="hb-funnel-rate-pick"]');
-      if (hasList && host.__hbRatesHotel === hotelCode) return;
+      if (hasList && host.__hbRatesHotel === hotelCode) {
+        if (host.__hbAutoConfirmPending && typeof host.__hbRunAutoConfirm === 'function') {
+          host.__hbAutoConfirmPending = false;
+          setTimeout(function () {
+            host.__hbRunAutoConfirm();
+          }, 0);
+        }
+        return;
+      }
       var priorKey = getSelectedRateKeyFromFunnel(host, form);
       host.__hbRatesHotel = hotelCode;
       renderFunnelRateChoices(host, hotelCode, priorKey);
@@ -1888,6 +1965,49 @@
       }
     }
 
+    host.__hbRunAutoConfirm = function () {
+      var hotelCode = getSelectedHotelCode();
+      if (!hotelCode) return;
+      var offers = (window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || [];
+      if (!offers.length) return;
+      var occ = getFunnelOccupancyForAvailability(form, adultsInp, roomsInp, adultsDefault, roomsDefault);
+      adultsInp.value = String(occ.adults);
+      roomsInp.value = String(occ.rooms);
+      var def = pickDefaultBookableOffer(offers, occ);
+      if (!def) {
+        result.innerHTML =
+          '<p class="hb-funnel-warn">No hay tarifa instantánea para esta ocupación. Pulsa «' +
+          escapeHtml(hbFunnelConditionsButtonText()) +
+          '» o elige otra habitación.</p>';
+        return;
+      }
+      var radios = host.querySelectorAll('input[name="hb-funnel-rate-pick"]');
+      var matched = false;
+      for (var ri = 0; ri < radios.length; ri++) {
+        if (radios[ri].value === def.rateKey) {
+          radios[ri].checked = true;
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) {
+        host.__hbAutoConfirmPending = true;
+        renderFunnelRateChoices(host, hotelCode, def.rateKey);
+        return;
+      }
+      markRateValidated(form, def.rateKey, def.rateType, def);
+      if (!applyHotelConfirm(host, form, result, { scrollToPay: false })) return;
+      var pkg = calcTotalPaquete(def);
+      result.innerHTML =
+        '<p class="hb-funnel-ok"><strong>' +
+        escapeHtml(hotelNameForCode(hotelCode)) +
+        '</strong> · ' +
+        escapeHtml(funnelRatePickLabel(def)) +
+        (pkg != null ? ' · <strong>' + escapeHtml(fmtEuros(pkg) + ' €') + '</strong> (paquete)' : '') +
+        '. Puedes cambiar habitación abajo o pulsar <strong>Reservar paquete</strong>.</p>';
+      refreshUiState();
+    };
+
     if (!host.__hbBound) {
       host.__hbBound = true;
       host.addEventListener('click', function (ev) {
@@ -1912,22 +2032,20 @@
         syncFunnelValidationFromPickedRate(host, form);
         var hotelCode = getSelectedHotelCode();
         var offer = getPickedOfferFromFunnel(host, hotelCode);
-        var result = host.querySelector('#hb-funnel-inline-result');
-        if (
-          result &&
-          offer &&
-          String(offer.rateType || '').toUpperCase() === 'BOOKABLE' &&
-          isRateValidated()
-        ) {
-          result.innerHTML =
-            '<p class="hb-funnel-small">Tarifa seleccionada. Puedes pulsar <strong>Confirmar hotel</strong> o «' +
-            escapeHtml(hbFunnelConditionsButtonText()) +
-            '» para ver cancelación y observaciones.</p>';
-        } else if (result && offer && String(offer.rateType || '').toUpperCase() === 'RECHECK') {
+        if (offer && String(offer.rateType || '').toUpperCase() === 'BOOKABLE' && isRateValidated()) {
+          if (applyHotelConfirm(host, form, result, { scrollToPay: false })) {
+            var pkgCh = calcTotalPaquete(offer);
+            result.innerHTML =
+              '<p class="hb-funnel-ok">Tarifa actualizada' +
+              (pkgCh != null ? ' · <strong>' + escapeHtml(fmtEuros(pkgCh) + ' €') + '</strong> (paquete)' : '') +
+              '.</p>';
+          }
+        } else if (offer && String(offer.rateType || '').toUpperCase() === 'RECHECK') {
+          form.querySelector('input[name="hb_funnel_ready"]').value = '';
           result.innerHTML =
             '<p class="hb-funnel-warn">Tarifa RECHECK: pulsa «' +
             escapeHtml(hbFunnelConditionsButtonText()) +
-            '» antes de confirmar.</p>';
+            '» para poder reservar.</p>';
         }
         refreshUiState();
       });
@@ -1935,6 +2053,7 @@
       function resetFunnelValidation() {
         form.querySelector('input[name="hb_rate_validated"]').value = '';
         form.querySelector('input[name="hb_funnel_ready"]').value = '';
+        host.__hbAutoConfirmPending = true;
         refreshUiState();
       }
       adultsInp.addEventListener('input', function () {
@@ -2001,6 +2120,9 @@
             form.querySelector('input[name="hb_occ_rooms"]').value = String(occ.rooms);
             refreshUiState();
             result.innerHTML = renderFunnelConditionsHtml(offer);
+            if (String(offer.rateType || '').toUpperCase() === 'BOOKABLE') {
+              applyHotelConfirm(host, form, result, { scrollToPay: false });
+            }
           })
           .catch(function (e) {
             refreshUiState();
@@ -2012,46 +2134,11 @@
       });
 
       btnConfirm.addEventListener('click', function () {
-        var hotelCode = getSelectedHotelCode();
-        if (!hotelCode) return;
         if (!isRateValidated()) {
-          result.innerHTML = '<p class="hb-funnel-warn">Antes revisa las condiciones (Hotelbeds).</p>';
+          result.innerHTML = '<p class="hb-funnel-warn">Elige una tarifa o pulsa «' + escapeHtml(hbFunnelConditionsButtonText()) + '».</p>';
           return;
         }
-        var rkConfirm = (form.querySelector('input[name="hb_selected_rate_key"]') || {}).value || '';
-        var offerConfirm = getPickedOfferFromFunnel(host, hotelCode);
-        var occConfirm = resolveBookingOccupancy(offerConfirm, rkConfirm, new FormData(form));
-        if (offerConfirm && !rateHasSufficientAllotment(offerConfirm, occConfirm)) {
-          result.innerHTML =
-            '<p class="hb-funnel-warn">Cupo insuficiente (Cupo HB ' +
-            escapeHtml(String(offerConfirm.allotment)) +
-            ' para ' +
-            occConfirm.rooms +
-            ' habitación(es)). Elige otra tarifa o reduce habitaciones.</p>';
-          return;
-        }
-        form.querySelector('input[name="hb_occ_adults"]').value = String(occConfirm.adults);
-        form.querySelector('input[name="hb_occ_rooms"]').value = String(occConfirm.rooms);
-        if (offerConfirm) syncHbResumenPriceHidden(form, offerConfirm);
-        form.querySelector('input[name="hb_funnel_ready"]').value = '1';
-        var nochesInput = form.querySelector('input[name="noches"]');
-        var noches = nochesInput ? nochesInput.value : '1';
-        var n = Math.max(1, parseInt(noches || '1', 10) || 1);
-        for (var i = 1; i <= n; i++) {
-          var inp = form.querySelector('input[name="hotel-noche-' + i + '"]');
-          if (inp) inp.value = 'hb-' + String(hotelCode);
-        }
-        document.querySelectorAll('.hotelbeds-card--selectable').forEach(function (el) {
-          var c = el.getAttribute('data-hb-hotel-code');
-          if (c === String(hotelCode)) el.classList.add('hotelbeds-card--picked');
-          else el.classList.remove('hotelbeds-card--picked');
-        });
-        triggerResumenUpdate();
-        var reservar = document.querySelector('button.btn-reservar-paquete');
-        if (reservar && reservar.scrollIntoView) {
-          reservar.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          reservar.focus({ preventScroll: true });
-        }
+        applyHotelConfirm(host, form, result, { scrollToPay: true });
       });
     }
 
@@ -2092,6 +2179,7 @@
           setSelectedHotelInHiddenInputs(form, String(code), '', String(sug.adults), String(sug.rooms), '');
           host.__hbRatesHotel = '';
           host.__hbAutoRatesPending = false;
+          host.__hbAutoConfirmPending = true;
           if (typeof host.__hbRefreshUiState === 'function') host.__hbRefreshUiState();
         }
         if (host && host.scrollIntoView) host.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2894,7 +2982,7 @@
       if (rateValidated) {
         return Promise.reject(
           new Error(
-            'Pulsa «Confirmar hotel» en la sección Hotelbeds (debajo de la tarifa elegida) y después «Reservar paquete».'
+            'Elige un hotel en la lista Hotelbeds (o cambia la habitación en el bloque de alojamiento) y después «Reservar paquete».'
           )
         );
       }

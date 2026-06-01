@@ -2411,6 +2411,13 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 .hb-funnel-rate-pick input {
     margin-top: 0.2rem;
 }
+.hb-hotel-funnel-btn--hidden,
+#hb-funnel-inline-confirm[hidden] {
+    display: none !important;
+}
+.hb-hotel-funnel-inline__actions .hb-hotel-funnel-btn--secondary {
+    font-size: 0.85rem;
+}
 .hb-funnel-legal {
     margin-top: 0.65rem;
     font-size: 0.84rem;
