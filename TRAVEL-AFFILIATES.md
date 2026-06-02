@@ -41,7 +41,7 @@ Si ves solo la pantalla genérica de Stripe («Thanks for your payment»), falta
 ## 4. Dónde lo ve el cliente
 
 - **Página de gracias:** `confirmacion-reserva.html?session_id=…` (tras Stripe). Rentcars va en **iframe** (home `rentcars.com/es/?requestorid=10695`) con panel lateral de fechas del paquete. **No** uses `/search-results` ni rutas `/locations/...` antiguas (404). Si el iframe no carga, «Abrir en Rentcars ↗» lleva el mismo enlace afiliado.
-- **Motor oficial (opcional):** en el panel [Rentcars Affiliates](https://affiliates.rentcars.com/) → Widgets, copia el HTML y pégalo en `rentcarsWidgetHtml` de `js/travel-affiliates.js` (sustituye el iframe).
+- **Motor oficial:** configurado en `rentcarsWidgetHtml` (`js/travel-affiliates.js`) — widget v13 de [Rentcars Affiliates](https://affiliates.rentcars.com/) → Widgets (`requestor=10695`, `utm_medium=afiliado-widget`). Si lo vacías, se usa iframe de respaldo con la home afiliada.
 - **Email:** webhook `checkout.session.completed` (mismo bloque si hay variables en Vercel).
 - **Paquetes:** nota bajo alojamiento: «Una vez confirmado el paquete… vuelo y coche».
 

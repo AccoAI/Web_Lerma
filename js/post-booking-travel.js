@@ -1,5 +1,5 @@
 /**
- * Bloque "Organiza tu viaje" — Rentcars embebido (iframe home afiliada) + panel de fechas.
+ * Bloque "Organiza tu viaje" — Rentcars (widget afiliado o iframe respaldo) + panel de fechas.
  */
 (function () {
   'use strict';
@@ -59,7 +59,7 @@
       '<ul class="restaurante-paquete-inhouse-datos" role="list">' +
       rows +
       '</ul>' +
-      '<p class="post-booking-rentcars-affiliate-note">Enlace de afiliado activo (<strong>requestorid 10695</strong>). La comisión se registra al usar este visor o «Abrir en Rentcars».</p>' +
+      '<p class="post-booking-rentcars-affiliate-note">Afiliado <strong>10695</strong>. Al buscar, Rentcars abre con tu consulta y el tracking de comisión.</p>' +
       '</div>'
     );
   }
@@ -83,13 +83,19 @@
     html += '</div>';
 
     html +=
-      '<p class="post-booking-embed-intro">Busca y reserva sin salir de esta página (visor embebido). Recomendamos SUV o furgoneta si viajas con palos.</p>';
+      '<p class="post-booking-embed-intro">' +
+      (widgetHtml
+        ? 'Busca el coche aquí (motor oficial Rentcars). Al pulsar «Buscar» se abre Rentcars con tus fechas y el enlace de afiliado.'
+        : 'Compara coches para tu viaje. Recomendamos SUV o furgoneta si viajas con palos.') +
+      '</p>';
 
     if (widgetHtml) {
       html +=
-        '<div class="post-booking-rentcars-widget-host" id="post-booking-rentcars-widget">' +
+        '<div class="restaurante-paquete-embed-row post-booking-rentcars-embed-row">' +
+        renderTripContext(trip) +
+        '<div class="post-booking-rentcars-widget-host restaurante-paquete-iframe-wrap" id="post-booking-rentcars-widget">' +
         widgetHtml +
-        '</div>';
+        '</div></div>';
     } else if (embedUrl) {
       html +=
         '<div class="restaurante-paquete-embed-row post-booking-rentcars-embed-row">' +

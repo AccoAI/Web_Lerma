@@ -3094,8 +3094,23 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
 }
 
 .post-booking-rentcars-widget-host {
-    margin-top: 0.5rem;
-    min-height: 200px;
+    margin-top: 0;
+    min-height: 420px;
+    width: 100%;
+    max-width: none;
+}
+
+.post-booking-rentcars-widget-object {
+    display: block;
+    width: 100%;
+    min-height: 420px;
+    border: 0;
+    background: #fff;
+}
+
+.post-booking-rentcars-embed-row .post-booking-rentcars-widget-host {
+    flex: 1 1 0;
+    min-width: min(280px, 58%);
 }
 
 .post-booking-rentcars-resumen {
