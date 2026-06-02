@@ -1,5 +1,5 @@
 /**
- * Bloque "Organiza tu viaje" — Rentcars abre en pestaña nueva (no iframe: su API devuelve 403 embebida).
+ * Bloque "Organiza tu viaje" — Rentcars embebido (iframe home afiliada) + panel de fechas.
  */
 (function () {
   'use strict';
@@ -27,100 +27,100 @@
     }
   }
 
-  function buildSearchUrl(trip, locationName) {
-    if (trip && trip.pickup && trip.dropoff && typeof window.buildRentcarsSearchUrl === 'function') {
-      return (
-        window.buildRentcarsSearchUrl({
-          pickup: trip.pickup,
-          dropoff: trip.dropoff,
-          locationName: locationName || trip.pickup_location || 'Madrid, España',
-        }) ||
-        trip.rentcars_embed_url ||
-        null
-      );
+  function affiliateUrl() {
+    if (typeof window.buildRentcarsAffiliateUrl === 'function') {
+      return window.buildRentcarsAffiliateUrl({ utmMedium: 'afiliado-embed' });
     }
-    return (trip && trip.rentcars_embed_url) || null;
+    var cfg = window.TRAVEL_AFFILIATES || {};
+    return (cfg.rentalcars || '').trim() || null;
   }
 
-  function mountRentcarsLauncher(trip, affiliateHome) {
-    var hasDates = trip && trip.pickup && trip.dropoff;
-    var defaultLoc = (trip && trip.pickup_location) || 'Madrid, España';
-    var searchUrl = buildSearchUrl(trip, defaultLoc) || affiliateHome;
+  function renderTripContext(trip) {
+    var rows =
+      '<li><span class="restaurante-paquete-inhouse-k">Zona sugerida</span> ' +
+      '<span class="restaurante-paquete-inhouse-v">Madrid (vuelo) o Burgos (golf)</span></li>';
 
-    var html =
-      '<div class="post-booking-rentcars-launcher" id="post-booking-rentcars">' +
-      '<h3 class="post-booking-embed-title">Alquiler de coche — Rentcars</h3>' +
-      '<p class="post-booking-rentcars-note">' +
-      'Rentcars no permite completar la búsqueda dentro de nuestra web (limitación de su sistema). ' +
-      'Pulsa el botón: se abre <strong>Rentcars en una pestaña nueva</strong> con las fechas de tu paquete ya cargadas.</p>';
-
-    if (hasDates) {
-      html +=
-        '<div class="post-booking-rentcars-resumen">' +
-        '<div class="post-booking-rentcars-fecha"><span class="post-booking-rentcars-fecha-k">Recogida</span>' +
-        '<span class="post-booking-rentcars-fecha-v">' +
+    if (trip && trip.pickup && trip.dropoff) {
+      rows =
+        '<li><span class="restaurante-paquete-inhouse-k">Recogida</span> ' +
+        '<span class="restaurante-paquete-inhouse-v">' +
         escapeHtml(formatFechaEs(trip.pickup)) +
-        '</span><span class="post-booking-rentcars-fecha-h">10:00</span></div>' +
-        '<div class="post-booking-rentcars-fecha"><span class="post-booking-rentcars-fecha-k">Devolución</span>' +
-        '<span class="post-booking-rentcars-fecha-v">' +
+        ' · 10:00</span></li>' +
+        '<li><span class="restaurante-paquete-inhouse-k">Devolución</span> ' +
+        '<span class="restaurante-paquete-inhouse-v">' +
         escapeHtml(formatFechaEs(trip.dropoff)) +
-        '</span><span class="post-booking-rentcars-fecha-h">10:00</span></div>' +
-        '</div>' +
-        '<p class="post-booking-rentcars-loc-label">Zona de recogida sugerida</p>' +
-        '<div class="post-booking-rentcars-locs" role="group" aria-label="Zona de recogida">' +
-        '<button type="button" class="post-booking-rentcars-loc is-active" data-loc="Madrid, España">Madrid</button>' +
-        '<button type="button" class="post-booking-rentcars-loc" data-loc="Burgos, España">Burgos</button>' +
-        '</div>';
-    } else {
-      html +=
-        '<p class="post-booking-embed-intro">Compara coches para moverte entre Madrid, Lerma y Saldaña. Recomendamos SUV o furgoneta (clase V) si viajas con palos.</p>';
+        ' · 10:00</span></li>' +
+        rows;
     }
 
-    html +=
-      '<a id="post-booking-rentcars-cta" class="btn-reservar-paquete post-booking-rentcars-cta" href="' +
-      escapeHtml(searchUrl) +
-      '" target="_blank" rel="noopener noreferrer sponsored">🚙 Buscar coches en Rentcars</a>';
+    return (
+      '<div class="restaurante-paquete-inhouse restaurante-paquete-embed-ctx post-booking-rentcars-ctx">' +
+      '<p class="restaurante-paquete-inhouse-intro">Datos de tu paquete — introdúcelos en el buscador de Rentcars:</p>' +
+      '<ul class="restaurante-paquete-inhouse-datos" role="list">' +
+      rows +
+      '</ul>' +
+      '<p class="post-booking-rentcars-affiliate-note">Enlace de afiliado activo (<strong>requestorid 10695</strong>). La comisión se registra al usar este visor o «Abrir en Rentcars».</p>' +
+      '</div>'
+    );
+  }
 
-    if (affiliateHome && affiliateHome !== searchUrl) {
+  function mountRentcarsEmbed(trip, iframeHeight) {
+    var widgetHtml = ((window.TRAVEL_AFFILIATES || {}).rentcarsWidgetHtml || '').trim();
+    var embedUrl = affiliateUrl();
+
+    var html =
+      '<div class="post-booking-embed post-booking-rentcars-block" id="post-booking-rentcars">' +
+      '<div class="post-booking-embed-head">' +
+      '<h3 class="post-booking-embed-title">Alquiler de coche — Rentcars</h3>';
+
+    if (embedUrl) {
       html +=
-        '<p class="post-booking-rentcars-alt"><a href="' +
-        escapeHtml(affiliateHome) +
-        '" target="_blank" rel="noopener noreferrer sponsored">Abrir Rentcars sin fechas</a></p>';
+        '<a class="post-booking-embed-external" href="' +
+        escapeHtml(embedUrl) +
+        '" target="_blank" rel="noopener noreferrer sponsored">Abrir en Rentcars ↗</a>';
+    }
+
+    html += '</div>';
+
+    html +=
+      '<p class="post-booking-embed-intro">Busca y reserva sin salir de esta página (visor embebido). Recomendamos SUV o furgoneta si viajas con palos.</p>';
+
+    if (widgetHtml) {
+      html +=
+        '<div class="post-booking-rentcars-widget-host" id="post-booking-rentcars-widget">' +
+        widgetHtml +
+        '</div>';
+    } else if (embedUrl) {
+      html +=
+        '<div class="restaurante-paquete-embed-row post-booking-rentcars-embed-row">' +
+        renderTripContext(trip) +
+        '<div class="restaurante-paquete-iframe-wrap post-booking-iframe-wrap">' +
+        '<iframe id="post-booking-rentcars-iframe" class="restaurante-paquete-iframe post-booking-rentcars-iframe" ' +
+        'title="Buscar coche en Rentcars" src="' +
+        escapeHtml(embedUrl) +
+        '" loading="lazy" referrerpolicy="no-referrer-when-downgrade" height="' +
+        String(iframeHeight) +
+        '"></iframe>' +
+        '</div></div>' +
+        '<p class="post-booking-embed-hint">Si el recuadro sale en blanco, Rentcars puede bloquear iframes: usa «Abrir en Rentcars». Para el motor oficial del panel de afiliados, pega su HTML en <code>rentcarsWidgetHtml</code> (<code>js/travel-affiliates.js</code>).</p>';
+    } else {
+      html +=
+        '<p class="post-booking-embed-intro">Configura tu enlace de afiliado en <code>js/travel-affiliates.js</code>.</p>';
     }
 
     html += '</div>';
     return html;
   }
 
-  function wireRentcarsLauncher(rootEl, trip) {
-    if (!rootEl || !trip || !trip.pickup) return;
-    var cta = rootEl.querySelector('#post-booking-rentcars-cta');
-    var locBtns = rootEl.querySelectorAll('.post-booking-rentcars-loc');
-    if (!cta || !locBtns.length) return;
-
-    locBtns.forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        locBtns.forEach(function (b) {
-          b.classList.remove('is-active');
-          b.setAttribute('aria-pressed', 'false');
-        });
-        btn.classList.add('is-active');
-        btn.setAttribute('aria-pressed', 'true');
-        var loc = btn.getAttribute('data-loc');
-        var url = buildSearchUrl(trip, loc);
-        if (url) cta.href = url;
-      });
-    });
-  }
-
   function renderTravelBlock(containerId, trip) {
     var cfg = window.TRAVEL_AFFILIATES || {};
     var affiliateHome = (cfg.rentalcars || '').trim();
     var sky = (cfg.skyscanner || '').trim();
+    var iframeHeight = parseInt(cfg.rentalcarsIframeHeight, 10) || 780;
     var el = document.getElementById(containerId);
     if (!el) return;
 
-    var hasRental = affiliateHome || (trip && trip.rentcars_embed_url);
+    var hasRental = affiliateHome || affiliateUrl();
     if (!hasRental && !sky) {
       el.hidden = true;
       return;
@@ -131,7 +131,7 @@
       '<p class="post-travel-intro">Reserva coche (y vuelo si lo necesitas) para tu estancia en Burgos y alrededores.</p>';
 
     if (hasRental) {
-      html += mountRentcarsLauncher(trip, affiliateHome);
+      html += mountRentcarsEmbed(trip, iframeHeight);
     }
 
     if (sky) {
@@ -148,8 +148,6 @@
     el.innerHTML = html;
     el.className = 'confirmacion-seccion-card post-travel-box comida-restaurante-picker-panel post-booking-travel-panel';
     el.hidden = false;
-
-    wireRentcarsLauncher(el.querySelector('#post-booking-rentcars'), trip);
   }
 
   window.renderPostBookingTravel = renderTravelBlock;

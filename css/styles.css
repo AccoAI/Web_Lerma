@@ -3069,20 +3069,33 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     line-height: 1.4;
 }
 
-/* Rentcars post-booking: lanzador (sin iframe) */
-.post-booking-rentcars-launcher {
-    margin-top: 1rem;
-    padding: 1.15rem 1.2rem;
-    background: #fff;
-    border: 1px solid rgba(26, 77, 58, 0.15);
-    border-radius: 8px;
+/* Rentcars post-booking: embed (iframe ciudad + panel fechas) */
+.post-booking-rentcars-block {
+    margin-top: 0.75rem;
 }
 
-.post-booking-rentcars-note {
-    margin: 0 0 1rem;
-    font-size: 0.92rem;
-    line-height: 1.5;
-    color: #444;
+.post-booking-rentcars-embed-row .post-booking-rentcars-ctx {
+    margin-bottom: 0;
+}
+
+.post-booking-rentcars-affiliate-note {
+    margin: 0.75rem 0 0;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: #666;
+}
+
+.post-booking-rentcars-iframe {
+    width: 100%;
+    min-height: 420px;
+    border: 0;
+    display: block;
+    background: #f8f8f8;
+}
+
+.post-booking-rentcars-widget-host {
+    margin-top: 0.5rem;
+    min-height: 200px;
 }
 
 .post-booking-rentcars-resumen {
@@ -4653,8 +4666,6 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
 }
 
 .restaurante-paquete-embed-row {
-    container-type: inline-size;
-    container-name: restaurante-embed;
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -4663,24 +4674,33 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     margin-top: 0.35rem;
 }
 
-@container restaurante-embed (min-width: 34rem) {
-    .restaurante-paquete-embed-row {
-        flex-direction: row;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-
-    .restaurante-paquete-embed-row .restaurante-paquete-embed-ctx {
-        width: min(19rem, 42%);
-        max-width: 19rem;
-    }
-}
-
 .restaurante-paquete-embed-row .restaurante-paquete-embed-ctx {
     flex: 0 0 auto;
     width: 100%;
     max-width: 100%;
     margin-bottom: 0;
+}
+
+/* Datos del paquete + iframe (CoverManager / TheFork) en fila en pantallas medianas+ */
+@media (min-width: 640px) {
+    .restaurante-paquete-embed-row:not([hidden]) {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: clamp(0.75rem, 1.5vw, 1.25rem);
+    }
+
+    .restaurante-paquete-embed-row .restaurante-paquete-inhouse.restaurante-paquete-embed-ctx,
+    .restaurante-paquete-embed-row .restaurante-paquete-embed-ctx {
+        flex: 0 0 min(17.5rem, 36%);
+        width: min(17.5rem, 36%);
+        max-width: 17.5rem;
+        margin-bottom: 0;
+    }
+
+    .restaurante-paquete-embed-row .restaurante-paquete-iframe-wrap {
+        flex: 1 1 0;
+        min-width: min(280px, 58%);
+    }
 }
 
 .restaurante-paquete-embed-row .restaurante-paquete-embed-ctx[hidden] {
@@ -4726,6 +4746,11 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     background: #fff;
     border: 1px solid rgba(26, 77, 58, 0.22);
     max-width: 26rem;
+}
+
+/* En fila con iframe: no limitar a 26rem (solo bloque teléfono a ancho completo) */
+.restaurante-paquete-embed-row .restaurante-paquete-inhouse {
+    max-width: none;
 }
 
 .restaurante-paquete-inhouse-intro {
@@ -10221,26 +10246,114 @@ body.page-torneo .torneo-detalle-section {
 
 .stripe-pago-modal-actions {
     display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 0.65rem;
 }
 
 .stripe-pago-modal-actions .btn-reservar-paquete {
-    flex: 1;
-    min-width: 120px;
+    width: 100%;
+    min-width: 0;
+}
+
+/* Modal Stripe: botones siempre visibles (no blanco sobre blanco) */
+.stripe-pago-modal .btn-reservar-paquete,
+.stripe-pago-modal a.btn-reservar-paquete {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    text-decoration: none;
+    background: var(--color-primary, #1a4d3a);
+    color: #fff;
+    border: 2px solid var(--color-primary, #1a4d3a);
+    box-shadow: 0 2px 8px rgba(26, 77, 58, 0.2);
+}
+
+.stripe-pago-modal .btn-reservar-paquete:hover,
+.stripe-pago-modal a.btn-reservar-paquete:hover {
+    background: var(--color-primary-dark, #0f3324);
+    color: #fff;
+    border-color: var(--color-primary-dark, #0f3324);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(26, 77, 58, 0.28);
+}
+
+.stripe-pago-modal .stripe-pago-cta-pagar {
+    margin-top: 0.75rem;
+}
+
+.stripe-pago-modal-lead {
+    font-size: 1.05rem;
+}
+
+.stripe-pago-modal-hint {
+    margin: 0.75rem 0 0;
+    font-size: 0.82rem;
+    color: #666;
+    line-height: 1.45;
+}
+
+.stripe-pago-modal-alt {
+    margin: 1rem 0 0;
+    text-align: center;
+}
+
+.stripe-pago-link-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: 0.88rem;
+    color: var(--color-primary, #1a4d3a);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.stripe-pago-link-btn:hover {
+    color: var(--color-primary-dark, #0f3324);
+}
+
+.stripe-pago-btn-whatsapp {
+    background: #25d366 !important;
+    border-color: #25d366 !important;
+    color: #fff !important;
+}
+
+.stripe-pago-btn-whatsapp:hover {
+    background: #1da851 !important;
+    border-color: #1da851 !important;
+    color: #fff !important;
+}
+
+.stripe-pago-btn-secondary {
+    background: #fff !important;
+    color: var(--color-primary, #1a4d3a) !important;
+    border: 2px solid var(--color-primary, #1a4d3a) !important;
+}
+
+.stripe-pago-btn-secondary:hover {
+    background: rgba(26, 77, 58, 0.08) !important;
+    color: var(--color-primary-dark, #0f3324) !important;
 }
 
 .stripe-pago-cerrar {
-    margin-top: 1.5rem;
-    background: none;
-    border: 1px solid #999;
-    padding: 0.5rem 1rem;
+    margin-top: 1.25rem;
+    width: 100%;
+    box-sizing: border-box;
+    background: #fff;
+    border: 2px solid var(--color-primary, #1a4d3a);
+    color: var(--color-primary, #1a4d3a);
+    padding: 0.65rem 1.25rem;
+    font-size: 0.95rem;
+    font-weight: 600;
     cursor: pointer;
     font-family: inherit;
+    transition: background 0.15s ease, color 0.15s ease;
 }
 
 .stripe-pago-cerrar:hover {
-    background: #f0f0f0;
+    background: rgba(26, 77, 58, 0.08);
+    color: var(--color-primary-dark, #0f3324);
 }
 
 /* ========== ANCILLARIES CON COUNTER ========== */

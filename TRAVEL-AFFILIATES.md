@@ -40,8 +40,15 @@ Si ves solo la pantalla genérica de Stripe («Thanks for your payment»), falta
 
 ## 4. Dónde lo ve el cliente
 
-- **Página de gracias:** `confirmacion-reserva.html?session_id=…` (tras Stripe). Rentcars **no** va en iframe (su API devuelve 403 embebida): botón que abre Rentcars en pestaña nueva con fechas del paquete.
+- **Página de gracias:** `confirmacion-reserva.html?session_id=…` (tras Stripe). Rentcars va en **iframe** (home `rentcars.com/es/?requestorid=10695`) con panel lateral de fechas del paquete. **No** uses `/search-results` ni rutas `/locations/...` antiguas (404). Si el iframe no carga, «Abrir en Rentcars ↗» lleva el mismo enlace afiliado.
+- **Motor oficial (opcional):** en el panel [Rentcars Affiliates](https://affiliates.rentcars.com/) → Widgets, copia el HTML y pégalo en `rentcarsWidgetHtml` de `js/travel-affiliates.js` (sustituye el iframe).
 - **Email:** webhook `checkout.session.completed` (mismo bloque si hay variables en Vercel).
 - **Paquetes:** nota bajo alojamiento: «Una vez confirmado el paquete… vuelo y coche».
 
-Los enlaces abren en **pestaña nueva** (`target="_blank"`, `rel="noopener noreferrer sponsored"`).
+Skyscanner abre en pestaña nueva. Rentcars: búsqueda en iframe en la misma página; enlace externo con `rel="sponsored"` para afiliado.
+
+## 5. Afiliado Rentcars (comisión)
+
+- Tu ID es **`requestorid=10695`**. Debe estar en **toda** URL que salga de tu web (iframe, botón, email).
+- Rentcars atribuye la venta desde la **primera visita** con ese ID; no hace falta repetirlo en cada clic interno en rentcars.com.
+- Si ves página 404, suele ser una URL antigua (`/es/search-results?...` o `/locations/...`). Usa solo el enlace del panel de afiliados o el de `travel-affiliates.js`.

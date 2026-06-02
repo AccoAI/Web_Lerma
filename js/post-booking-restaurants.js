@@ -23,7 +23,7 @@
 
     var picker = window.mountRestaurantePaquetePicker(root, { soloExternos: true });
     if (picker && typeof picker.setCategoria === 'function') {
-      picker.setCategoria('lerma');
+      picker.setCategoria('burgos');
     }
   }
 

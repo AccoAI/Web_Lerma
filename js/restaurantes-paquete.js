@@ -121,9 +121,9 @@
     ];
 
     var AREAS = [
-        { id: 'lerma', label: 'Lerma' },
+        { id: 'burgos', label: 'Burgos' },
         { id: 'saldana', label: 'Saldaña' },
-        { id: 'burgos', label: 'Burgos' }
+        { id: 'lerma', label: 'Lerma' }
     ];
 
     window.RESTAURANTES_PAQUETE_DATA = RESTAURANTES;
@@ -261,15 +261,11 @@
         if (ctx.holderPhone) {
             rows.push('<li><span class="restaurante-paquete-inhouse-k">Teléfono</span> <span class="restaurante-paquete-inhouse-v">' + escapeHtml(ctx.holderPhone) + '</span></li>');
         }
-        var cta = syncedUrl
-            ? '<p class="restaurante-paquete-embed-ctx-cta"><a class="btn-restaurante-paquete-reservar btn-restaurante-paquete-reservar--secondary" href="' + escapeHtml(syncedUrl) + '" target="_blank" rel="noopener noreferrer">Abrir reserva en pestaña nueva</a></p>'
-            : '';
         el.style.display = 'block';
         el.removeAttribute('hidden');
         el.innerHTML =
             '<p class="restaurante-paquete-inhouse-intro">' + escapeHtml(provNote) + '</p>' +
-            '<ul class="restaurante-paquete-inhouse-datos" role="list">' + rows.join('') + '</ul>' +
-            cta;
+            '<ul class="restaurante-paquete-inhouse-datos" role="list">' + rows.join('') + '</ul>';
     }
 
     /**

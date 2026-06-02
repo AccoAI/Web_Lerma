@@ -123,6 +123,7 @@
     <script src="js/post-booking-receipt.js"></script>
     <script src="js/post-booking-travel.js"></script>
     <script src="js/post-booking-restaurants.js"></script>
+    <script src="js/stripe-pago.js"></script>
     <script>
 (function () {
   var params = new URLSearchParams(window.location.search);
@@ -188,6 +189,9 @@
       if (data.payment_status === 'paid') {
         setBannerState('ok');
         tituloEl.textContent = '¡Pago confirmado!';
+        if (typeof window.tryMostrarCompartirGrupoTrasPago === 'function') {
+          window.tryMostrarCompartirGrupoTrasPago(true);
+        }
       } else {
         setBannerState('pending');
         tituloEl.textContent = 'Pago: ' + (data.payment_status || 'pendiente');

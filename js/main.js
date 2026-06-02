@@ -1180,7 +1180,7 @@ function initConfiguradorPaquete() {
             panel.hidden = false;
             panel.style.display = 'block';
         }
-        if (comidaPickerControl && comidaPickerControl.setCategoria) comidaPickerControl.setCategoria('lerma');
+        if (comidaPickerControl && comidaPickerControl.setCategoria) comidaPickerControl.setCategoria('burgos');
         if (panel && panel.scrollIntoView) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
