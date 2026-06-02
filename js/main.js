@@ -2305,6 +2305,26 @@ function initConfiguradorPaquete() {
 
 // Resumen móvil: barra inferior desplegable
 (function () {
+    var bodyScrollLockY = 0;
+
+    function lockBodyScroll() {
+        bodyScrollLockY = window.scrollY || window.pageYOffset || 0;
+        document.body.style.position = 'fixed';
+        document.body.style.top = '-' + bodyScrollLockY + 'px';
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.width = '100%';
+    }
+
+    function unlockBodyScroll() {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.width = '';
+        window.scrollTo(0, bodyScrollLockY);
+    }
+
     function updateMobileTotal() {
         var mobileTotal = document.getElementById('resumen-total-mobile');
         if (!mobileTotal) return;
@@ -2346,16 +2366,26 @@ function initConfiguradorPaquete() {
         var wrapper = tab && tab.closest('.resumen-mobile-wrapper');
         var tabMain = wrapper && (wrapper.querySelector('.resumen-mobile-tab-main') || tab);
         if (tab && tabMain && wrapper) {
+            var drawer = wrapper.querySelector('.configurador-resumen');
+            var drawerContent = drawer && drawer.querySelector('.resumen-content');
+            var touchStartY = 0;
+            var touchStartScrollTop = 0;
+            var touchDragging = false;
+
             function setDrawerOpen(open) {
                 if (open) {
                     wrapper.classList.add('expanded');
                     document.body.classList.add('resumen-drawer-open');
+                    lockBodyScroll();
                 } else {
                     wrapper.classList.remove('expanded');
                     document.body.classList.remove('resumen-drawer-open');
+                    unlockBodyScroll();
                 }
                 tab.setAttribute('aria-expanded', open ? 'true' : 'false');
             }
+            window.setMobileResumenDrawerOpen = setDrawerOpen;
+
             function toggle() {
                 setDrawerOpen(!wrapper.classList.contains('expanded'));
             }
@@ -2374,10 +2404,43 @@ function initConfiguradorPaquete() {
             });
             document.addEventListener('click', function (e) {
                 if (!wrapper.classList.contains('expanded')) return;
-                var drawer = wrapper.querySelector('.configurador-resumen');
                 if (drawer && (drawer.contains(e.target) || tab.contains(e.target))) return;
                 setDrawerOpen(false);
             });
+            document.addEventListener('touchmove', function (e) {
+                if (!document.body.classList.contains('resumen-drawer-open')) return;
+                if (drawerContent && drawerContent.contains(e.target)) return;
+                e.preventDefault();
+            }, { passive: false });
+            if (drawer) {
+                drawer.addEventListener('touchstart', function (e) {
+                    if (!wrapper.classList.contains('expanded') || !e.touches || !e.touches.length) return;
+                    touchStartY = e.touches[0].clientY;
+                    touchStartScrollTop = drawerContent ? drawerContent.scrollTop : 0;
+                    touchDragging = true;
+                }, { passive: true });
+                drawer.addEventListener('touchmove', function (e) {
+                    if (!touchDragging || !wrapper.classList.contains('expanded') || !e.touches || !e.touches.length) return;
+                    var dy = e.touches[0].clientY - touchStartY;
+                    var atTop = !drawerContent || drawerContent.scrollTop <= 0;
+                    if (atTop && dy > 0 && touchStartScrollTop <= 0) {
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+                drawer.addEventListener('touchend', function (e) {
+                    if (!touchDragging || !wrapper.classList.contains('expanded')) return;
+                    touchDragging = false;
+                    if (!e.changedTouches || !e.changedTouches.length) return;
+                    var dy = e.changedTouches[0].clientY - touchStartY;
+                    var atTop = !drawerContent || drawerContent.scrollTop <= 0;
+                    if (atTop && touchStartScrollTop <= 0 && dy > 48) {
+                        setDrawerOpen(false);
+                    }
+                }, { passive: true });
+                drawer.addEventListener('touchcancel', function () {
+                    touchDragging = false;
+                }, { passive: true });
+            }
             var obs = new MutationObserver(updateMobileTotal);
             var resumen = wrapper.querySelector('.resumen-detalle, #resumen-paquete, #resumen-detalle, #resumen-pausadrive, #resumen-ryder, .resumen-content');
             if (resumen) obs.observe(resumen, { childList: true, subtree: true });

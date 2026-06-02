@@ -35,6 +35,10 @@
     }
 
     function expandMobileResumenIfNeeded() {
+        if (typeof window.setMobileResumenDrawerOpen === 'function') {
+            window.setMobileResumenDrawerOpen(true);
+            return;
+        }
         var wrapper = document.querySelector('.resumen-mobile-wrapper');
         if (!wrapper) return;
         wrapper.classList.add('expanded');
