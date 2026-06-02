@@ -2926,18 +2926,29 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     font-family: inherit;
     font-size: 0.88rem;
     font-weight: 600;
-    padding: 0.45rem 0.9rem;
-    border: 1px solid rgba(44, 85, 48, 0.35);
-    background: #fff;
-    color: var(--color-primary, #2c5530);
+    padding: 0.5rem 1rem;
+    border: 2px solid rgba(26, 77, 58, 0.4);
+    background: rgba(26, 77, 58, 0.1);
+    color: var(--color-primary, #1a4d3a);
     cursor: pointer;
     border-radius: 4px;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.post-booking-rentcars-loc:hover {
+    background: rgba(26, 77, 58, 0.18);
+    border-color: var(--color-primary, #1a4d3a);
 }
 
 .post-booking-rentcars-loc.is-active {
-    background: var(--color-primary, #2c5530);
+    background: var(--color-primary, #1a4d3a);
     color: #fff;
-    border-color: var(--color-primary, #2c5530);
+    border-color: var(--color-primary, #1a4d3a);
+}
+
+.post-booking-rentcars-loc.is-active:hover {
+    background: var(--color-primary-dark, #0f3324);
+    border-color: var(--color-primary-dark, #0f3324);
 }
 
 .post-booking-rentcars-cta {
@@ -3059,18 +3070,48 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     margin-top: 0.75rem;
 }
 
+/* Confirmación post-pago: CTAs verdes (evitar btn-reservar blanco → dorado en hover) */
+.confirmacion-post-pago .btn-reservar-paquete,
+.confirmacion-post-pago a.btn-reservar-paquete {
+    background: var(--color-primary, #1a4d3a);
+    color: #fff;
+    border: 2px solid var(--color-primary, #1a4d3a);
+    box-shadow: 0 2px 8px rgba(26, 77, 58, 0.2);
+}
+
+.confirmacion-post-pago .btn-reservar-paquete:hover,
+.confirmacion-post-pago a.btn-reservar-paquete:hover {
+    background: var(--color-primary-dark, #0f3324);
+    color: #fff;
+    border-color: var(--color-primary-dark, #0f3324);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(26, 77, 58, 0.28);
+}
+
 .confirmacion-btn-secondary {
-    background: #444 !important;
+    background: var(--color-primary-light, #2d6b4f) !important;
+    color: #fff !important;
+    border: 2px solid var(--color-primary-light, #2d6b4f) !important;
+}
+
+.confirmacion-btn-secondary:hover {
+    background: var(--color-primary-dark, #0f3324) !important;
+    border-color: var(--color-primary-dark, #0f3324) !important;
+    color: #fff !important;
 }
 
 .confirmacion-btn-outline {
-    background: transparent !important;
-    color: var(--color-primary, #2c5530) !important;
-    border: 2px solid var(--color-primary, #2c5530);
+    background: #fff !important;
+    color: var(--color-primary, #1a4d3a) !important;
+    border: 2px solid var(--color-primary, #1a4d3a) !important;
+    box-shadow: none;
 }
 
 .confirmacion-btn-outline:hover {
-    background: rgba(44, 85, 48, 0.08) !important;
+    background: rgba(26, 77, 58, 0.1) !important;
+    color: var(--color-primary-dark, #0f3324) !important;
+    border-color: var(--color-primary-dark, #0f3324) !important;
+    transform: translateY(-1px);
 }
 
 .confirmacion-aviso {
