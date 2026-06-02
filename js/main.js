@@ -429,18 +429,30 @@ function initConfiguradorPaquete() {
     var horaPorDiaWrapFS = document.getElementById('hora-salida-por-dia-finsemana');
     var horaUnicaWrapFS = document.getElementById('hora-salida-unica-finsemana');
 
-    /** Contexto para sincronizar iframe CoverManager/TheFork con el formulario (fecha del día del slot + participantes). */
+    /** Contexto para sincronizar iframe CoverManager/TheFork con el formulario (fecha del día del slot + participantes + datos titular). */
     window.getPaqueteEmbedContext = function () {
         if (!form) return null;
         var slot = window.__paqueteEmbedSlot;
         if (!slot || !slot.dia) return null;
-        var fechas = new FormData(form).getAll('fechas[]');
+        var fd = new FormData(form);
+        var fechas = fd.getAll('fechas[]');
         var idx = parseInt(slot.dia, 10) - 1;
         var dateISO = (idx >= 0 && fechas[idx]) ? String(fechas[idx]).trim() : null;
         if (!dateISO || !/^\d{4}-\d{2}-\d{2}$/.test(dateISO)) return null;
         var tg = document.getElementById('tamanio-grupo');
         var party = Math.max(1, parseInt((tg && tg.value) ? tg.value : '1', 10) || 1);
-        return { dateISO: dateISO, partySize: party };
+        var nombre = (fd.get('usuario[1][nombre]') || '').trim();
+        var email = (fd.get('usuario[1][correo]') || '').trim();
+        var pre = (fd.get('usuario[1][movil_prefijo]') || '+34').trim().replace(/\s+/g, '');
+        var mov = (fd.get('usuario[1][movil]') || '').replace(/\s+/g, '');
+        var phone = mov ? ((mov.indexOf('+') === 0 ? mov : (pre + mov))) : '';
+        return {
+            dateISO: dateISO,
+            partySize: party,
+            holderName: nombre,
+            holderEmail: email,
+            holderPhone: phone,
+        };
     };
 
     function campoDiaTieneReservaFinSemana(idx) {

@@ -1696,6 +1696,7 @@
       '<div class="hb-hotel-funnel-inline__head">' +
       '  <div class="hb-hotel-funnel-inline__title">Alojamiento (Hotelbeds)</div>' +
       '  <div class="hb-hotel-funnel-inline__hotel" id="hb-funnel-inline-hotel">Elige un hotel para continuar.</div>' +
+      '  <div class="hb-hotel-funnel-inline__dates" id="hb-funnel-inline-dates"></div>' +
       '</div>' +
       '<div class="hb-hotel-funnel-inline__grid">' +
       '  <label>Adultos <input type="number" min="1" max="54" id="hb-funnel-inline-adults" placeholder=""></label>' +
@@ -2099,6 +2100,7 @@
     if (!host) return;
 
     var hotelLine = host.querySelector('#hb-funnel-inline-hotel');
+    var datesLine = host.querySelector('#hb-funnel-inline-dates');
     var adultsInp = host.querySelector('#hb-funnel-inline-adults');
     var roomsInp = host.querySelector('#hb-funnel-inline-rooms');
     var btnCheck = host.querySelector('#hb-funnel-inline-check');
@@ -2133,11 +2135,24 @@
             : 'Fijar este hotel y tarifa antes del pago.';
       if (!hotelCode) {
         hotelLine.textContent = 'Elige un hotel para continuar.';
+        if (datesLine) datesLine.textContent = '';
         host.__hbRatesHotel = '';
         host.__hbAutoRatesHotel = '';
         return;
       }
       hotelLine.textContent = hotelNameForCode(hotelCode);
+      if (datesLine) {
+        try {
+          var range = getCheckInCheckOut(new FormData(form));
+          if (range && range.checkIn && range.checkOut) {
+            datesLine.textContent = 'Fechas: ' + range.checkIn + ' → ' + range.checkOut;
+          } else {
+            datesLine.textContent = '';
+          }
+        } catch (e0) {
+          datesLine.textContent = '';
+        }
+      }
       hydrateRateOffersFromLastAvailability(hotelCode);
       var ratesBox = host.querySelector('#hb-funnel-inline-rates');
       var hasList = ratesBox && ratesBox.querySelector('input[name="hb-funnel-rate-pick"]');

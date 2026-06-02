@@ -81,6 +81,10 @@
             if (h.indexOf('covermanager.') >= 0) {
                 u.searchParams.set('day', ctx.dateISO);
                 u.searchParams.set('people', String(ctx.partySize));
+                // Datos del titular (si el proveedor los soporta; si no, se ignoran).
+                if (ctx.holderName) u.searchParams.set('name', String(ctx.holderName));
+                if (ctx.holderEmail) u.searchParams.set('email', String(ctx.holderEmail));
+                if (ctx.holderPhone) u.searchParams.set('phone', String(ctx.holderPhone));
                 u.searchParams.delete('date');
                 return u.toString();
             }
@@ -94,6 +98,10 @@
                 u.searchParams.set('party', p);
                 u.searchParams.set('diners', p);
                 u.searchParams.set('people', p);
+                // Datos del titular (si el widget los soporta; si no, se ignoran).
+                if (ctx.holderName) u.searchParams.set('name', String(ctx.holderName));
+                if (ctx.holderEmail) u.searchParams.set('email', String(ctx.holderEmail));
+                if (ctx.holderPhone) u.searchParams.set('phone', String(ctx.holderPhone));
                 return u.toString();
             }
         } catch (e) { /* URL relativa u otro */ }

@@ -2331,6 +2331,10 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     color: var(--color-text-light);
     font-size: 0.9rem;
 }
+.hb-hotel-funnel-inline__dates {
+    color: var(--color-text-light);
+    font-size: 0.88rem;
+}
 .hb-hotel-funnel-inline__grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
