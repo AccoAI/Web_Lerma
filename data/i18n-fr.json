@@ -220,7 +220,7 @@
   "config_hotel_por_noche": "Hôtel pour chaque nuit :",
   "config_hotel_hint": "Choisissez d'abord le lieu (Lerma ou Burgos) puis l'hôtel de ce lieu.",
   "config_comida": "4. Options de repas",
-  "config_comida_postbooking": "Une fois le forfait payé, la page de confirmation vous permet de réserver dans des restaurants recommandés à Lerma, Saldaña et Burgos (déjeuner ou dîner, à l'heure de votre choix).",
+  "config_comida_postbooking": "Une fois le forfait payé, sur la page de confirmation nous vous aiderons à réserver dans tous les restaurants recommandés de Lerma, Saldaña et Burgos, indépendants du club.",
   "config_comida_sin_fechas": "Sélectionnez les dates dans le calendrier pour indiquer déjeuners et dîners par jour.",
   "config_datos_participantes": "2. Données des joueurs",
   "label_tamanio_grupo": "Taille du groupe *",

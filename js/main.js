@@ -1588,8 +1588,12 @@ function initConfiguradorPaquete() {
             resumenHTML += '<tr><td>Casa Club (menús en pack)</td><td>' + (comidaVal > 0 ? formatEurosResumen(comidaVal) + ' €' : '—') + '</td></tr>';
             resumenHTML += '<tr><td>Servicios adicionales</td><td>' + (ancVal > 0 ? formatEurosResumen(ancVal) + ' €' : '—') + '</td></tr>';
             var pdfBurgosLbl = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_pdf_burgos') : 'PDF recomendaciones de Burgos';
-            var gratisLbl = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_gratis') : 'GRATIS';
-            resumenHTML += '<tr class="resumen-incluido"><td>' + pdfBurgosLbl + '</td><td>' + gratisLbl + '</td></tr>';
+            var gratisLbl = 'GRATIS';
+            if (window.i18n && window.i18n.t) {
+                var gratisI18n = window.i18n.t('resumen_gratis');
+                if (gratisI18n && gratisI18n !== 'resumen_gratis') gratisLbl = gratisI18n;
+            }
+            resumenHTML += '<tr class="resumen-incluido"><td>' + pdfBurgosLbl + '</td><td><span class="resumen-gratis-valor">' + gratisLbl + '</span></td></tr>';
             resumenHTML += '<tr class="resumen-descuento"><td>Descuento pack (-' + descPct + '%)</td><td>-' + formatEurosResumen(desc) + ' €</td></tr>';
             resumenHTML += '<tr class="resumen-total"><td>Total</td><td>' + formatEurosResumen(subtotal) + ' €</td></tr>';
             if (numParticipants > 1) {

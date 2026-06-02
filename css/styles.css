@@ -1754,8 +1754,15 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 .resumen-subtotal-tabla tr.resumen-incluido td:last-child {
-    color: var(--color-primary, #1a4d3a);
-    font-weight: 600;
+    color: var(--color-accent, #c9a961);
+    font-weight: 700;
+}
+
+.resumen-subtotal-tabla .resumen-gratis-valor {
+    display: inline-block;
+    color: var(--color-accent, #c9a961);
+    font-weight: 700;
+    letter-spacing: 0.04em;
 }
 
 .resumen-subtotal-tabla tr.resumen-descuento td:last-child {
@@ -3120,46 +3127,6 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     border: 0;
     background: #fff;
     min-height: 420px;
-}
-
-.post-booking-rentcars-results-panel {
-    padding: 1rem 1.1rem;
-    background: rgba(44, 85, 48, 0.08);
-    border: 2px solid var(--color-primary, #1a4d3a);
-    border-radius: 6px;
-}
-
-.post-booking-rentcars-results-panel[hidden] {
-    display: none !important;
-}
-
-.post-booking-rentcars-results-k {
-    margin: 0 0 0.25rem;
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #666;
-}
-
-.post-booking-rentcars-results-t {
-    margin: 0 0 0.85rem;
-    font-size: 0.92rem;
-    line-height: 1.45;
-    color: #333;
-}
-
-.post-booking-rentcars-results-cta {
-    display: inline-block;
-    width: 100%;
-    max-width: 22rem;
-    text-align: center;
-    text-decoration: none;
-    box-sizing: border-box;
-}
-
-.post-booking-rentcars-fallback-hint {
-    margin-top: 0.35rem;
 }
 
 .post-booking-rentcars-embed-row .post-booking-rentcars-stack {

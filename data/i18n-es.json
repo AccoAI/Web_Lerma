@@ -220,7 +220,7 @@
   "config_hotel_por_noche": "Hotel para cada noche:",
   "config_hotel_hint": "Elige primero el lugar (Lerma o Burgos) y después el hotel de ese lugar.",
   "config_comida": "4. Opciones para comer",
-  "config_comida_postbooking": "Una vez realizado el pago del paquete, en la página de confirmación podrás reservar en restaurantes recomendados de Lerma, Saldaña y Burgos (comida o cena, a tu hora).",
+  "config_comida_postbooking": "Una vez realizado el pago del paquete, en la página de confirmación facilitaremos la reserva en todos los restaurantes recomendados de Lerma, Saldaña y Burgos no ligados al club.",
   "config_comida_sin_fechas": "Selecciona las fechas en el calendario para indicar comidas y cenas por día.",
   "config_datos_participantes": "2. Datos de los jugadores",
   "label_tamanio_grupo": "Tamaño del grupo *",
