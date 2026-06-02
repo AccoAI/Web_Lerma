@@ -109,7 +109,7 @@
   }
 
   function observeDynamicHoraFields() {
-    var targets = document.querySelectorAll('.hora-salida-en-fechas-wrap, .hora-salida-por-dia-container');
+    var targets = document.querySelectorAll('.hora-salida-en-fechas-wrap, .hora-salida-por-dia-container, .fechas-dia-plan-list');
     if (!targets.length) return;
     var timer;
     var mo = new MutationObserver(function () {

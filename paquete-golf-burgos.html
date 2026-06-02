@@ -74,20 +74,12 @@
                 <div class="configurador-layout">
                 <form id="configuradorForm" class="configurador-form">
                     <!-- Fechas / noches (calendario) -->
-                    <div class="configurador-seccion">
+                    <div class="configurador-seccion configurador-seccion--fechas">
                         <h3 class="configurador-titulo" data-i18n="config_selecciona_fechas">1. Selecciona tus fechas</h3>
-                        <div id="calendario-dias-finsemana" class="calendario-dias-container"></div>
-                        <div id="campos-dias-finsemana" class="campos-dias-selector campos-dias-selector-mini" style="display: none; margin-top: 1rem;">
-                            <span class="campos-dias-label" data-i18n="config_campo_dia">Campo para cada día *</span>
-                            <div id="dias-campos-container-finsemana" class="campos-dias-row"></div>
-                        </div>
-                        <div class="hora-salida-en-fechas-wrap" hidden>
-                            <div id="hora-salida-por-dia-finsemana" class="hora-salida-por-dia-container" style="display: none;"></div>
-                            <div id="hora-salida-unica-finsemana" class="reserva-datos-iniciales">
-                                <div class="form-group-inline">
-                                    <label for="hora-salida">Hora de salida *</label>
-                                    <input type="time" id="hora-salida" name="hora_salida" title="Hora preferida de salida" required>
-                                </div>
+                        <div class="fechas-calendario-layout">
+                            <div id="calendario-dias-finsemana" class="calendario-dias-container fechas-calendario-layout__cal"></div>
+                            <div id="campos-dias-finsemana" class="fechas-dia-plan-panel" style="display: none;" aria-live="polite">
+                                <div id="dias-campos-container-finsemana" class="fechas-dia-plan-list"></div>
                             </div>
                         </div>
                     </div>

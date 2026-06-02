@@ -397,6 +397,34 @@ function formatEurosResumen(n) {
 window.roundEuros = roundEuros;
 window.formatEurosResumen = formatEurosResumen;
 
+function sanitizePublicAssetPath(path) {
+    if (!path) return '';
+    var p = String(path).trim().replace(/\\/g, '/');
+    if (/^https?:\/\//i.test(p)) return p;
+    if (p.indexOf('"') >= 0 || p.indexOf("'") >= 0) return '';
+    return p;
+}
+
+function escapeAttrValue(s) {
+    if (s == null || s === '') return '';
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;');
+}
+
+function htmlTarjetaFotoMedia(imgUrl, blockClass) {
+    var safeUrl = sanitizePublicAssetPath(imgUrl);
+    if (!safeUrl) {
+        return '<span class="' + blockClass + '__media" aria-hidden="true"></span>';
+    }
+    return (
+        '<span class="' + blockClass + '__media" aria-hidden="true">' +
+        '<img class="' + blockClass + '__photo" src="' + escapeAttrValue(safeUrl) + '" alt="" loading="lazy" decoding="async">' +
+        '</span>'
+    );
+}
+
 // Función global para obtener grupos de correspondencia
 function getConfigPrereqState(form) {
     if (!form) return { fechas: false, personas: false };
@@ -470,9 +498,6 @@ function initConfiguradorPaquete() {
     var comidaPorDiaContainer = document.getElementById('comida-por-dia-container');
     var ancillaryPorDiaContainer = document.getElementById('ancillary-por-dia-container');
     var ancillarySinPrereqs = document.getElementById('ancillary-sin-prereqs');
-    var horaPorDiaWrapFS = document.getElementById('hora-salida-por-dia-finsemana');
-    var horaUnicaWrapFS = document.getElementById('hora-salida-unica-finsemana');
-
     function campoDiaTieneReservaFinSemana(idx) {
         if (!form || idx < 1) return false;
         if (typeof window.campoDiaTieneReservaEnDom === 'function') {
@@ -481,75 +506,112 @@ function initConfiguradorPaquete() {
         return false;
     }
 
-    function syncHoraSalidaWrapVisible() {
-        var wrap = horaPorDiaWrapFS && horaPorDiaWrapFS.parentElement;
-        if (!wrap || !wrap.classList.contains('hora-salida-en-fechas-wrap')) return;
-        var porDiaVisible =
-            horaPorDiaWrapFS.style.display !== 'none' && horaPorDiaWrapFS.childElementCount > 0;
-        var unicaVisible = horaUnicaWrapFS.style.display !== 'none';
-        wrap.hidden = !(porDiaVisible || unicaVisible);
-        wrap.style.display = porDiaVisible || unicaVisible ? '' : 'none';
+    function leerHoraSalidaPrevFinSemana(numDias) {
+        var prev = {};
+        if (!form || !numDias) return prev;
+        for (var i = 1; i <= numDias; i++) {
+            var name = numDias === 1 ? 'hora_salida' : 'hora_salida_dia_' + i;
+            var inp = form.querySelector('input[name="' + name + '"]');
+            if (inp && inp.value) prev[i] = inp.value;
+        }
+        return prev;
     }
 
-    function generarHoraSalidaPorDiaFinSemana(numDias) {
-        if (!horaPorDiaWrapFS || !horaUnicaWrapFS) return;
-        var singleInput = form && form.querySelector('input[name="hora_salida"]');
-        if (!numDias || numDias < 1) {
-            horaPorDiaWrapFS.style.display = 'none';
-            horaPorDiaWrapFS.innerHTML = '';
-            horaUnicaWrapFS.style.display = 'none';
-            if (singleInput) singleInput.removeAttribute('required');
-            syncHoraSalidaWrapVisible();
-            return;
-        }
-        if (numDias > 1) {
-            var prev = {};
-            for (var i = 1; i <= numDias; i++) {
-                var inp = form && form.querySelector('input[name="hora_salida_dia_' + i + '"]');
-                if (inp && inp.value) prev[i] = inp.value;
-            }
-            horaPorDiaWrapFS.innerHTML = '';
-            horaUnicaWrapFS.style.display = 'none';
-            if (singleInput) singleInput.removeAttribute('required');
-            var hayHoras = false;
-            for (var j = 1; j <= numDias; j++) {
-                if (!campoDiaTieneReservaFinSemana(j)) continue;
-                hayHoras = true;
-                var item = document.createElement('div');
-                item.className = 'campos-dias-item';
-                item.innerHTML = '<label for="hora-salida-dia-' + j + '-fs">Hora de salida día ' + j + ' *</label><input type="time" id="hora-salida-dia-' + j + '-fs" name="hora_salida_dia_' + j + '" title="Hora día ' + j + '" required value="' + (prev[j] || '') + '">';
-                horaPorDiaWrapFS.appendChild(item);
-            }
-            horaPorDiaWrapFS.style.display = hayHoras ? 'block' : 'none';
-        } else {
-            horaPorDiaWrapFS.style.display = 'none';
-            horaPorDiaWrapFS.innerHTML = '';
-            var conCampo = campoDiaTieneReservaFinSemana(1);
-            horaUnicaWrapFS.style.display = conCampo ? 'block' : 'none';
-            if (singleInput) {
-                if (conCampo) singleInput.setAttribute('required', 'required');
-                else singleInput.removeAttribute('required');
-            }
-        }
-        if (typeof window.initHoraSalidaPickers === 'function') {
-            window.initHoraSalidaPickers(horaPorDiaWrapFS);
-            window.initHoraSalidaPickers(horaUnicaWrapFS);
-        }
-        syncHoraSalidaWrapVisible();
-    }
-
-    function generarCamposPorDiaFinSemana(numDias) {
-        if (!diasCamposContainerFinSemana || typeof window.fillCampoDiaContainer !== 'function') return;
-        window.fillCampoDiaContainer(diasCamposContainerFinSemana, numDias, form, {
-            onChange: function () {
-                var fdCampo = new FormData(form);
-                var nFechas = (fdCampo.getAll('fechas[]') || []).length;
-                var fechasCampo = fdCampo.getAll('fechas[]') || [];
-                generarHoraSalidaPorDiaFinSemana(nFechas);
-                actualizarBloqueAncillaryPorDia(nFechas, fechasCampo);
-                actualizarResumen();
+    function syncPlanHoraRowFinSemana(row, dayIndex, numDias) {
+        if (!row) return;
+        var horaWrap = row.querySelector('.fechas-dia-plan-row__hora');
+        if (!horaWrap) return;
+        var conCampo = campoDiaTieneReservaFinSemana(dayIndex);
+        horaWrap.classList.toggle('is-disabled', !conCampo);
+        var name = numDias === 1 ? 'hora_salida' : 'hora_salida_dia_' + dayIndex;
+        horaWrap.querySelectorAll('input[name="' + name + '"], .hora-salida-picker__h, .hora-salida-picker__m').forEach(function (el) {
+            if (conCampo) {
+                el.removeAttribute('disabled');
+                if (el.tagName === 'INPUT') el.setAttribute('required', 'required');
+            } else {
+                el.setAttribute('disabled', 'disabled');
+                el.removeAttribute('required');
             }
         });
+    }
+
+    function syncPlanHoraRowsFinSemana(numDias) {
+        if (!diasCamposContainerFinSemana || !numDias) return;
+        var rows = diasCamposContainerFinSemana.querySelectorAll('.fechas-dia-plan-row');
+        rows.forEach(function (row) {
+            var idx = parseInt(row.getAttribute('data-dia') || '0', 10);
+            if (idx >= 1) syncPlanHoraRowFinSemana(row, idx, numDias);
+        });
+    }
+
+    function onCampoDiaPlanChangeFinSemana() {
+        var fdCampo = new FormData(form);
+        var nFechas = (fdCampo.getAll('fechas[]') || []).length;
+        var fechasCampo = fdCampo.getAll('fechas[]') || [];
+        syncPlanHoraRowsFinSemana(nFechas);
+        actualizarBloqueAncillaryPorDia(nFechas, fechasCampo);
+        actualizarResumen();
+    }
+
+    function generarPlanPorDiaFinSemana(numDias, fechas) {
+        if (!diasCamposContainerFinSemana || typeof window.buildCampoDiaToggleItem !== 'function') return;
+        fechas = fechas || [];
+        if (!numDias || numDias < 1) {
+            diasCamposContainerFinSemana.innerHTML = '';
+            if (camposDiasFinSemana) camposDiasFinSemana.style.display = 'none';
+            return;
+        }
+        if (camposDiasFinSemana) camposDiasFinSemana.style.display = '';
+        var prevCampo = typeof window.getCampoDiaValueFromDom === 'function'
+            ? (function () {
+                var p = {};
+                for (var c = 1; c <= numDias; c++) {
+                    var v = window.getCampoDiaValueFromDom(diasCamposContainerFinSemana, form, c);
+                    if (v) p[c] = v;
+                }
+                return p;
+            })()
+            : {};
+        var prevHora = leerHoraSalidaPrevFinSemana(numDias);
+        diasCamposContainerFinSemana.innerHTML = '';
+        for (var i = 1; i <= numDias; i++) {
+            var row = document.createElement('div');
+            row.className = 'fechas-dia-plan-row';
+            row.setAttribute('data-dia', String(i));
+
+            var campoWrap = document.createElement('div');
+            campoWrap.className = 'fechas-dia-plan-row__campo';
+            var campoItem = window.buildCampoDiaToggleItem(i, prevCampo[i] || '', {
+                required: true,
+                onChange: onCampoDiaPlanChangeFinSemana
+            });
+            var diaLbl = campoItem.querySelector('.campos-dias-item__dia-label');
+            if (diaLbl && fechas[i - 1]) {
+                var etiqueta = formatearEtiquetaDiaComida(fechas[i - 1]);
+                if (etiqueta) diaLbl.textContent = etiqueta;
+            }
+            campoWrap.appendChild(campoItem);
+
+            var horaWrap = document.createElement('div');
+            horaWrap.className = 'fechas-dia-plan-row__hora';
+            var horaName = numDias === 1 ? 'hora_salida' : 'hora_salida_dia_' + i;
+            var horaId = numDias === 1 ? 'hora-salida' : 'hora-salida-dia-' + i + '-fs';
+            var horaLbl = (window.i18n && window.i18n.t) ? window.i18n.t('label_hora_salida') : 'Hora de salida';
+            horaWrap.innerHTML =
+                '<label for="' + horaId + '">' + horaLbl + ' *</label>' +
+                '<input type="time" id="' + horaId + '" name="' + horaName + '" title="Hora día ' + i + '" disabled value="' + (prevHora[i] || '') + '">';
+
+            row.appendChild(campoWrap);
+            row.appendChild(horaWrap);
+            diasCamposContainerFinSemana.appendChild(row);
+        }
+        if (typeof window.initHoraSalidaPickers === 'function') {
+            window.initHoraSalidaPickers(diasCamposContainerFinSemana);
+        }
+        for (var j = 1; j <= numDias; j++) {
+            var planRow = diasCamposContainerFinSemana.querySelector('.fechas-dia-plan-row[data-dia="' + j + '"]');
+            syncPlanHoraRowFinSemana(planRow, j, numDias);
+        }
     }
 
     function getHotelLabelFromValue(val) {
@@ -972,11 +1034,8 @@ function initConfiguradorPaquete() {
                 var menu = menus[mi];
                 var precio = menu.precioPorPersona != null ? menu.precioPorPersona : '';
                 var yaMenu = menuClubYaReservado(reservas, menu.id);
-                var imgUrl = menu.imagen ? String(menu.imagen).trim().replace(/\\/g, '/') : '';
-                if (imgUrl.indexOf('"') >= 0 || imgUrl.indexOf("'") >= 0) imgUrl = '';
-                var imgStyle = imgUrl ? (' style="--comida-menu-bg:url(\'' + imgUrl + '\')"') : '';
-                html += '<button type="button" class="comida-menu-card comida-elegir-club' + (yaMenu ? ' comida-menu-card--added' : '') + '" data-dia="' + i + '" data-menu="' + escapeHtmlComida(menu.id) + '"' + imgStyle + '>';
-                html += '<span class="comida-menu-card__media" aria-hidden="true"></span>';
+                html += '<button type="button" class="comida-menu-card comida-elegir-club' + (yaMenu ? ' comida-menu-card--added' : '') + '" data-dia="' + i + '" data-menu="' + escapeHtmlComida(menu.id) + '">';
+                html += htmlTarjetaFotoMedia(menu.imagen, 'comida-menu-card');
                 html += '<span class="comida-menu-card__content">';
                 html += '<span class="comida-menu-card__nombre">' + escapeHtmlComida(menu.label) + '</span>';
                 if (precio !== '') {
@@ -1049,15 +1108,12 @@ function initConfiguradorPaquete() {
 
     function htmlAncillaryServiceCard(svc, dia, qty) {
         var label = (window.i18n && window.i18n.t && svc.i18n) ? window.i18n.t(svc.i18n) : svc.fallback;
-        var imgUrl = svc.imagen ? String(svc.imagen).trim().replace(/\\/g, '/') : '';
-        if (imgUrl.indexOf('"') >= 0 || imgUrl.indexOf("'") >= 0) imgUrl = '';
-        var imgStyle = imgUrl ? (' style="--ancillary-card-bg:url(\'' + imgUrl + '\')"') : '';
         var selected = qty > 0 ? ' ancillary-service-card--selected' : '';
         var inputId = svc.inputIdPrefix + dia;
         var inputName = svc.inputPrefix + dia;
         return (
-            '<article class="ancillary-service-card ancillary-service-card--' + escapeHtmlComida(svc.id) + selected + '" data-ancillary-id="' + escapeHtmlComida(svc.id) + '"' + imgStyle + '>' +
-            '<span class="ancillary-service-card__media" aria-hidden="true"></span>' +
+            '<article class="ancillary-service-card ancillary-service-card--' + escapeHtmlComida(svc.id) + selected + '" data-ancillary-id="' + escapeHtmlComida(svc.id) + '">' +
+            htmlTarjetaFotoMedia(svc.imagen, 'ancillary-service-card') +
             '<div class="ancillary-service-card__content">' +
             '<span class="ancillary-service-card__title">' + escapeHtmlComida(label) + '</span>' +
             '<span class="ancillary-precio" data-ancillary="' + escapeHtmlComida(svc.precioKey) + '"></span>' +
@@ -1345,21 +1401,13 @@ function initConfiguradorPaquete() {
             nameNoches: 'noches',
             maxSeleccion: 7,
             onChange: function (count, fechas) {
-                if (camposDiasFinSemana) {
-                    if (count >= 1) {
-                        camposDiasFinSemana.style.display = 'block';
-                        generarCamposPorDiaFinSemana(count);
-                    } else {
-                        camposDiasFinSemana.style.display = 'none';
-                    }
-                }
+                generarPlanPorDiaFinSemana(count, fechas || []);
                 if (configuradorHotelWrap) {
                     actualizarBloqueHotel();
                     if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
                 }
                 actualizarBloqueComida(count, fechas || []);
                 actualizarBloqueAncillaryPorDia(count, fechas || []);
-                generarHoraSalidaPorDiaFinSemana(count);
                 if (typeof actualizarResumen === 'function') actualizarResumen();
                 schedulePickerIframeRefreshFromForm();
             }
@@ -1394,12 +1442,7 @@ function initConfiguradorPaquete() {
                 return;
             }
             if (t && t.name && /^campo-dia-\d+$/.test(t.name)) {
-                var fdCampo = new FormData(form);
-                var nFechas = (fdCampo.getAll('fechas[]') || []).length;
-                var fechasCampo = fdCampo.getAll('fechas[]') || [];
-                generarHoraSalidaPorDiaFinSemana(nFechas);
-                actualizarBloqueAncillaryPorDia(nFechas, fechasCampo);
-                actualizarResumen();
+                onCampoDiaPlanChangeFinSemana();
                 return;
             }
             if (t && t.classList && t.classList.contains('comida-hora-comida')) {

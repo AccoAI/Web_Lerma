@@ -1925,6 +1925,104 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     gap: 0.75rem 1.25rem;
 }
 
+/* Fechas: calendario + plan por día (campo + hora en la misma fila) */
+.fechas-calendario-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.fechas-calendario-layout__cal {
+    flex: 0 0 auto;
+}
+
+.fechas-dia-plan-panel {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.fechas-dia-plan-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.fechas-dia-plan-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem 1rem;
+    padding: 0.65rem 0.85rem;
+    background: var(--color-bg-light);
+    border: 1px solid rgba(26, 77, 58, 0.12);
+}
+
+.fechas-dia-plan-row__campo {
+    flex: 1 1 14rem;
+    min-width: 0;
+}
+
+.fechas-dia-plan-row__campo .campos-dias-item--campo-toggle {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem 0.65rem;
+    width: 100%;
+}
+
+.fechas-dia-plan-row__hora {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.fechas-dia-plan-row__hora label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-text-light);
+    white-space: nowrap;
+}
+
+.fechas-dia-plan-row__hora .hora-salida-picker {
+    flex-shrink: 0;
+}
+
+.fechas-dia-plan-row__hora.is-disabled {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+@media (min-width: 900px) {
+    .fechas-calendario-layout {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 1.5rem;
+    }
+
+    .fechas-dia-plan-panel {
+        flex: 1 1 0;
+        padding-top: 0.25rem;
+    }
+}
+
+@media (max-width: 599px) {
+    .fechas-dia-plan-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .fechas-dia-plan-row__hora {
+        margin-left: 0;
+        justify-content: space-between;
+        width: 100%;
+        padding-top: 0.35rem;
+        border-top: 1px solid rgba(26, 77, 58, 0.1);
+    }
+}
+
 /* Bloque “Hora de salida” unificado y legible */
 .hora-salida-en-fechas-wrap {
     margin-top: 1rem;
@@ -4117,15 +4215,24 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
 .comida-menu-card__media {
     position: absolute;
     inset: 0;
+    overflow: hidden;
     background-color: #1a4d3a;
-    background-image: var(--comida-menu-bg, var(--comida-menu-fallback));
+    background-image: var(--comida-menu-fallback);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+}
+
+.comida-menu-card__photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
     transition: transform 0.25s ease;
 }
 
-.comida-menu-card:hover .comida-menu-card__media {
+.comida-menu-card:hover .comida-menu-card__photo {
     transform: scale(1.04);
 }
 
@@ -4136,10 +4243,10 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     flex-direction: column;
     gap: 0.2rem;
     margin-top: auto;
-    min-height: 58%;
+    min-height: 50%;
     justify-content: flex-end;
     padding: 0.75rem 0.7rem 0.65rem;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0.42) 55%, transparent 100%);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.28) 50%, transparent 100%);
     color: #fff;
 }
 
@@ -10841,11 +10948,20 @@ body.page-torneo .torneo-detalle-section {
 .ancillary-service-card__media {
     position: absolute;
     inset: 0;
+    overflow: hidden;
     background-color: #1a4d3a;
-    background-image: var(--ancillary-card-bg, var(--ancillary-card-fallback));
+    background-image: var(--ancillary-card-fallback);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+}
+
+.ancillary-service-card__photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
 }
 
 .ancillary-service-card__content {
@@ -10855,10 +10971,10 @@ body.page-torneo .torneo-detalle-section {
     flex-direction: column;
     gap: 0.15rem;
     margin-top: auto;
-    min-height: 62%;
+    min-height: 52%;
     justify-content: flex-end;
     padding: 0.7rem 0.65rem 0.6rem;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.45) 55%, transparent 100%);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.28) 50%, transparent 100%);
     color: #fff;
 }
 
