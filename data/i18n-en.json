@@ -203,7 +203,7 @@
   "calendario_cargando": "Loading tournaments…",
 
   "paquete_finsemana_title": "Burgos Golf Package",
-  "paquete_golf_burgos_intro": "Configure your custom package: choose nights, hotel and meal options. Includes 1 green-fee at Golf Lerma and 1 at Saldaña Golf.",
+  "paquete_golf_burgos_intro": "Configure your custom package: choose nights, hotel and meal options.",
   "paquete_golf_ilimitado_intro": "Play as much golf as you want — unlimited rounds at Golf Lerma and Saldaña Golf, two full 18-hole courses.",
   "paquete_golf_ilimitado_bullet_1": "Unlimited green fees at Golf Lerma and Saldaña Golf",
   "paquete_golf_ilimitado_bullet_2": "Two 18-hole courses during your stay",
@@ -211,7 +211,7 @@
   "paquete_golf_canalla_intro": "A no-frills golf weekend in Burgos with champagne, wine, beer and cigars.",
   "btn_reservar_golf_ilimitado": "Book Unlimited Golf",
   "btn_reservar_golf_canalla": "Book Golf Canalla",
-  "paquete_finsemana_intro": "Configure your custom package: choose nights, hotel and meal options. Includes 1 green-fee at Golf Lerma and 1 green-fee at Saldaña Golf.",
+  "paquete_finsemana_intro": "Configure your custom package: choose nights, hotel and meal options.",
   "paquete_info_pdf": "Once your booking is made, we will send you a PDF by email with all our recommendations for the capital to enjoy a perfect weekend in Burgos.",
   "config_selecciona_fechas": "1. Select your dates",
   "config_campo_dia": "Course for each day *",
