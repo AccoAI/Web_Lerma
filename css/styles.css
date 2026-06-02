@@ -991,6 +991,12 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     overflow: visible;
 }
 
+.configurador-paquete .configurador-layout .resumen-mobile-wrapper {
+    margin-top: clamp(0.75rem, 2vh, 1.25rem);
+    margin-bottom: clamp(1.25rem, 3vh, 2rem);
+    align-self: start;
+}
+
 .configurador-paquete .configurador-resumen {
     position: sticky;
     position: -webkit-sticky;
@@ -1004,6 +1010,8 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     .configurador-paquete .configurador-layout .resumen-mobile-wrapper {
         align-self: stretch;
         min-height: 0;
+        margin-top: clamp(1rem, 2.5vh, 1.5rem);
+        margin-bottom: clamp(1.5rem, 4vh, 2.5rem);
     }
     .configurador-paquete .configurador-resumen,
     .resumen-mobile-wrapper .configurador-resumen {
@@ -6555,8 +6563,13 @@ a.btn-restaurante-paquete-reservar--secondary:hover {
     }
 
     .configurador-paquete .configurador-resumen {
-        margin-top: 2rem;
+        margin-top: 0;
         margin-right: 0;
+    }
+
+    .configurador-paquete .configurador-layout .resumen-mobile-wrapper {
+        margin-top: 1.25rem;
+        margin-bottom: 2rem;
     }
 }
 
