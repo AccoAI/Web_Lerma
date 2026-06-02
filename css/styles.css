@@ -2069,13 +2069,13 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 @media (min-width: 900px) {
     .fechas-calendario-layout {
-        flex-direction: row;
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
         align-items: flex-start;
         gap: 1.25rem;
     }
 
     .fechas-calendario-layout__cal {
-        flex: 1 1 65%;
         min-width: 0;
         max-width: none;
     }
@@ -2095,14 +2095,14 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     }
 
     .fechas-calendario-layout__cal .calendario-mes-titulo {
-        font-size: 1.5rem;
+        font-size: 1.35rem;
     }
 
     .fechas-calendario-layout__cal .calendario-btn-prev,
     .fechas-calendario-layout__cal .calendario-btn-next {
-        width: 44px;
-        height: 44px;
-        font-size: 1.55rem;
+        width: 40px;
+        height: 40px;
+        font-size: 1.45rem;
     }
 
     .fechas-calendario-layout__cal .calendario-semana-headers {
@@ -2118,70 +2118,49 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     .fechas-calendario-layout__cal .calendario-dia {
         max-width: none;
         aspect-ratio: 1;
-        font-size: 1.05rem;
+        font-size: 0.95rem;
         font-weight: 500;
     }
 
     .fechas-dia-plan-panel {
-        flex: 0 1 32%;
-        min-width: 16.5rem;
-        max-width: 21rem;
+        min-width: 0;
+        max-width: none;
         padding-top: 0.35rem;
     }
 
     .fechas-dia-plan-panel .fechas-dia-plan-row {
-        grid-template-columns: 1fr;
-        row-gap: 0.45rem;
-        padding: 0.6rem 0.7rem;
-    }
-
-    .fechas-dia-plan-panel .fechas-dia-plan-row__campo .campos-dias-item__dia-label,
-    .fechas-dia-plan-panel .fechas-dia-plan-row__campo .campo-dia-toggle,
-    .fechas-dia-plan-panel .fechas-dia-plan-row__hora {
-        grid-column: 1;
+        grid-template-columns: 9rem minmax(9rem, 1fr) auto;
+        padding: 0.6rem 0.75rem;
     }
 
     .fechas-dia-plan-panel .fechas-dia-plan-row__campo .campos-dias-item__dia-label {
-        width: auto;
-        min-width: 0;
-        max-width: none;
+        width: 9rem;
+        min-width: 9rem;
+        max-width: 9rem;
         font-size: 0.88rem;
     }
 
     .fechas-dia-plan-panel .fechas-dia-plan-row__campo .campo-dia-toggle {
         max-width: none;
-        width: 100%;
     }
 
     .fechas-dia-plan-panel .fechas-dia-plan-row__campo .campo-dia-toggle__btn {
-        font-size: 0.75rem;
-        padding: 0.4rem 0.45rem;
-    }
-
-    .fechas-dia-plan-panel .fechas-dia-plan-row__hora {
-        justify-content: space-between;
-        width: 100%;
-        padding-top: 0.25rem;
-        border-top: 1px solid rgba(26, 77, 58, 0.1);
-    }
-
-    .fechas-dia-plan-panel .fechas-dia-plan-row__hora label {
-        font-size: 0.8rem;
+        font-size: 0.78rem;
+        padding: 0.4rem 0.5rem;
     }
 
     .fechas-dia-plan-panel .fechas-dia-plan-row--with-grupo {
-        grid-template-columns: 1fr;
+        grid-template-columns: 9rem minmax(7rem, 1fr) auto minmax(11rem, 1.2fr);
     }
 
     .fechas-dia-plan-panel .fechas-dia-plan-row--with-grupo .fechas-dia-plan-row__grupo {
-        grid-column: 1;
-        width: 100%;
-        padding-top: 0.35rem;
-        border-top: 1px solid rgba(26, 77, 58, 0.1);
+        grid-column: 4;
+        padding-top: 0;
+        border-top: none;
     }
 
     .fechas-dia-plan-panel .fechas-dia-plan-row__grupo-item {
-        flex: 1 1 7rem;
+        flex: 1 1 6.5rem;
     }
 }
 
