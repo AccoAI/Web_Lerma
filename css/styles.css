@@ -2570,19 +2570,43 @@ body.hb-tariff-debug-on .hotelbeds-card--picked {
     line-height: 1.45;
 }
 /* —— Confirmación post-pago (confirmacion-reserva.html) —— */
-.confirmacion-post-pago {
-    margin-top: 0;
-    padding-top: calc(var(--header-height) + 1.25rem);
-    padding-bottom: 3rem;
-}
-
-.pagina-hero-foto--compact {
+/* Sin solapamiento tipo paquete: contenido debajo de header + hero compacto */
+body.fondo-golf-lerma-estandar .pagina-hero-foto--compact {
+    margin-top: var(--header-height);
+    height: clamp(140px, 28vw, 220px);
     max-height: 220px;
     overflow: hidden;
 }
 
-.pagina-hero-foto--compact .pagina-hero-foto-img {
+body.fondo-golf-lerma-estandar .pagina-hero-foto--compact .pagina-hero-foto-img {
     object-position: center 40%;
+}
+
+body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
+    margin-top: 0 !important;
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+    position: relative;
+    z-index: 2;
+    background: var(--color-bg-light, #f8f9f8);
+}
+
+.confirmacion-post-pago {
+    margin-top: 0;
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
+
+@media (max-width: 768px) {
+    body.fondo-golf-lerma-estandar .pagina-hero-foto--compact {
+        height: clamp(120px, 32vw, 180px);
+        max-height: 180px;
+    }
+
+    body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
+        margin-top: 0 !important;
+        padding-top: 1.5rem;
+    }
 }
 
 /* Banner principal: pago confirmado */
