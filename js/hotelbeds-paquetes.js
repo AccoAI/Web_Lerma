@@ -1724,21 +1724,25 @@
     host.className = 'hb-hotel-funnel-inline';
     host.innerHTML =
       '<div class="hb-hotel-funnel-inline__head">' +
-      '  <div class="hb-hotel-funnel-inline__title">Alojamiento (Hotelbeds)</div>' +
-      '  <div class="hb-hotel-funnel-inline__hotel" id="hb-funnel-inline-hotel">Elige un hotel para continuar.</div>' +
-      '  <div class="hb-hotel-funnel-inline__dates" id="hb-funnel-inline-dates"></div>' +
+      '  <span class="hb-hotel-funnel-inline__title">Alojamiento (Hotelbeds)</span>' +
+      '  <span class="hb-hotel-funnel-inline__hotel" id="hb-funnel-inline-hotel">Elige un hotel para continuar.</span>' +
+      '  <span class="hb-hotel-funnel-inline__dates" id="hb-funnel-inline-dates"></span>' +
       '</div>' +
-      '<div class="hb-hotel-funnel-inline__grid">' +
-      '  <label>Adultos <input type="number" min="1" max="54" id="hb-funnel-inline-adults" placeholder=""></label>' +
-      '  <label>Habitaciones <input type="number" min="1" max="20" id="hb-funnel-inline-rooms" placeholder=""></label>' +
-      '</div>' +
-      '<div class="hb-hotel-funnel-inline__rates" id="hb-funnel-inline-rates"></div>' +
-      '<div class="hb-hotel-funnel-inline__actions">' +
-      '  <button type="button" class="hb-hotel-funnel-btn hb-hotel-funnel-btn--secondary" id="hb-funnel-inline-check" disabled>' +
+      '<div class="hb-hotel-funnel-inline__controls">' +
+      '  <div class="hb-hotel-funnel-inline__grid">' +
+      '    <label class="hb-funnel-field"><span class="hb-funnel-field__k">Adultos</span>' +
+      '      <input type="number" min="1" max="54" id="hb-funnel-inline-adults" placeholder=""></label>' +
+      '    <label class="hb-funnel-field"><span class="hb-funnel-field__k">Habit.</span>' +
+      '      <input type="number" min="1" max="20" id="hb-funnel-inline-rooms" placeholder=""></label>' +
+      '  </div>' +
+      '  <div class="hb-hotel-funnel-inline__actions">' +
+      '    <button type="button" class="hb-hotel-funnel-btn hb-hotel-funnel-btn--secondary" id="hb-funnel-inline-check" disabled>' +
       escapeHtml(hbFunnelConditionsButtonText()) +
       '</button>' +
-      '  <button type="button" class="hb-hotel-funnel-btn hb-hotel-funnel-btn--hidden" id="hb-funnel-inline-confirm" disabled hidden>Confirmar hotel</button>' +
+      '    <button type="button" class="hb-hotel-funnel-btn hb-hotel-funnel-btn--hidden" id="hb-funnel-inline-confirm" disabled hidden>Confirmar hotel</button>' +
+      '  </div>' +
       '</div>' +
+      '<div class="hb-hotel-funnel-inline__rates" id="hb-funnel-inline-rates"></div>' +
       '<div class="hb-hotel-funnel-inline__result" id="hb-funnel-inline-result" aria-live="polite"></div>';
     // Insert just under the H4 title, if present; otherwise at top.
     var title = root.querySelector('.hotelbeds-title');
