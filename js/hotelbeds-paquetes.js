@@ -57,6 +57,8 @@
       brgHotelPriority: null,
       /** Opcional: sustituye HB_DISPLAY_MAX (por defecto 3). */
       displayMaxHotels: null,
+      /** Tarjetas de lista sin texto largo Content API (certificación no exige descripción). */
+      compactHotelCards: true,
     };
     return Object.assign({}, d, window.HOTELBEDS_PAGE || {});
   }
@@ -1417,7 +1419,9 @@
    * @param {object|null} meta — __HB_CONTENT_BY_CODE[code]
    * @param {object|null} pick — __HB_RATE_BY_CODE[code]
    */
-  function hotelRichCardHtml(hAvail, meta, pick, priceStr, selSuffix) {
+  function hotelRichCardHtml(hAvail, meta, pick, priceStr, selSuffix, cardOpts) {
+    cardOpts = cardOpts || {};
+    var compact = cardOpts.compact !== false && pageOpts().compactHotelCards !== false;
     var code = String(hAvail.code || '');
     var displayName =
       (typeof hAvail.name === 'string' ? hAvail.name : hAvail.name && hAvail.name.content) ||
@@ -1428,7 +1432,8 @@
     var img = meta && meta.imageUrl ? meta.imageUrl : '';
     var catLabel = meta && (meta.categoryName || meta.categoryCode) ? meta.categoryName || meta.categoryCode : '';
     var catStars = meta && typeof meta.categoryStars === 'number' ? meta.categoryStars : null;
-    var desc = meta && meta.descriptionShort ? meta.descriptionShort : '';
+    var city = meta && meta.city ? String(meta.city).trim() : '';
+    var desc = !compact && meta && meta.descriptionShort ? meta.descriptionShort : '';
     var boardLine = pick && pick.boardName ? pick.boardName : pick && pick.boardCode ? String(pick.boardCode) : '';
     var roomLine = pick && pick.roomName ? pick.roomName : '';
     var ratePaid = (pick && pick.rateExtrasPaid) || [];
@@ -1441,11 +1446,21 @@
 
     var boardBlock = '';
     if (boardLine || roomLine) {
-      boardBlock =
-        '<div class="hotelbeds-board-room">' +
-        (roomLine ? '<div><strong>Habitación:</strong> ' + escapeHtml(roomLine) + '</div>' : '') +
-        (boardLine ? '<div><strong>Régimen:</strong> ' + escapeHtml(boardLine) + '</div>' : '') +
-        '</div>';
+      if (compact) {
+        var metaParts = [];
+        if (roomLine) metaParts.push(roomLine);
+        if (boardLine) metaParts.push(boardLine);
+        boardBlock =
+          '<p class="hotelbeds-card-meta" title="Tarifa más económica para tu búsqueda">' +
+          escapeHtml(metaParts.join(' · ')) +
+          '</p>';
+      } else {
+        boardBlock =
+          '<div class="hotelbeds-board-room">' +
+          (roomLine ? '<div><strong>Habitación:</strong> ' + escapeHtml(roomLine) + '</div>' : '') +
+          (boardLine ? '<div><strong>Régimen:</strong> ' + escapeHtml(boardLine) + '</div>' : '') +
+          '</div>';
+      }
     }
 
     var rateExtraBlock = '';
@@ -1460,12 +1475,17 @@
             .join('') +
           '</ul></div>';
       }
-      if (rateComm.length) {
+      if (!compact && rateComm.length) {
         rateExtraBlock +=
           '<div class="hotelbeds-rate-comments"><strong>Observaciones tarifa:</strong> ' +
           escapeHtml(truncateText(rateComm.join(' '), 400)) +
           '</div>';
       }
+    } else if (compact && ratePaid.length) {
+      rateExtraBlock =
+        '<p class="hotelbeds-card-meta hotelbeds-card-meta--paid">' +
+        escapeHtml(truncateText(ratePaid.join(' · '), 120)) +
+        '</p>';
     }
 
     var priceHtml = '';
@@ -1479,8 +1499,17 @@
         '<span class="hotelbeds-price hotelbeds-price--package-note">Elige habitación para ver el precio del paquete (green fees incluidos)</span>';
     }
 
+    var cityHtml =
+      compact && city
+        ? '<p class="hotelbeds-card-city">' + escapeHtml(city) + '</p>'
+        : '';
+
     return (
-      '<article class="hotelbeds-card hotelbeds-card--selectable" role="button" tabindex="0" data-hb-hotel-code="' + escapeHtml(code) + '">' +
+      '<article class="hotelbeds-card hotelbeds-card--selectable' +
+      (compact ? ' hotelbeds-card--compact' : '') +
+      '" role="button" tabindex="0" data-hb-hotel-code="' +
+      escapeHtml(code) +
+      '">' +
       imgHtml +
       '<div class="hotelbeds-card-main">' +
       '<header class="hotelbeds-card-head">' +
@@ -1491,6 +1520,7 @@
       '</span>' +
       priceHtml +
       '</header>' +
+      cityHtml +
       (desc ? '<p class="hotelbeds-desc">' + escapeHtml(truncateText(desc, 380)) + '</p>' : '') +
       boardBlock +
       rateExtraBlock +
@@ -2948,8 +2978,7 @@
     });
     html +=
       '</ul><p class="hotelbeds-note">' +
-      'El «desde» de cada hotel es el <strong>precio total del paquete</strong> (alojamiento + green fees) con la tarifa más económica para tu ocupación. ' +
-      'Habitación y régimen concretos al elegir hotel arriba.' +
+      'Precio «desde» = paquete (alojamiento + green fees), tarifa más económica. Detalle de habitación y régimen al elegir hotel.' +
       '</p></div>';
     window.LIVE_HOTEL_PRICES = Object.keys(live).length ? live : null;
     setBookingWidgetVisible(!window.LIVE_HOTEL_PRICES);
