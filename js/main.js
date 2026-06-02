@@ -753,17 +753,17 @@ function initConfiguradorPaquete() {
                         html += '<span class="comida-dia-card__resumen-precio">' + menuSel.precioPorPersona + ' € / persona × ' + paxLbl + '</span>';
                     }
                 }
-                html += '</div>';
+                html += '</div></div>';
                 if (st.opcion.indexOf('club:') === 0) {
-                    html += '<div class="comida-dia-card__comensales">';
-                    html += '<span class="comida-dia-card__comensales-label">Comensales</span>';
-                    html += '<div class="ancillary-counter-wrap comida-comensales-wrap">';
+                    html += '<div class="comida-dia-card__comensales ancillary-pack-cell">';
+                    html += '<label class="ancillary-pack-label" for="comida-comensales-dia-' + i + '">';
+                    html += '<span class="ancillary-pack-title">Comensales</span></label>';
+                    html += '<div class="ancillary-counter-wrap ancillary-pack-counter">';
                     html += '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Menos comensales">−</button>';
                     html += '<input type="number" id="comida-comensales-dia-' + i + '" name="comida_comensales_dia_' + i + '" min="1" max="' + Math.max(nJug, 20) + '" value="' + st.comensales + '" class="ancillary-counter comida-comensales-counter" readonly>';
                     html += '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Más comensales">+</button>';
                     html += '</div></div>';
                 }
-                html += '</div>';
                 html += '<div class="comida-dia-card__resumen-actions">';
                 if (st.opcion === 'externo') {
                     html += '<button type="button" class="comida-dia-card__btn comida-dia-card__btn--ghost comida-abrir-picker" data-dia="' + i + '">Cambiar</button>';
