@@ -130,9 +130,15 @@
     if (!fechas.length) return null;
     fechas.sort();
     var checkIn = fechas[0];
-    var last = fechas[fechas.length - 1];
-    var d = new Date(last + 'T12:00:00');
-    d.setDate(d.getDate() + 1);
+    // El calendario guarda `noches` como diferencia entre primer y último día seleccionado.
+    // Ej: seleccionar 16 y 17 ⇒ 1 noche (checkOut=17). Antes se hacía last+1 ⇒ 2 noches.
+    var noches = 0;
+    try {
+      noches = parseInt((formData.get && formData.get('noches')) || '0', 10) || 0;
+    } catch (e0) { /* ignore */ }
+    if (noches < 1) noches = 1;
+    var d = new Date(checkIn + 'T12:00:00');
+    d.setDate(d.getDate() + noches);
     var checkOut = d.toISOString().slice(0, 10);
     return { checkIn: checkIn, checkOut: checkOut };
   }
