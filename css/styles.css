@@ -1967,64 +1967,6 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     margin-bottom: 1.25rem;
 }
 
-.fechas-tamanio-grupo-pre .fechas-dia-plan-row__grupo-item {
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.75rem 1.25rem;
-}
-
-.fechas-tamanio-grupo-pre .fechas-dia-plan-row__grupo-item label {
-    font-size: 1.1rem;
-    font-weight: 600;
-}
-
-.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas {
-    min-width: 12.5rem;
-    padding: 0.25rem;
-    border: 2px solid rgba(26, 77, 58, 0.28);
-    border-radius: 10px;
-    background: var(--color-white);
-    box-shadow: 0 2px 6px rgba(26, 77, 58, 0.08);
-}
-
-.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas .ancillary-btn {
-    width: 3.25rem;
-    min-width: 3.25rem;
-    height: 3.25rem;
-    font-size: 1.85rem;
-    font-weight: 600;
-    color: #fff;
-    background: var(--color-primary);
-    border: 2px solid var(--color-primary) !important;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(26, 77, 58, 0.25);
-}
-
-.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas .ancillary-btn:hover {
-    background: var(--color-primary-dark, #143d2e);
-    border-color: var(--color-primary-dark, #143d2e) !important;
-    color: #fff;
-}
-
-.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas .ancillary-btn:active {
-    transform: scale(0.96);
-    background: #0f3024;
-}
-
-.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas .ancillary-btn:focus-visible {
-    outline: 2px solid var(--color-accent, #c9a961);
-    outline-offset: 2px;
-}
-
-.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas .ancillary-counter {
-    height: 3.25rem;
-    line-height: 3.25rem;
-    font-size: 1.6rem;
-    font-weight: 700;
-    border-left: 2px solid rgba(26, 77, 58, 0.12) !important;
-    border-right: 2px solid rgba(26, 77, 58, 0.12) !important;
-}
-
 .fechas-partidas-bar {
     margin-bottom: 1.25rem;
 }
@@ -2049,7 +1991,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     letter-spacing: 0.01em;
 }
 
-.fechas-grupo-default-bar .fechas-grupo-counter {
+.fechas-grupo-default-bar .fechas-grupo-counter:not(.fechas-grupo-counter--personas) {
     display: flex;
     align-items: stretch;
     gap: 0;
@@ -2062,7 +2004,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     overflow: hidden;
 }
 
-.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-btn {
+.fechas-grupo-default-bar .fechas-grupo-counter:not(.fechas-grupo-counter--personas) .ancillary-btn {
     width: 3rem;
     min-width: 3rem;
     height: 3rem;
@@ -2083,33 +2025,33 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
 }
 
-.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-btn-minus,
-.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-btn-plus {
+.fechas-grupo-default-bar .fechas-grupo-counter:not(.fechas-grupo-counter--personas) .ancillary-btn-minus,
+.fechas-grupo-default-bar .fechas-grupo-counter:not(.fechas-grupo-counter--personas) .ancillary-btn-plus {
     border-left: none !important;
     border-right: none !important;
 }
 
-.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-btn:hover {
+.fechas-grupo-default-bar .fechas-grupo-counter:not(.fechas-grupo-counter--personas) .ancillary-btn:hover {
     background: rgba(26, 77, 58, 0.1);
     color: var(--color-primary-dark);
 }
 
-.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-btn:active {
+.fechas-grupo-default-bar .fechas-grupo-counter:not(.fechas-grupo-counter--personas) .ancillary-btn:active {
     transform: scale(0.92);
     background: rgba(26, 77, 58, 0.16);
 }
 
-.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-btn:focus {
+.fechas-grupo-default-bar .fechas-grupo-counter:not(.fechas-grupo-counter--personas) .ancillary-btn:focus {
     outline: none;
     box-shadow: none;
 }
 
-.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-btn:focus-visible {
+.fechas-grupo-default-bar .fechas-grupo-counter:not(.fechas-grupo-counter--personas) .ancillary-btn:focus-visible {
     outline: 2px solid rgba(26, 77, 58, 0.45);
     outline-offset: 2px;
 }
 
-.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-counter {
+.fechas-grupo-default-bar .fechas-grupo-counter:not(.fechas-grupo-counter--personas) .ancillary-counter {
     flex: 1 1 auto;
     width: 3.75rem;
     min-width: 3.75rem;
@@ -2133,8 +2075,8 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     appearance: textfield;
 }
 
-.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-counter::-webkit-outer-spin-button,
-.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-counter::-webkit-inner-spin-button {
+.fechas-grupo-default-bar .fechas-grupo-counter:not(.fechas-grupo-counter--personas) .ancillary-counter::-webkit-outer-spin-button,
+.fechas-grupo-default-bar .fechas-grupo-counter:not(.fechas-grupo-counter--personas) .ancillary-counter::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
@@ -2158,33 +2100,185 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     box-shadow: inset 0 1px 2px rgba(26, 77, 58, 0.04);
 }
 
-.fechas-grupo-default-bar .fechas-dia-plan-row__grupo-item .ancillary-counter-wrap {
+.fechas-grupo-default-bar .fechas-dia-plan-row__grupo-item .ancillary-counter-wrap:not(.fechas-grupo-counter--personas) {
     background: transparent;
     border: none;
     border-radius: 0;
 }
 
+/* Número de personas: bloque claro con botones evidentes */
+.fechas-tamanio-grupo-pre .fechas-grupo-personas-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.35rem;
+    width: 100%;
+    max-width: 22rem;
+}
+
+.fechas-tamanio-grupo-pre .fechas-grupo-personas-wrap > label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin: 0;
+}
+
+.fechas-grupo-personas-hint {
+    margin: 0 0 0.5rem;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    color: var(--color-text);
+    opacity: 0.82;
+}
+
+.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    min-width: 0;
+    max-width: 22rem;
+    padding: 0.35rem;
+    gap: 0.35rem;
+    border: 2px solid rgba(26, 77, 58, 0.22);
+    border-radius: 12px;
+    background: var(--color-white);
+    box-shadow: 0 2px 8px rgba(26, 77, 58, 0.1);
+}
+
+.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas .fechas-grupo-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    font-family: inherit;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas .fechas-grupo-btn--minus {
+    width: 3.25rem;
+    min-width: 3.25rem;
+    height: 3.25rem;
+    color: var(--color-primary);
+    background: #fff;
+    border: 2px solid rgba(26, 77, 58, 0.35) !important;
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(26, 77, 58, 0.08);
+}
+
+.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas .fechas-grupo-btn--minus .fechas-grupo-btn__symbol {
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas .fechas-grupo-btn--minus:hover {
+    background: rgba(26, 77, 58, 0.08);
+    border-color: var(--color-primary) !important;
+}
+
+.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas .fechas-grupo-btn--plus {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 3.25rem;
+    padding: 0 1rem;
+    color: #fff;
+    background: var(--color-primary);
+    border: 2px solid var(--color-primary) !important;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(26, 77, 58, 0.28);
+}
+
+.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas .fechas-grupo-btn--plus .fechas-grupo-btn__symbol {
+    font-size: 1.85rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas .fechas-grupo-btn--plus .fechas-grupo-btn__label {
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas .fechas-grupo-btn--plus:hover {
+    background: var(--color-primary-dark, #143d2e);
+    border-color: var(--color-primary-dark, #143d2e) !important;
+    box-shadow: 0 3px 12px rgba(26, 77, 58, 0.35);
+}
+
+.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas .fechas-grupo-btn:active {
+    transform: scale(0.98);
+}
+
+.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas .fechas-grupo-btn:focus-visible {
+    outline: 2px solid var(--color-accent, #c9a961);
+    outline-offset: 2px;
+}
+
+.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas .fechas-grupo-personas-value {
+    flex: 0 0 3.5rem;
+    width: 3.5rem;
+    min-width: 3.5rem;
+    height: 3.25rem;
+    padding: 0;
+    margin: 0;
+    border: 2px solid rgba(26, 77, 58, 0.15) !important;
+    border-radius: 10px;
+    background: rgba(26, 77, 58, 0.06);
+    color: var(--color-primary-dark);
+    font-family: inherit;
+    font-size: 1.65rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    line-height: 3.25rem;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas .fechas-grupo-personas-value::placeholder {
+    color: rgba(26, 77, 58, 0.35);
+    font-weight: 600;
+}
+
+.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas .fechas-grupo-personas-value::-webkit-outer-spin-button,
+.fechas-tamanio-grupo-pre .fechas-grupo-counter--personas .fechas-grupo-personas-value::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 .fechas-dia-plan-hint {
-    margin: 0 0 0.75rem;
+    margin: 0 0 0.85rem;
+    font-size: 0.98rem;
+    line-height: 1.45;
+    color: var(--color-text);
 }
 
 .fechas-dia-plan-list {
     display: flex;
     flex-direction: column;
-    gap: 0.65rem;
+    gap: 0.75rem;
     min-width: 0;
 }
 
 .fechas-dia-plan-row {
     display: grid;
-    grid-template-columns: 10.5rem 9.25rem 9rem minmax(0, 1fr);
+    grid-template-columns: 11.25rem 10rem 9.5rem minmax(0, 1fr);
     align-items: center;
-    column-gap: 0.75rem;
-    row-gap: 0.35rem;
-    padding: 0.65rem 0.85rem;
-    background: var(--color-bg-light);
-    border: 1px solid rgba(26, 77, 58, 0.12);
-    border-radius: 8px;
+    column-gap: 0.85rem;
+    row-gap: 0.4rem;
+    padding: 0.85rem 1rem;
+    background: #fff;
+    border: 1px solid rgba(26, 77, 58, 0.2);
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(26, 77, 58, 0.08);
     min-width: 0;
     overflow: hidden;
 }
@@ -2198,27 +2292,30 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     grid-column: 1;
     width: 100%;
     min-width: 0;
-    line-height: 1.25;
-    font-size: 0.88rem;
+    line-height: 1.3;
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: var(--color-primary-dark, #143d2e);
     white-space: nowrap;
 }
 
 .fechas-dia-plan-row__campo .campo-dia-toggle {
     grid-column: 2;
     display: flex;
-    gap: 0.35rem;
+    gap: 0.4rem;
     width: 100%;
     min-width: 0;
-    max-width: 9.25rem;
+    max-width: 10rem;
 }
 
 .fechas-dia-plan-panel .campo-dia-toggle__btn {
     flex: 1 1 0;
     min-width: 0;
-    padding: 0.38rem 0.35rem;
-    font-size: 0.78rem;
-    line-height: 1.15;
-    border-width: 1px;
+    padding: 0.48rem 0.4rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    line-height: 1.2;
+    border-width: 1.5px;
     white-space: nowrap;
 }
 
@@ -2226,10 +2323,10 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     grid-column: 3;
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.4rem;
     min-width: 0;
     width: 100%;
-    max-width: 9rem;
+    max-width: 9.5rem;
     flex-shrink: 0;
 }
 
@@ -2245,9 +2342,9 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 .fechas-dia-plan-row__jugadores label {
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--color-text-light);
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--color-primary);
     white-space: nowrap;
     flex-shrink: 0;
 }
@@ -2259,19 +2356,21 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     min-width: 0;
     max-width: 100%;
     background: #fff;
-    border: 1px solid rgba(26, 77, 58, 0.18);
-    border-radius: 4px;
+    border: 1.5px solid rgba(26, 77, 58, 0.22);
+    border-radius: 6px;
     overflow: hidden;
 }
 
 .fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .ancillary-btn {
-    width: 1.75rem;
-    min-width: 1.75rem;
-    height: 1.75rem;
+    width: 2rem;
+    min-width: 2rem;
+    height: 2rem;
     flex-shrink: 0;
-    font-size: 0.95rem;
+    font-size: 1.05rem;
+    font-weight: 600;
     border: none !important;
     background: var(--color-bg-light);
+    color: var(--color-primary);
 }
 
 .fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .ancillary-btn-minus,
@@ -2282,27 +2381,31 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 .fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .fechas-jugadores-dia {
     flex: 0 1 auto;
-    width: 2rem;
-    min-width: 1.75rem;
-    max-width: 2.5rem;
-    padding: 0.2rem 0.1rem;
-    font-size: 0.85rem;
+    width: 2.35rem;
+    min-width: 2rem;
+    max-width: 2.75rem;
+    padding: 0.25rem 0.15rem;
+    font-size: 0.95rem;
+    font-weight: 700;
     text-align: center;
     border: none !important;
-    border-left: 1px solid rgba(26, 77, 58, 0.12) !important;
-    border-right: 1px solid rgba(26, 77, 58, 0.12) !important;
+    border-left: 1px solid rgba(26, 77, 58, 0.15) !important;
+    border-right: 1px solid rgba(26, 77, 58, 0.15) !important;
 }
 
 .fechas-dia-plan-panel .fechas-dia-plan-row__hora .hora-salida-picker__h,
 .fechas-dia-plan-panel .fechas-dia-plan-row__hora .hora-salida-picker__m {
-    min-width: 2.85rem;
-    max-width: 3.25rem;
-    padding: 0.32rem 0.25rem;
-    font-size: 0.82rem;
+    min-width: 3rem;
+    max-width: 3.5rem;
+    padding: 0.42rem 0.3rem;
+    font-size: 0.92rem;
+    font-weight: 600;
 }
 
 .fechas-dia-plan-panel .fechas-dia-plan-row__hora label {
-    font-size: 0.75rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--color-primary);
     flex-shrink: 0;
 }
 
@@ -2311,9 +2414,9 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 .fechas-dia-plan-row__hora label {
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: var(--color-text-light);
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--color-primary);
     white-space: nowrap;
 }
 
@@ -2340,9 +2443,11 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     flex-wrap: wrap;
     align-items: center;
     gap: 0.65rem 1rem;
-    padding: 0.65rem 0.85rem;
-    background: var(--color-bg-light);
-    border: 1px solid rgba(26, 77, 58, 0.12);
+    padding: 0.85rem 1rem;
+    background: #fff;
+    border: 1px solid rgba(26, 77, 58, 0.2);
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(26, 77, 58, 0.08);
 }
 
 .fechas-dia-plan-row--grupo[hidden] {
@@ -2436,54 +2541,73 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         padding-top: 0.35rem;
     }
 
+    .fechas-dia-plan-hint {
+        font-size: 1.02rem;
+    }
+
     .fechas-dia-plan-panel .fechas-dia-plan-row {
-        grid-template-columns: 9.75rem 8.75rem 8.5rem minmax(0, 1fr);
-        column-gap: 0.65rem;
-        padding: 0.55rem 0.7rem;
+        grid-template-columns: 11.75rem 10.5rem 10rem minmax(0, 1fr);
+        column-gap: 0.9rem;
+        padding: 0.95rem 1.1rem;
     }
 
     .fechas-dia-plan-panel .fechas-dia-plan-row__hora {
-        max-width: 8.5rem;
+        max-width: 10rem;
     }
 
     .fechas-dia-plan-panel .fechas-dia-plan-row__campo .campos-dias-item__dia-label {
-        font-size: 0.82rem;
-        line-height: 1.2;
+        font-size: 1.05rem;
+        line-height: 1.3;
     }
 
     .fechas-dia-plan-panel .fechas-dia-plan-row__campo .campo-dia-toggle {
-        max-width: 8.75rem;
-        gap: 0.3rem;
+        max-width: 10.5rem;
+        gap: 0.45rem;
     }
 
     .fechas-dia-plan-panel .fechas-dia-plan-row__campo .campo-dia-toggle__btn {
-        font-size: 0.74rem;
-        padding: 0.34rem 0.25rem;
+        font-size: 0.92rem;
+        padding: 0.52rem 0.45rem;
     }
 
     .fechas-dia-plan-panel .fechas-dia-plan-row__hora label,
     .fechas-dia-plan-panel .fechas-dia-plan-row__jugadores label {
-        font-size: 0.72rem;
+        font-size: 0.92rem;
     }
 
     .fechas-dia-plan-panel .fechas-dia-plan-row__hora .hora-salida-picker__h,
     .fechas-dia-plan-panel .fechas-dia-plan-row__hora .hora-salida-picker__m {
-        min-width: 2.65rem;
-        max-width: 3rem;
-        padding: 0.28rem 0.2rem;
-        font-size: 0.78rem;
+        min-width: 3.15rem;
+        max-width: 3.6rem;
+        padding: 0.45rem 0.32rem;
+        font-size: 0.96rem;
+    }
+
+    .fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .ancillary-btn {
+        width: 2.15rem;
+        min-width: 2.15rem;
+        height: 2.15rem;
+        font-size: 1.1rem;
+    }
+
+    .fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .fechas-jugadores-dia {
+        font-size: 1rem;
+        width: 2.5rem;
+        min-width: 2.15rem;
     }
 }
 
 @media (max-width: 599px) {
     .fechas-dia-plan-row {
         grid-template-columns: 1fr 1fr;
-        row-gap: 0.5rem;
-        column-gap: 0.65rem;
+        row-gap: 0.55rem;
+        column-gap: 0.7rem;
+        padding: 0.9rem 0.85rem;
     }
 
     .fechas-dia-plan-row__campo .campos-dias-item__dia-label {
         grid-column: 1 / -1;
+        font-size: 1rem;
     }
 
     .fechas-dia-plan-row__campo .campo-dia-toggle {
@@ -5035,10 +5159,10 @@ body.datos-reserva-modal-open {
 }
 
 .comida-menu-card__nombre {
-    font-size: 0.82rem;
+    font-size: 1.08rem;
     font-weight: 700;
     color: #fff;
-    line-height: 1.25;
+    line-height: 1.3;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 
@@ -5066,15 +5190,15 @@ body.datos-reserva-modal-open {
 }
 
 .comida-menu-card__precio-num {
-    font-size: 1.05rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: #fff;
 }
 
 .comida-menu-card__precio-unit {
-    font-size: 0.72rem;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.92);
 }
 
 .comida-menu-card__controls,
@@ -5449,6 +5573,18 @@ body.datos-reserva-modal-open {
     .comida-menu-card {
         width: auto;
         min-height: 14rem;
+    }
+
+    .comida-menu-card__nombre {
+        font-size: 1.12rem;
+    }
+
+    .comida-menu-card__precio-num {
+        font-size: 1.6rem;
+    }
+
+    .comida-menu-card__precio-unit {
+        font-size: 1rem;
     }
 }
 
@@ -11930,18 +12066,20 @@ body.page-torneo .torneo-detalle-section {
 }
 
 .ancillary-service-card__title {
-    font-size: 0.82rem;
+    font-size: 1.08rem;
     font-weight: 700;
-    line-height: 1.25;
+    line-height: 1.3;
     color: #fff;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 
 .ancillary-service-card .ancillary-precio {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.92);
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fff;
     white-space: nowrap;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 
 @media (min-width: 640px) {
@@ -11958,6 +12096,14 @@ body.page-torneo .torneo-detalle-section {
     .ancillary-service-card {
         width: auto;
         min-height: 14rem;
+    }
+
+    .ancillary-service-card__title {
+        font-size: 1.12rem;
+    }
+
+    .ancillary-service-card .ancillary-precio {
+        font-size: 1.6rem;
     }
 }
 

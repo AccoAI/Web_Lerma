@@ -232,6 +232,8 @@
   "config_datos_participantes": "2. Datos de la reserva",
   "label_tamanio_grupo": "Tamaño del grupo *",
   "label_num_personas": "Número de personas *",
+  "hint_num_personas": "Pulsa el botón verde + para indicar cuántas personas viajan.",
+  "btn_anadir_persona": "Añadir",
   "label_jugadores_dia": "Jugadores",
   "label_num_comensales": "Número de comensales",
   "label_hora_salida": "Hora de salida",

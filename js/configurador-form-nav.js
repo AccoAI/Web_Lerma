@@ -103,6 +103,16 @@
     });
   }
 
+  function triggerConfiguradorSubmit(form) {
+    if (typeof window.procesarReservaConfiguradorPaquete === 'function') {
+      window.procesarReservaConfiguradorPaquete();
+      return;
+    }
+    form.dataset.explicitSubmit = '1';
+    if (typeof form.requestSubmit === 'function') form.requestSubmit();
+    else form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+  }
+
   function wireSubmitButtons(form) {
     var formId = form.id;
     var selector = formId
@@ -113,9 +123,7 @@
       btn.setAttribute('data-config-submit-wired', '1');
       if (btn.type === 'submit') btn.type = 'button';
       btn.addEventListener('click', function () {
-        form.dataset.explicitSubmit = '1';
-        if (typeof form.requestSubmit === 'function') form.requestSubmit();
-        else form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        triggerConfiguradorSubmit(form);
       });
     });
     form.querySelectorAll('button.btn-reservar-paquete[type="submit"]').forEach(function (btn) {
@@ -123,9 +131,7 @@
       btn.setAttribute('data-config-submit-wired', '1');
       btn.type = 'button';
       btn.addEventListener('click', function () {
-        form.dataset.explicitSubmit = '1';
-        if (typeof form.requestSubmit === 'function') form.requestSubmit();
-        else form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        triggerConfiguradorSubmit(form);
       });
     });
   }

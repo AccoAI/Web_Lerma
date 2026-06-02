@@ -2143,14 +2143,22 @@ function initConfiguradorPaquete() {
         }
     }
 
-    if (form) {
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
+    function procesarReservaConfiguradorPaquete() {
+            if (!form) return;
 
             var formDataEarly = new FormData(form);
             var nochesEarly = formDataEarly.get('noches');
             if (!nochesEarly || parseInt(nochesEarly, 10) < 1) {
                 alert('Selecciona al menos una noche en el calendario (elige las fechas de tu estancia).');
+                return;
+            }
+            if (!isTamanioGrupoCompleto()) {
+                alert('Indica el número de personas antes de reservar.');
+                var tgFocus = document.getElementById('tamanio-grupo');
+                if (tgFocus) {
+                    tgFocus.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    try { tgFocus.focus({ preventScroll: true }); } catch (err) { tgFocus.focus(); }
+                }
                 return;
             }
             var totalEarly = (typeof window.getTotalFromResumen === 'function') ? window.getTotalFromResumen() : 0;
@@ -2227,6 +2235,14 @@ function initConfiguradorPaquete() {
             } else {
                 alert('Error: módulo de pago no cargado. Recarga la página e inténtalo de nuevo.');
             }
+    }
+
+    window.procesarReservaConfiguradorPaquete = procesarReservaConfiguradorPaquete;
+
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            procesarReservaConfiguradorPaquete();
         });
     }
 }

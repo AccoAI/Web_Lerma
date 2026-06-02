@@ -17,6 +17,19 @@
         return document.getElementById(MODAL_ID);
     }
 
+    function getModalFormFields() {
+        var modal = getModal();
+        if (!modal) return [];
+        return Array.prototype.slice.call(modal.querySelectorAll('[form="' + FORM_ID + '"]'));
+    }
+
+    function setModalFormFieldsEnabled(enabled) {
+        getModalFormFields().forEach(function (el) {
+            if (enabled) el.removeAttribute('disabled');
+            else el.setAttribute('disabled', 'disabled');
+        });
+    }
+
     function isDatosReservaOk(form) {
         return form && form.getAttribute(OK_ATTR) === '1';
     }
@@ -30,6 +43,7 @@
     function openModal() {
         var modal = getModal();
         if (!modal) return;
+        setModalFormFieldsEnabled(true);
         modal.hidden = false;
         modal.setAttribute('aria-hidden', 'false');
         document.body.classList.add('datos-reserva-modal-open');
@@ -51,6 +65,7 @@
         modal.hidden = true;
         modal.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('datos-reserva-modal-open');
+        if (!isDatosReservaOk(getForm())) setModalFormFieldsEnabled(false);
     }
 
     function validateConsent(form) {
@@ -130,6 +145,7 @@
     }
 
     function init() {
+        setModalFormFieldsEnabled(false);
         wireModal();
     }
 
@@ -139,6 +155,7 @@
         },
         reset: function () {
             setDatosReservaOk(getForm(), false);
+            setModalFormFieldsEnabled(false);
             var hint = document.getElementById('datos-reserva-ok-hint');
             if (hint) hint.hidden = true;
         },

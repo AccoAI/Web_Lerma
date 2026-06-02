@@ -72,16 +72,22 @@
             <!-- Configurador de Paquete -->
             <div class="configurador-paquete">
                 <div class="configurador-layout">
-                <form id="configuradorForm" class="configurador-form">
+                <form id="configuradorForm" class="configurador-form" novalidate>
                     <!-- Fechas / noches (calendario) -->
                     <div class="configurador-seccion configurador-seccion--fechas">
                         <div id="fechas-tamanio-grupo-pre" class="fechas-grupo-default-bar fechas-tamanio-grupo-pre">
-                            <div id="fechas-tamanio-grupo-wrap" class="fechas-dia-plan-row__grupo-item form-group-inline form-group-quantity">
+                            <div id="fechas-tamanio-grupo-wrap" class="fechas-dia-plan-row__grupo-item fechas-grupo-personas-wrap form-group-quantity">
                                 <label for="tamanio-grupo" data-i18n="label_num_personas">Número de personas *</label>
-                                <div class="ancillary-counter-wrap reserva-quantity-wrap fechas-grupo-counter fechas-grupo-counter--personas">
-                                    <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir personas">−</button>
-                                    <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" max="54" required class="ancillary-counter reserva-quantity-input" readonly title="Número de personas" enterkeyhint="next" placeholder="—">
-                                    <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar personas">+</button>
+                                <p id="tamanio-grupo-hint" class="fechas-grupo-personas-hint" data-i18n="hint_num_personas">Pulsa el botón verde + para indicar cuántas personas viajan.</p>
+                                <div class="ancillary-counter-wrap reserva-quantity-wrap fechas-grupo-counter fechas-grupo-counter--personas" role="group" aria-labelledby="tamanio-grupo-hint">
+                                    <button type="button" class="ancillary-btn ancillary-btn-minus fechas-grupo-btn fechas-grupo-btn--minus" aria-label="Quitar una persona">
+                                        <span class="fechas-grupo-btn__symbol" aria-hidden="true">−</span>
+                                    </button>
+                                    <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" max="54" required class="ancillary-counter reserva-quantity-input fechas-grupo-personas-value" readonly title="Número de personas" enterkeyhint="next" placeholder="0" aria-describedby="tamanio-grupo-hint">
+                                    <button type="button" class="ancillary-btn ancillary-btn-plus fechas-grupo-btn fechas-grupo-btn--plus" aria-label="Añadir una persona">
+                                        <span class="fechas-grupo-btn__symbol" aria-hidden="true">+</span>
+                                        <span class="fechas-grupo-btn__label" data-i18n="btn_anadir_persona">Añadir</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>

@@ -232,6 +232,8 @@
   "config_datos_participantes": "2. Booking details",
   "label_tamanio_grupo": "Group size *",
   "label_num_personas": "Number of people *",
+  "hint_num_personas": "Press the green + button to enter how many people are travelling.",
+  "btn_anadir_persona": "Add",
   "label_jugadores_dia": "Players",
   "label_num_comensales": "Number of diners",
   "label_hora_salida": "Departure time",

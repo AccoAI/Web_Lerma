@@ -232,6 +232,8 @@
   "config_datos_participantes": "2. Données de la réservation",
   "label_tamanio_grupo": "Taille du groupe *",
   "label_num_personas": "Nombre de personnes *",
+  "hint_num_personas": "Appuyez sur le bouton vert + pour indiquer combien de personnes voyagent.",
+  "btn_anadir_persona": "Ajouter",
   "label_jugadores_dia": "Joueurs",
   "label_num_comensales": "Nombre de convives",
   "label_hora_salida": "Heure de départ",
