@@ -641,11 +641,9 @@ function initConfiguradorPaquete() {
 
     function syncFechasGolfBodyVisibility() {
         var body = document.getElementById('fechas-golf-body');
-        var hintPre = document.getElementById('fechas-tamanio-grupo-hint');
         if (!body) return;
         var ready = isTamanioGrupoCompleto();
         body.hidden = !ready;
-        if (hintPre) hintPre.hidden = ready;
         if (ready) recalcNumeroGrupos();
     }
 
@@ -1374,9 +1372,9 @@ function initConfiguradorPaquete() {
             '<div class="comida-menu-card__content">' +
             '<span class="comida-menu-card__nombre">' + escapeHtmlComida(menu.label) + '</span>' +
             (precio !== '' ? '<span class="comida-menu-card__precio"><span class="comida-menu-card__precio-num">' + precio + ' €</span><span class="comida-menu-card__precio-unit">/ pers.</span></span>' : '') +
-            '<div class="comida-menu-card__controls">' +
-            '<span class="comida-menu-card__pax-label">' + escapeHtmlComida(paxLbl) + '</span>' +
-            '<div class="ancillary-counter-wrap comida-menu-card__counter">' +
+            '<div class="config-card-controls">' +
+            '<span class="config-card-controls__label">' + escapeHtmlComida(paxLbl) + '</span>' +
+            '<div class="ancillary-counter-wrap config-card-counter">' +
             '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Menos comensales">−</button>' +
             '<input type="number" id="' + inputId + '" min="0" max="' + maxPax + '" value="' + paxVal + '" class="ancillary-counter comida-menu-comensales" data-dia="' + dia + '" data-menu="' + escapeHtmlComida(menu.id) + '" readonly aria-label="' + escapeHtmlComida(paxLbl) + '">' +
             '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Más comensales">+</button>' +
@@ -1476,7 +1474,8 @@ function initConfiguradorPaquete() {
             '<div class="ancillary-service-card__content">' +
             '<span class="ancillary-service-card__title">' + escapeHtmlComida(label) + '</span>' +
             '<span class="ancillary-precio" data-ancillary="' + escapeHtmlComida(svc.precioKey) + '"></span>' +
-            '<div class="ancillary-counter-wrap ancillary-service-card__counter">' +
+            '<div class="config-card-controls config-card-controls--solo-counter">' +
+            '<div class="ancillary-counter-wrap config-card-counter">' +
             '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>' +
             '<input type="number" id="' + escapeHtmlComida(inputId) + '" name="' + escapeHtmlComida(inputName) + '" min="0" max="20" value="' + qty + '" class="ancillary-counter" readonly>' +
             '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar">+</button>' +
@@ -2147,6 +2146,24 @@ function initConfiguradorPaquete() {
     if (form) {
         form.addEventListener('submit', function (e) {
             e.preventDefault();
+
+            var formDataEarly = new FormData(form);
+            var nochesEarly = formDataEarly.get('noches');
+            if (!nochesEarly || parseInt(nochesEarly, 10) < 1) {
+                alert('Selecciona al menos una noche en el calendario (elige las fechas de tu estancia).');
+                return;
+            }
+            var totalEarly = (typeof window.getTotalFromResumen === 'function') ? window.getTotalFromResumen() : 0;
+            if (totalEarly <= 0) {
+                alert('Completa las opciones del paquete para ver el total y proceder al pago.');
+                return;
+            }
+
+            if (window.configuradorDatosReserva && window.configuradorDatosReserva.shouldInterceptSubmit()) {
+                window.configuradorDatosReserva.open();
+                return;
+            }
+
             if (!form.reportValidity()) return;
             if (typeof window.validarTelefonosForm === 'function' && !window.validarTelefonosForm(form)) return;
             var formData = new FormData(form);

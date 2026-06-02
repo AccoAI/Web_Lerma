@@ -59,13 +59,13 @@
             if (campo !== 'lerma' && campo !== 'saldana') return;
             var hid = item.querySelector('input[type="hidden"][name^="campo-dia-"]');
             var actual = hid ? String(hid.value || '').trim() : '';
-            if (actual === campo) return;
-            setToggleActivo(item, campo);
+            var next = actual === campo ? '' : campo;
+            setToggleActivo(item, next);
             if (hid) {
                 hid.dispatchEvent(new Event('change', { bubbles: true }));
                 hid.dispatchEvent(new Event('input', { bubbles: true }));
             }
-            if (typeof onChange === 'function') onChange(item, campo);
+            if (typeof onChange === 'function') onChange(item, next);
         });
     }
 

@@ -67,9 +67,9 @@ function initUsuariosForm() {
             const row = document.createElement('div');
             row.className = 'correspondencia-grupos-row';
             row.innerHTML =
-                '<input type="number" name="correspondencia_grupo[][cantidad]" min="1" class="corr-grupo-cantidad" placeholder="Nº" value="1" title="Personas">' +
+                '<input type="number" form="configuradorForm" name="correspondencia_grupo[][cantidad]" min="1" class="corr-grupo-cantidad" placeholder="Nº" value="1" title="Personas">' +
                 '<span class="corr-grupo-con">con</span>' +
-                '<select name="correspondencia_grupo[][club_id]" class="corr-grupo-club" aria-label="Club de correspondencia">' + optHtml + '</select>' +
+                '<select form="configuradorForm" name="correspondencia_grupo[][club_id]" class="corr-grupo-club" aria-label="Club de correspondencia">' + optHtml + '</select>' +
                 '<button type="button" class="btn-eliminar-grupo" aria-label="Quitar fila">×</button>';
             rowsCont.appendChild(row);
             row.querySelector('.btn-eliminar-grupo').addEventListener('click', function () {
@@ -93,10 +93,10 @@ function initUsuariosForm() {
         const req = (extraOpt && numero >= 2) ? '' : ' required';
 
         var telefonoHtmlReq = '<div class="form-group-usuario form-group-telefono"><label>Móvil *</label><div class="telefono-wrapper">' +
-            '<select class="telefono-prefijo" name="usuario[' + numero + '][movil_prefijo]" aria-label="Prefijo país">' +
+            '<select class="telefono-prefijo" form="configuradorForm" name="usuario[' + numero + '][movil_prefijo]" aria-label="Prefijo país">' +
             '<option value="+34" selected>+34</option><option value="+33">+33</option><option value="+44">+44</option>' +
             '<option value="+39">+39</option><option value="+351">+351</option><option value="+49">+49</option></select>' +
-            '<input type="tel" name="usuario[' + numero + '][movil]" class="telefono-numero" placeholder="612 345 678"' + req + '></div></div>';
+            '<input type="tel" form="configuradorForm" name="usuario[' + numero + '][movil]" class="telefono-numero" placeholder="612 345 678"' + req + '></div></div>';
         var telefonoHtmlOpt = telefonoHtmlReq.replace(' required', '');
         if (esExtraSimplificado) {
             usuarioDiv.innerHTML =
@@ -105,8 +105,8 @@ function initUsuariosForm() {
                 '<button type="button" class="btn-eliminar-usuario" onclick="eliminarUsuario(this)"><span>×</span> Eliminar</button>' +
                 '</div>' +
                 '<div class="usuario-campos">' +
-                '<div class="form-group-usuario"><label>Nombre</label><input type="text" name="usuario[' + numero + '][nombre]"></div>' +
-                '<div class="form-group-usuario"><label>Correo</label><input type="email" name="usuario[' + numero + '][correo]"></div>' +
+                '<div class="form-group-usuario"><label>Nombre</label><input type="text" form="configuradorForm" name="usuario[' + numero + '][nombre]"></div>' +
+                '<div class="form-group-usuario"><label>Correo</label><input type="email" form="configuradorForm" name="usuario[' + numero + '][correo]"></div>' +
                 telefonoHtmlOpt +
                 '</div>';
         } else {
@@ -116,15 +116,15 @@ function initUsuariosForm() {
                 '<button type="button" class="btn-eliminar-usuario" onclick="eliminarUsuario(this)"><span>×</span> Eliminar</button>' +
                 '</div>' +
                 '<div class="usuario-campos">' +
-                '<div class="form-group-usuario"><label>Nombre *</label><input type="text" name="usuario[' + numero + '][nombre]"' + req + '></div>' +
-                '<div class="form-group-usuario"><label>Correo *</label><input type="email" name="usuario[' + numero + '][correo]"' + req + '></div>' +
+                '<div class="form-group-usuario"><label>Nombre *</label><input type="text" form="configuradorForm" name="usuario[' + numero + '][nombre]"' + req + '></div>' +
+                '<div class="form-group-usuario"><label>Correo *</label><input type="email" form="configuradorForm" name="usuario[' + numero + '][correo]"' + req + '></div>' +
                 telefonoHtmlReq +
                 '<div class="form-group form-group-correspondencia" data-campo="paquete">' +
                 '<label>Club / Campo de procedencia (para tarifa correspondencia)</label>' +
-                '<select name="usuario[' + numero + '][club_correspondencia]" class="select-club-correspondencia"></select>' +
+                '<select form="configuradorForm" name="usuario[' + numero + '][club_correspondencia]" class="select-club-correspondencia"></select>' +
                 '<div class="correspondencia-precio-info"></div></div>' +
-                '<div class="form-group-usuario"><label>Club</label><input type="text" name="usuario[' + numero + '][club]"></div>' +
-                '<div class="form-group-usuario"><label>Handicap</label><input type="number" name="usuario[' + numero + '][handicap]" min="0" max="54" step="0.1"></div>' +
+                '<div class="form-group-usuario"><label>Club</label><input type="text" form="configuradorForm" name="usuario[' + numero + '][club]"></div>' +
+                '<div class="form-group-usuario"><label>Handicap</label><input type="number" form="configuradorForm" name="usuario[' + numero + '][handicap]" min="0" max="54" step="0.1"></div>' +
                 '</div>';
         }
 
