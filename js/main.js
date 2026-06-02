@@ -536,20 +536,40 @@ function initConfiguradorPaquete() {
 
     function syncPlanHoraRowFinSemana(row, dayIndex, numDias) {
         if (!row) return;
-        var horaWrap = row.querySelector('.fechas-dia-plan-row__hora');
-        if (!horaWrap) return;
         var conCampo = campoDiaTieneReservaFinSemana(dayIndex);
-        horaWrap.classList.toggle('is-disabled', !conCampo);
-        var name = numDias === 1 ? 'hora_salida' : 'hora_salida_dia_' + dayIndex;
-        horaWrap.querySelectorAll('input[name="' + name + '"], .hora-salida-picker__h, .hora-salida-picker__m').forEach(function (el) {
+        var horaWrap = row.querySelector('.fechas-dia-plan-row__hora');
+        if (horaWrap) {
+            horaWrap.classList.toggle('is-disabled', !conCampo);
+            var name = numDias === 1 ? 'hora_salida' : 'hora_salida_dia_' + dayIndex;
+            horaWrap.querySelectorAll('input[name="' + name + '"], .hora-salida-picker__h, .hora-salida-picker__m').forEach(function (el) {
+                if (conCampo) {
+                    el.removeAttribute('disabled');
+                    if (el.tagName === 'INPUT') el.setAttribute('required', 'required');
+                } else {
+                    el.setAttribute('disabled', 'disabled');
+                    el.removeAttribute('required');
+                }
+            });
+        }
+        var jugWrap = row.querySelector('.fechas-dia-plan-row__jugadores');
+        if (jugWrap) {
+            jugWrap.classList.toggle('is-disabled', !conCampo);
+            var jugInp = jugWrap.querySelector('.fechas-jugadores-dia');
+            var jugBtns = jugWrap.querySelectorAll('.ancillary-btn');
             if (conCampo) {
-                el.removeAttribute('disabled');
-                if (el.tagName === 'INPUT') el.setAttribute('required', 'required');
+                if (jugInp) {
+                    jugInp.removeAttribute('disabled');
+                    jugInp.setAttribute('required', 'required');
+                }
+                jugBtns.forEach(function (b) { b.removeAttribute('disabled'); });
             } else {
-                el.setAttribute('disabled', 'disabled');
-                el.removeAttribute('required');
+                if (jugInp) {
+                    jugInp.setAttribute('disabled', 'disabled');
+                    jugInp.removeAttribute('required');
+                }
+                jugBtns.forEach(function (b) { b.setAttribute('disabled', 'disabled'); });
             }
-        });
+        }
     }
 
     function syncPlanHoraRowsFinSemana(numDias) {

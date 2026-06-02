@@ -2357,7 +2357,9 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 .fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .ancillary-counter-wrap {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1.9rem minmax(0, 1fr) 1.9rem;
+    align-items: stretch;
     width: 100%;
     min-width: 0;
     max-width: 100%;
@@ -2379,8 +2381,14 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     color: var(--color-primary);
 }
 
-.fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .ancillary-btn-minus,
+.fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .ancillary-btn-minus {
+    grid-column: 1;
+    border-left: none !important;
+    border-right: none !important;
+}
+
 .fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .ancillary-btn-plus {
+    grid-column: 3;
     border-left: none !important;
     border-right: none !important;
 }
@@ -2400,17 +2408,20 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 .fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .fechas-jugadores-dia {
-    flex: 1 1 auto;
-    width: auto;
+    grid-column: 2;
+    width: 100%;
     min-width: 0;
     max-width: none;
-    padding: 0.2rem 0.1rem;
+    margin: 0;
+    padding: 0.2rem 0.35rem;
     font-size: 0.9rem;
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
     text-align: center;
     border: none !important;
     border-left: 1px solid rgba(26, 77, 58, 0.15) !important;
     border-right: 1px solid rgba(26, 77, 58, 0.15) !important;
+    box-sizing: border-box;
 }
 
 .fechas-dia-plan-panel .fechas-dia-plan-row__hora .hora-salida-picker {
@@ -2462,9 +2473,14 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     min-width: 0;
 }
 
-.fechas-dia-plan-row__hora.is-disabled {
+.fechas-dia-plan-row__hora.is-disabled,
+.fechas-dia-plan-row__jugadores.is-disabled {
     opacity: 0.55;
     pointer-events: none;
+}
+
+.fechas-dia-plan-row__jugadores.is-disabled label {
+    color: var(--color-text-light, #888);
 }
 
 .fechas-dia-plan-row__grupo {
@@ -4733,34 +4749,82 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
 
 .configurador-resumen .datos-reserva-inline .participantes-extras-opcional--inline {
     margin: 0.35rem 0 0.65rem;
-    font-size: 0.88rem;
+    font-size: 0.82rem;
     color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
 }
 
 .configurador-resumen .datos-reserva-inline .participantes-extras-opcional--inline .participantes-extras-summary {
     color: rgba(255, 255, 255, 0.95);
+    padding: 0.45rem 0.6rem;
+}
+
+.configurador-resumen .datos-reserva-inline .participantes-extras-opcional--inline .participantes-extras-summary::before {
+    border-right-color: var(--color-accent);
+    border-bottom-color: var(--color-accent);
+}
+
+.configurador-resumen .datos-reserva-inline .participantes-extras-opcional--inline .extras-opcional-tag {
+    color: var(--color-accent);
+    opacity: 1;
 }
 
 .configurador-resumen .datos-reserva-inline .participantes-extras-opcional--inline .participantes-extras-body {
-    margin-top: 0.5rem;
-    padding: 0.65rem 0.75rem;
-    background: rgba(0, 0, 0, 0.12);
-    border-radius: 6px;
+    margin-top: 0;
+    padding: 0.5rem 0.6rem 0.55rem;
+    background: transparent;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 0;
 }
 
-.configurador-resumen .datos-reserva-inline .handicap-grupo-inline label {
-    color: var(--color-accent);
-    font-size: 0.88rem;
+.configurador-resumen .datos-reserva-inline .correspondencia-grupos-hint {
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 0.74rem;
+    opacity: 1;
 }
 
-.configurador-resumen .datos-reserva-inline .handicap-grupo-inline input {
-    width: 100%;
-    padding: 0.55rem 0.65rem;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 4px;
+.configurador-resumen .datos-reserva-inline .corr-grupo-con {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.72rem;
+}
+
+.configurador-resumen .datos-reserva-inline .correspondencia-grupos-row .corr-grupo-cantidad,
+.configurador-resumen .datos-reserva-inline .correspondencia-grupos-row .corr-grupo-club {
+    padding: 0.35rem 0.4rem;
+    font-size: 0.82rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
     background: rgba(255, 255, 255, 0.96);
     color: var(--color-text);
-    box-sizing: border-box;
+}
+
+.configurador-resumen .datos-reserva-inline .correspondencia-grupos-row .btn-eliminar-grupo {
+    color: rgba(255, 255, 255, 0.85);
+    border-color: rgba(255, 255, 255, 0.35);
+    background: transparent;
+    font-size: 0.9rem;
+}
+
+.configurador-resumen .datos-reserva-inline .correspondencia-grupos-row .btn-eliminar-grupo:hover {
+    background: rgba(220, 53, 69, 0.35);
+    border-color: rgba(255, 255, 255, 0.45);
+    color: #fff;
+}
+
+.configurador-resumen .datos-reserva-inline .btn-anadir-grupo {
+    margin-top: 0.4rem;
+    font-size: 0.74rem;
+    color: rgba(255, 255, 255, 0.92);
+    border-color: rgba(255, 255, 255, 0.38);
+    background: transparent;
+}
+
+.configurador-resumen .datos-reserva-inline .btn-anadir-grupo:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
 }
 
 /* Participantes opcionales: más compactos que el titular de la reserva */

@@ -251,6 +251,8 @@
   "label_nombre_req": "Nombre *",
   "label_handicap_grupo": "Handicap del grupo (orientativo)",
   "placeholder_handicap": "Ej. 18 o 15-25",
+  "extras_correspondencia_summary": "Correspondencia por club",
+  "opcional_tag": "opcional",
   "btn_anadir_participante": "Añadir participante (opcional)",
   "servicios_adicionales": "5. Servicios adicionales",
   "anc_buggies": "Buggies",
