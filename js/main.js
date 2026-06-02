@@ -1768,6 +1768,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initConfiguradorPaquete();
     fillAncillaryPrices();
     initNativePickerFix();
+    if (typeof window.enhanceFooterMapLinks === 'function') window.enhanceFooterMapLinks();
 
     // Actualizar datos del tiempo cada 5 minutos
     setInterval(updateTiempoData, 300000);
