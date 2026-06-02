@@ -2300,29 +2300,24 @@ function initConfiguradorPaquete() {
             e.preventDefault();
             procesarReservaConfiguradorPaquete();
         });
+        if (typeof window.refreshConfiguradorFormNav === 'function') {
+            window.refreshConfiguradorFormNav(form);
+        }
     }
 }
 
-// Resumen móvil: barra inferior desplegable
+// Resumen móvil: barra inferior desplegable (estilo bottom sheet, como torneos)
 (function () {
-    var bodyScrollLockY = 0;
-
-    function lockBodyScroll() {
-        bodyScrollLockY = window.scrollY || window.pageYOffset || 0;
-        document.body.style.position = 'fixed';
-        document.body.style.top = '-' + bodyScrollLockY + 'px';
-        document.body.style.left = '0';
-        document.body.style.right = '0';
-        document.body.style.width = '100%';
-    }
-
-    function unlockBodyScroll() {
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.left = '';
-        document.body.style.right = '';
-        document.body.style.width = '';
-        window.scrollTo(0, bodyScrollLockY);
+    function triggerMobileReserva() {
+        if (typeof window.procesarReservaConfiguradorPaquete === 'function') {
+            window.procesarReservaConfiguradorPaquete();
+            return;
+        }
+        var form = document.getElementById('configuradorForm');
+        if (form && typeof form.requestSubmit === 'function') {
+            form.dataset.explicitSubmit = '1';
+            form.requestSubmit();
+        }
     }
 
     function updateMobileTotal() {
@@ -2343,15 +2338,34 @@ function initConfiguradorPaquete() {
             }
         }
     }
+    function wireMobileReservarBar(wrapper) {
+        var btnWrap = wrapper.querySelector('.resumen-mobile-btn-wrap');
+        if (!btnWrap || btnWrap.getAttribute('data-reserva-mobile-wired') === '1') return;
+        btnWrap.setAttribute('data-reserva-mobile-wired', '1');
+        function onReservarTap(e) {
+            var btn = e.target.closest('.btn-reservar-paquete-mobile, .btn-reservar-paquete');
+            if (!btn || !btnWrap.contains(btn)) return;
+            e.preventDefault();
+            e.stopPropagation();
+            triggerMobileReserva();
+        }
+        btnWrap.addEventListener('click', onReservarTap);
+    }
+
     function cloneReservarIntoBar(wrapper) {
         var btnWrap = wrapper.querySelector('.resumen-mobile-btn-wrap');
         var btn = wrapper.querySelector('.configurador-resumen .btn-reservar-paquete');
         if (!btnWrap || !btn) return;
-        if (btnWrap.querySelector('.btn-reservar-paquete, .btn-reservar-paquete-mobile')) return;
+        if (btnWrap.querySelector('.btn-reservar-paquete, .btn-reservar-paquete-mobile')) {
+            wireMobileReservarBar(wrapper);
+            return;
+        }
         var clone = btn.cloneNode(true);
         clone.classList.add('btn-reservar-paquete-mobile');
         clone.removeAttribute('id');
+        clone.type = 'button';
         btnWrap.appendChild(clone);
+        wireMobileReservarBar(wrapper);
         if (typeof window.refreshConfiguradorFormNav === 'function') {
             var fid = clone.getAttribute('form') || (btn.getAttribute('form'));
             var targetForm = fid ? document.getElementById(fid) : null;
@@ -2376,11 +2390,9 @@ function initConfiguradorPaquete() {
                 if (open) {
                     wrapper.classList.add('expanded');
                     document.body.classList.add('resumen-drawer-open');
-                    lockBodyScroll();
                 } else {
                     wrapper.classList.remove('expanded');
                     document.body.classList.remove('resumen-drawer-open');
-                    unlockBodyScroll();
                 }
                 tab.setAttribute('aria-expanded', open ? 'true' : 'false');
             }
@@ -2402,16 +2414,6 @@ function initConfiguradorPaquete() {
                     setDrawerOpen(false);
                 }
             });
-            document.addEventListener('click', function (e) {
-                if (!wrapper.classList.contains('expanded')) return;
-                if (drawer && (drawer.contains(e.target) || tab.contains(e.target))) return;
-                setDrawerOpen(false);
-            });
-            document.addEventListener('touchmove', function (e) {
-                if (!document.body.classList.contains('resumen-drawer-open')) return;
-                if (drawerContent && drawerContent.contains(e.target)) return;
-                e.preventDefault();
-            }, { passive: false });
             if (drawer) {
                 drawer.addEventListener('touchstart', function (e) {
                     if (!wrapper.classList.contains('expanded') || !e.touches || !e.touches.length) return;

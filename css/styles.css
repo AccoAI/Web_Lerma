@@ -11699,6 +11699,9 @@ body.page-torneo .torneo-detalle-section {
     }
 
     .resumen-mobile-wrapper {
+        display: flex;
+        flex-direction: column-reverse;
+        align-items: stretch;
         position: fixed;
         left: 0;
         right: 0;
@@ -11730,28 +11733,11 @@ body.page-torneo .torneo-detalle-section {
         visibility: hidden;
     }
 
-    body.resumen-drawer-open::before {
-        content: '';
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.42);
-        z-index: 10090;
-    }
-
     body.resumen-drawer-open {
         overflow: hidden;
-        touch-action: none;
     }
 
-    body.resumen-drawer-open .chatbot-wrapper {
-        z-index: 100;
-        pointer-events: none;
-        visibility: hidden;
-        opacity: 0;
-    }
-
-    body.resumen-drawer-open .resumen-mobile-wrapper,
-    .resumen-mobile-wrapper.expanded {
+    body.resumen-drawer-open .resumen-mobile-wrapper {
         z-index: 10100;
         pointer-events: auto;
     }
@@ -11776,6 +11762,7 @@ body.page-torneo .torneo-detalle-section {
         text-align: left;
         position: relative;
         z-index: 902;
+        flex-shrink: 0;
     }
 
     .resumen-mobile-total-line,
@@ -11858,6 +11845,10 @@ body.page-torneo .torneo-detalle-section {
         white-space: nowrap;
         min-height: 2.65rem;
         border-radius: 6px;
+        position: relative;
+        z-index: 2;
+        pointer-events: auto;
+        touch-action: manipulation;
     }
 
     .resumen-mobile-tab-main {
@@ -11865,26 +11856,27 @@ body.page-torneo .torneo-detalle-section {
     }
 
     .resumen-mobile-wrapper .configurador-resumen {
-        display: none;
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        left: auto;
+        right: auto;
+        bottom: auto;
         top: auto;
         width: 100%;
         max-width: 100%;
-        max-height: min(88vh, 100%);
-        height: min(88vh, 100%);
+        max-height: 0;
+        height: auto;
         margin: 0;
-        padding: 0.35rem 1rem 0;
-        padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+        padding: 0 1rem;
         border-radius: 12px 12px 0 0;
         overflow: hidden;
-        z-index: 10101;
-        box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.22);
-        transform: translateY(100%);
-        transition: transform 0.28s ease;
-        touch-action: none;
+        z-index: 1;
+        box-shadow: none;
+        transform: none;
+        transition: max-height 0.35s ease, box-shadow 0.25s ease;
+        touch-action: auto;
+        flex-shrink: 0;
     }
 
     .resumen-mobile-wrapper.expanded .configurador-resumen::before {
@@ -11900,9 +11892,10 @@ body.page-torneo .torneo-detalle-section {
     }
 
     .resumen-mobile-wrapper.expanded .configurador-resumen {
-        display: flex;
-        flex-direction: column;
-        transform: translateY(0);
+        max-height: min(78vh, 680px);
+        padding-top: 0.15rem;
+        padding-bottom: 0.35rem;
+        box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.18);
     }
 
     .resumen-mobile-wrapper.expanded .configurador-resumen .btn-reservar-paquete {
@@ -11912,6 +11905,7 @@ body.page-torneo .torneo-detalle-section {
     .resumen-mobile-wrapper.expanded .configurador-resumen .resumen-content {
         flex: 1 1 auto;
         min-height: 0;
+        max-height: calc(min(78vh, 680px) - 2.5rem);
         overflow-y: auto;
         overflow-x: hidden;
         overscroll-behavior: contain;
