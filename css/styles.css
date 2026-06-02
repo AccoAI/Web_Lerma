@@ -2628,9 +2628,10 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 @media (max-width: 599px) {
     .fechas-dia-plan-row {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
         row-gap: var(--fechas-plan-gap, 0.7rem);
         column-gap: var(--fechas-plan-gap, 0.7rem);
+        overflow: hidden;
     }
 
     .fechas-dia-plan-row__campo .campos-dias-item__dia-label {
@@ -2644,7 +2645,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     }
 
     .fechas-dia-plan-row__hora {
-        grid-column: 1;
+        grid-column: 1 / -1;
         width: 100%;
         padding-top: 0.25rem;
         margin-top: 0.1rem;
@@ -2652,19 +2653,23 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     }
 
     .fechas-dia-plan-row__jugadores {
-        grid-column: 2;
+        grid-column: 1 / -1;
         width: 100%;
-        padding-top: 0.25rem;
-        margin-top: 0.1rem;
-        border-top: 1px solid rgba(26, 77, 58, 0.1);
+        padding-top: 0;
+        margin-top: 0;
+        border-top: none;
     }
 
     .fechas-dia-plan-row__grupo-item {
         flex: 1 1 auto;
         width: 100%;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.3rem;
+    }
+
+    .fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .ancillary-counter-wrap {
+        max-width: 100%;
     }
 }
 
@@ -5849,6 +5854,85 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
 
     .comida-menu-card__precio-unit {
         font-size: 1rem;
+    }
+}
+
+@media (max-width: 639px) {
+    .comida-menu-grid,
+    .ancillary-service-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        overflow-x: visible;
+        scroll-snap-type: none;
+        gap: 0.35rem;
+        padding: 0;
+        margin: 0;
+    }
+
+    .comida-menu-card,
+    .ancillary-service-card {
+        width: auto;
+        min-width: 0;
+        min-height: 9.25rem;
+        scroll-snap-align: none;
+    }
+
+    .comida-menu-card__content,
+    .ancillary-service-card__content {
+        padding: 0.45rem 0.35rem 0.4rem;
+        min-height: 62%;
+    }
+
+    .comida-menu-card__nombre,
+    .ancillary-service-card__title {
+        font-size: 0.68rem;
+        line-height: 1.2;
+    }
+
+    .comida-menu-card__precio-num,
+    .ancillary-service-card .ancillary-precio {
+        font-size: 0.92rem;
+    }
+
+    .comida-menu-card__precio-unit {
+        font-size: 0.62rem;
+    }
+
+    .config-card-controls,
+    .comida-menu-card__controls {
+        min-height: 0;
+        margin-top: 0.2rem;
+        width: 100%;
+    }
+
+    .config-card-controls--solo-counter::before {
+        display: none;
+    }
+
+    .config-card-counter {
+        min-width: 0;
+        width: 100%;
+        align-self: stretch;
+    }
+
+    .config-card-counter .ancillary-btn {
+        width: 1.55rem;
+        min-width: 1.55rem;
+        height: 1.55rem;
+        font-size: 0.95rem;
+    }
+
+    .config-card-counter .ancillary-counter {
+        min-width: 0;
+        width: auto;
+        flex: 1 1 auto;
+        font-size: 0.78rem;
+        padding: 0.15rem 0.1rem;
+    }
+
+    .config-card-controls__label,
+    .comida-menu-card__pax-label {
+        font-size: 0.58rem;
     }
 }
 
@@ -11688,19 +11772,23 @@ body.page-torneo .torneo-detalle-section {
         padding: 2rem 1.5rem;
     }
 
-    /* Resumen móvil: pestaña verde lateral que despliega el panel */
+    /* Resumen móvil: barra inferior fija + panel que sube al desplegar */
+    .configurador-paquete .configurador-layout {
+        padding-bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+    }
+
     .resumen-mobile-wrapper {
         position: fixed;
+        left: 0;
         right: 0;
-        bottom: calc(38% + env(safe-area-inset-bottom, 0px));
-        left: auto;
-        width: auto;
-        max-width: none;
+        bottom: 0;
+        top: auto;
+        width: 100%;
+        max-width: 100%;
         z-index: 900;
         background: transparent;
         box-shadow: none;
         padding: 0;
-        transition: none;
         transform: none;
         pointer-events: none;
     }
@@ -11710,7 +11798,7 @@ body.page-torneo .torneo-detalle-section {
     }
 
     body.native-picker-open .resumen-mobile-wrapper {
-        transform: translateX(120%);
+        transform: translateY(110%);
         pointer-events: none;
         visibility: hidden;
     }
@@ -11735,80 +11823,142 @@ body.page-torneo .torneo-detalle-section {
 
     .resumen-mobile-tab {
         display: flex !important;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0.3rem;
-        min-width: 3.1rem;
-        padding: 0.65rem 0.5rem;
-        border-radius: 10px 0 0 10px;
-        background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+        flex-direction: row;
+        align-items: stretch;
+        justify-content: space-between;
+        gap: 0.5rem;
+        width: 100%;
+        min-height: 4.25rem;
+        padding: 0;
+        border-radius: 12px 12px 0 0;
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
         color: var(--color-white);
-        cursor: pointer;
+        cursor: default;
         font-family: var(--font-primary);
-        box-shadow: -3px 2px 14px rgba(0, 0, 0, 0.28);
+        box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.24);
         border: none;
         line-height: 1.15;
-        text-align: center;
+        text-align: left;
+        position: relative;
+        z-index: 902;
     }
 
-    .resumen-mobile-tab-text {
+    .resumen-mobile-total-line,
+    .resumen-mobile-por-persona-line {
         display: block;
+    }
+
+    .resumen-mobile-tab-main {
+        flex: 1 1 auto;
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        min-width: 0;
+        padding: 0.55rem 0.35rem 0.55rem 0.75rem;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .resumen-mobile-tab-amounts {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        min-width: 0;
+    }
+
+    .resumen-mobile-amount-label {
         font-size: 0.62rem;
         font-weight: 600;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
+        opacity: 0.82;
     }
 
     .resumen-mobile-total {
         font-weight: 700;
         color: var(--color-accent);
-        font-size: 0.78rem;
+        font-size: 1.05rem;
         margin: 0;
         letter-spacing: 0;
         text-transform: none;
         white-space: nowrap;
+        line-height: 1.1;
+    }
+
+    .resumen-mobile-por-persona {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.92);
+        white-space: nowrap;
+        line-height: 1.15;
     }
 
     .resumen-mobile-chevron {
-        display: none;
+        display: block;
+        flex-shrink: 0;
+        font-size: 0.75rem;
+        opacity: 0.85;
+        transition: transform 0.28s ease;
+        line-height: 1;
+    }
+
+    .resumen-mobile-wrapper.expanded .resumen-mobile-chevron {
+        transform: rotate(180deg);
     }
 
     .resumen-mobile-btn-wrap {
-        display: none !important;
+        display: flex !important;
+        align-items: center;
+        flex: 0 0 auto;
+        padding: 0.45rem 0.65rem 0.45rem 0;
+        padding-bottom: calc(0.45rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    .resumen-mobile-btn-wrap .btn-reservar-paquete,
+    .resumen-mobile-btn-wrap .btn-reservar-paquete-mobile {
+        margin: 0;
+        padding: 0.55rem 0.75rem;
+        font-size: 0.72rem;
+        line-height: 1.15;
+        white-space: nowrap;
+        min-height: 2.65rem;
+        border-radius: 6px;
+    }
+
+    .resumen-mobile-tab-main {
+        padding-bottom: calc(0.55rem + env(safe-area-inset-bottom, 0px));
     }
 
     .resumen-mobile-wrapper .configurador-resumen {
         display: none;
         position: fixed;
-        top: 0;
+        left: 0;
         right: 0;
         bottom: 0;
-        left: auto;
-        width: min(92vw, 22rem);
-        max-height: none;
-        height: 100%;
+        top: auto;
+        width: 100%;
+        max-width: 100%;
+        max-height: min(82vh, 100%);
+        height: auto;
         margin: 0;
-        padding: 1.25rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
-        border-radius: 12px 0 0 12px;
+        padding: 1rem 1rem 0;
+        padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+        border-radius: 12px 12px 0 0;
         overflow: hidden;
         z-index: 901;
-        box-shadow: -8px 0 28px rgba(0, 0, 0, 0.22);
-        transform: translateX(100%);
+        box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.22);
+        transform: translateY(100%);
         transition: transform 0.28s ease;
     }
 
     .resumen-mobile-wrapper.expanded .configurador-resumen {
         display: flex;
         flex-direction: column;
-        transform: translateX(0);
+        transform: translateY(0);
     }
 
     .resumen-mobile-wrapper.expanded .configurador-resumen .btn-reservar-paquete {
-        display: block !important;
-        flex: 0 0 auto;
-        margin-top: 0.85rem;
-        width: 100%;
+        display: none !important;
     }
 
     .resumen-mobile-wrapper.expanded .configurador-resumen .resumen-content {
@@ -11819,16 +11969,17 @@ body.page-torneo .torneo-detalle-section {
         margin-bottom: 0;
     }
 
-    .resumen-mobile-wrapper.expanded .resumen-mobile-tab {
-        position: fixed;
-        right: min(92vw, 22rem);
-        bottom: calc(38% + env(safe-area-inset-bottom, 0px));
-        z-index: 902;
+    .resumen-mobile-tab-text {
+        display: none;
     }
 
     .configurador-paquete .configurador-layout .resumen-mobile-wrapper {
         margin-top: 0;
         margin-bottom: 0;
+    }
+
+    .chatbot-wrapper {
+        bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
     }
 
     .campos-dias-selector {
@@ -12805,9 +12956,9 @@ body.page-torneo .torneo-detalle-section {
     }
 }
 
-/* En móvil/tablet, FABs abajo (sin barra fija de resumen) */
+/* En móvil/tablet, FABs encima de la barra de resumen */
 @media (max-width: 768px) {
     .chatbot-wrapper {
-        bottom: 1.25rem;
+        bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
     }
 }
