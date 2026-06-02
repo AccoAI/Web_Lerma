@@ -4351,6 +4351,7 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x proximity;
+    overscroll-behavior-x: contain;
     padding: 0.15rem 0.1rem 0.35rem;
     margin: 0 -0.1rem;
 }
@@ -4375,6 +4376,8 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
 
 .comida-menu-card--config {
     cursor: default;
+    overflow: visible;
+    scroll-snap-align: none;
 }
 
 .comida-menu-card--config:hover {
@@ -4490,15 +4493,24 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
 
 .comida-menu-card__controls {
     display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.4rem;
     margin-top: 0.35rem;
+    min-height: 2rem;
 }
 
 .comida-menu-card__hora {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.3rem;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.comida-menu-card__hora[hidden] {
+    display: none !important;
 }
 
 .comida-menu-card__ctrl-label {
@@ -4509,9 +4521,9 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
 }
 
 .comida-menu-card__hora select {
-    flex: 1 1 auto;
-    min-width: 0;
-    padding: 0.2rem 0.25rem;
+    width: 4.35rem;
+    flex: 0 0 auto;
+    padding: 0.2rem 0.15rem;
     font-family: inherit;
     font-size: 0.75rem;
     font-weight: 600;
@@ -4520,15 +4532,16 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     background: rgba(255, 255, 255, 0.96);
     color: var(--color-text);
     cursor: pointer;
+    scroll-margin: 0;
 }
 
 .comida-menu-card__hora select:disabled {
-    opacity: 0.55;
     cursor: not-allowed;
 }
 
 .comida-menu-card__counter {
-    align-self: flex-start;
+    flex: 0 0 auto;
+    align-self: center;
     background: rgba(255, 255, 255, 0.96);
     border-radius: 4px;
     min-width: 6.75rem;
@@ -4549,10 +4562,6 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     font-size: 0.9rem;
     font-variant-numeric: tabular-nums;
     background: #fff;
-}
-
-.comida-menu-card:not(.comida-menu-card--added) .comida-menu-card__controls {
-    opacity: 0.72;
 }
 
 .comida-externos-card {

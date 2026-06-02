@@ -984,6 +984,8 @@ function initConfiguradorPaquete() {
     function syncComidaMenuCardState(card, added) {
         if (!card) return;
         card.classList.toggle('comida-menu-card--added', added);
+        var horaWrap = card.querySelector('.comida-menu-card__hora');
+        if (horaWrap) horaWrap.hidden = !added;
         var horaSel = card.querySelector('.comida-menu-hora');
         if (horaSel) {
             if (added) horaSel.removeAttribute('disabled');
@@ -1034,7 +1036,6 @@ function initConfiguradorPaquete() {
         var inputId = 'comida-menu-pax-dia-' + dia + '-' + menu.id;
         var horaId = 'comida-menu-hora-dia-' + dia + '-' + menu.id;
         var selectedCls = added ? ' comida-menu-card--added' : '';
-        var horaDisabled = added ? '' : ' disabled';
         return (
             '<article class="comida-menu-card comida-menu-card--config' + selectedCls + '" data-dia="' + dia + '" data-menu="' + escapeHtmlComida(menu.id) + '">' +
             htmlTarjetaFotoMedia(menu.imagen, 'comida-menu-card') +
@@ -1042,16 +1043,16 @@ function initConfiguradorPaquete() {
             '<span class="comida-menu-card__nombre">' + escapeHtmlComida(menu.label) + '</span>' +
             (precio !== '' ? '<span class="comida-menu-card__precio"><span class="comida-menu-card__precio-num">' + precio + ' €</span><span class="comida-menu-card__precio-unit">/ pers.</span></span>' : '') +
             '<div class="comida-menu-card__controls">' +
-            '<div class="comida-menu-card__hora">' +
-            '<label class="comida-menu-card__ctrl-label" for="' + horaId + '">Hora</label>' +
-            '<select id="' + horaId + '" class="comida-menu-hora comida-hora-comida" data-dia="' + dia + '" data-menu="' + escapeHtmlComida(menu.id) + '" aria-label="Hora de la comida"' + horaDisabled + '>' +
-            htmlOpcionesHoraComida(horaVal) +
-            '</select></div>' +
             '<div class="ancillary-counter-wrap comida-menu-card__counter">' +
             '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Menos comensales">−</button>' +
             '<input type="number" id="' + inputId + '" min="0" max="' + maxPax + '" value="' + paxVal + '" class="ancillary-counter comida-menu-comensales" data-dia="' + dia + '" data-menu="' + escapeHtmlComida(menu.id) + '" readonly aria-label="Comensales">' +
             '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Más comensales">+</button>' +
-            '</div></div></div></article>'
+            '</div>' +
+            '<div class="comida-menu-card__hora"' + (added ? '' : ' hidden') + '>' +
+            '<label class="comida-menu-card__ctrl-label" for="' + horaId + '">Hora</label>' +
+            '<select id="' + horaId + '" class="comida-menu-hora comida-hora-comida" data-dia="' + dia + '" data-menu="' + escapeHtmlComida(menu.id) + '" aria-label="Hora de la comida"' + (added ? '' : ' disabled') + '>' +
+            htmlOpcionesHoraComida(horaVal) +
+            '</select></div></div></div></article>'
         );
     }
 
@@ -1599,6 +1600,29 @@ function initConfiguradorPaquete() {
                 actualizarBloqueAncillaryPorDia(fechasI18n.length, fechasI18n);
             }
         });
+        if (!window.__golfLermaComidaHoraScrollBound) {
+            window.__golfLermaComidaHoraScrollBound = true;
+            var comidaHoraScroll = { x: 0, y: 0, gridLeft: 0, grid: null };
+            document.addEventListener('mousedown', function (e) {
+                var sel = e.target.closest && e.target.closest('.comida-menu-hora');
+                if (!sel) return;
+                comidaHoraScroll.x = window.scrollX;
+                comidaHoraScroll.y = window.scrollY;
+                comidaHoraScroll.grid = sel.closest('.comida-menu-grid');
+                comidaHoraScroll.gridLeft = comidaHoraScroll.grid ? comidaHoraScroll.grid.scrollLeft : 0;
+            }, true);
+            document.addEventListener('focusin', function (e) {
+                if (!e.target.classList || !e.target.classList.contains('comida-menu-hora')) return;
+                var sx = comidaHoraScroll.x;
+                var sy = comidaHoraScroll.y;
+                var grid = comidaHoraScroll.grid;
+                var gl = comidaHoraScroll.gridLeft;
+                requestAnimationFrame(function () {
+                    if (window.scrollX !== sx || window.scrollY !== sy) window.scrollTo(sx, sy);
+                    if (grid && grid.scrollLeft !== gl) grid.scrollLeft = gl;
+                });
+            }, true);
+        }
         recalcNumeroGrupos();
         if (form) {
             var fdInit = new FormData(form);
