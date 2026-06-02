@@ -215,6 +215,8 @@
   "paquete_finsemana_intro": "Configure your custom package: choose nights, hotel and meal options.",
   "paquete_info_pdf": "Once your booking is made, we will send you a PDF by email with all our recommendations for the capital to enjoy a perfect weekend in Burgos.",
   "config_selecciona_fechas": "1. Select your dates",
+  "calendario_hint_rango": "Click or <strong>drag</strong> to choose a range. ",
+  "calendario_hint_dias_suffix": "days selected.",
   "config_campo_dia": "Course for each day *",
   "config_alojamiento": "3. Accommodation",
   "config_hotel_intro": "Choose the hotel for each night. You can combine Lerma and Burgos (e.g. one night in Lerma and one in Burgos).",

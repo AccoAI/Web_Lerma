@@ -78,8 +78,11 @@
                         <h3 class="configurador-titulo" data-i18n="config_selecciona_fechas">1. Selecciona tus fechas</h3>
                         <div class="fechas-calendario-layout">
                             <div id="calendario-dias-finsemana" class="calendario-dias-container fechas-calendario-layout__cal"></div>
-                            <div id="campos-dias-finsemana" class="fechas-dia-plan-panel" style="display: none;" aria-live="polite">
-                                <div id="dias-campos-container-finsemana" class="fechas-dia-plan-list"></div>
+                            <div id="campos-dias-finsemana" class="fechas-dia-plan-panel" aria-live="polite">
+                                <p id="fechas-dia-plan-hint" class="calendario-hint fechas-dia-plan-hint">
+                                    <span data-i18n-html="calendario_hint_rango">Clic o <strong>arrastra</strong> para elegir rango. </span><strong class="calendario-count">0</strong> <span data-i18n="calendario_hint_dias_suffix">días seleccionados.</span>
+                                </p>
+                                <div id="dias-campos-container-finsemana" class="fechas-dia-plan-list" hidden></div>
                             </div>
                         </div>
                     </div>

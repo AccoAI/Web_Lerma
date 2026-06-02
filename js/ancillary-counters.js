@@ -20,8 +20,17 @@
         input.value = String(val);
         input.dispatchEvent(new Event('input', { bubbles: true }));
         input.dispatchEvent(new Event('change', { bubbles: true }));
-        var card = input.closest('.ancillary-service-card');
-        if (card) card.classList.toggle('ancillary-service-card--selected', val > 0);
+        var svcCard = input.closest('.ancillary-service-card');
+        if (svcCard) svcCard.classList.toggle('ancillary-service-card--selected', val > 0);
+        var menuCard = input.closest('.comida-menu-card');
+        if (menuCard) {
+            menuCard.classList.toggle('comida-menu-card--added', val > 0);
+            var horaSel = menuCard.querySelector('.comida-menu-hora');
+            if (horaSel) {
+                if (val > 0) horaSel.removeAttribute('disabled');
+                else horaSel.setAttribute('disabled', 'disabled');
+            }
+        }
     }
 
     document.addEventListener('click', handleClick);

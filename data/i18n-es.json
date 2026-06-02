@@ -215,6 +215,8 @@
   "btn_reservar_golf_canalla": "Reservar Golf Canalla",
   "paquete_info_pdf": "Una vez realizada tu reserva, te enviaremos un PDF al correo electrónico con todas nuestras recomendaciones de la capital para disfrutar de un fin de semana perfecto en Burgos.",
   "config_selecciona_fechas": "1. Selecciona tus fechas",
+  "calendario_hint_rango": "Clic o <strong>arrastra</strong> para elegir rango. ",
+  "calendario_hint_dias_suffix": "días seleccionados.",
   "config_campo_dia": "Campo para cada día *",
   "config_alojamiento": "3. Alojamiento",
   "config_hotel_intro": "Elige el hotel para cada noche. Puedes combinar Lerma y Burgos (ej.: una noche en Lerma y otra en Burgos).",

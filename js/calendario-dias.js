@@ -71,6 +71,7 @@
             var minDate = opts.minDate ? new Date(opts.minDate) : new Date();
             var maxDate = opts.maxDate ? new Date(opts.maxDate) : (function () { var d = new Date(); d.setFullYear(d.getFullYear() + 1); return d; })();
             var onChange = opts.onChange || function () {};
+            var hintContainer = opts.hintContainer || null;
 
             minDate.setHours(0, 0, 0, 0);
             maxDate.setHours(23, 59, 59, 999);
@@ -99,7 +100,7 @@
                     }
                     asegurarInput(form, nameNoches, String(noches));
                 }
-                var countEl = container.querySelector('.calendario-count');
+                var countEl = (hintContainer || container).querySelector('.calendario-count');
                 if (countEl) countEl.textContent = String(count);
                 onChange(count, fechas);
             }
@@ -197,8 +198,9 @@
                 isDragging = false;
             }
 
+            var hintHtml = '<p class="calendario-hint">Clic o <strong>arrastra</strong> para elegir rango. <strong class="calendario-count">0</strong> días seleccionados.</p>';
             container.innerHTML = (
-                '<p class="calendario-hint">Clic o <strong>arrastra</strong> para elegir rango. <strong class="calendario-count">0</strong> días seleccionados.</p>' +
+                (hintContainer ? '' : hintHtml) +
                 '<div class="calendario-nav">' +
                 '<button type="button" class="calendario-btn-prev" aria-label="Mes anterior">‹</button>' +
                 '<span class="calendario-mes-titulo"></span>' +
