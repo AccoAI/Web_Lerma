@@ -2167,6 +2167,11 @@ function initConfiguradorPaquete() {
                 return;
             }
 
+            if (window.configuradorDatosReserva && window.configuradorDatosReserva.shouldRevealPanel()) {
+                window.configuradorDatosReserva.showPanel();
+                return;
+            }
+
             if (window.configuradorDatosReserva && !window.configuradorDatosReserva.validateForSubmit(form)) {
                 return;
             }

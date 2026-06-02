@@ -99,6 +99,7 @@ function initUsuariosForm() {
             '<input type="tel" form="configuradorForm" name="usuario[' + numero + '][movil]" class="telefono-numero" placeholder="612 345 678"' + req + '></div></div>';
         var telefonoHtmlOpt = telefonoHtmlReq.replace(' required', '');
         if (esExtraSimplificado) {
+            usuarioDiv.classList.add('usuario-form-extra');
             usuarioDiv.innerHTML =
                 '<div class="usuario-form-header">' +
                 '<h4 class="usuario-numero">Participante ' + numero + '</h4>' +

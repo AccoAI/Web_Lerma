@@ -268,7 +268,7 @@
   "resumen_tab": "Résumé",
   "btn_reservar_paquete": "Réserver le forfait",
   "datos_reserva_modal_titulo": "Données de réservation",
-  "datos_reserva_inline_lead": "Indiquez vos coordonnées pour finaliser la réservation.",
+  "datos_reserva_inline_lead": "Indiquez vos coordonnées puis appuyez à nouveau sur « Réserver le forfait » pour payer.",
   "consentimiento_comercial_label": "J'autorise l'utilisation de mes coordonnées à des fins commerciales par Golf Lerma.",
   "consentimiento_comercial_required": "Vous devez accepter l'utilisation commerciale de vos données pour continuer.",
   "recibir_pdf": "📧 Vous recevrez par email : un PDF avec toutes nos recommandations de la capitale pour profiter d'un week-end parfait à Burgos.",
