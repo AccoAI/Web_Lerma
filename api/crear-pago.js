@@ -36,8 +36,16 @@ export async function POST(request) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const { amountCents, modo, numParticipantes, paquete, tituloTorneo, hotelbedsVoucher, tripDates } =
-      body;
+    const {
+      amountCents,
+      modo,
+      numParticipantes,
+      paquete,
+      tituloTorneo,
+      hotelbedsVoucher,
+      tripDates,
+      embedContext,
+    } = body;
 
     if (!amountCents || amountCents < 50) {
       return jsonResponse({ error: 'Importe inválido (mínimo 0,50 €)' }, 400);
@@ -132,6 +140,23 @@ export async function POST(request) {
               pkg_fecha_inicio: String(tripDates.pickup).slice(0, 10),
               pkg_fecha_fin: String(tripDates.dropoff || tripDates.pickup).slice(0, 10),
               pkg_pickup_loc: String(tripDates.pickupLocation || 'Madrid, España').slice(0, 80),
+            }
+          : {}),
+        ...(embedContext && typeof embedContext === 'object' && embedContext.dateISO
+          ? {
+              pkg_embed_date: String(embedContext.dateISO).slice(0, 10),
+              pkg_party_size: String(
+                Math.max(1, parseInt(embedContext.partySize, 10) || numPart)
+              ),
+              ...(embedContext.holderName
+                ? { pkg_holder_name: String(embedContext.holderName).slice(0, 120) }
+                : {}),
+              ...(embedContext.holderPhone
+                ? { pkg_holder_phone: String(embedContext.holderPhone).slice(0, 40) }
+                : {}),
+              ...(embedContext.holderEmail
+                ? { pkg_holder_email: String(embedContext.holderEmail).slice(0, 120) }
+                : {}),
             }
           : {}),
         ...hbMeta,

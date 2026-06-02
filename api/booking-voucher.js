@@ -72,6 +72,27 @@ export async function GET(request) {
       });
     }
 
+    const embedDate =
+      meta.pkg_embed_date || meta.pkg_fecha_inicio || tripPickup || null;
+    const embedParty = Math.max(
+      1,
+      parseInt(meta.pkg_party_size || meta.numParticipantes, 10) || 1
+    );
+    const embed =
+      embedDate && /^\d{4}-\d{2}-\d{2}$/.test(String(embedDate).slice(0, 10))
+        ? {
+            dateISO: String(embedDate).slice(0, 10),
+            partySize: embedParty,
+            holderName: meta.pkg_holder_name || meta.hb_lead_name || '',
+            holderEmail:
+              meta.pkg_holder_email ||
+              session.customer_details?.email ||
+              meta.hb_lead_email ||
+              '',
+            holderPhone: meta.pkg_holder_phone || meta.hb_lead_phone || '',
+          }
+        : null;
+
     return json({
       ok: true,
       payment_status: session.payment_status,
@@ -88,6 +109,7 @@ export async function GET(request) {
             rentcars_embed_url,
           }
         : null,
+      embed,
       voucher_available: voucherAvailable,
       voucher_url: voucherAvailable
         ? `/api/booking-voucher?session_id=${encodeURIComponent(sessionId)}`

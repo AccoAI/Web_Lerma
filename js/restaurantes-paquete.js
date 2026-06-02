@@ -3,9 +3,116 @@
  * Se monta dentro de #comida-restaurante-picker-root al elegir una comida/cena del paquete.
  */
 (function () {
+    var embedOverride = null;
+
+    function partyFromFormData(fd) {
+        var raw = (fd.get('tamanio_grupo') || '').trim();
+        if (!raw) {
+            var tg = document.getElementById('tamanio-grupo');
+            raw = tg && tg.value ? String(tg.value).trim() : '';
+        }
+        return Math.max(1, parseInt(raw || '1', 10) || 1);
+    }
+
+    function holderFromFormData(fd) {
+        var nombre = (fd.get('usuario[1][nombre]') || '').trim();
+        var email = (fd.get('usuario[1][correo]') || '').trim();
+        var pre = (fd.get('usuario[1][movil_prefijo]') || '+34').trim().replace(/\s+/g, '');
+        var mov = (fd.get('usuario[1][movil]') || '').replace(/\s+/g, '');
+        var phone = mov ? (mov.indexOf('+') === 0 ? mov : pre + mov) : '';
+        return { holderName: nombre, holderEmail: email, holderPhone: phone };
+    }
+
+    function firstValidFecha(fechas) {
+        for (var i = 0; i < fechas.length; i++) {
+            var s = String(fechas[i]).trim();
+            if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+        }
+        return null;
+    }
+
+    function buildEmbedContextFromForm(form, slot) {
+        if (!form) return null;
+        var fd = new FormData(form);
+        var fechas = fd.getAll('fechas[]');
+        var dateISO = null;
+        if (slot && slot.dia) {
+            var idx = parseInt(slot.dia, 10) - 1;
+            if (idx >= 0 && fechas[idx]) dateISO = String(fechas[idx]).trim();
+        }
+        if (!dateISO || !/^\d{4}-\d{2}-\d{2}$/.test(dateISO)) dateISO = firstValidFecha(fechas);
+        if (!dateISO) return null;
+        var holder = holderFromFormData(fd);
+        return {
+            dateISO: dateISO,
+            partySize: partyFromFormData(fd),
+            holderName: holder.holderName,
+            holderEmail: holder.holderEmail,
+            holderPhone: holder.holderPhone,
+        };
+    }
+
+    /** Tras el pago: contexto desde metadata Stripe (confirmacion-reserva.html). */
+    window.setPaqueteEmbedOverride = function (ctx) {
+        if (!ctx || !ctx.dateISO || !/^\d{4}-\d{2}-\d{2}$/.test(String(ctx.dateISO))) {
+            embedOverride = null;
+            return;
+        }
+        embedOverride = {
+            dateISO: String(ctx.dateISO).trim(),
+            partySize: Math.max(1, parseInt(ctx.partySize, 10) || 1),
+            holderName: (ctx.holderName || '').trim(),
+            holderEmail: (ctx.holderEmail || '').trim(),
+            holderPhone: (ctx.holderPhone || '').trim(),
+        };
+    };
+
+    /** Contexto del iframe: día del slot en paquete, o override post-booking. */
+    window.getPaqueteEmbedContext = function () {
+        if (embedOverride) return embedOverride;
+        var form = document.getElementById('configuradorForm');
+        if (!form) return null;
+        var slot = window.__paqueteEmbedSlot;
+        if (!slot || !slot.dia) return null;
+        return buildEmbedContextFromForm(form, slot);
+    };
+
+    /** Para metadata Stripe / post-booking (primer día del paquete + titular). */
+    window.collectPaqueteEmbedContextForPayment = function (formId) {
+        var form = document.getElementById(formId || 'configuradorForm');
+        if (!form) return null;
+        return buildEmbedContextFromForm(form, null);
+    };
+
+    function getCasaClubMenus() {
+        var p = window.PRECIOS_DATA && window.PRECIOS_DATA.casaClubMenus;
+        if (p && p.length) return p;
+        return [
+            { id: 'huevos', label: 'Menú huevos con morcilla', precioPorPersona: 16 },
+            { id: 'hamburguesa', label: 'Menú hamburguesa', precioPorPersona: 16 },
+            { id: 'cochinillo', label: 'Menú cordero/cochinillo', precioPorPersona: 40 },
+        ];
+    }
+
+    window.getCasaClubMenus = getCasaClubMenus;
+
+    window.getCasaClubMenuById = function (id) {
+        if (!id) return null;
+        var menus = getCasaClubMenus();
+        for (var i = 0; i < menus.length; i++) {
+            if (menus[i].id === id) return menus[i];
+        }
+        return null;
+    };
+
+    /** CoverManager / TheFork (no menús prepago del club). */
+    window.isRestauranteExternoPaquete = function (r) {
+        return !!(r && !r.reservaInhouse && r.id !== 'lali');
+    };
+
     var RESTAURANTES = [
         { id: 'parador', nombre: 'Parador de Lerma', zona: 'Lerma', area: 'lerma', precioPack: 'lerma', precioNivel: '€€€', tipoComida: 'Castellano', texto: 'Reserva con el widget oficial de TheFork.', url: 'https://widget.thefork.com/en-GB/e1f7b394-0e58-4166-9eef-3b5ba2f1c529?step=date', iframeAlto: 650 },
-        { id: 'lali', nombre: 'Restaurante Golf Lerma (Lali)', zona: 'Lerma', area: 'lerma', precioPack: 'lerma', precioNivel: '€€€', tipoComida: 'Castellano', soloComida: true, texto: 'Solo comidas (almuerzo), no cenas. Reserva por teléfono; abajo tienes la fecha y los comensales según tu paquete.', reservaInhouse: true, telefono: '947171215', urlInfo: 'el-campo.html#restaurante', iframeAlto: 640 },
+        { id: 'lali', nombre: 'Restaurante Golf Lerma (Lali)', zona: 'Lerma', area: 'lerma', precioPack: 'lerma', precioNivel: '€€€', tipoComida: 'Castellano', soloComida: true, texto: 'Reserva por teléfono.', reservaInhouse: true, telefono: '947171215', urlInfo: 'el-campo.html#restaurante', iframeAlto: 640 },
         { id: 'alfoz', nombre: 'El Alfoz', zona: 'Saldaña', area: 'saldana', precioPack: 'burgos', precioNivel: '€€', tipoComida: 'Castellano', texto: 'Cocina de mercado. Reserva en CoverManager.', url: 'https://www.covermanager.com/reserve/module_restaurant/restaurante-alfoz-de-burgos/spanish', iframeAlto: 720 },
         { id: 'cobo', nombre: 'Cobo Estratos', zona: 'Burgos', area: 'burgos', precioPack: 'burgos', precioNivel: '€€€€', tipoComida: 'Estrella Michelin', texto: 'Alta cocina. Reserva en CoverManager.', url: 'https://www.covermanager.com/reservation/module_restaurant/restaurante-coboestratos/spanish', iframeAlto: 720 },
         { id: 'fabrica', nombre: 'La Fábrica', zona: 'Burgos', area: 'burgos', precioPack: 'burgos', precioNivel: '€€€', tipoComida: 'Española', texto: 'Reserva con TheFork.', url: 'https://widget.thefork.com/en-GB/d8abb8d7-ecfa-4db4-8aff-089ed282986d?step=date', iframeAlto: 620 },
@@ -91,6 +198,7 @@
             if (h.indexOf('thefork.') >= 0) {
                 u.searchParams.set('date', ctx.dateISO);
                 var p = String(ctx.partySize);
+                u.searchParams.set('pax', p);
                 u.searchParams.set('partySize', p);
                 u.searchParams.set('guests', p);
                 u.searchParams.set('covers', p);
@@ -98,7 +206,13 @@
                 u.searchParams.set('party', p);
                 u.searchParams.set('diners', p);
                 u.searchParams.set('people', p);
-                // Datos del titular (si el widget los soporta; si no, se ignoran).
+                var nameParts = String(ctx.holderName || '').trim().split(/\s+/).filter(Boolean);
+                if (nameParts.length >= 2) {
+                    u.searchParams.set('firstName', nameParts[0]);
+                    u.searchParams.set('lastName', nameParts.slice(1).join(' '));
+                } else if (nameParts[0]) {
+                    u.searchParams.set('firstName', nameParts[0]);
+                }
                 if (ctx.holderName) u.searchParams.set('name', String(ctx.holderName));
                 if (ctx.holderEmail) u.searchParams.set('email', String(ctx.holderEmail));
                 if (ctx.holderPhone) u.searchParams.set('phone', String(ctx.holderPhone));
@@ -110,12 +224,61 @@
 
     window.applyPaqueteEmbedSyncToUrl = applyPaqueteEmbedSyncToUrl;
 
+    function embedProviderFromUrl(urlString) {
+        if (!urlString) return '';
+        try {
+            var h = new URL(urlString, window.location.href).hostname.toLowerCase().replace(/^www\./, '');
+            if (h.indexOf('covermanager.') >= 0) return 'covermanager';
+            if (h.indexOf('thefork.') >= 0) return 'thefork';
+        } catch (e) { /* ignore */ }
+        return '';
+    }
+
+    function renderEmbedContextHint(el, ctx, provider, syncedUrl) {
+        if (!el || !ctx || !ctx.dateISO) {
+            el.style.display = 'none';
+            el.setAttribute('hidden', '');
+            el.innerHTML = '';
+            return;
+        }
+        var fechaLbl = formatFechaReservaPaquete(ctx.dateISO);
+        var paxNum = ctx.partySize != null ? ctx.partySize : null;
+        var paxLbl = paxNum == null ? '—' : (paxNum === 1 ? '1 comensal' : paxNum + ' comensales');
+        var provNote =
+            provider === 'thefork'
+                ? 'TheFork no siempre rellena el formulario del iframe; usa estos datos al reservar.'
+                : 'Datos tomados de tu paquete para la reserva:';
+        var rows = [
+            '<li><span class="restaurante-paquete-inhouse-k">Fecha</span> <span class="restaurante-paquete-inhouse-v">' + escapeHtml(fechaLbl) + '</span></li>',
+            '<li><span class="restaurante-paquete-inhouse-k">Comensales</span> <span class="restaurante-paquete-inhouse-v">' + escapeHtml(paxLbl) + '</span></li>',
+        ];
+        if (ctx.holderName) {
+            rows.push('<li><span class="restaurante-paquete-inhouse-k">Nombre</span> <span class="restaurante-paquete-inhouse-v">' + escapeHtml(ctx.holderName) + '</span></li>');
+        }
+        if (ctx.holderEmail) {
+            rows.push('<li><span class="restaurante-paquete-inhouse-k">Email</span> <span class="restaurante-paquete-inhouse-v">' + escapeHtml(ctx.holderEmail) + '</span></li>');
+        }
+        if (ctx.holderPhone) {
+            rows.push('<li><span class="restaurante-paquete-inhouse-k">Teléfono</span> <span class="restaurante-paquete-inhouse-v">' + escapeHtml(ctx.holderPhone) + '</span></li>');
+        }
+        var cta = syncedUrl
+            ? '<p class="restaurante-paquete-embed-ctx-cta"><a class="btn-restaurante-paquete-reservar btn-restaurante-paquete-reservar--secondary" href="' + escapeHtml(syncedUrl) + '" target="_blank" rel="noopener noreferrer">Abrir reserva en pestaña nueva</a></p>'
+            : '';
+        el.style.display = 'block';
+        el.removeAttribute('hidden');
+        el.innerHTML =
+            '<p class="restaurante-paquete-inhouse-intro">' + escapeHtml(provNote) + '</p>' +
+            '<ul class="restaurante-paquete-inhouse-datos" role="list">' + rows.join('') + '</ul>' +
+            cta;
+    }
+
     /**
      * @param {HTMLElement} container - vacío; aquí se pinta categorías + tabs + panel
      * @returns {{ setCategoria: function(string), getCurrentRestaurant: function(): object|null, getSelectedIndex: function(): number }}
      */
-    window.mountRestaurantePaquetePicker = function (container) {
+    window.mountRestaurantePaquetePicker = function (container, options) {
         if (!container) return null;
+        var soloExternos = !!(options && options.soloExternos);
 
         container.innerHTML = '';
         container.className = (container.className + ' restaurantes-paquete-picker-inner').trim();
@@ -159,6 +322,11 @@
         inhouseEl.style.display = 'none';
         inhouseEl.setAttribute('hidden', '');
 
+        var embedCtxEl = document.createElement('div');
+        embedCtxEl.className = 'restaurante-paquete-inhouse restaurante-paquete-embed-ctx';
+        embedCtxEl.style.display = 'none';
+        embedCtxEl.setAttribute('hidden', '');
+
         var wrap = document.createElement('div');
         wrap.className = 'restaurante-paquete-iframe-wrap';
         var ifr = document.createElement('iframe');
@@ -170,6 +338,7 @@
         panel.appendChild(fichaInfo);
         panel.appendChild(pDesc);
         panel.appendChild(inhouseEl);
+        panel.appendChild(embedCtxEl);
         panel.appendChild(telP);
         panel.appendChild(wrap);
 
@@ -197,6 +366,9 @@
             }
 
             if (r.reservaInhouse) {
+                embedCtxEl.style.display = 'none';
+                embedCtxEl.setAttribute('hidden', '');
+                embedCtxEl.innerHTML = '';
                 telP.style.display = 'none';
                 telP.innerHTML = '';
                 wrap.style.display = 'none';
@@ -253,7 +425,10 @@
                 ifr.setAttribute('title', 'Reserva — ' + r.nombre);
                 var raw = absolutizarUrl(srcEmbed);
                 var syncCtx = typeof window.getPaqueteEmbedContext === 'function' ? window.getPaqueteEmbedContext() : null;
-                ifr.src = applyPaqueteEmbedSyncToUrl(raw, syncCtx);
+                var synced = applyPaqueteEmbedSyncToUrl(raw, syncCtx);
+                var provider = embedProviderFromUrl(raw);
+                renderEmbedContextHint(embedCtxEl, syncCtx, provider, synced);
+                ifr.src = synced;
             }
         }
 
@@ -268,8 +443,9 @@
         }
 
         function setCategoria(areaId) {
-            var tipoSlot = (window.__paqueteEmbedSlot && window.__paqueteEmbedSlot.tipo) || '';
+            var tipoSlot = soloExternos ? '' : ((window.__paqueteEmbedSlot && window.__paqueteEmbedSlot.tipo) || '');
             visibleList = RESTAURANTES.filter(function (r) {
+                if (soloExternos && !window.isRestauranteExternoPaquete(r)) return false;
                 return r.area === areaId && restauranteDisponibleParaTipoServicio(r, tipoSlot);
             });
             categoryButtons.forEach(function (b) {
@@ -289,6 +465,9 @@
                 inhouseEl.style.display = 'none';
                 inhouseEl.setAttribute('hidden', '');
                 inhouseEl.innerHTML = '';
+                embedCtxEl.style.display = 'none';
+                embedCtxEl.setAttribute('hidden', '');
+                embedCtxEl.innerHTML = '';
                 wrap.style.display = '';
                 ifr.removeAttribute('src');
                 return;
@@ -364,7 +543,8 @@
                 }
             }
             if (!r) return false;
-            var tipoSlot = (window.__paqueteEmbedSlot && window.__paqueteEmbedSlot.tipo) || '';
+            var tipoSlot = soloExternos ? '' : ((window.__paqueteEmbedSlot && window.__paqueteEmbedSlot.tipo) || '');
+            if (soloExternos && !window.isRestauranteExternoPaquete(r)) return false;
             if (!restauranteDisponibleParaTipoServicio(r, tipoSlot)) return false;
             setCategoria(r.area);
             for (var k = 0; k < visibleList.length; k++) {

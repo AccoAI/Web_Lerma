@@ -164,6 +164,12 @@
         if (tripDates && tripDates.pickup) {
           body.tripDates = tripDates;
         }
+        if (options.formId && typeof window.collectPaqueteEmbedContextForPayment === 'function') {
+          var embedContext = window.collectPaqueteEmbedContextForPayment(options.formId);
+          if (embedContext && embedContext.dateISO) {
+            body.embedContext = embedContext;
+          }
+        }
         return fetch('/api/crear-pago', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

@@ -24,8 +24,15 @@ window.PRECIOS_DATA = {
     ]
   },
 
-  /* Comida/cena (€ por servicio por persona) */
+  /* Comida/cena (€ por servicio por persona) — reservas externas fuera del pack */
   comida: { lerma: 22, burgos: 25 },
+
+  /** Menús Casa Club Lerma (solo comidas; se cobran en el paquete, €/persona) */
+  casaClubMenus: [
+    { id: 'huevos', label: 'Menú huevos con morcilla', precioPorPersona: 16 },
+    { id: 'hamburguesa', label: 'Menú hamburguesa', precioPorPersona: 16 },
+    { id: 'cochinillo', label: 'Menú cordero/cochinillo', precioPorPersona: 40 },
+  ],
 
   /* Servicios adicionales (€) */
   ancillaries: {

@@ -21,8 +21,7 @@
     var root = document.getElementById('post-booking-restaurant-root');
     if (!root) return;
 
-    window.__paqueteEmbedSlot = null;
-    var picker = window.mountRestaurantePaquetePicker(root);
+    var picker = window.mountRestaurantePaquetePicker(root, { soloExternos: true });
     if (picker && typeof picker.setCategoria === 'function') {
       picker.setCategoria('lerma');
     }

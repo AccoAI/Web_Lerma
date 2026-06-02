@@ -116,8 +116,8 @@
         </div>
     </footer>
 
-    <script src="js/main.js"></script>
     <script src="js/restaurantes-paquete.js"></script>
+    <script src="js/main.js"></script>
     <script src="js/travel-affiliates.js"></script>
     <script src="js/rentcars-search-url.js"></script>
     <script src="js/post-booking-receipt.js"></script>
@@ -212,6 +212,17 @@
 
       if (typeof window.renderPostBookingTravel === 'function') {
         window.renderPostBookingTravel('confirmTravel', data.trip || null);
+      }
+      if (data.embed && typeof window.setPaqueteEmbedOverride === 'function') {
+        window.setPaqueteEmbedOverride(data.embed);
+      } else if (data.trip && data.trip.pickup && typeof window.setPaqueteEmbedOverride === 'function') {
+        window.setPaqueteEmbedOverride({
+          dateISO: data.trip.pickup,
+          partySize: 1,
+          holderName: '',
+          holderEmail: data.customer_email || '',
+          holderPhone: '',
+        });
       }
       if (typeof window.renderPostBookingRestaurants === 'function') {
         window.renderPostBookingRestaurants('confirmRestaurants');
