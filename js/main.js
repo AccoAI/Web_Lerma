@@ -638,62 +638,195 @@ function initConfiguradorPaquete() {
         return Math.max(1, parseInt((tg && tg.value) || '', 10) || usuarios.length || 1);
     }
 
-    function leerEstadoComidaDia(dia) {
+    function normalizarReservaComida(r) {
+        if (!r || typeof r !== 'object') return null;
+        if (r.tipo === 'club') {
+            var mid = String(r.menuId || '').trim();
+            if (!mid) return null;
+            return {
+                tipo: 'club',
+                menuId: mid,
+                comensales: Math.max(1, parseInt(r.comensales, 10) || 1),
+            };
+        }
+        if (r.tipo === 'externo') {
+            var rid = String(r.restId || '').trim();
+            if (!rid) return null;
+            return { tipo: 'externo', restId: rid, zona: String(r.zona || '').trim() };
+        }
+        return null;
+    }
+
+    function parseReservasComidaJson(raw) {
+        if (!raw) return [];
+        try {
+            var arr = JSON.parse(raw);
+            if (!Array.isArray(arr)) return [];
+            var out = [];
+            for (var pi = 0; pi < arr.length; pi++) {
+                var n = normalizarReservaComida(arr[pi]);
+                if (n) out.push(n);
+            }
+            return out;
+        } catch (e0) {
+            return [];
+        }
+    }
+
+    function leerReservasComidaDesdeLegacy(dia) {
         var opc = form && form.querySelector('input[name="comida_opcion_dia_' + dia + '"]');
         var menu = form && form.querySelector('input[name="comida_menu_id_' + dia + '"]');
         var rest = form && form.querySelector('input[name="comida_rest_id_' + dia + '"]');
         var zona = form && form.querySelector('input[name="comida_dia_' + dia + '"]');
         var com = form && form.querySelector('input[name="comida_comensales_dia_' + dia + '"]');
         var opcion = (opc && opc.value) ? opc.value.trim() : '';
+        if (!opcion) return [];
         var menuId = (menu && menu.value) ? menu.value.trim() : '';
         if (!menuId && opcion.indexOf('club:') === 0) menuId = opcion.replace(/^club:/, '');
         var comensales = (com && com.value) ? Math.max(0, parseInt(com.value, 10) || 0) : 0;
-        return {
-            opcion: opcion,
-            menuId: menuId,
-            restId: (rest && rest.value) ? rest.value.trim() : '',
-            zona: (zona && zona.value) ? zona.value.trim() : '',
-            comensales: comensales,
-        };
+        if (opcion.indexOf('club:') === 0) {
+            return [{
+                tipo: 'club',
+                menuId: menuId,
+                comensales: comensales >= 1 ? comensales : getNumJugadoresComida(),
+            }];
+        }
+        if (opcion === 'externo') {
+            return [{
+                tipo: 'externo',
+                restId: (rest && rest.value) ? rest.value.trim() : '',
+                zona: (zona && zona.value) ? zona.value.trim() : '',
+            }];
+        }
+        return [];
     }
 
-    function aplicarSeleccionComidaDia(dia, payload) {
+    function leerReservasComidaDia(dia) {
+        var inp = form && form.querySelector('input[name="comida_reservas_dia_' + dia + '"]');
+        if (inp && inp.value && inp.value.trim()) {
+            var parsed = parseReservasComidaJson(inp.value.trim());
+            if (parsed.length) return parsed;
+        }
+        return leerReservasComidaDesdeLegacy(dia);
+    }
+
+    function leerReservasComidaDesdeFormData(formData, dia) {
+        var raw = (formData.get('comida_reservas_dia_' + dia) || '').trim();
+        if (raw) {
+            var parsed = parseReservasComidaJson(raw);
+            if (parsed.length) return parsed;
+        }
+        var opc = (formData.get('comida_opcion_dia_' + dia) || '').trim();
+        if (!opc) return [];
+        if (opc.indexOf('club:') === 0) {
+            var menuId = (formData.get('comida_menu_id_' + dia) || opc.replace(/^club:/, '')).trim();
+            var pax = Math.max(1, parseInt(formData.get('comida_comensales_dia_' + dia) || '', 10) || 1);
+            return [{ tipo: 'club', menuId: menuId, comensales: pax }];
+        }
+        if (opc === 'externo') {
+            return [{
+                tipo: 'externo',
+                restId: (formData.get('comida_rest_id_' + dia) || '').trim(),
+                zona: (formData.get('comida_dia_' + dia) || '').trim(),
+            }];
+        }
+        return [];
+    }
+
+    function guardarReservasComidaDia(dia, reservas) {
         if (!form) return;
-        payload = payload || {};
+        var norm = [];
+        for (var gi = 0; gi < (reservas || []).length; gi++) {
+            var n = normalizarReservaComida(reservas[gi]);
+            if (n) norm.push(n);
+        }
+        var hid = form.querySelector('input[name="comida_reservas_dia_' + dia + '"]');
+        if (!hid) {
+            hid = document.createElement('input');
+            hid.type = 'hidden';
+            hid.name = 'comida_reservas_dia_' + dia;
+            form.appendChild(hid);
+        }
+        hid.value = norm.length ? JSON.stringify(norm) : '';
+        var first = norm[0] || null;
         var opcInp = form.querySelector('input[name="comida_opcion_dia_' + dia + '"]');
         var menuInp = form.querySelector('input[name="comida_menu_id_' + dia + '"]');
         var restInp = form.querySelector('input[name="comida_rest_id_' + dia + '"]');
         var zonaInp = form.querySelector('input[name="comida_dia_' + dia + '"]');
         var comInp = form.querySelector('input[name="comida_comensales_dia_' + dia + '"]');
-        var cenaInp = form.querySelector('input[name="cena_dia_' + dia + '"]');
-        var cenaRestInp = form.querySelector('input[name="cena_rest_id_' + dia + '"]');
-        if (opcInp) opcInp.value = payload.opcion || '';
-        if (menuInp) menuInp.value = payload.menuId || '';
-        if (restInp) restInp.value = payload.restId || '';
-        if (zonaInp) zonaInp.value = payload.zona || '';
-        if (comInp) {
-            if (payload.comensales != null && payload.comensales !== '') {
-                comInp.value = String(Math.max(1, parseInt(payload.comensales, 10) || 1));
-            } else if (!payload.opcion || String(payload.opcion).indexOf('club:') !== 0) {
-                comInp.value = '';
-            }
-        }
-        if (cenaInp) cenaInp.value = '';
-        if (cenaRestInp) cenaRestInp.value = '';
+        if (opcInp) opcInp.value = first && first.tipo === 'club' ? ('club:' + first.menuId) : (first && first.tipo === 'externo' ? 'externo' : '');
+        if (menuInp) menuInp.value = first && first.tipo === 'club' ? first.menuId : '';
+        if (restInp) restInp.value = first && first.tipo === 'externo' ? first.restId : '';
+        if (zonaInp) zonaInp.value = first && first.tipo === 'externo' ? first.zona : '';
+        if (comInp) comInp.value = first && first.tipo === 'club' ? String(first.comensales) : '';
     }
 
-    function etiquetaSeleccionComida(st) {
-        if (!st || !st.opcion) return '';
-        if (st.opcion.indexOf('club:') === 0 && typeof window.getCasaClubMenuById === 'function') {
-            var mid = st.menuId || st.opcion.replace(/^club:/, '');
-            var m = window.getCasaClubMenuById(mid);
+    function etiquetaReservaComida(r) {
+        if (!r) return '';
+        if (r.tipo === 'club' && typeof window.getCasaClubMenuById === 'function') {
+            var m = window.getCasaClubMenuById(r.menuId);
             return m ? ('Casa Club · ' + m.label) : 'Casa Club Lerma';
         }
-        if (st.opcion === 'externo' && st.restId && typeof window.getRestaurantePaqueteById === 'function') {
-            var r = window.getRestaurantePaqueteById(st.restId);
-            return r ? r.nombre : 'Restaurante recomendado';
+        if (r.tipo === 'externo' && r.restId && typeof window.getRestaurantePaqueteById === 'function') {
+            var rest = window.getRestaurantePaqueteById(r.restId);
+            return rest ? rest.nombre : 'Restaurante recomendado';
         }
         return '';
+    }
+
+    function reservasTienenMenuClub(reservas) {
+        for (var i = 0; i < reservas.length; i++) {
+            if (reservas[i].tipo === 'club') return true;
+        }
+        return false;
+    }
+
+    function reservasTienenExterno(reservas) {
+        for (var j = 0; j < reservas.length; j++) {
+            if (reservas[j].tipo === 'externo') return true;
+        }
+        return false;
+    }
+
+    function menuClubYaReservado(reservas, menuId) {
+        for (var k = 0; k < reservas.length; k++) {
+            if (reservas[k].tipo === 'club' && reservas[k].menuId === menuId) return true;
+        }
+        return false;
+    }
+
+    function htmlReservaSeleccionada(dia, idx, r, nJug) {
+        var label = etiquetaReservaComida(r);
+        var html = '<div class="comida-dia-card__resumen" data-reserva-idx="' + idx + '">';
+        html += '<div class="comida-dia-card__resumen-main">';
+        html += '<span class="comida-dia-card__resumen-icon" aria-hidden="true">✓</span>';
+        html += '<div class="comida-dia-card__resumen-text">';
+        html += '<span class="comida-dia-card__resumen-titulo">' + escapeHtmlComida(label) + '</span>';
+        if (r.tipo === 'club') {
+            var menuSel = typeof window.getCasaClubMenuById === 'function' ? window.getCasaClubMenuById(r.menuId) : null;
+            if (menuSel && menuSel.precioPorPersona != null) {
+                var pax = r.comensales || nJug;
+                var paxLbl = pax === 1 ? '1 comensal' : pax + ' comensales';
+                html += '<span class="comida-dia-card__resumen-precio" data-reserva-precio="' + idx + '">' +
+                    menuSel.precioPorPersona + ' € / persona × ' + paxLbl + '</span>';
+            }
+        }
+        html += '</div></div>';
+        if (r.tipo === 'club') {
+            var paxVal = Math.min(Math.max(1, r.comensales || nJug), Math.max(nJug, 20));
+            html += '<div class="comida-dia-card__comensales ancillary-pack-cell">';
+            html += '<label class="ancillary-pack-label" for="comida-comensales-dia-' + dia + '-' + idx + '">';
+            html += '<span class="ancillary-pack-title">Comensales</span></label>';
+            html += '<div class="ancillary-counter-wrap ancillary-pack-counter">';
+            html += '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Menos comensales">−</button>';
+            html += '<input type="number" id="comida-comensales-dia-' + dia + '-' + idx + '" min="1" max="' + Math.max(nJug, 20) + '" value="' + paxVal + '" class="ancillary-counter comida-comensales-counter" data-dia="' + dia + '" data-reserva-idx="' + idx + '" readonly>';
+            html += '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Más comensales">+</button>';
+            html += '</div></div>';
+        }
+        html += '<div class="comida-dia-card__resumen-actions">';
+        html += '<button type="button" class="comida-dia-card__btn comida-dia-card__btn--ghost comida-chip-quitar" data-dia="' + dia + '" data-reserva-idx="' + idx + '">Quitar</button>';
+        html += '</div></div>';
+        return html;
     }
 
     function actualizarBloqueComida(count, fechas) {
@@ -711,105 +844,86 @@ function initConfiguradorPaquete() {
             return;
         }
         var menus = typeof window.getCasaClubMenus === 'function' ? window.getCasaClubMenus() : [];
-        var prevEstado = {};
+        var prevReservas = {};
         for (var pi = 1; pi <= count; pi++) {
-            prevEstado[pi] = leerEstadoComidaDia(pi);
+            prevReservas[pi] = leerReservasComidaDia(pi);
         }
         comidaPorDiaContainer.style.display = 'block';
         comidaPorDiaContainer.innerHTML = '';
         for (var i = 1; i <= count; i++) {
             var iso = fechas[i - 1];
             var titulo = formatearEtiquetaDiaComida(iso) || ('Día ' + i);
-            var st = prevEstado[i] || { opcion: '', menuId: '', restId: '', zona: '', comensales: 0 };
+            var reservas = prevReservas[i] || [];
             var nJug = getNumJugadoresComida();
-            if (st.opcion.indexOf('club:') === 0) {
-                if (!st.comensales || st.comensales < 1) st.comensales = nJug;
-                st.comensales = Math.min(Math.max(1, st.comensales), Math.max(nJug, 20));
+            for (var ri = 0; ri < reservas.length; ri++) {
+                if (reservas[ri].tipo === 'club') {
+                    if (!reservas[ri].comensales || reservas[ri].comensales < 1) reservas[ri].comensales = nJug;
+                    reservas[ri].comensales = Math.min(Math.max(1, reservas[ri].comensales), Math.max(nJug, 20));
+                }
             }
-            var selLabel = etiquetaSeleccionComida(st);
-            var tieneSel = !!(st.opcion);
+            var tieneSel = reservas.length > 0;
             var html = '';
 
             html += '<article class="comida-dia-card' + (tieneSel ? ' comida-dia-card--selected' : '') + '" data-dia-card="' + i + '">';
             html += '<header class="comida-dia-card__head">';
             html += '<h4 class="comida-dia-card__fecha">' + escapeHtmlComida(titulo) + '</h4>';
-            if (tieneSel && st.opcion.indexOf('club:') === 0) {
+            if (reservasTienenMenuClub(reservas)) {
                 html += '<span class="comida-dia-card__badge comida-dia-card__badge--pack">Incluido en el paquete</span>';
-            } else if (tieneSel && st.opcion === 'externo') {
+            } else if (reservasTienenExterno(reservas)) {
                 html += '<span class="comida-dia-card__badge">Reserva externa</span>';
             }
             html += '</header>';
 
             if (tieneSel) {
-                html += '<div class="comida-dia-card__resumen">';
-                html += '<div class="comida-dia-card__resumen-main">';
-                html += '<span class="comida-dia-card__resumen-icon" aria-hidden="true">✓</span>';
-                html += '<div class="comida-dia-card__resumen-text">';
-                html += '<span class="comida-dia-card__resumen-titulo">' + escapeHtmlComida(selLabel) + '</span>';
-                if (st.opcion.indexOf('club:') === 0) {
-                    var menuSel = typeof window.getCasaClubMenuById === 'function' ? window.getCasaClubMenuById(st.menuId) : null;
-                    if (menuSel && menuSel.precioPorPersona != null) {
-                        var paxLbl = st.comensales === 1 ? '1 comensal' : st.comensales + ' comensales';
-                        html += '<span class="comida-dia-card__resumen-precio">' + menuSel.precioPorPersona + ' € / persona × ' + paxLbl + '</span>';
-                    }
+                html += '<div class="comida-dia-card__seleccionadas" aria-label="Reservas añadidas">';
+                for (var si = 0; si < reservas.length; si++) {
+                    html += htmlReservaSeleccionada(i, si, reservas[si], nJug);
                 }
-                html += '</div></div>';
-                if (st.opcion.indexOf('club:') === 0) {
-                    html += '<div class="comida-dia-card__comensales ancillary-pack-cell">';
-                    html += '<label class="ancillary-pack-label" for="comida-comensales-dia-' + i + '">';
-                    html += '<span class="ancillary-pack-title">Comensales</span></label>';
-                    html += '<div class="ancillary-counter-wrap ancillary-pack-counter">';
-                    html += '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Menos comensales">−</button>';
-                    html += '<input type="number" id="comida-comensales-dia-' + i + '" name="comida_comensales_dia_' + i + '" min="1" max="' + Math.max(nJug, 20) + '" value="' + st.comensales + '" class="ancillary-counter comida-comensales-counter" readonly>';
-                    html += '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Más comensales">+</button>';
-                    html += '</div></div>';
-                }
-                html += '<div class="comida-dia-card__resumen-actions">';
-                if (st.opcion === 'externo') {
-                    html += '<button type="button" class="comida-dia-card__btn comida-dia-card__btn--ghost comida-abrir-picker" data-dia="' + i + '">Cambiar</button>';
-                }
-                html += '<button type="button" class="comida-dia-card__btn comida-dia-card__btn--ghost comida-chip-quitar" data-dia="' + i + '">Quitar</button>';
-                html += '</div></div>';
-            } else {
-                html += '<section class="comida-dia-card__section">';
-                html += '<div class="comida-dia-card__section-head">';
-                html += '<h5 class="comida-dia-card__section-title">Casa Club Lerma</h5>';
-                html += '<span class="comida-dia-card__tag">Solo comidas</span>';
                 html += '</div>';
-                html += '<div class="comida-menu-grid" role="group" aria-label="Menús Casa Club">';
-                for (var mi = 0; mi < menus.length; mi++) {
-                    var menu = menus[mi];
-                    var precio = menu.precioPorPersona != null ? menu.precioPorPersona : '';
-                    html += '<button type="button" class="comida-menu-card comida-elegir-club" data-dia="' + i + '" data-menu="' + escapeHtmlComida(menu.id) + '">';
-                    html += '<span class="comida-menu-card__body">';
-                    html += '<span class="comida-menu-card__nombre">' + escapeHtmlComida(menu.label) + '</span>';
-                    html += '<span class="comida-menu-card__cta">Añadir al paquete</span>';
-                    html += '</span>';
-                    if (precio !== '') {
-                        html += '<span class="comida-menu-card__precio"><span class="comida-menu-card__precio-num">' + precio + '</span><span class="comida-menu-card__precio-unit">€ / pers.</span></span>';
-                    }
-                    html += '</button>';
-                }
-                html += '</div></section>';
-
-                html += '<section class="comida-dia-card__section comida-dia-card__section--externos">';
-                html += '<div class="comida-dia-card__section-head">';
-                html += '<h5 class="comida-dia-card__section-title">Restaurantes recomendados</h5>';
-                html += '</div>';
-                html += '<button type="button" class="comida-externos-card comida-abrir-picker" data-dia="' + i + '">';
-                html += '<span class="comida-externos-card__icon" aria-hidden="true">🍽</span>';
-                html += '<span class="comida-externos-card__text">';
-                html += '<span class="comida-externos-card__titulo">Elegir en TheFork o CoverManager</span>';
-                html += '<span class="comida-externos-card__sub">Lerma, Saldaña y Burgos · tú eliges hora y comida o cena</span>';
-                html += '</span>';
-                html += '<span class="comida-externos-card__arrow" aria-hidden="true">→</span>';
-                html += '</button></section>';
             }
 
-            html += '<input type="hidden" name="comida_opcion_dia_' + i + '" value="' + escapeHtmlComida(st.opcion) + '">' +
-                '<input type="hidden" name="comida_menu_id_' + i + '" value="' + escapeHtmlComida(st.menuId) + '">' +
-                '<input type="hidden" name="comida_rest_id_' + i + '" value="' + escapeHtmlComida(st.restId) + '">' +
-                '<input type="hidden" name="comida_dia_' + i + '" value="' + escapeHtmlComida(st.zona) + '">' +
+            html += '<section class="comida-dia-card__section">';
+            html += '<div class="comida-dia-card__section-head">';
+            html += '<h5 class="comida-dia-card__section-title">Casa Club Lerma</h5>';
+            html += '<span class="comida-dia-card__tag">Solo comidas</span>';
+            html += '</div>';
+            html += '<div class="comida-menu-grid" role="group" aria-label="Menús Casa Club">';
+            for (var mi = 0; mi < menus.length; mi++) {
+                var menu = menus[mi];
+                var precio = menu.precioPorPersona != null ? menu.precioPorPersona : '';
+                var yaMenu = menuClubYaReservado(reservas, menu.id);
+                html += '<button type="button" class="comida-menu-card comida-elegir-club' + (yaMenu ? ' comida-menu-card--added' : '') + '" data-dia="' + i + '" data-menu="' + escapeHtmlComida(menu.id) + '">';
+                html += '<span class="comida-menu-card__body">';
+                html += '<span class="comida-menu-card__nombre">' + escapeHtmlComida(menu.label) + '</span>';
+                html += '<span class="comida-menu-card__cta">' + (yaMenu ? 'Añadido' : 'Añadir al paquete') + '</span>';
+                html += '</span>';
+                if (precio !== '') {
+                    html += '<span class="comida-menu-card__precio"><span class="comida-menu-card__precio-num">' + precio + '</span><span class="comida-menu-card__precio-unit">€ / pers.</span></span>';
+                }
+                html += '</button>';
+            }
+            html += '</div></section>';
+
+            html += '<section class="comida-dia-card__section comida-dia-card__section--externos">';
+            html += '<div class="comida-dia-card__section-head">';
+            html += '<h5 class="comida-dia-card__section-title">Restaurantes recomendados</h5>';
+            html += '</div>';
+            html += '<button type="button" class="comida-externos-card comida-abrir-picker" data-dia="' + i + '">';
+            html += '<span class="comida-externos-card__icon" aria-hidden="true">🍽</span>';
+            html += '<span class="comida-externos-card__text">';
+            html += '<span class="comida-externos-card__titulo">' + (tieneSel ? 'Añadir otra reserva en TheFork o CoverManager' : 'Elegir en TheFork o CoverManager') + '</span>';
+            html += '<span class="comida-externos-card__sub">Lerma, Saldaña y Burgos · tú eliges hora y comida o cena</span>';
+            html += '</span>';
+            html += '<span class="comida-externos-card__arrow" aria-hidden="true">→</span>';
+            html += '</button></section>';
+
+            var firstLegacy = reservas[0] || {};
+            html += '<input type="hidden" name="comida_reservas_dia_' + i + '" value="' + escapeHtmlComida(JSON.stringify(reservas)) + '">' +
+                '<input type="hidden" name="comida_opcion_dia_' + i + '" value="' + escapeHtmlComida(firstLegacy.tipo === 'club' ? ('club:' + firstLegacy.menuId) : (firstLegacy.tipo === 'externo' ? 'externo' : '')) + '">' +
+                '<input type="hidden" name="comida_menu_id_' + i + '" value="' + escapeHtmlComida(firstLegacy.tipo === 'club' ? firstLegacy.menuId : '') + '">' +
+                '<input type="hidden" name="comida_rest_id_' + i + '" value="' + escapeHtmlComida(firstLegacy.tipo === 'externo' ? firstLegacy.restId : '') + '">' +
+                '<input type="hidden" name="comida_dia_' + i + '" value="' + escapeHtmlComida(firstLegacy.tipo === 'externo' ? firstLegacy.zona : '') + '">' +
+                '<input type="hidden" name="comida_comensales_dia_' + i + '" value="' + (firstLegacy.tipo === 'club' ? String(firstLegacy.comensales || '') : '') + '">' +
                 '<input type="hidden" name="cena_dia_' + i + '" value="">' +
                 '<input type="hidden" name="cena_rest_id_' + i + '" value="">';
             html += '</article>';
@@ -821,17 +935,17 @@ function initConfiguradorPaquete() {
         }
     }
 
-    function seleccionarMenuClub(dia, menuId) {
+    function agregarMenuClub(dia, menuId) {
         if (!form || !menuId) return;
-        var prev = leerEstadoComidaDia(dia);
-        var comensales = (prev.comensales && prev.comensales >= 1) ? prev.comensales : getNumJugadoresComida();
-        aplicarSeleccionComidaDia(dia, {
-            opcion: 'club:' + menuId,
-            menuId: menuId,
-            restId: '',
-            zona: 'lerma',
-            comensales: comensales,
-        });
+        var reservas = leerReservasComidaDia(dia);
+        if (!menuClubYaReservado(reservas, menuId)) {
+            reservas.push({
+                tipo: 'club',
+                menuId: menuId,
+                comensales: getNumJugadoresComida(),
+            });
+            guardarReservasComidaDia(dia, reservas);
+        }
         var fd = new FormData(form);
         var fechasArr = fd.getAll('fechas[]') || [];
         actualizarBloqueComida(fechasArr.length, fechasArr);
@@ -843,6 +957,13 @@ function initConfiguradorPaquete() {
                 card.classList.remove('comida-dia-card--just-added');
             }, 1200);
         }
+    }
+
+    function agregarReservaExterna(dia, restId, zona) {
+        if (!form || !restId) return;
+        var reservas = leerReservasComidaDia(dia);
+        reservas.push({ tipo: 'externo', restId: restId, zona: zona || '' });
+        guardarReservasComidaDia(dia, reservas);
     }
 
     function actualizarBloqueAncillaryPorDia(count, fechas) {
@@ -1109,12 +1230,7 @@ function initConfiguradorPaquete() {
         if (!r) return false;
         var d = activeComidaPickerSlot.dia;
         var pack = r.precioPack || (r.area === 'lerma' ? 'lerma' : 'burgos');
-        aplicarSeleccionComidaDia(d, {
-            opcion: 'externo',
-            menuId: '',
-            restId: r.id,
-            zona: pack,
-        });
+        agregarReservaExterna(d, r.id, pack);
         var fd = new FormData(form);
         var fechasArr = fd.getAll('fechas[]') || [];
         closeComidaPickerPanel();
@@ -1189,16 +1305,22 @@ function initConfiguradorPaquete() {
                 return;
             }
             if (t && t.classList && t.classList.contains('comida-comensales-counter')) {
-                var cardCom = t.closest('.comida-dia-card');
-                if (cardCom) {
-                    var diaCom = cardCom.getAttribute('data-dia-card');
-                    var stCom = leerEstadoComidaDia(diaCom);
-                    var menuCom = typeof window.getCasaClubMenuById === 'function' ? window.getCasaClubMenuById(stCom.menuId) : null;
-                    var precioEl = cardCom.querySelector('.comida-dia-card__resumen-precio');
-                    if (precioEl && menuCom && menuCom.precioPorPersona != null) {
-                        var paxN = Math.max(1, parseInt(t.value, 10) || 1);
-                        var paxTxt = paxN === 1 ? '1 comensal' : paxN + ' comensales';
-                        precioEl.textContent = menuCom.precioPorPersona + ' € / persona × ' + paxTxt;
+                var diaCom = t.getAttribute('data-dia');
+                var idxCom = parseInt(t.getAttribute('data-reserva-idx'), 10);
+                if (diaCom && !isNaN(idxCom)) {
+                    var reservasCom = leerReservasComidaDia(diaCom);
+                    if (reservasCom[idxCom] && reservasCom[idxCom].tipo === 'club') {
+                        reservasCom[idxCom].comensales = Math.max(1, parseInt(t.value, 10) || 1);
+                        guardarReservasComidaDia(diaCom, reservasCom);
+                        var hidCom = form.querySelector('input[name="comida_reservas_dia_' + diaCom + '"]');
+                        if (hidCom) hidCom.value = JSON.stringify(reservasCom);
+                        var cardCom = t.closest('.comida-dia-card');
+                        var menuCom = typeof window.getCasaClubMenuById === 'function' ? window.getCasaClubMenuById(reservasCom[idxCom].menuId) : null;
+                        var precioEl = cardCom && cardCom.querySelector('[data-reserva-precio="' + idxCom + '"]');
+                        if (precioEl && menuCom && menuCom.precioPorPersona != null) {
+                            var paxTxt = reservasCom[idxCom].comensales === 1 ? '1 comensal' : reservasCom[idxCom].comensales + ' comensales';
+                            precioEl.textContent = menuCom.precioPorPersona + ' € / persona × ' + paxTxt;
+                        }
                     }
                 }
                 actualizarResumen();
@@ -1230,7 +1352,7 @@ function initConfiguradorPaquete() {
                 e.preventDefault();
                 var diaClub = clubBtn.getAttribute('data-dia');
                 var menuId = clubBtn.getAttribute('data-menu');
-                if (diaClub && menuId) seleccionarMenuClub(diaClub, menuId);
+                if (diaClub && menuId) agregarMenuClub(diaClub, menuId);
                 return;
             }
             var abrir = e.target.closest('.comida-abrir-picker');
@@ -1244,8 +1366,11 @@ function initConfiguradorPaquete() {
             if (q && form.contains(q)) {
                 e.preventDefault();
                 var d = q.getAttribute('data-dia');
-                if (!d) return;
-                aplicarSeleccionComidaDia(d, { opcion: '', menuId: '', restId: '', zona: '', comensales: '' });
+                var idxQ = parseInt(q.getAttribute('data-reserva-idx'), 10);
+                if (!d || isNaN(idxQ)) return;
+                var reservasQ = leerReservasComidaDia(d);
+                reservasQ.splice(idxQ, 1);
+                guardarReservasComidaDia(d, reservasQ);
                 var fdq = new FormData(form);
                 var fa = fdq.getAll('fechas[]') || [];
                 actualizarBloqueComida(fa.length, fa);
@@ -1300,7 +1425,7 @@ function initConfiguradorPaquete() {
             }
             var numServicios = 0;
             for (var ic = 1; ic <= count; ic++) {
-                if ((formData.get('comida_opcion_dia_' + ic) || '').trim()) numServicios++;
+                numServicios += leerReservasComidaDesdeFormData(formData, ic).length;
             }
 
             var resumenHTML = '<div class="resumen-items">';
@@ -1392,13 +1517,15 @@ function initConfiguradorPaquete() {
 
             var totalComidaPrepago = 0;
             for (var iv = 1; iv <= count; iv++) {
-                var opc = (formData.get('comida_opcion_dia_' + iv) || '').trim();
-                if (opc.indexOf('club:') !== 0) continue;
-                var menuId = (formData.get('comida_menu_id_' + iv) || opc.replace(/^club:/, '')).trim();
-                var menu = typeof window.getCasaClubMenuById === 'function' ? window.getCasaClubMenuById(menuId) : null;
-                if (menu && menu.precioPorPersona != null) {
-                    var paxMenu = Math.max(1, parseInt(formData.get('comida_comensales_dia_' + iv) || '', 10) || numParticipants);
-                    totalComidaPrepago += Number(menu.precioPorPersona) * paxMenu;
+                var reservasIv = leerReservasComidaDesdeFormData(formData, iv);
+                for (var riv = 0; riv < reservasIv.length; riv++) {
+                    var rv = reservasIv[riv];
+                    if (rv.tipo !== 'club') continue;
+                    var menuIv = typeof window.getCasaClubMenuById === 'function' ? window.getCasaClubMenuById(rv.menuId) : null;
+                    if (menuIv && menuIv.precioPorPersona != null) {
+                        var paxMenu = Math.max(1, parseInt(rv.comensales, 10) || numParticipants);
+                        totalComidaPrepago += Number(menuIv.precioPorPersona) * paxMenu;
+                    }
                 }
             }
             var comidaVal = roundEuros(totalComidaPrepago);
@@ -1479,18 +1606,21 @@ function initConfiguradorPaquete() {
             var numParticipantes = Math.max(1, parseInt((formData.get('tamanio_grupo') || '').trim(), 10) || usuarios.length);
             var comidaPorDia = [];
             for (var icd = 1; icd <= count; icd++) {
-                var opcD = (formData.get('comida_opcion_dia_' + icd) || '').trim();
-                if (!opcD) continue;
-                var itemComida = {
-                    dia: icd,
-                    opcion: opcD,
-                    menuId: (formData.get('comida_menu_id_' + icd) || '').trim() || null,
-                    restId: (formData.get('comida_rest_id_' + icd) || '').trim() || null,
-                };
-                if (opcD.indexOf('club:') === 0) {
-                    itemComida.comensales = Math.max(1, parseInt(formData.get('comida_comensales_dia_' + icd) || '', 10) || numParticipantes);
+                var reservasCd = leerReservasComidaDesdeFormData(formData, icd);
+                for (var rcd = 0; rcd < reservasCd.length; rcd++) {
+                    var rc = reservasCd[rcd];
+                    var itemComida = { dia: icd, reservaIdx: rcd, tipo: rc.tipo };
+                    if (rc.tipo === 'club') {
+                        itemComida.opcion = 'club:' + rc.menuId;
+                        itemComida.menuId = rc.menuId;
+                        itemComida.comensales = Math.max(1, parseInt(rc.comensales, 10) || numParticipantes);
+                    } else if (rc.tipo === 'externo') {
+                        itemComida.opcion = 'externo';
+                        itemComida.restId = rc.restId;
+                        itemComida.zona = rc.zona;
+                    }
+                    comidaPorDia.push(itemComida);
                 }
-                comidaPorDia.push(itemComida);
             }
             var formaPagoSubmit = ((formData.get('forma_pago') || 'unico').trim() || 'unico');
             var totalEuros = (typeof window.getTotalFromResumen === 'function') ? window.getTotalFromResumen() : 0;

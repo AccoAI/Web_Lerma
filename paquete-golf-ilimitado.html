@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="description" content="Paquete Golf + Cochinillo - Menú castellano con gastronomía tradicional">
-    <title>Paquete Golf + Cochinillo - Golf Lerma</title>
+    <meta name="description" content="Golf Ilimitado en Burgos - Juega los green fees que reserves en Golf Lerma y Saldaña Golf. Pagas por días de estancia.">
+    <title>Golf Ilimitado en Burgos - Golf Lerma</title>
     <link rel="icon" href="FOTOS/Logo-Golf-Lerma-Footer-1.png" type="image/png">
     <link rel="apple-touch-icon" href="FOTOS/Logo-Golf-Lerma-Footer-1.png">
     <link rel="stylesheet" href="css/styles.css">
@@ -63,48 +63,33 @@
         <div class="pagina-hero-foto-overlay"></div>
     </div>
 
-    <!-- Paquete Golf + Cochinillo -->
+    <!-- Golf Ilimitado en Burgos -->
     <section class="paquete-detalle" style="margin-top: 0; padding-top: calc(var(--header-height) + 1.5rem);">
         <div class="container">
-            <h2 class="section-title">Paquete Golf + Cochinillo</h2>
-            <p class="paquete-intro">Combina tu pasión por el golf con la gastronomía castellana. Disfruta de un menú tradicional con los mejores sabores de la región.</p>
-            
-            <!-- Menú Castellano + ¿Qué incluye? side by side -->
-            <div class="cochinillo-menu-incluye">
-                <div class="cochinillo-menu-block">
-                    <h3 class="menu-titulo-elegante">Menú Castellano</h3>
-                    <dl class="menu-lista-elegante">
-                        <dt>Chorizo</dt>
-                        <dd>Chorizo tradicional castellano</dd>
-                        <dt>Morcilla de Burgos</dt>
-                        <dd>Morcilla tradicional de Burgos</dd>
-                        <dt>Cordero Lechal</dt>
-                        <dd>Cordero lechal asado al estilo tradicional</dd>
-                        <dt>Postre a elegir</dt>
-                        <dd>Selección del día</dd>
-                        <dt>Maridaje Bodegas Portia</dt>
-                        <dd>Vinos de la Ribera del Duero</dd>
-                    </dl>
-                </div>
-                <div class="cochinillo-incluye-block">
-                    <h3 class="menu-titulo-elegante">¿Qué incluye?</h3>
-                    <ul class="info-lista-elegante">
-                        <li>1 Green-fee en Golf Lerma</li>
-                        <li>Menú castellano completo</li>
-                        <li>Postre y maridaje Bodegas Portia</li>
-                    </ul>
+            <h2 class="section-title" data-i18n="paquete_golf_ilimitado_title">Golf Ilimitado en Burgos</h2>
+            <p class="paquete-intro" data-i18n="paquete_golf_ilimitado_intro">Reserva los días que quieras jugar y combina green fees en Golf Lerma y Saldaña Golf. Pagas por días de estancia; dentro de cada día puedes reservar las salidas que necesites (funcionalidad en evolución).</p>
+            <div class="paquete-info-destacada" style="background: rgba(139, 69, 19, 0.1); padding: 1.5rem; border-radius: 8px; margin: 2rem 0; border-left: 4px solid var(--color-primary);">
+                <div class="incluidos-info">
+                    <div class="incluido-item"><span class="incluido-icon">✓</span><span>Green fees en Golf Lerma y Saldaña Golf (según reservas del día)</span></div>
+                    <div class="incluido-item"><span class="incluido-icon">✓</span><span>Precio por días de paquete, no por número fijo de hoyos</span></div>
+                    <div class="incluido-item"><span class="incluido-icon">✓</span><span>Alojamiento opcional en Lerma o Burgos</span></div>
                 </div>
             </div>
 
             <div class="configurador-paquete">
                 <div class="configurador-layout">
-                <form id="formCochinillo" class="configurador-form">
+                <form id="form36Hoyos" class="configurador-form">
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo">1. Selecciona tus fechas</h3>
-                        <div id="calendario-dias-cochinillo" class="calendario-dias-container"></div>
+                        <p class="info-text configurador-hint" style="margin-bottom: 1rem;">Selecciona los días de tu estancia (mínimo 1). En cada día podrás indicar campo y hora de salida.</p>
+                        <div id="calendario-dias-36h" class="calendario-dias-container"></div>
+                        <div id="campos-dias-36h" class="campos-dias-selector campos-dias-selector-mini" style="display: none; margin-top: 1rem;">
+                            <span class="campos-dias-label">Campo para cada día *</span>
+                            <div id="dias-campos-container-36h" class="campos-dias-row"></div>
+                        </div>
                         <div class="hora-salida-en-fechas-wrap">
-                            <div id="hora-salida-por-dia-cochinillo" class="hora-salida-por-dia-container" style="display: none;"></div>
-                            <div id="hora-salida-unica-cochinillo" class="reserva-datos-iniciales">
+                            <div id="hora-salida-por-dia-36h" class="hora-salida-por-dia-container" style="display: none;"></div>
+                            <div id="hora-salida-unica-36h" class="reserva-datos-iniciales">
                                 <div class="form-group-inline">
                                     <label for="hora-salida">Hora de salida *</label>
                                     <input type="time" id="hora-salida" name="hora_salida" title="Hora preferida de salida" required>
@@ -167,9 +152,27 @@
                         </div>
                     </div>
 
+                    <div class="configurador-seccion" id="configurador-hotel-wrap-36h" style="display: none;">
+                        <h3 class="configurador-titulo">3. Alojamiento (opcional)</h3>
+                        <p class="hotel-ciudad-label">Si necesitas hotel, elige para cada noche. Puedes combinar Lerma y Burgos.</p>
+                        <div id="hotel-por-noche-block-36h" class="hotel-por-noche-block">
+                            <span class="campos-dias-label">Hotel para cada noche:</span>
+                            <p class="hotel-noche-hint">Elige primero el <strong>lugar</strong> (Lerma o Burgos) y después el <strong>hotel</strong> de ese lugar.</p>
+                            <div id="hoteles-por-noche-container-36h" class="campos-dias-row"></div>
+                        </div>
+                        <div id="hotelbeds-precios-block-36h" class="hotelbeds-precios-wrap" aria-live="polite">
+                            <p class="hotelbeds-block hotelbeds-info">Selecciona las dos fechas de juego para ver precios en tiempo real (Hotelbeds).</p>
+                        </div>
+                        <div id="booking-com-widget-36h" class="booking-com-widget booking-com-widget-secondary" style="display: none;">
+                            <p class="booking-com-note">Si no ves precios arriba: <a id="booking-link-lerma-36h" href="https://www.booking.com/searchresults.html?ss=Lerma%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer">Lerma</a> · <a id="booking-link-burgos-36h" href="https://www.booking.com/searchresults.html?ss=Burgos%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer">Burgos</a></p>
+                        </div>
+                    </div>
+
+                    <p class="paquete-logistica-nota hotel-ciudad-label">Una vez confirmado el paquete, en la página de confirmación te facilitaremos enlaces recomendados para <strong>vuelo a Madrid</strong> y <strong>alquiler de coche</strong> (ideal SUV o furgoneta si viajas con palos de golf).</p>
+
                     <!-- Servicios Adicionales -->
                     <div class="configurador-seccion servicios-adicionales-section">
-                        <h3 class="configurador-titulo">Servicios adicionales</h3>
+                        <h3 class="configurador-titulo">4. Servicios adicionales</h3>
                         <div class="ancillaries-grid ancillaries-with-counter">
                             <div class="ancillary-item">
                                 <label for="ancillary_buggy">🛺 Buggies <span class="ancillary-precio" data-ancillary="buggy"></span></label>
@@ -234,9 +237,8 @@
                             <p>Completa las opciones para ver el resumen</p>
                         </div>
                     </div>
-                    <button type="submit" form="formCochinillo" class="btn-reservar-paquete">Reservar Paquete Golf + Cochinillo</button>
+                    <button type="submit" form="form36Hoyos" class="btn-reservar-paquete" data-i18n="btn_reservar_golf_ilimitado">Reservar Golf Ilimitado</button>
                 </aside>
-                </div>
                 </div>
                 </div>
             </div>
@@ -290,6 +292,7 @@
 
     <script src="js/i18n.js"></script>
     <script src="js/precios-data.js"></script>
+    <script src="js/hotelbeds-config.js"></script>
     <script src="js/correspondencias-data.js"></script>
     <script src="js/correspondencias.js"></script>
     <script src="js/stripe-pago.js"></script>
@@ -301,9 +304,146 @@
     <script src="js/ancillary-counters.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            var form = document.getElementById('formCochinillo');
+            var form = document.getElementById('form36Hoyos');
             var resumenDiv = document.getElementById('resumen-paquete');
-            var cal = document.getElementById('calendario-dias-cochinillo');
+            var cal = document.getElementById('calendario-dias-36h');
+            var camposDias36h = document.getElementById('campos-dias-36h');
+            var diasCamposContainer36h = document.getElementById('dias-campos-container-36h');
+            var horaPorDiaWrap36h = document.getElementById('hora-salida-por-dia-36h');
+            var horaUnicaWrap36h = document.getElementById('hora-salida-unica-36h');
+            var configuradorHotelWrap36h = document.getElementById('configurador-hotel-wrap-36h');
+            var hotelPorNocheBlock36h = document.getElementById('hotel-por-noche-block-36h');
+            var hotelesPorNocheContainer36h = document.getElementById('hoteles-por-noche-container-36h');
+
+            function refillHotelSelect36h(i, ciudad) {
+                var sel = form && form.querySelector('select[name="hotel-noche-' + i + '"]');
+                if (!sel) return;
+                var kept = sel.value;
+                var opts = [{ v: '', l: 'Sin reserva' }];
+                if (ciudad === 'lerma' || ciudad === 'burgos') {
+                    var arr = (typeof HOTELES_OPTS !== 'undefined' && HOTELES_OPTS[ciudad]) ? HOTELES_OPTS[ciudad] : [];
+                    for (var j = 0; j < arr.length; j++) {
+                        opts.push({ v: ciudad + '-' + arr[j].v, l: arr[j].l, p: arr[j].p });
+                    }
+                }
+                sel.innerHTML = opts.map(function (o) {
+                    var txt = (o.p != null && o.p !== '') ? o.l + ' · ' + o.p + ' €' : o.l;
+                    return '<option value="' + o.v + '"' + (o.v === kept ? ' selected' : '') + '>' + txt + '</option>';
+                }).join('');
+                var found = opts.some(function (o) { return o.v === kept; });
+                if (!found) sel.value = '';
+                if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
+            }
+
+            function generarHotelesPorNoche36h(n) {
+                if (!hotelesPorNocheContainer36h) return;
+                var prev = {};
+                for (var i = 1; i <= n; i++) {
+                    var hSel = form && form.querySelector('select[name="hotel-noche-' + i + '"]');
+                    var lSel = form && form.querySelector('select[name="lugar-noche-' + i + '"]');
+                    var h = (hSel && hSel.value) ? hSel.value : '';
+                    var l = (lSel && lSel.value) ? lSel.value : '';
+                    if (!l && h && h.indexOf('-') >= 0) l = h.split('-')[0];
+                    prev[i] = { hotel: h || '', lugar: l || '' };
+                }
+                hotelesPorNocheContainer36h.innerHTML = '';
+                for (var i = 1; i <= n; i++) {
+                    var savedL = prev[i].lugar;
+                    var savedH = prev[i].hotel;
+                    var lugarOpts = '<option value="">Sin reserva</option><option value="lerma"' + (savedL === 'lerma' ? ' selected' : '') + '>Lerma</option><option value="burgos"' + (savedL === 'burgos' ? ' selected' : '') + '>Burgos</option>';
+                    var hotelOpts = [{ v: '', l: 'Sin reserva' }];
+                    if (savedL === 'lerma' || savedL === 'burgos') {
+                        var arr = (typeof HOTELES_OPTS !== 'undefined' && HOTELES_OPTS[savedL]) ? HOTELES_OPTS[savedL] : [];
+                        for (var j = 0; j < arr.length; j++) {
+                            hotelOpts.push({ v: savedL + '-' + arr[j].v, l: arr[j].l, p: arr[j].p });
+                        }
+                    }
+                    var hotelOptHtml = hotelOpts.map(function (o) {
+                        var txt = (o.p != null && o.p !== '') ? o.l + ' · ' + o.p + ' €' : o.l;
+                        return '<option value="' + o.v + '"' + (o.v === savedH ? ' selected' : '') + '>' + txt + '</option>';
+                    }).join('');
+                    var item = document.createElement('div');
+                    item.className = 'hoteles-por-noche-item hotel-noche-fila';
+                    item.innerHTML = [
+                        '<span class="hotel-noche-num">Noche ' + i + '</span>',
+                        '<div class="hotel-noche-par">',
+                        '<label for="lugar-noche-' + i + '-36h">Lugar</label>',
+                        '<select id="lugar-noche-' + i + '-36h" name="lugar-noche-' + i + '" aria-label="Lugar noche ' + i + '">' + lugarOpts + '</select>',
+                        '</div>',
+                        '<div class="hotel-noche-par">',
+                        '<label for="hotel-noche-' + i + '-36h">Hotel</label>',
+                        '<select id="hotel-noche-' + i + '-36h" name="hotel-noche-' + i + '" aria-label="Hotel noche ' + i + '">' + hotelOptHtml + '</select>',
+                        '</div>'
+                    ].join('');
+                    hotelesPorNocheContainer36h.appendChild(item);
+                }
+                if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
+            }
+
+            function actualizarBloqueHotel36h() {
+                var noches = parseInt(((form && form.querySelector('input[name="noches"]')) || {}).value || '0', 10);
+                if (noches >= 1) {
+                    if (hotelPorNocheBlock36h) hotelPorNocheBlock36h.style.display = 'block';
+                    generarHotelesPorNoche36h(noches);
+                } else {
+                    if (hotelPorNocheBlock36h) hotelPorNocheBlock36h.style.display = 'none';
+                }
+            }
+
+            function generarHoraSalidaPorDia36h(numDias) {
+                if (!horaPorDiaWrap36h || !horaUnicaWrap36h) return;
+                var singleInput = form && form.querySelector('input[name="hora_salida"]');
+                if (numDias > 1) {
+                    var prev = {};
+                    for (var i = 1; i <= numDias; i++) {
+                        var inp = form && form.querySelector('input[name="hora_salida_dia_' + i + '"]');
+                        if (inp && inp.value) prev[i] = inp.value;
+                    }
+                    horaPorDiaWrap36h.innerHTML = '';
+                    horaPorDiaWrap36h.style.display = 'block';
+                    horaUnicaWrap36h.style.display = 'none';
+                    if (singleInput) singleInput.removeAttribute('required');
+                    for (var i = 1; i <= numDias; i++) {
+                        var item = document.createElement('div');
+                        item.className = 'campos-dias-item';
+                        item.innerHTML = '<label for="hora-salida-dia-' + i + '-36h">Hora de salida día ' + i + ' *</label><input type="time" id="hora-salida-dia-' + i + '-36h" name="hora_salida_dia_' + i + '" title="Hora día ' + i + '" required value="' + (prev[i] || '') + '">';
+                        horaPorDiaWrap36h.appendChild(item);
+                    }
+                } else {
+                    horaPorDiaWrap36h.style.display = 'none';
+                    horaPorDiaWrap36h.innerHTML = '';
+                    horaUnicaWrap36h.style.display = 'block';
+                    if (singleInput) singleInput.setAttribute('required', 'required');
+                }
+                if (typeof window.initHoraSalidaPickers === 'function') {
+                    window.initHoraSalidaPickers(horaPorDiaWrap36h);
+                    window.initHoraSalidaPickers(horaUnicaWrap36h);
+                }
+            }
+
+            function generarCamposPorDia36h(numDias) {
+                if (!diasCamposContainer36h) return;
+                var prev = {};
+                for (var i = 1; i <= numDias; i++) {
+                    var sel = form && form.querySelector('select[name="campo-dia-' + i + '"]');
+                    if (sel && sel.value) prev[i] = sel.value;
+                }
+                diasCamposContainer36h.innerHTML = '';
+                for (var i = 1; i <= numDias; i++) {
+                    var saved = prev[i] || '';
+                    var item = document.createElement('div');
+                    item.className = 'campos-dias-item';
+                    item.innerHTML = [
+                        '<label for="campo-dia-' + i + '-sel-36h">Día ' + i + '</label>',
+                        '<select id="campo-dia-' + i + '-sel-36h" name="campo-dia-' + i + '" required>',
+                        '<option value="">Sin reserva</option>',
+                        '<option value="lerma"' + (saved === 'lerma' ? ' selected' : '') + '>Golf Lerma</option>',
+                        '<option value="saldana"' + (saved === 'saldana' ? ' selected' : '') + '>Saldaña Golf</option>',
+                        '</select>'
+                    ].join('');
+                    diasCamposContainer36h.appendChild(item);
+                }
+            }
 
             function recalcNumeroGrupos() {
                 var tg = document.getElementById('tamanio-grupo');
@@ -340,48 +480,89 @@
                 // Calcular green fees con correspondencia si existe
                 var totalGF = 0;
                 var tieneCorrespondencia = false;
-                if (fechas.length > 0) {
-                    var iso = fechas[0];
-                    if (iso) {
-                        var d = new Date(iso + 'T12:00:00');
-                        var dow = d.getDay();
-                        var esFinDeSemana = (dow === 0 || dow === 6);
-                        var p = null;
-                        // MANTENER LÓGICA DE CORRESPONDENCIA CORRECTA
-                        if (clubId && typeof getPrecioGreenFee === 'function') {
-                            p = getPrecioGreenFee(clubId, esFinDeSemana ? 'saldana' : 'lerma');
-                            if (p != null) tieneCorrespondencia = true;
-                        }
-                        // Si hay correspondencia, usar precio real; si no, usar dummy
-                        if (p == null) p = esFinDeSemana ? 50 : 50; // dummy: 50€ base
-                        totalGF = p; // 1 green fee (solo Golf Lerma)
+                var fechasGF = fechas || [];
+                var numGF = Math.min(2, fechasGF.length);
+                for (var idx = 0; idx < numGF; idx++) {
+                    var iso = fechasGF[idx];
+                    if (!iso) continue;
+                    var d = new Date(iso + 'T12:00:00');
+                    var dow = d.getDay();
+                    var esFinDeSemana = (dow === 0 || dow === 6);
+                    var campoDia = fd.get('campo-dia-' + (idx + 1));
+                    var campo = campoDia || (esFinDeSemana ? 'saldana' : 'lerma');
+                    var p = null;
+                    // MANTENER LÓGICA DE CORRESPONDENCIA CORRECTA
+                    if (clubId && typeof getPrecioGreenFee === 'function') {
+                        p = getPrecioGreenFee(clubId, campo === 'saldana' ? 'saldana' : 'lerma');
+                        if (p != null) tieneCorrespondencia = true;
                     }
-                } else {
-                    totalGF = 50; // dummy: 50€ base (solo 1 green fee)
+                    // Si hay correspondencia, usar precio real; si no, usar dummy
+                    if (p == null) p = 50; // dummy: 50€ base
+                    totalGF += p;
                 }
+                if (numGF === 0) totalGF = 100; // dummy: 100€ pack base (2 campos)
                 var gf = totalGF * numParticipants;
-                
-                // DUMMY: Menú castellano
-                var menuVal = 35 * numParticipants; // dummy: 35€/persona
-                
-                var base = gf + menuVal;
+
+                var nNochesH = parseInt((fd.get('noches') || '0'), 10);
+                var aloj = 0;
+                if (fechas.length === 2 && nNochesH >= 1) {
+                    if (typeof window.calcularAlojamientoResumenEuros === 'function') {
+                        aloj = window.calcularAlojamientoResumenEuros(fd, nNochesH);
+                    } else {
+                        for (var inx = 1; inx <= nNochesH; inx++) {
+                            var hvv = (fd.get('hotel-noche-' + inx) || '').trim();
+                            if (!hvv) continue;
+                            var pa = (typeof window.precioNocheDesdeHotelSelect === 'function') ? window.precioNocheDesdeHotelSelect(hvv) : null;
+                            if (pa != null) aloj += pa;
+                        }
+                    }
+                }
+
+                var base = gf + aloj;
                 // Si hay correspondencia, calcular descuento sobre base real; si no, usar dummy
                 var desc = tieneCorrespondencia ? Math.round(base * 0.15) : Math.round(base * 0.12); // dummy: 12-15%
                 var subtotal = base - desc;
                 
                 var html = '<div class="resumen-items">';
                 html += '<p><strong>Fechas:</strong> ' + (fechas.length ? fechas.join(', ') : '—') + '</p>';
+                if (fechas.length > 0) {
+                    for (var i = 1; i <= fechas.length; i++) {
+                        var c = fd.get('campo-dia-' + i);
+                        if (c) html += '<p><strong>Día ' + i + ':</strong> ' + (c === 'lerma' ? 'Golf Lerma' : 'Saldaña Golf') + '</p>';
+                    }
+                }
                 html += '<p><strong>Participantes:</strong> ' + usuarios.length + '</p>';
                 if (grupos.length > 0) {
                     html += '<p><strong>Correspondencias (grupos):</strong> ' + grupos.map(function (g) { return g.cantidad + ' × ' + g.label; }).join(', ') + '</p>';
                 }
                 html += '<p><strong>Forma de pago:</strong> ' + (fp === 'por_persona' ? 'Por persona' : 'Único') + '</p>';
+                if (fechas.length === 2 && nNochesH >= 1) {
+                    var hparts = [];
+                    for (var hi = 1; hi <= nNochesH; hi++) {
+                        var hv0 = (fd.get('hotel-noche-' + hi) || '').trim();
+                        if (hv0) hparts.push('Noche ' + hi + ': ' + ((typeof window.etiquetaHotelSelect === 'function') ? window.etiquetaHotelSelect(hv0) : hv0));
+                    }
+                    if (hparts.length) html += '<p><strong>Alojamiento:</strong> ' + hparts.join('. ') + '</p>';
+                }
                 html += '</div>';
                 
+                var hotelOk36 = false;
+                if (fechas.length === 2 && nNochesH >= 1) {
+                    for (var hiOk = 1; hiOk <= nNochesH; hiOk++) {
+                        if ((fd.get('hotel-noche-' + hiOk) || '').trim()) { hotelOk36 = true; break; }
+                    }
+                }
                 html += '<div class="resumen-subtotal">';
                 html += '<table class="resumen-subtotal-tabla">';
-                html += '<tr><td>Green fee Golf Lerma' + (numParticipants > 1 ? ' (' + numParticipants + ' pers.)' : '') + '</td><td>' + gf + ' €</td></tr>';
-                html += '<tr><td>Menú castellano' + (numParticipants > 1 ? ' (' + numParticipants + ' pers.)' : '') + '</td><td>' + menuVal + ' €</td></tr>';
+                if (fechas.length === 2 && hotelOk36) {
+                    var pack36 = Math.round((gf + aloj) * 100) / 100;
+                    html += '<tr><td>Pack golf + alojamiento (36 hoyos)</td><td>' + pack36 + ' €</td></tr>';
+                } else {
+                    html += '<tr><td>Green fees 36 hoyos (2 campos' + (numParticipants > 1 ? ' × ' + numParticipants + ' pers.' : '') + ')</td><td>' + gf + ' €</td></tr>';
+                    if (fechas.length === 2) {
+                        html += '<tr><td>Alojamiento (opcional)</td><td>' + (aloj > 0 ? aloj + ' €' : '—') + '</td></tr>';
+                    }
+                }
                 html += '<tr class="resumen-descuento"><td>Descuento pack (-' + (tieneCorrespondencia ? '15' : '12') + '%)</td><td>-' + desc + ' €</td></tr>';
                 html += '<tr class="resumen-total"><td>Subtotal</td><td>' + subtotal + ' €</td></tr>';
                 if (numParticipants > 1) {
@@ -399,14 +580,48 @@
                     form: form,
                     nameFechas: 'fechas[]',
                     nameNoches: 'noches',
-                    maxSeleccion: 1,
-                    onChange: function() { if (typeof window.actualizarResumen === 'function') window.actualizarResumen(); }
+                    maxSeleccion: 2,
+                    onChange: function (count, fechas) {
+                        if (camposDias36h) {
+                            if (count === 2) {
+                                camposDias36h.style.display = 'block';
+                                generarCamposPorDia36h(count);
+                            } else {
+                                camposDias36h.style.display = 'none';
+                            }
+                        }
+                        if (configuradorHotelWrap36h) {
+                            if (count === 2) {
+                                configuradorHotelWrap36h.style.display = 'block';
+                                actualizarBloqueHotel36h();
+                                if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
+                            } else {
+                                configuradorHotelWrap36h.style.display = 'none';
+                                if (hotelPorNocheBlock36h) hotelPorNocheBlock36h.style.display = 'none';
+                                if (hotelesPorNocheContainer36h) hotelesPorNocheContainer36h.innerHTML = '';
+                            }
+                        }
+                        generarHoraSalidaPorDia36h(count);
+                        if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
+                    }
                 });
             }
 
+            document.addEventListener('hotelbeds-dynamic-ready', function () {
+                if (configuradorHotelWrap36h && configuradorHotelWrap36h.style.display !== 'none') {
+                    actualizarBloqueHotel36h();
+                }
+            });
+
             if (form) {
                 form.addEventListener('change', function(e) {
-                    if (e.target && e.target.id === 'tamanio-grupo') recalcNumeroGrupos();
+                    var t = e.target;
+                    if (t && t.name && t.name.indexOf('lugar-noche-') === 0) {
+                        var li = parseInt(t.name.replace('lugar-noche-', ''), 10);
+                        if (li >= 1) refillHotelSelect36h(li, t.value || '');
+                        return;
+                    }
+                    if (t && t.id === 'tamanio-grupo') recalcNumeroGrupos();
                     if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
                 });
                 form.addEventListener('input', function(e) {
@@ -418,19 +633,44 @@
                     e.preventDefault();
                     if (!form.reportValidity()) return;
                     if (typeof window.validarTelefonosForm === 'function' && !window.validarTelefonosForm(form)) return;
+                    var formData = new FormData(form);
+                    var fechas = formData.getAll('fechas[]') || [];
+                    if (fechas.length !== 2) {
+                        alert('Por favor, selecciona exactamente 2 días para jugar los 36 hoyos.');
+                        return;
+                    }
+                    var campo1 = formData.get('campo-dia-1');
+                    var campo2 = formData.get('campo-dia-2');
+                    if (!campo1 || !campo2) {
+                        alert('Por favor, selecciona el campo para cada día.');
+                        return;
+                    }
                     var usuarios = form.querySelectorAll('.usuario-form');
                     var n = Math.max(1, usuarios.length);
                     var totalEuros = (typeof window.getTotalFromResumen === 'function') ? window.getTotalFromResumen() : 0;
                     if (totalEuros <= 0) { alert('Completa las opciones para proceder al pago.'); return; }
-                    var fp = (new FormData(form).get('forma_pago') || 'unico').trim() || 'unico';
-                    var btn = document.querySelector('button[form="formCochinillo"]');
+                    var fp = (formData.get('forma_pago') || 'unico').trim() || 'unico';
+                    var btn = document.querySelector('button[form="form36Hoyos"]');
                     if (typeof window.iniciarPagoStripe === 'function') {
-                        window.iniciarPagoStripe({ totalEuros: totalEuros, modo: fp, numParticipantes: n, paquete: 'cochinillo', formId: 'formCochinillo', submitButton: btn });
+                        window.iniciarPagoStripe({ totalEuros: totalEuros, modo: fp, numParticipantes: n, paquete: '36-hoyos', formId: 'form36Hoyos', submitButton: btn });
                     } else { alert('Error: módulo de pago no cargado.'); }
                 });
             }
         });
     </script>
+    <script>
+      window.HOTELBEDS_PAGE = {
+        formId: 'form36Hoyos',
+        hotelWrapId: 'configurador-hotel-wrap-36h',
+        preciosBlockId: 'hotelbeds-precios-block-36h',
+        bookingWidgetId: 'booking-com-widget-36h',
+        linkLermaId: 'booking-link-lerma-36h',
+        linkBurgosId: 'booking-link-burgos-36h',
+        onResumen: function () {
+          if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
+        },
+      };
+    </script>
+    <script src="js/hotelbeds-paquetes.js"></script>
 </body>
 </html>
-

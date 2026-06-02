@@ -753,7 +753,8 @@ a.hero-saldaña-link:hover {
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
-.paquete-fin-semana {
+.paquete-fin-semana,
+.paquete-golf-burgos {
     background-image: url('../FOTOS/FinSemanaGolf.jpg') !important;
     background-size: cover !important;
     background-position: center !important;
@@ -781,14 +782,16 @@ a.hero-saldaña-link:hover {
     background-repeat: no-repeat !important;
 }
 
-.paquete-36-hoyos {
+.paquete-36-hoyos,
+.paquete-golf-ilimitado {
     background-image: url('../FOTOS/Vista-Aérea-Golf-Lerma-1170x780.jpg') !important;
     background-size: cover !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
 }
 
-.paquete-golf-vino {
+.paquete-golf-vino,
+.paquete-golf-canalla {
     background-image: url('../FOTOS/boogievino.png') !important;
     background-size: cover !important;
     background-position: center !important;
@@ -965,30 +968,42 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     padding: 4rem 0;
     background: var(--color-bg-light);
     scroll-margin-top: 80px;
-    overflow: visible;
+    overflow-x: clip;
 }
 
 .paquete-detalle .container {
     padding-left: clamp(0.75rem, 2vw, 1.25rem);
     padding-right: clamp(0.75rem, 2vw, 1.25rem);
-    max-width: min(1280px, calc(100vw - 1rem));
-    overflow: visible;
+    max-width: min(1280px, 100%);
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: clip;
 }
 
 /* Configurador de Paquete */
 .configurador-paquete {
     max-width: 100%;
+    width: 100%;
     margin: 3rem 0 0;
-    margin-left: clamp(-2rem, -2.5vw, 0);
-    overflow: visible;
+    margin-left: 0;
+    box-sizing: border-box;
+    overflow-x: clip;
 }
 
 .configurador-paquete .configurador-layout {
     display: grid;
-    grid-template-columns: 1fr 420px;
-    gap: 2rem;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, min(380px, 34vw));
+    gap: clamp(1.25rem, 2vw, 2rem);
     align-items: start;
-    overflow: visible;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.configurador-paquete .configurador-form,
+.configurador-paquete .configurador-layout .resumen-mobile-wrapper {
+    min-width: 0;
+    max-width: 100%;
 }
 
 .configurador-paquete .configurador-layout .resumen-mobile-wrapper {
@@ -1002,7 +1017,9 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     position: -webkit-sticky;
     top: var(--resumen-sticky-top);
     align-self: start;
-    margin-right: -80px;
+    margin-right: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 /* Reforzar sticky en desktop: el wrapper debe estirarse para que el aside tenga "espacio" donde pegarse */
@@ -3751,6 +3768,28 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
 .comida-dia-card--selected {
     border-color: var(--color-primary);
     box-shadow: 0 4px 14px rgba(26, 77, 58, 0.1);
+}
+
+.comida-dia-card__seleccionadas {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.65rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid rgba(26, 77, 58, 0.12);
+}
+
+.comida-dia-card__seleccionadas .comida-dia-card__resumen {
+    margin: 0;
+}
+
+.comida-menu-card--added {
+    border-color: var(--color-primary);
+    background: rgba(26, 77, 58, 0.05);
+}
+
+.comida-menu-card--added .comida-menu-card__cta {
+    color: var(--color-text-light);
 }
 
 .comida-dia-card--just-added {

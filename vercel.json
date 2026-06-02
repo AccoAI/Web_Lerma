@@ -1,5 +1,10 @@
 {
   "version": 2,
+  "redirects": [
+    { "source": "/paquete-fin-semana.html", "destination": "/paquete-golf-burgos.html", "permanent": true },
+    { "source": "/paquete-36-hoyos.html", "destination": "/paquete-golf-ilimitado.html", "permanent": true },
+    { "source": "/paquete-golf-vino.html", "destination": "/paquete-golf-canalla.html", "permanent": true }
+  ],
   "rewrites": [
     {
       "source": "/api/hotelbeds-reconfirmation",

@@ -48,10 +48,13 @@ function loadLocalWebhookSecret() {
 }
 
 const nombresPaquete = {
-  'fin-semana': 'Fin de Semana Golf Burgos',
+  'fin-semana': 'Paquete Golf Burgos',
+  'golf-burgos': 'Paquete Golf Burgos',
   cochinillo: 'Paquete Golf + Cochinillo',
-  'golf-vino': 'Paquete Golf y Vino',
-  '36-hoyos': '36 Hoyos Golf',
+  'golf-vino': 'Golf Canalla',
+  'golf-canalla': 'Golf Canalla',
+  '36-hoyos': 'Golf Ilimitado en Burgos',
+  'golf-ilimitado': 'Golf Ilimitado en Burgos',
   'pausa-drive': 'Pausa & Drive',
   'tour-boogie': 'Tour en boogie',
   bautismos: 'Bautismos de golf',

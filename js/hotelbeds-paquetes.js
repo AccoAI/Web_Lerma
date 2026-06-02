@@ -3232,9 +3232,12 @@
   }
 
   var HB_PAQUETE_LABELS = {
-    'fin-semana': 'Fin de semana golf Burgos',
-    'golf-vino': 'Paquete golf y vino',
-    '36-hoyos': '36 hoyos golf',
+    'fin-semana': 'Paquete Golf Burgos',
+    'golf-burgos': 'Paquete Golf Burgos',
+    'golf-vino': 'Golf Canalla',
+    'golf-canalla': 'Golf Canalla',
+    '36-hoyos': 'Golf Ilimitado Burgos',
+    'golf-ilimitado': 'Golf Ilimitado Burgos',
     ryder: 'Ryder cup',
     torneos: 'Torneo / configurador',
     'pausa-drive': 'Pausa & drive',
