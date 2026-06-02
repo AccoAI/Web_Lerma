@@ -554,9 +554,9 @@ function initConfiguradorPaquete() {
     }
 
     function syncFechasDiaPlanPanel(numDias) {
-        var hasDays = numDias >= 1;
-        if (fechasDiaPlanHint) fechasDiaPlanHint.hidden = hasDays;
-        if (diasCamposContainerFinSemana) diasCamposContainerFinSemana.hidden = !hasDays;
+        if (diasCamposContainerFinSemana) {
+            diasCamposContainerFinSemana.hidden = !(numDias >= 1);
+        }
     }
 
     function generarPlanPorDiaFinSemana(numDias, fechas) {
@@ -565,6 +565,7 @@ function initConfiguradorPaquete() {
         if (!numDias || numDias < 1) {
             diasCamposContainerFinSemana.innerHTML = '';
             syncFechasDiaPlanPanel(0);
+            ubicarGrupoEnPanelFechas(0);
             return;
         }
         syncFechasDiaPlanPanel(numDias);
@@ -617,6 +618,40 @@ function initConfiguradorPaquete() {
         for (var j = 1; j <= numDias; j++) {
             var planRow = diasCamposContainerFinSemana.querySelector('.fechas-dia-plan-row[data-dia="' + j + '"]');
             syncPlanHoraRowFinSemana(planRow, j, numDias);
+        }
+        ubicarGrupoEnPanelFechas(numDias);
+    }
+
+    function ubicarGrupoEnPanelFechas(numDias) {
+        var grupoFields = document.getElementById('fechas-grupo-fields');
+        var grupoBar = document.getElementById('fechas-grupo-bar');
+        if (!grupoFields) return;
+
+        var prevMount = document.querySelector('.fechas-dia-plan-row__grupo--mounted');
+        if (prevMount) {
+            while (prevMount.firstChild) grupoFields.appendChild(prevMount.firstChild);
+            prevMount.remove();
+        }
+        diasCamposContainerFinSemana && diasCamposContainerFinSemana.querySelectorAll('.fechas-dia-plan-row--with-grupo').forEach(function (r) {
+            r.classList.remove('fechas-dia-plan-row--with-grupo');
+        });
+
+        if (numDias >= 1 && diasCamposContainerFinSemana) {
+            var row = diasCamposContainerFinSemana.querySelector('.fechas-dia-plan-row[data-dia="' + numDias + '"]');
+            if (row) {
+                var wrap = document.createElement('div');
+                wrap.className = 'fechas-dia-plan-row__grupo fechas-dia-plan-row__grupo--mounted';
+                while (grupoFields.firstChild) wrap.appendChild(grupoFields.firstChild);
+                row.appendChild(wrap);
+                row.classList.add('fechas-dia-plan-row--with-grupo');
+                if (grupoBar) grupoBar.hidden = true;
+                return;
+            }
+        }
+
+        if (grupoBar) {
+            if (!grupoBar.contains(grupoFields)) grupoBar.appendChild(grupoFields);
+            grupoBar.hidden = false;
         }
     }
 

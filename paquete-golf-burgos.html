@@ -83,29 +83,31 @@
                                     <span data-i18n-html="calendario_hint_rango">Clic o <strong>arrastra</strong> para elegir rango. </span><strong class="calendario-count">0</strong> <span data-i18n="calendario_hint_dias_suffix">días seleccionados.</span>
                                 </p>
                                 <div id="dias-campos-container-finsemana" class="fechas-dia-plan-list" hidden></div>
+                                <div id="fechas-grupo-bar" class="fechas-dia-plan-row fechas-dia-plan-row--grupo">
+                                    <div id="fechas-grupo-fields" class="fechas-dia-plan-row__grupo">
+                                        <div class="fechas-dia-plan-row__grupo-item form-group-inline form-group-quantity">
+                                            <label for="tamanio-grupo" data-i18n="label_tamanio_grupo">Tamaño del grupo *</label>
+                                            <div class="ancillary-counter-wrap reserva-quantity-wrap">
+                                                <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir jugadores">−</button>
+                                                <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" max="54" required class="ancillary-counter reserva-quantity-input" readonly title="Número de jugadores" enterkeyhint="next">
+                                                <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar jugadores">+</button>
+                                            </div>
+                                        </div>
+                                        <div class="fechas-dia-plan-row__grupo-item form-group-inline form-group-quantity">
+                                            <label for="numero-grupos-output" data-i18n="label_num_grupos">Nº de grupos</label>
+                                            <output id="numero-grupos-output" class="config-quantity-readonly" for="tamanio-grupo" aria-live="polite" aria-readonly="true" tabindex="-1">—</output>
+                                            <input type="hidden" name="numero_grupos" id="numero-grupos">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Datos de Usuarios (siempre segundo) -->
+                    <!-- Datos de la reserva -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo" data-i18n="config_datos_participantes">2. Datos de los jugadores</h3>
-                        <div class="reserva-datos-iniciales">
-                            <div class="form-group-inline form-group-quantity">
-                                <label for="tamanio-grupo" data-i18n="label_tamanio_grupo">Tamaño del grupo *</label>
-                                <div class="ancillary-counter-wrap reserva-quantity-wrap">
-                                    <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir jugadores">−</button>
-                                    <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" max="54" required class="ancillary-counter reserva-quantity-input" readonly title="Número de jugadores" enterkeyhint="next">
-                                    <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar jugadores">+</button>
-                                </div>
-                            </div>
-                            <div class="form-group-inline form-group-quantity">
-                                <label for="numero-grupos-output" data-i18n="label_num_grupos">Nº de grupos</label>
-                                <output id="numero-grupos-output" class="config-quantity-readonly" for="tamanio-grupo" aria-live="polite" aria-readonly="true" tabindex="-1">—</output>
-                                <input type="hidden" name="numero_grupos" id="numero-grupos">
-                            </div>
-                        </div>
-                        <p class="configurador-hint">Solo los datos de la reserva son obligatorios. Puedes añadir más participantes si lo deseas.</p>
+                        <h3 class="configurador-titulo" data-i18n="config_datos_participantes">2. Datos de la reserva</h3>
+                        <p class="configurador-hint" data-i18n="config_hint">Solo los datos de la reserva son obligatorios. Puedes añadir más participantes si lo deseas.</p>
                         <div id="usuarios-container" data-extra-opcionales="true" data-simplificar-extras="true" data-grupos-correspondencia="true">
                             <div class="usuario-form usuario-form-reserva" data-usuario="1">
                                 <div class="usuario-form-header"><h4 class="usuario-numero" data-i18n="datos_reserva">Datos de la reserva *</h4></div>

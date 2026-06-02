@@ -1935,7 +1935,8 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 .fechas-calendario-layout .calendario-dias-container {
     margin: 0;
-    max-width: 380px;
+    max-width: none;
+    width: 100%;
 }
 
 .fechas-calendario-layout__cal {
@@ -1949,7 +1950,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 .fechas-dia-plan-hint {
-    margin: 0;
+    margin: 0 0 0.75rem;
 }
 
 .fechas-dia-plan-list {
@@ -1959,10 +1960,6 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 .fechas-dia-plan-list[hidden] {
-    display: none !important;
-}
-
-.fechas-dia-plan-hint[hidden] {
     display: none !important;
 }
 
@@ -2021,17 +2018,170 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     pointer-events: none;
 }
 
+.fechas-dia-plan-row--with-grupo {
+    grid-template-columns: 10.5rem minmax(8rem, 1fr) auto minmax(0, 1fr);
+}
+
+.fechas-dia-plan-row__grupo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+}
+
+.fechas-dia-plan-row--with-grupo .fechas-dia-plan-row__grupo {
+    grid-column: 4;
+}
+
+.fechas-dia-plan-row__grupo-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.fechas-dia-plan-row__grupo-item label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-text-light);
+    white-space: nowrap;
+}
+
+.fechas-dia-plan-row__grupo-item .ancillary-counter-wrap {
+    background: #fff;
+    border: 1px solid rgba(26, 77, 58, 0.18);
+    border-radius: 4px;
+}
+
+.fechas-dia-plan-row__grupo-item .config-quantity-readonly {
+    min-width: 2.25rem;
+    height: 2.25rem;
+}
+
+.fechas-dia-plan-row--grupo {
+    margin-top: 0;
+}
+
+.fechas-dia-plan-row--grupo[hidden] {
+    display: none !important;
+}
+
 @media (min-width: 900px) {
     .fechas-calendario-layout {
         flex-direction: row;
         align-items: flex-start;
-        gap: 1.5rem;
+        gap: 1.25rem;
+    }
+
+    .fechas-calendario-layout__cal {
+        flex: 1 1 65%;
+        min-width: 0;
+        max-width: none;
+    }
+
+    .fechas-calendario-layout .calendario-dias-container {
+        max-width: none;
+        width: 100%;
+        padding: 0.25rem 0;
+    }
+
+    .fechas-calendario-layout__cal .calendario-hint {
+        margin-bottom: 0.85rem;
+    }
+
+    .fechas-calendario-layout__cal .calendario-nav {
+        margin-bottom: 0.85rem;
+    }
+
+    .fechas-calendario-layout__cal .calendario-mes-titulo {
+        font-size: 1.5rem;
+    }
+
+    .fechas-calendario-layout__cal .calendario-btn-prev,
+    .fechas-calendario-layout__cal .calendario-btn-next {
+        width: 44px;
+        height: 44px;
+        font-size: 1.55rem;
+    }
+
+    .fechas-calendario-layout__cal .calendario-semana-headers {
+        font-size: 0.88rem;
+        padding: 0.65rem 0.5rem;
+    }
+
+    .fechas-calendario-layout__cal .calendario-grid {
+        gap: 4px;
+        padding: 0.65rem 0.5rem;
+    }
+
+    .fechas-calendario-layout__cal .calendario-dia {
+        max-width: none;
+        aspect-ratio: 1;
+        font-size: 1.05rem;
+        font-weight: 500;
     }
 
     .fechas-dia-plan-panel {
-        flex: 1 1 0;
-        padding-top: 1rem;
-        min-height: 280px;
+        flex: 0 1 32%;
+        min-width: 16.5rem;
+        max-width: 21rem;
+        padding-top: 0.35rem;
+    }
+
+    .fechas-dia-plan-panel .fechas-dia-plan-row {
+        grid-template-columns: 1fr;
+        row-gap: 0.45rem;
+        padding: 0.6rem 0.7rem;
+    }
+
+    .fechas-dia-plan-panel .fechas-dia-plan-row__campo .campos-dias-item__dia-label,
+    .fechas-dia-plan-panel .fechas-dia-plan-row__campo .campo-dia-toggle,
+    .fechas-dia-plan-panel .fechas-dia-plan-row__hora {
+        grid-column: 1;
+    }
+
+    .fechas-dia-plan-panel .fechas-dia-plan-row__campo .campos-dias-item__dia-label {
+        width: auto;
+        min-width: 0;
+        max-width: none;
+        font-size: 0.88rem;
+    }
+
+    .fechas-dia-plan-panel .fechas-dia-plan-row__campo .campo-dia-toggle {
+        max-width: none;
+        width: 100%;
+    }
+
+    .fechas-dia-plan-panel .fechas-dia-plan-row__campo .campo-dia-toggle__btn {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.45rem;
+    }
+
+    .fechas-dia-plan-panel .fechas-dia-plan-row__hora {
+        justify-content: space-between;
+        width: 100%;
+        padding-top: 0.25rem;
+        border-top: 1px solid rgba(26, 77, 58, 0.1);
+    }
+
+    .fechas-dia-plan-panel .fechas-dia-plan-row__hora label {
+        font-size: 0.8rem;
+    }
+
+    .fechas-dia-plan-panel .fechas-dia-plan-row--with-grupo {
+        grid-template-columns: 1fr;
+    }
+
+    .fechas-dia-plan-panel .fechas-dia-plan-row--with-grupo .fechas-dia-plan-row__grupo {
+        grid-column: 1;
+        width: 100%;
+        padding-top: 0.35rem;
+        border-top: 1px solid rgba(26, 77, 58, 0.1);
+    }
+
+    .fechas-dia-plan-panel .fechas-dia-plan-row__grupo-item {
+        flex: 1 1 7rem;
     }
 }
 
@@ -2061,6 +2211,21 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         width: 100%;
         padding-top: 0.35rem;
         border-top: 1px solid rgba(26, 77, 58, 0.1);
+    }
+
+    .fechas-dia-plan-row--with-grupo .fechas-dia-plan-row__grupo {
+        grid-column: 1;
+        width: 100%;
+        padding-top: 0.35rem;
+        border-top: 1px solid rgba(26, 77, 58, 0.1);
+    }
+
+    .fechas-dia-plan-row__grupo-item {
+        flex: 1 1 auto;
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
     }
 }
 
