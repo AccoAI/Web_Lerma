@@ -25,13 +25,6 @@
         var menuCard = input.closest('.comida-menu-card');
         if (menuCard) {
             menuCard.classList.toggle('comida-menu-card--added', val > 0);
-            var horaWrap = menuCard.querySelector('.comida-menu-card__hora');
-            if (horaWrap) horaWrap.hidden = !(val > 0);
-            var horaSel = menuCard.querySelector('.comida-menu-hora');
-            if (horaSel) {
-                if (val > 0) horaSel.removeAttribute('disabled');
-                else horaSel.setAttribute('disabled', 'disabled');
-            }
         }
     }
 

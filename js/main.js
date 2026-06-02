@@ -1059,16 +1059,38 @@ function initConfiguradorPaquete() {
         }
     }
 
+    function getHoraComidaDiaDesdeReservas(reservas) {
+        for (var i = 0; i < (reservas || []).length; i++) {
+            if (reservas[i].tipo === 'club') {
+                return normalizarHoraComida(reservas[i].hora);
+            }
+        }
+        return HORA_COMIDA_DEFAULT;
+    }
+
+    function getHoraComidaDesdeDom(dia) {
+        if (!form) return null;
+        var sel = form.querySelector('.comida-dia-hora[data-dia="' + dia + '"]');
+        return sel ? normalizarHoraComida(sel.value) : null;
+    }
+
+    function aplicarHoraComidaDia(dia, hora) {
+        var reservas = leerReservasComidaDia(dia);
+        var h = normalizarHoraComida(hora);
+        var changed = false;
+        for (var i = 0; i < reservas.length; i++) {
+            if (reservas[i].tipo === 'club') {
+                reservas[i].hora = h;
+                changed = true;
+            }
+        }
+        if (changed) guardarReservasComidaDia(dia, reservas);
+        return h;
+    }
+
     function syncComidaMenuCardState(card, added) {
         if (!card) return;
         card.classList.toggle('comida-menu-card--added', added);
-        var horaWrap = card.querySelector('.comida-menu-card__hora');
-        if (horaWrap) horaWrap.hidden = !added;
-        var horaSel = card.querySelector('.comida-menu-hora');
-        if (horaSel) {
-            if (added) horaSel.removeAttribute('disabled');
-            else horaSel.setAttribute('disabled', 'disabled');
-        }
     }
 
     function aplicarComensalesMenuClub(input) {
@@ -1090,12 +1112,14 @@ function initConfiguradorPaquete() {
             }
             if (found) {
                 found.r.comensales = val;
+                found.r.hora = getHoraComidaDesdeDom(dia) || getHoraComidaDiaDesdeReservas(reservas);
             } else {
+                var horaDia = getHoraComidaDesdeDom(dia) || getHoraComidaDiaDesdeReservas(reservas);
                 reservas.push({
                     tipo: 'club',
                     menuId: menuId,
                     comensales: val,
-                    hora: HORA_COMIDA_DEFAULT,
+                    hora: horaDia,
                 });
             }
         }
@@ -1188,16 +1212,25 @@ function initConfiguradorPaquete() {
             if (reservas[ri].tipo === 'club') {
                 if (!reservas[ri].comensales || reservas[ri].comensales < 1) reservas[ri].comensales = nJug;
                 reservas[ri].comensales = Math.min(Math.max(1, reservas[ri].comensales), Math.max(nJug, 20));
-                reservas[ri].hora = normalizarHoraComida(reservas[ri].hora);
             }
+        }
+        var horaDia = getHoraComidaDiaDesdeReservas(reservas);
+        for (var rh = 0; rh < reservas.length; rh++) {
+            if (reservas[rh].tipo === 'club') reservas[rh].hora = horaDia;
         }
         ensureComidaLegacyHiddenFields(diaIndex, reservas);
         var menus = typeof window.getCasaClubMenus === 'function' ? window.getCasaClubMenus() : [];
         var tieneSel = reservas.length > 0;
+        var horaDiaId = 'comida-dia-hora-' + diaIndex;
         var html = '';
         html += '<article class="comida-dia-card' + (tieneSel ? ' comida-dia-card--selected' : '') + '" data-dia-card="' + diaIndex + '">';
         html += '<header class="comida-dia-card__head">';
+        html += '<div class="comida-dia-card__head-main">';
         html += '<h4 class="comida-dia-card__fecha">' + escapeHtmlComida(navItem.titulo) + '</h4>';
+        html += '<div class="comida-dia-card__hora-wrap">';
+        html += '<label class="comida-dia-card__hora-label" for="' + horaDiaId + '">Hora</label>';
+        html += '<select id="' + horaDiaId + '" class="comida-dia-hora comida-hora-comida" data-dia="' + diaIndex + '" aria-label="Hora de la comida">' + htmlOpcionesHoraComida(horaDia) + '</select>';
+        html += '</div></div>';
         if (reservasTienenMenuClub(reservas)) {
             html += '<span class="comida-dia-card__badge comida-dia-card__badge--pack">Incluido en el paquete</span>';
         }
@@ -1318,11 +1351,9 @@ function initConfiguradorPaquete() {
     function htmlComidaMenuCard(menu, dia, reserva, nJug) {
         var added = !!reserva;
         var paxVal = added ? Math.min(Math.max(1, reserva.comensales || nJug), Math.max(nJug, 20)) : 0;
-        var horaVal = added ? normalizarHoraComida(reserva.hora) : HORA_COMIDA_DEFAULT;
         var precio = menu.precioPorPersona != null ? menu.precioPorPersona : '';
         var maxPax = Math.max(nJug, 20);
         var inputId = 'comida-menu-pax-dia-' + dia + '-' + menu.id;
-        var horaId = 'comida-menu-hora-dia-' + dia + '-' + menu.id;
         var selectedCls = added ? ' comida-menu-card--added' : '';
         return (
             '<article class="comida-menu-card comida-menu-card--config' + selectedCls + '" data-dia="' + dia + '" data-menu="' + escapeHtmlComida(menu.id) + '">' +
@@ -1335,12 +1366,7 @@ function initConfiguradorPaquete() {
             '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Menos comensales">−</button>' +
             '<input type="number" id="' + inputId + '" min="0" max="' + maxPax + '" value="' + paxVal + '" class="ancillary-counter comida-menu-comensales" data-dia="' + dia + '" data-menu="' + escapeHtmlComida(menu.id) + '" readonly aria-label="Comensales">' +
             '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Más comensales">+</button>' +
-            '</div>' +
-            '<div class="comida-menu-card__hora"' + (added ? '' : ' hidden') + '>' +
-            '<label class="comida-menu-card__ctrl-label" for="' + horaId + '">Hora</label>' +
-            '<select id="' + horaId + '" class="comida-menu-hora comida-hora-comida" data-dia="' + dia + '" data-menu="' + escapeHtmlComida(menu.id) + '" aria-label="Hora de la comida"' + (added ? '' : ' disabled') + '>' +
-            htmlOpcionesHoraComida(horaVal) +
-            '</select></div></div></div></article>'
+            '</div></div></div></article>'
         );
     }
 
@@ -1765,14 +1791,19 @@ function initConfiguradorPaquete() {
             }
             if (t && t.classList && t.classList.contains('comida-hora-comida')) {
                 var diaHora = t.getAttribute('data-dia');
+                if (t.classList.contains('comida-dia-hora') && diaHora) {
+                    var hNorm = aplicarHoraComidaDia(diaHora, t.value);
+                    if (t.value !== hNorm) t.value = hNorm;
+                    actualizarResumen();
+                    return;
+                }
                 var menuHora = t.getAttribute('data-menu');
                 if (diaHora && menuHora) {
                     var reservasHora = leerReservasComidaDia(diaHora);
                     var foundHora = findReservaClubMenu(reservasHora, menuHora);
                     if (foundHora) {
-                        foundHora.r.hora = normalizarHoraComida(t.value);
-                        guardarReservasComidaDia(diaHora, reservasHora);
-                        if (t.value !== foundHora.r.hora) t.value = foundHora.r.hora;
+                        var hAll = aplicarHoraComidaDia(diaHora, t.value);
+                        if (t.value !== hAll) t.value = hAll;
                     }
                 } else {
                     var idxHora = parseInt(t.getAttribute('data-reserva-idx'), 10);
@@ -1884,29 +1915,6 @@ function initConfiguradorPaquete() {
                 actualizarBloqueAncillaryPorDia(fechasI18n.length, fechasI18n);
             }
         });
-        if (!window.__golfLermaComidaHoraScrollBound) {
-            window.__golfLermaComidaHoraScrollBound = true;
-            var comidaHoraScroll = { x: 0, y: 0, gridLeft: 0, grid: null };
-            document.addEventListener('mousedown', function (e) {
-                var sel = e.target.closest && e.target.closest('.comida-menu-hora');
-                if (!sel) return;
-                comidaHoraScroll.x = window.scrollX;
-                comidaHoraScroll.y = window.scrollY;
-                comidaHoraScroll.grid = sel.closest('.comida-menu-grid');
-                comidaHoraScroll.gridLeft = comidaHoraScroll.grid ? comidaHoraScroll.grid.scrollLeft : 0;
-            }, true);
-            document.addEventListener('focusin', function (e) {
-                if (!e.target.classList || !e.target.classList.contains('comida-menu-hora')) return;
-                var sx = comidaHoraScroll.x;
-                var sy = comidaHoraScroll.y;
-                var grid = comidaHoraScroll.grid;
-                var gl = comidaHoraScroll.gridLeft;
-                requestAnimationFrame(function () {
-                    if (window.scrollX !== sx || window.scrollY !== sy) window.scrollTo(sx, sy);
-                    if (grid && grid.scrollLeft !== gl) grid.scrollLeft = gl;
-                });
-            }, true);
-        }
         recalcNumeroGrupos();
         if (form) {
             var fdInit = new FormData(form);
