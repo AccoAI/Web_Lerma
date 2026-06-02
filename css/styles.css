@@ -3959,11 +3959,16 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
 
 .comida-menu-card--added {
     border-color: var(--color-primary);
-    background: rgba(26, 77, 58, 0.05);
+    box-shadow: 0 0 0 2px var(--color-primary);
 }
 
 .comida-menu-card--added .comida-menu-card__cta {
-    color: var(--color-text-light);
+    color: #fff;
+    opacity: 1;
+}
+
+.comida-menu-card--added .comida-menu-card__content {
+    background: linear-gradient(to top, rgba(26, 77, 58, 0.92) 0%, rgba(26, 77, 58, 0.55) 55%, transparent 100%);
 }
 
 .comida-dia-card--just-added {
@@ -4056,30 +4061,52 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
 
 .comida-menu-grid {
     display: flex;
-    flex-direction: column;
-    gap: 0.45rem;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 0.65rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    padding: 0.15rem 0.1rem 0.35rem;
+    margin: 0 -0.1rem;
 }
 
 .comida-menu-card {
+    position: relative;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    width: 100%;
-    padding: 0.75rem 0.9rem;
+    flex-direction: column;
+    flex: 0 0 auto;
+    width: min(10.5rem, 44vw);
+    min-height: 11.5rem;
+    padding: 0;
     text-align: left;
     font-family: inherit;
-    background: #fff;
-    border: 2px solid rgba(26, 77, 58, 0.14);
+    background: #1a4d3a;
+    border: 2px solid rgba(26, 77, 58, 0.18);
+    border-radius: 6px;
+    overflow: hidden;
     cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    scroll-snap-align: start;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.comida-menu-card[data-menu="huevos"] {
+    --comida-menu-fallback: linear-gradient(145deg, #5c3d1e 0%, #8b5a2b 45%, #c4925a 100%);
+}
+
+.comida-menu-card[data-menu="hamburguesa"] {
+    --comida-menu-fallback: linear-gradient(145deg, #6b2d14 0%, #b84a1f 50%, #e8924f 100%);
+}
+
+.comida-menu-card[data-menu="cochinillo"] {
+    --comida-menu-fallback: linear-gradient(145deg, #3d2018 0%, #6b3a2a 50%, #a66b52 100%);
 }
 
 .comida-menu-card:hover {
     border-color: var(--color-primary);
-    background: rgba(26, 77, 58, 0.03);
-    transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(26, 77, 58, 0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(26, 77, 58, 0.18);
 }
 
 .comida-menu-card:focus-visible {
@@ -4087,26 +4114,49 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     outline-offset: 2px;
 }
 
-.comida-menu-card__body {
+.comida-menu-card__media {
+    position: absolute;
+    inset: 0;
+    background-color: #1a4d3a;
+    background-image: var(--comida-menu-bg, var(--comida-menu-fallback));
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: transform 0.25s ease;
+}
+
+.comida-menu-card:hover .comida-menu-card__media {
+    transform: scale(1.04);
+}
+
+.comida-menu-card__content {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
-    min-width: 0;
-    flex: 1;
+    margin-top: auto;
+    min-height: 58%;
+    justify-content: flex-end;
+    padding: 0.75rem 0.7rem 0.65rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0.42) 55%, transparent 100%);
+    color: #fff;
 }
 
 .comida-menu-card__nombre {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--color-text);
-    line-height: 1.3;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.25;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 
 .comida-menu-card__cta {
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 600;
-    color: var(--color-primary);
-    opacity: 0.85;
+    color: rgba(255, 255, 255, 0.92);
+    opacity: 0.95;
+    margin-top: 0.1rem;
 }
 
 .comida-menu-card:hover .comida-menu-card__cta {
@@ -4114,29 +4164,26 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
 }
 
 .comida-menu-card__precio {
-    flex-shrink: 0;
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     align-items: baseline;
-    gap: 0.25rem;
+    gap: 0.2rem;
     white-space: nowrap;
     line-height: 1.2;
-    padding-left: 0.5rem;
-    border-left: 1px solid rgba(26, 77, 58, 0.12);
+    margin-top: 0.05rem;
 }
 
 .comida-menu-card__precio-num {
-    font-size: 1.15rem;
+    font-size: 1.05rem;
     font-weight: 700;
-    color: var(--color-primary);
+    color: #fff;
 }
 
 .comida-menu-card__precio-unit {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 500;
-    color: var(--color-text);
-    opacity: 0.75;
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .comida-externos-card {
@@ -4338,8 +4385,17 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
 @media (min-width: 640px) {
     .comida-menu-grid {
         display: grid;
-        grid-template-columns: 1fr;
-        gap: 0.45rem;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        overflow-x: visible;
+        scroll-snap-type: none;
+        gap: 0.75rem;
+        padding: 0.15rem 0 0.25rem;
+        margin: 0;
+    }
+
+    .comida-menu-card {
+        width: auto;
+        min-height: 12.5rem;
     }
 }
 
@@ -10736,34 +10792,135 @@ body.page-torneo .torneo-detalle-section {
     gap: 0.65rem 1rem;
 }
 
-/* Paquete fin de semana: buggies / carritos por día de salida */
-.ancillary-pack-dia-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    overflow: visible;
-    min-width: 0;
-    width: 100%;
-}
-
-.ancillary-pack-dia-grid .ancillary-pack-cell {
+/* Servicios adicionales por día — tarjetas horizontales */
+.ancillary-service-grid {
     display: flex;
     flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
+    flex-wrap: nowrap;
+    align-items: stretch;
     gap: 0.65rem;
-    min-width: 0;
-    padding: 0.55rem 0;
-    border-bottom: 1px solid rgba(26, 77, 58, 0.1);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    padding: 0.15rem 0.1rem 0.35rem;
+    margin: 0 -0.1rem;
 }
 
-.ancillary-pack-dia-grid .ancillary-pack-cell:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
+.ancillary-service-card {
+    position: relative;
+    flex: 0 0 auto;
+    width: min(10.5rem, 44vw);
+    min-height: 12rem;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid rgba(26, 77, 58, 0.18);
+    border-radius: 6px;
+    overflow: hidden;
+    background: #1a4d3a;
+    scroll-snap-align: start;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.ancillary-pack-dia-grid .ancillary-pack-cell:first-child {
-    padding-top: 0;
+.ancillary-service-card--buggy {
+    --ancillary-card-fallback: linear-gradient(145deg, #1e3a2f 0%, #2d5a47 45%, #4a8f6e 100%);
+}
+
+.ancillary-service-card--carritoMano {
+    --ancillary-card-fallback: linear-gradient(145deg, #2a3540 0%, #4a5f72 50%, #7a95ad 100%);
+}
+
+.ancillary-service-card--carritoElectrico {
+    --ancillary-card-fallback: linear-gradient(145deg, #1a3340 0%, #25607a 50%, #3d9cc4 100%);
+}
+
+.ancillary-service-card--selected {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.ancillary-service-card__media {
+    position: absolute;
+    inset: 0;
+    background-color: #1a4d3a;
+    background-image: var(--ancillary-card-bg, var(--ancillary-card-fallback));
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.ancillary-service-card__content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    margin-top: auto;
+    min-height: 62%;
+    justify-content: flex-end;
+    padding: 0.7rem 0.65rem 0.6rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.45) 55%, transparent 100%);
+    color: #fff;
+}
+
+.ancillary-service-card--selected .ancillary-service-card__content {
+    background: linear-gradient(to top, rgba(26, 77, 58, 0.92) 0%, rgba(26, 77, 58, 0.5) 55%, transparent 100%);
+}
+
+.ancillary-service-card__title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.ancillary-service-card .ancillary-precio {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.92);
+    white-space: nowrap;
+}
+
+.ancillary-service-card__counter {
+    margin-top: 0.35rem;
+    align-self: flex-start;
+    background: rgba(255, 255, 255, 0.96);
+    border-radius: 4px;
+    min-width: 6.75rem;
+}
+
+.ancillary-service-card__counter .ancillary-btn {
+    width: 2rem;
+    min-width: 2rem;
+    height: 2rem;
+    font-size: 1.1rem;
+}
+
+.ancillary-service-card__counter .ancillary-counter {
+    width: 2.25rem;
+    min-width: 2.25rem;
+    max-width: 2.25rem;
+    padding: 0.25rem 0.2rem;
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+    background: #fff;
+}
+
+@media (min-width: 640px) {
+    .ancillary-service-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        overflow-x: visible;
+        scroll-snap-type: none;
+        gap: 0.75rem;
+        padding: 0.15rem 0 0.25rem;
+        margin: 0;
+    }
+
+    .ancillary-service-card {
+        width: auto;
+        min-height: 12.5rem;
+    }
 }
 
 .ancillary-pack-cell {
@@ -10785,29 +10942,10 @@ body.page-torneo .torneo-detalle-section {
     margin: 0;
 }
 
-.ancillary-pack-dia-grid .ancillary-pack-label {
-    flex-direction: column;
-    align-items: flex-start;
-    flex-wrap: nowrap;
-    gap: 0.12rem;
-    flex: 1;
-    min-width: 0;
-    line-height: 1.3;
-}
-
-.ancillary-pack-dia-grid .ancillary-pack-title {
-    font-weight: 600;
-    line-height: 1.25;
-}
-
 .ancillary-pack-label .ancillary-precio {
     font-weight: 600;
     color: var(--color-primary);
     white-space: nowrap;
-}
-
-.ancillary-pack-dia-grid .ancillary-pack-label .ancillary-precio {
-    font-size: 0.78rem;
 }
 
 .ancillary-pack-cell .ancillary-counter-wrap {
@@ -10815,10 +10953,6 @@ body.page-torneo .torneo-detalle-section {
     min-width: 6.25rem;
     flex-shrink: 0;
     overflow: visible;
-}
-
-.ancillary-pack-dia-grid .ancillary-pack-cell .ancillary-counter-wrap {
-    align-self: center;
 }
 
 .ancillary-pack-cell .ancillary-btn {
@@ -10850,42 +10984,6 @@ body.page-torneo .torneo-detalle-section {
 .ancillary-pack-cell .ancillary-counter::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
-}
-
-/* Tres columnas en pantallas amplias */
-@media (min-width: 768px) {
-    .ancillary-pack-dia-grid {
-        flex-direction: row;
-        flex-wrap: nowrap;
-        align-items: flex-end;
-        gap: 0.45rem 0.75rem;
-    }
-
-    .ancillary-pack-dia-grid .ancillary-pack-cell {
-        flex: 1 1 0;
-        flex-direction: column;
-        align-items: stretch;
-        justify-content: flex-start;
-        gap: 0.3rem;
-        padding: 0;
-        border-bottom: none;
-    }
-
-    .ancillary-pack-dia-grid .ancillary-pack-label {
-        flex-direction: row;
-        flex-wrap: wrap;
-        align-items: baseline;
-        gap: 0.15rem 0.35rem;
-        flex: none;
-    }
-
-    .ancillary-pack-dia-grid .ancillary-pack-label .ancillary-precio {
-        font-size: inherit;
-    }
-
-    .ancillary-pack-dia-grid .ancillary-pack-cell .ancillary-counter-wrap {
-        align-self: flex-start;
-    }
 }
 
 @media (min-width: 640px) {

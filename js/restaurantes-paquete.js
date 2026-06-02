@@ -88,9 +88,9 @@
         var p = window.PRECIOS_DATA && window.PRECIOS_DATA.casaClubMenus;
         if (p && p.length) return p;
         return [
-            { id: 'huevos', label: 'Menú huevos con morcilla', precioPorPersona: 16 },
-            { id: 'hamburguesa', label: 'Menú hamburguesa', precioPorPersona: 16 },
-            { id: 'cochinillo', label: 'Menú cordero/cochinillo', precioPorPersona: 40 },
+            { id: 'huevos', label: 'Menú huevos con morcilla', precioPorPersona: 16, imagen: 'FOTOS/menus/menu-huevos.png' },
+            { id: 'hamburguesa', label: 'Menú hamburguesa', precioPorPersona: 16, imagen: 'FOTOS/menus/menu-hamburguesa.png' },
+            { id: 'cochinillo', label: 'Menú cordero/cochinillo', precioPorPersona: 40, imagen: 'FOTOS/menus/menu-cochinillo.png' },
         ];
     }
 

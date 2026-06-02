@@ -20,6 +20,8 @@
         input.value = String(val);
         input.dispatchEvent(new Event('input', { bubbles: true }));
         input.dispatchEvent(new Event('change', { bubbles: true }));
+        var card = input.closest('.ancillary-service-card');
+        if (card) card.classList.toggle('ancillary-service-card--selected', val > 0);
     }
 
     document.addEventListener('click', handleClick);

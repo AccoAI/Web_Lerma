@@ -29,9 +29,9 @@ window.PRECIOS_DATA = {
 
   /** Menús Casa Club Lerma (solo comidas; se cobran en el paquete, €/persona) */
   casaClubMenus: [
-    { id: 'huevos', label: 'Menú huevos con morcilla', precioPorPersona: 16 },
-    { id: 'hamburguesa', label: 'Menú hamburguesa', precioPorPersona: 16 },
-    { id: 'cochinillo', label: 'Menú cordero/cochinillo', precioPorPersona: 40 },
+    { id: 'huevos', label: 'Menú huevos con morcilla', precioPorPersona: 16, imagen: 'FOTOS/menus/menu-huevos.png' },
+    { id: 'hamburguesa', label: 'Menú hamburguesa', precioPorPersona: 16, imagen: 'FOTOS/menus/menu-hamburguesa.png' },
+    { id: 'cochinillo', label: 'Menú cordero/cochinillo', precioPorPersona: 40, imagen: 'FOTOS/menus/menu-cochinillo.png' },
   ],
 
   /* Servicios adicionales (€) */
@@ -47,6 +47,13 @@ window.PRECIOS_DATA = {
     gestionTrofeos: 50,
     premioEconomico: 0
   },
+
+  /** Tarjetas servicios adicionales por día (buggies / carritos) */
+  ancillaryServicios: [
+    { id: 'buggy', precioKey: 'buggy', i18n: 'anc_buggies', fallback: 'Buggies', imagen: 'FOTOS/servicios/buggy.png', field: 'buggy', inputPrefix: 'ancillary_buggy_dia_', inputIdPrefix: 'ancillary-buggy-dia-' },
+    { id: 'carritoMano', precioKey: 'carritoMano', i18n: 'anc_carrito_mano', fallback: 'Carrito de mano', imagen: 'FOTOS/servicios/carrito-mano.png', field: 'mano', inputPrefix: 'ancillary_carrito_mano_dia_', inputIdPrefix: 'ancillary-carrito-mano-dia-' },
+    { id: 'carritoElectrico', precioKey: 'carritoElectrico', i18n: 'anc_carrito_electrico', fallback: 'Carrito eléctrico', imagen: 'FOTOS/servicios/carrito-electrico.png', field: 'elec', inputPrefix: 'ancillary_carrito_electrico_dia_', inputIdPrefix: 'ancillary-carrito-elec-dia-' },
+  ],
 
   /* Parámetros por paquete */
   paquetes: {
