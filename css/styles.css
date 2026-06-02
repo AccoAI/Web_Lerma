@@ -1013,9 +1013,8 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 @media (min-width: 1025px) {
-    /* Configurador a ancho de viewport: funnel hasta el resumen, resumen fijo a la derecha */
+    /* Configurador a ancho de viewport: 70% funnel · 30% resumen */
     .paquete-detalle .configurador-paquete {
-        --configurador-resumen-width: 320px;
         width: 100vw;
         max-width: 100vw;
         margin-left: calc(50% - 50vw);
@@ -1026,20 +1025,20 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     }
 
     .configurador-paquete .configurador-layout {
-        grid-template-columns: minmax(0, 1fr) var(--configurador-resumen-width, 320px);
+        grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
         gap: clamp(0.85rem, 1.2vw, 1.25rem);
     }
 
     .configurador-paquete .configurador-layout .resumen-mobile-wrapper {
         width: 100%;
-        max-width: var(--configurador-resumen-width, 320px);
+        max-width: none;
         justify-self: stretch;
     }
 
     .configurador-paquete .configurador-resumen,
     .resumen-mobile-wrapper .configurador-resumen {
         width: 100%;
-        max-width: var(--configurador-resumen-width, 320px);
+        max-width: none;
         box-sizing: border-box;
     }
 }
