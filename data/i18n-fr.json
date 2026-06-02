@@ -231,6 +231,8 @@
   "label_jugadores_dia": "Joueurs",
   "label_hora_salida": "Heure de départ",
   "label_num_grupos": "Nº de groupes",
+  "label_num_partidas": "Nº de parties",
+  "config_hint_tamanio_grupo": "Indiquez la taille du groupe pour continuer avec la sélection des dates.",
   "config_hint": "Seules les données de réservation sont obligatoires. Vous pouvez ajouter plus de participants si vous le souhaitez.",
   "config_hint_falta_fechas": "Sélectionnez les dates dans le calendrier (étape 1) pour voir les options de cette section.",
   "config_hint_falta_personas": "Indiquez la taille du groupe (étape 1) pour voir les options de cette section.",

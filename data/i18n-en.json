@@ -231,6 +231,8 @@
   "label_jugadores_dia": "Players",
   "label_hora_salida": "Departure time",
   "label_num_grupos": "No. of groups",
+  "label_num_partidas": "No. of flights",
+  "config_hint_tamanio_grupo": "Enter your group size to continue with date selection.",
   "config_hint": "Only booking details are required. You can add more participants if you wish.",
   "config_hint_falta_fechas": "Select dates in the calendar (step 1) to see the options in this section.",
   "config_hint_falta_personas": "Enter the group size (step 1) to see the options in this section.",

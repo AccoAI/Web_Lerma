@@ -623,13 +623,30 @@ function initConfiguradorPaquete() {
         } else {
             if (barInput) {
                 barInput.setAttribute('name', 'tamanio_grupo');
-                if (!barInput.value || parseInt(barInput.value, 10) < 1) barInput.value = String(getTamanioGrupoDefault());
-                max = parseInt(barInput.value, 10) || getTamanioGrupoDefault();
+                var barVal = parseInt(barInput.value, 10);
+                max = (!isNaN(barVal) && barVal >= 1) ? barVal : 0;
             }
             var oldSync = document.getElementById('tamanio-grupo-sync');
             if (oldSync) oldSync.remove();
         }
         return max;
+    }
+
+    function isTamanioGrupoCompleto() {
+        var tg = document.getElementById('tamanio-grupo');
+        if (!tg) return false;
+        var n = parseInt(tg.value, 10);
+        return !isNaN(n) && n >= 1;
+    }
+
+    function syncFechasGolfBodyVisibility() {
+        var body = document.getElementById('fechas-golf-body');
+        var hintPre = document.getElementById('fechas-tamanio-grupo-hint');
+        if (!body) return;
+        var ready = isTamanioGrupoCompleto();
+        body.hidden = !ready;
+        if (hintPre) hintPre.hidden = ready;
+        if (ready) recalcNumeroGrupos();
     }
 
     function syncFechasGrupoBarLayout(numDias) {
@@ -1052,11 +1069,11 @@ function initConfiguradorPaquete() {
         var head = dayCard.querySelector('.comida-dia-card__head');
         if (!head) return;
         var badge = head.querySelector('.comida-dia-card__badge--pack');
-        if (hasClub && !badge) {
-            head.insertAdjacentHTML('beforeend', '<span class="comida-dia-card__badge comida-dia-card__badge--pack">Incluido en el paquete</span>');
-        } else if (!hasClub && badge) {
-            badge.remove();
+        if (!badge) {
+            head.insertAdjacentHTML('beforeend', '<span class="comida-dia-card__badge comida-dia-card__badge--pack" hidden>Incluido en el paquete</span>');
+            badge = head.querySelector('.comida-dia-card__badge--pack');
         }
+        if (badge) badge.hidden = !hasClub;
     }
 
     function getHoraComidaDiaDesdeReservas(reservas) {
@@ -1231,9 +1248,7 @@ function initConfiguradorPaquete() {
         html += '<label class="comida-dia-card__hora-label" for="' + horaDiaId + '">Hora</label>';
         html += '<select id="' + horaDiaId + '" class="comida-dia-hora comida-hora-comida" data-dia="' + diaIndex + '" aria-label="Hora de la comida">' + htmlOpcionesHoraComida(horaDia) + '</select>';
         html += '</div></div>';
-        if (reservasTienenMenuClub(reservas)) {
-            html += '<span class="comida-dia-card__badge comida-dia-card__badge--pack">Incluido en el paquete</span>';
-        }
+        html += '<span class="comida-dia-card__badge comida-dia-card__badge--pack"' + (reservasTienenMenuClub(reservas) ? '' : ' hidden') + '>Incluido en el paquete</span>';
         html += '</header>';
         html += '<section class="comida-dia-card__section">';
         html += '<div class="comida-dia-card__section-head">';
@@ -1794,7 +1809,7 @@ function initConfiguradorPaquete() {
                 if (t.classList.contains('comida-dia-hora') && diaHora) {
                     var hNorm = aplicarHoraComidaDia(diaHora, t.value);
                     if (t.value !== hNorm) t.value = hNorm;
-                    actualizarResumen();
+                    scheduleActualizarResumen();
                     return;
                 }
                 var menuHora = t.getAttribute('data-menu');
@@ -1820,7 +1835,7 @@ function initConfiguradorPaquete() {
             }
             if (t && t.classList && t.classList.contains('comida-menu-comensales')) {
                 aplicarComensalesMenuClub(t);
-                actualizarResumen();
+                scheduleActualizarResumen();
                 return;
             }
             if (t && t.classList && t.classList.contains('fechas-jugadores-dia')) {
@@ -1846,10 +1861,11 @@ function initConfiguradorPaquete() {
                         }
                     }
                 }
-                actualizarResumen();
+                scheduleActualizarResumen();
                 return;
             }
             if (t && t.id === 'tamanio-grupo') {
+                syncFechasGolfBodyVisibility();
                 recalcNumeroGrupos();
                 schedulePickerIframeRefreshFromForm();
                 syncComidaBloqueLimites();
@@ -1858,11 +1874,12 @@ function initConfiguradorPaquete() {
                 actualizarBloqueAncillaryPorDia(faTg.length, faTg);
                 if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
             }
-            actualizarResumen();
+            scheduleActualizarResumen();
         });
         form.addEventListener('input', function (e) {
             var t = e.target;
             if (t && t.id === 'tamanio-grupo') {
+                syncFechasGolfBodyVisibility();
                 recalcNumeroGrupos();
                 schedulePickerIframeRefreshFromForm();
                 syncComidaBloqueLimites();
@@ -1871,7 +1888,7 @@ function initConfiguradorPaquete() {
                 actualizarBloqueAncillaryPorDia(faTg2.length, faTg2);
                 if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
             }
-            if (t && t.matches && t.matches('#tamanio-grupo, #hora-salida, #handicap-grupo, .ancillary-counter, .fechas-jugadores-dia, .comida-menu-comensales, .comida-comensales-counter, input[name^="hora_salida"]')) actualizarResumen();
+            if (t && t.matches && t.matches('#tamanio-grupo, #hora-salida, #handicap-grupo, .ancillary-counter:not(.comida-menu-comensales), .fechas-jugadores-dia, .comida-comensales-counter, input[name^="hora_salida"]')) scheduleActualizarResumen();
             if (t && t.classList && t.classList.contains('ancillary-counter') && ancillaryPorDiaContainer && ancillaryPorDiaContainer.contains(t)) {
                 syncAncillaryDiaTabsBadges();
             }
@@ -1902,12 +1919,12 @@ function initConfiguradorPaquete() {
                 var fdq = new FormData(form);
                 var fa = fdq.getAll('fechas[]') || [];
                 actualizarBloqueComida(fa.length, fa);
-                actualizarResumen();
+                scheduleActualizarResumen();
             }
         });
-        window.actualizarResumen = actualizarResumen;
+        window.actualizarResumen = scheduleActualizarResumen;
         document.addEventListener('i18n:changed', function () {
-            if (typeof actualizarResumen === 'function') actualizarResumen();
+            scheduleActualizarResumen();
             if (form) {
                 var fdi = new FormData(form);
                 var fechasI18n = fdi.getAll('fechas[]') || [];
@@ -1916,6 +1933,7 @@ function initConfiguradorPaquete() {
             }
         });
         recalcNumeroGrupos();
+        syncFechasGolfBodyVisibility();
         if (form) {
             var fdInit = new FormData(form);
             var faInit = fdInit.getAll('fechas[]') || [];
@@ -1937,7 +1955,17 @@ function initConfiguradorPaquete() {
         var hidVal = (n >= 1) ? String(Math.ceil(n / 4)) : '';
         if (out) out.textContent = hidVal || '—';
         if (hid) hid.value = hidVal;
-        if (typeof actualizarResumen === 'function') actualizarResumen();
+        scheduleActualizarResumen();
+    }
+
+    var resumenUpdateFrame = 0;
+    function scheduleActualizarResumen() {
+        if (!resumenUpdateFrame) {
+            resumenUpdateFrame = requestAnimationFrame(function () {
+                resumenUpdateFrame = 0;
+                actualizarResumen();
+            });
+        }
     }
 
     function actualizarResumen() {

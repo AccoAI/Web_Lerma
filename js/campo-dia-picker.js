@@ -56,7 +56,10 @@
             var btn = e.target.closest('.campo-dia-toggle__btn');
             if (!btn || !item.contains(btn)) return;
             var campo = btn.getAttribute('data-campo');
+            if (campo !== 'lerma' && campo !== 'saldana') return;
             var hid = item.querySelector('input[type="hidden"][name^="campo-dia-"]');
+            var actual = hid ? String(hid.value || '').trim() : '';
+            if (actual === campo) return;
             setToggleActivo(item, campo);
             if (hid) {
                 hid.dispatchEvent(new Event('change', { bubbles: true }));

@@ -75,29 +75,34 @@
                 <form id="configuradorForm" class="configurador-form">
                     <!-- Fechas / noches (calendario) -->
                     <div class="configurador-seccion configurador-seccion--fechas">
-                        <h3 class="configurador-titulo" data-i18n="config_seleccion_golf">1. Selección de golf</h3>
-                        <div id="fechas-grupo-default-bar" class="fechas-grupo-default-bar">
+                        <div id="fechas-tamanio-grupo-pre" class="fechas-grupo-default-bar fechas-tamanio-grupo-pre">
                             <div id="fechas-tamanio-grupo-wrap" class="fechas-dia-plan-row__grupo-item form-group-inline form-group-quantity">
                                 <label for="tamanio-grupo" data-i18n="label_tamanio_grupo">Tamaño del grupo *</label>
                                 <div class="ancillary-counter-wrap reserva-quantity-wrap fechas-grupo-counter">
                                     <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir jugadores">−</button>
-                                    <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" max="54" value="4" required class="ancillary-counter reserva-quantity-input" readonly title="Número de jugadores" enterkeyhint="next">
+                                    <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" max="54" required class="ancillary-counter reserva-quantity-input" readonly title="Número de jugadores" enterkeyhint="next" placeholder="—">
                                     <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar jugadores">+</button>
                                 </div>
                             </div>
-                            <div class="fechas-dia-plan-row__grupo-item fechas-grupo-default-bar__grupos form-group-inline form-group-quantity">
-                                <label for="numero-grupos-output" data-i18n="label_num_grupos">Nº de grupos</label>
-                                <output id="numero-grupos-output" class="config-quantity-readonly fechas-grupo-num-display" for="tamanio-grupo" aria-live="polite" aria-readonly="true" tabindex="-1">—</output>
-                                <input type="hidden" name="numero_grupos" id="numero-grupos">
-                            </div>
+                            <p id="fechas-tamanio-grupo-hint" class="fechas-tamanio-grupo-hint configurador-hint" data-i18n="config_hint_tamanio_grupo">Indica el tamaño del grupo para continuar con la selección de fechas.</p>
                         </div>
-                        <div class="fechas-calendario-layout">
-                            <div id="calendario-dias-finsemana" class="calendario-dias-container fechas-calendario-layout__cal"></div>
-                            <div id="campos-dias-finsemana" class="fechas-dia-plan-panel" aria-live="polite">
-                                <p id="fechas-dia-plan-hint" class="calendario-hint fechas-dia-plan-hint">
-                                    <span data-i18n-html="calendario_hint_rango">Clic o <strong>arrastra</strong> para elegir rango. </span><strong class="calendario-count">0</strong> <span data-i18n="calendario_hint_dias_suffix">días seleccionados.</span>
-                                </p>
-                                <div id="dias-campos-container-finsemana" class="fechas-dia-plan-list" hidden></div>
+                        <div id="fechas-golf-body" class="fechas-golf-body" hidden>
+                            <h3 class="configurador-titulo" data-i18n="config_seleccion_golf">1. Selección de golf</h3>
+                            <div id="fechas-partidas-bar" class="fechas-grupo-default-bar fechas-partidas-bar">
+                                <div class="fechas-dia-plan-row__grupo-item form-group-inline form-group-quantity">
+                                    <label for="numero-grupos-output" data-i18n="label_num_partidas">Nº de partidas</label>
+                                    <output id="numero-grupos-output" class="config-quantity-readonly fechas-grupo-num-display" for="tamanio-grupo" aria-live="polite" aria-readonly="true" tabindex="-1">—</output>
+                                    <input type="hidden" name="numero_grupos" id="numero-grupos">
+                                </div>
+                            </div>
+                            <div class="fechas-calendario-layout">
+                                <div id="calendario-dias-finsemana" class="calendario-dias-container fechas-calendario-layout__cal"></div>
+                                <div id="campos-dias-finsemana" class="fechas-dia-plan-panel" aria-live="polite">
+                                    <p id="fechas-dia-plan-hint" class="calendario-hint fechas-dia-plan-hint">
+                                        <span data-i18n-html="calendario_hint_rango">Clic o <strong>arrastra</strong> para elegir rango. </span><strong class="calendario-count">0</strong> <span data-i18n="calendario_hint_dias_suffix">días seleccionados.</span>
+                                    </p>
+                                    <div id="dias-campos-container-finsemana" class="fechas-dia-plan-list" hidden></div>
+                                </div>
                             </div>
                         </div>
                     </div>
