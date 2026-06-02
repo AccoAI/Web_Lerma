@@ -430,11 +430,24 @@ function getConfigPrereqState(form) {
     if (!form) return { fechas: false, personas: false };
     var fd = new FormData(form);
     var nFechas = (fd.getAll('fechas[]') || []).length;
-    var raw = String(fd.get('tamanio_grupo') || '').trim();
-    var n = parseInt(raw, 10);
+    var personas = false;
+    if (nFechas >= 1) {
+        personas = true;
+        for (var i = 1; i <= nFechas; i++) {
+            var jd = parseInt(String(fd.get('jugadores_dia_' + i) || '').trim(), 10);
+            if (isNaN(jd) || jd < 1) {
+                personas = false;
+                break;
+            }
+        }
+    } else {
+        var raw = String(fd.get('tamanio_grupo') || '').trim();
+        var n = parseInt(raw, 10);
+        personas = raw !== '' && !isNaN(n) && n >= 1;
+    }
     return {
         fechas: nFechas >= 1,
-        personas: raw !== '' && !isNaN(n) && n >= 1
+        personas: personas
     };
 }
 
@@ -451,8 +464,8 @@ function getConfigPrereqHintText(stateOrKey) {
     if (window.i18n && window.i18n.t) return window.i18n.t(key);
     var fallbacks = {
         config_hint_falta_fechas: 'Selecciona las fechas en el calendario (paso 1) para ver las opciones de esta sección.',
-        config_hint_falta_personas: 'Indica el tamaño del grupo (paso 2) para ver las opciones de esta sección.',
-        config_hint_falta_ambos: 'Completa el paso 1 (fechas) y el paso 2 (número de jugadores) para ver las opciones de esta sección.',
+        config_hint_falta_personas: 'Indica el tamaño del grupo (paso 1) para ver las opciones de esta sección.',
+        config_hint_falta_ambos: 'Completa el paso 1 (fechas y número de jugadores) para ver las opciones de esta sección.',
         config_hint_falta_campo: 'Indica el campo para cada día seleccionado (paso 1) para configurar los servicios adicionales.'
     };
     return fallbacks[key] || '';
@@ -553,6 +566,83 @@ function initConfiguradorPaquete() {
         actualizarResumen();
     }
 
+    function leerJugadoresDiaPrev(numDias) {
+        var prev = {};
+        if (!form || !numDias) return prev;
+        var fallback = 4;
+        var barTg = document.getElementById('tamanio-grupo');
+        if (barTg && barTg.value) {
+            var fb = parseInt(barTg.value, 10);
+            if (!isNaN(fb) && fb >= 1) fallback = fb;
+        }
+        for (var i = 1; i <= numDias; i++) {
+            var inp = form.querySelector('input[name="jugadores_dia_' + i + '"]');
+            if (inp && inp.value) {
+                var v = parseInt(inp.value, 10);
+                if (!isNaN(v) && v >= 1) prev[i] = v;
+            }
+        }
+        for (var j = 1; j <= numDias; j++) {
+            if (!prev[j]) prev[j] = fallback;
+        }
+        return prev;
+    }
+
+    function getTamanioGrupoDefault() {
+        var barTg = document.getElementById('tamanio-grupo');
+        if (!barTg) return 4;
+        var n = parseInt(barTg.value, 10);
+        return (!isNaN(n) && n >= 1) ? n : 4;
+    }
+
+    function syncTamanioGrupoDesdeDias(numDias) {
+        if (!form) return getTamanioGrupoDefault();
+        var max = 0;
+        for (var i = 1; i <= (numDias || 0); i++) {
+            var inp = form.querySelector('input[name="jugadores_dia_' + i + '"]');
+            if (inp) max = Math.max(max, parseInt(inp.value, 10) || 0);
+        }
+        var barInput = document.getElementById('tamanio-grupo');
+        if (numDias >= 1) {
+            if (max < 1) max = getTamanioGrupoDefault();
+            if (barInput) barInput.removeAttribute('name');
+            var sync = document.getElementById('tamanio-grupo-sync');
+            if (!sync) {
+                sync = document.createElement('input');
+                sync.type = 'hidden';
+                sync.id = 'tamanio-grupo-sync';
+                sync.name = 'tamanio_grupo';
+                sync.required = true;
+                form.appendChild(sync);
+            }
+            sync.value = String(max);
+        } else {
+            if (barInput) {
+                barInput.setAttribute('name', 'tamanio_grupo');
+                if (!barInput.value || parseInt(barInput.value, 10) < 1) barInput.value = String(getTamanioGrupoDefault());
+                max = parseInt(barInput.value, 10) || getTamanioGrupoDefault();
+            }
+            var oldSync = document.getElementById('tamanio-grupo-sync');
+            if (oldSync) oldSync.remove();
+        }
+        return max;
+    }
+
+    function syncFechasGrupoBarLayout(numDias) {
+        syncTamanioGrupoDesdeDias(numDias);
+        recalcNumeroGrupos();
+    }
+
+    function onJugadoresDiaChange() {
+        var fd = new FormData(form);
+        var nFechas = (fd.getAll('fechas[]') || []).length;
+        syncTamanioGrupoDesdeDias(nFechas);
+        recalcNumeroGrupos();
+        actualizarBloqueComida(nFechas, fd.getAll('fechas[]') || []);
+        actualizarBloqueAncillaryPorDia(nFechas, fd.getAll('fechas[]') || []);
+        actualizarResumen();
+    }
+
     function syncFechasDiaPlanPanel(numDias) {
         if (diasCamposContainerFinSemana) {
             diasCamposContainerFinSemana.hidden = !(numDias >= 1);
@@ -565,7 +655,7 @@ function initConfiguradorPaquete() {
         if (!numDias || numDias < 1) {
             diasCamposContainerFinSemana.innerHTML = '';
             syncFechasDiaPlanPanel(0);
-            ubicarGrupoEnPanelFechas(0);
+            syncFechasGrupoBarLayout(0);
             return;
         }
         syncFechasDiaPlanPanel(numDias);
@@ -580,6 +670,7 @@ function initConfiguradorPaquete() {
             })()
             : {};
         var prevHora = leerHoraSalidaPrevFinSemana(numDias);
+        var prevJug = leerJugadoresDiaPrev(numDias);
         diasCamposContainerFinSemana.innerHTML = '';
         for (var i = 1; i <= numDias; i++) {
             var row = document.createElement('div');
@@ -610,6 +701,21 @@ function initConfiguradorPaquete() {
 
             row.appendChild(campoWrap);
             row.appendChild(horaWrap);
+
+            var jugWrap = document.createElement('div');
+            jugWrap.className = 'fechas-dia-plan-row__jugadores fechas-dia-plan-row__grupo-item';
+            var jugId = 'jugadores-dia-' + i + '-fs';
+            var jugLbl = (window.i18n && window.i18n.t) ? window.i18n.t('label_jugadores_dia') : 'Jugadores';
+            var jugVal = prevJug[i] || 1;
+            jugWrap.innerHTML =
+                '<label for="' + jugId + '">' + jugLbl + ' *</label>' +
+                '<div class="ancillary-counter-wrap reserva-quantity-wrap">' +
+                '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir jugadores">−</button>' +
+                '<input type="number" id="' + jugId + '" name="jugadores_dia_' + i + '" min="1" max="54" value="' + jugVal + '" class="ancillary-counter fechas-jugadores-dia reserva-quantity-input" readonly required title="Jugadores día ' + i + '">' +
+                '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar jugadores">+</button>' +
+                '</div>';
+            row.appendChild(jugWrap);
+
             diasCamposContainerFinSemana.appendChild(row);
         }
         if (typeof window.initHoraSalidaPickers === 'function') {
@@ -619,40 +725,7 @@ function initConfiguradorPaquete() {
             var planRow = diasCamposContainerFinSemana.querySelector('.fechas-dia-plan-row[data-dia="' + j + '"]');
             syncPlanHoraRowFinSemana(planRow, j, numDias);
         }
-        ubicarGrupoEnPanelFechas(numDias);
-    }
-
-    function ubicarGrupoEnPanelFechas(numDias) {
-        var grupoFields = document.getElementById('fechas-grupo-fields');
-        var grupoBar = document.getElementById('fechas-grupo-bar');
-        if (!grupoFields) return;
-
-        var prevMount = document.querySelector('.fechas-dia-plan-row__grupo--mounted');
-        if (prevMount) {
-            while (prevMount.firstChild) grupoFields.appendChild(prevMount.firstChild);
-            prevMount.remove();
-        }
-        diasCamposContainerFinSemana && diasCamposContainerFinSemana.querySelectorAll('.fechas-dia-plan-row--with-grupo').forEach(function (r) {
-            r.classList.remove('fechas-dia-plan-row--with-grupo');
-        });
-
-        if (numDias >= 1 && diasCamposContainerFinSemana) {
-            var row = diasCamposContainerFinSemana.querySelector('.fechas-dia-plan-row[data-dia="' + numDias + '"]');
-            if (row) {
-                var wrap = document.createElement('div');
-                wrap.className = 'fechas-dia-plan-row__grupo fechas-dia-plan-row__grupo--mounted';
-                while (grupoFields.firstChild) wrap.appendChild(grupoFields.firstChild);
-                row.appendChild(wrap);
-                row.classList.add('fechas-dia-plan-row--with-grupo');
-                if (grupoBar) grupoBar.hidden = true;
-                return;
-            }
-        }
-
-        if (grupoBar) {
-            if (!grupoBar.contains(grupoFields)) grupoBar.appendChild(grupoFields);
-            grupoBar.hidden = false;
-        }
+        syncFechasGrupoBarLayout(numDias);
     }
 
     function getHotelLabelFromValue(val) {
@@ -762,7 +835,7 @@ function initConfiguradorPaquete() {
     }
 
     function getNumJugadoresComida() {
-        var tg = document.getElementById('tamanio-grupo');
+        var tg = document.getElementById('tamanio-grupo-sync') || document.getElementById('tamanio-grupo');
         var usuarios = form ? form.querySelectorAll('.usuario-form') : [];
         return Math.max(1, parseInt((tg && tg.value) || '', 10) || usuarios.length || 1);
     }
@@ -1524,6 +1597,10 @@ function initConfiguradorPaquete() {
                 actualizarResumen();
                 return;
             }
+            if (t && t.classList && t.classList.contains('fechas-jugadores-dia')) {
+                onJugadoresDiaChange();
+                return;
+            }
             if (t && t.classList && t.classList.contains('comida-comensales-counter')) {
                 var diaCom = t.getAttribute('data-dia');
                 var idxCom = parseInt(t.getAttribute('data-reserva-idx'), 10);
@@ -1568,7 +1645,7 @@ function initConfiguradorPaquete() {
                 actualizarBloqueAncillaryPorDia(faTg2.length, faTg2);
                 if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
             }
-            if (t && t.matches && t.matches('#tamanio-grupo, #hora-salida, #handicap-grupo, .ancillary-counter, .comida-menu-comensales, .comida-comensales-counter, input[name^="hora_salida"]')) actualizarResumen();
+            if (t && t.matches && t.matches('#tamanio-grupo, #hora-salida, #handicap-grupo, .ancillary-counter, .fechas-jugadores-dia, .comida-menu-comensales, .comida-comensales-counter, input[name^="hora_salida"]')) actualizarResumen();
         });
         form.addEventListener('click', function (e) {
             var abrir = e.target.closest('.comida-abrir-picker');
@@ -1637,7 +1714,7 @@ function initConfiguradorPaquete() {
     }
 
     function recalcNumeroGrupos() {
-        var tg = document.getElementById('tamanio-grupo');
+        var tg = document.getElementById('tamanio-grupo-sync') || document.getElementById('tamanio-grupo');
         var out = document.getElementById('numero-grupos-output');
         var hid = document.getElementById('numero-grupos');
         if (!tg) return;

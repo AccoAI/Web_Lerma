@@ -1946,7 +1946,23 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 .fechas-dia-plan-panel {
     flex: 1 1 auto;
     min-width: 0;
-    padding-top: 1rem;
+    padding-top: 0;
+}
+
+.fechas-grupo-default-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem 1.75rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-light);
+    border: 1px solid rgba(26, 77, 58, 0.12);
+    border-radius: 6px;
+}
+
+.fechas-grupo-default-bar .fechas-dia-plan-row__grupo-item {
+    flex: 0 0 auto;
 }
 
 .fechas-dia-plan-hint {
@@ -1954,20 +1970,19 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 .fechas-dia-plan-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.65rem;
-}
-
-.fechas-dia-plan-list[hidden] {
-    display: none !important;
+    display: grid;
+    grid-template-columns: 8.75rem minmax(10rem, 1fr) minmax(7.25rem, auto) 7.25rem;
+    column-gap: 0.65rem;
+    row-gap: 0.65rem;
+    align-items: stretch;
 }
 
 .fechas-dia-plan-row {
     display: grid;
-    grid-template-columns: 10.5rem minmax(11rem, 1fr) auto;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
     align-items: center;
-    column-gap: 0.75rem;
+    column-gap: 0.65rem;
     row-gap: 0.5rem;
     padding: 0.65rem 0.85rem;
     background: var(--color-bg-light);
@@ -1981,16 +1996,17 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 .fechas-dia-plan-row__campo .campos-dias-item__dia-label {
     grid-column: 1;
-    width: 10.5rem;
-    min-width: 10.5rem;
-    max-width: 10.5rem;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
     line-height: 1.25;
+    font-size: 0.88rem;
 }
 
 .fechas-dia-plan-row__campo .campo-dia-toggle {
     grid-column: 2;
     width: 100%;
-    max-width: 16rem;
+    max-width: none;
 }
 
 .fechas-dia-plan-row__hora {
@@ -2000,6 +2016,32 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     align-items: center;
     gap: 0.5rem;
     margin-left: 0;
+}
+
+.fechas-dia-plan-row__jugadores {
+    grid-column: 4;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.fechas-dia-plan-row__jugadores label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-text-light);
+    white-space: nowrap;
+}
+
+.fechas-dia-plan-row__jugadores .ancillary-counter-wrap {
+    background: #fff;
+    border: 1px solid rgba(26, 77, 58, 0.18);
+    border-radius: 4px;
+}
+
+.fechas-dia-plan-list[hidden] {
+    display: none !important;
 }
 
 .fechas-dia-plan-row__hora label {
@@ -2018,10 +2060,6 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     pointer-events: none;
 }
 
-.fechas-dia-plan-row--with-grupo {
-    grid-template-columns: 10.5rem minmax(8rem, 1fr) auto minmax(0, 1fr);
-}
-
 .fechas-dia-plan-row__grupo {
     display: flex;
     flex-wrap: wrap;
@@ -2029,8 +2067,20 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     gap: 0.5rem 0.75rem;
 }
 
-.fechas-dia-plan-row--with-grupo .fechas-dia-plan-row__grupo {
-    grid-column: 4;
+.fechas-dia-plan-row--grupo {
+    margin-top: 0;
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem 1rem;
+    padding: 0.65rem 0.85rem;
+    background: var(--color-bg-light);
+    border: 1px solid rgba(26, 77, 58, 0.12);
+}
+
+.fechas-dia-plan-row--grupo[hidden] {
+    display: none !important;
 }
 
 .fechas-dia-plan-row__grupo-item {
@@ -2057,14 +2107,6 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 .fechas-dia-plan-row__grupo-item .config-quantity-readonly {
     min-width: 2.25rem;
     height: 2.25rem;
-}
-
-.fechas-dia-plan-row--grupo {
-    margin-top: 0;
-}
-
-.fechas-dia-plan-row--grupo[hidden] {
-    display: none !important;
 }
 
 @media (min-width: 900px) {
@@ -2128,50 +2170,40 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         padding-top: 0.35rem;
     }
 
+    .fechas-dia-plan-panel .fechas-dia-plan-list {
+        grid-template-columns: 7.5rem minmax(7rem, 1fr) minmax(6.5rem, auto) 6.75rem;
+        column-gap: 0.5rem;
+    }
+
     .fechas-dia-plan-panel .fechas-dia-plan-row {
-        grid-template-columns: 9rem minmax(9rem, 1fr) auto;
-        padding: 0.6rem 0.75rem;
-    }
-
-    .fechas-dia-plan-panel .fechas-dia-plan-row__campo .campos-dias-item__dia-label {
-        width: 9rem;
-        min-width: 9rem;
-        max-width: 9rem;
-        font-size: 0.88rem;
-    }
-
-    .fechas-dia-plan-panel .fechas-dia-plan-row__campo .campo-dia-toggle {
-        max-width: none;
+        padding: 0.6rem 0.65rem;
     }
 
     .fechas-dia-plan-panel .fechas-dia-plan-row__campo .campo-dia-toggle__btn {
-        font-size: 0.78rem;
-        padding: 0.4rem 0.5rem;
+        font-size: 0.75rem;
+        padding: 0.38rem 0.4rem;
     }
 
-    .fechas-dia-plan-panel .fechas-dia-plan-row--with-grupo {
-        grid-template-columns: 9rem minmax(7rem, 1fr) auto minmax(11rem, 1.2fr);
-    }
-
-    .fechas-dia-plan-panel .fechas-dia-plan-row--with-grupo .fechas-dia-plan-row__grupo {
-        grid-column: 4;
-        padding-top: 0;
-        border-top: none;
-    }
-
-    .fechas-dia-plan-panel .fechas-dia-plan-row__grupo-item {
-        flex: 1 1 6.5rem;
+    .fechas-dia-plan-panel .fechas-dia-plan-row__hora label,
+    .fechas-dia-plan-panel .fechas-dia-plan-row__jugadores label {
+        font-size: 0.75rem;
     }
 }
 
 @media (max-width: 599px) {
+    .fechas-dia-plan-list {
+        grid-template-columns: 1fr;
+    }
+
     .fechas-dia-plan-row {
         grid-template-columns: 1fr;
+        grid-column: auto;
     }
 
     .fechas-dia-plan-row__campo .campos-dias-item__dia-label,
     .fechas-dia-plan-row__campo .campo-dia-toggle,
-    .fechas-dia-plan-row__hora {
+    .fechas-dia-plan-row__hora,
+    .fechas-dia-plan-row__jugadores {
         grid-column: 1;
     }
 
@@ -2192,9 +2224,11 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         border-top: 1px solid rgba(26, 77, 58, 0.1);
     }
 
-    .fechas-dia-plan-row--with-grupo .fechas-dia-plan-row__grupo {
-        grid-column: 1;
+    .fechas-dia-plan-row__jugadores {
         width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
         padding-top: 0.35rem;
         border-top: 1px solid rgba(26, 77, 58, 0.1);
     }

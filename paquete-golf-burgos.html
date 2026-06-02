@@ -75,7 +75,22 @@
                 <form id="configuradorForm" class="configurador-form">
                     <!-- Fechas / noches (calendario) -->
                     <div class="configurador-seccion configurador-seccion--fechas">
-                        <h3 class="configurador-titulo" data-i18n="config_selecciona_fechas">1. Selecciona tus fechas</h3>
+                        <h3 class="configurador-titulo" data-i18n="config_seleccion_golf">1. Selección de golf</h3>
+                        <div id="fechas-grupo-default-bar" class="fechas-grupo-default-bar">
+                            <div id="fechas-tamanio-grupo-wrap" class="fechas-dia-plan-row__grupo-item form-group-inline form-group-quantity">
+                                <label for="tamanio-grupo" data-i18n="label_tamanio_grupo">Tamaño del grupo *</label>
+                                <div class="ancillary-counter-wrap reserva-quantity-wrap">
+                                    <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir jugadores">−</button>
+                                    <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" max="54" value="4" required class="ancillary-counter reserva-quantity-input" readonly title="Número de jugadores" enterkeyhint="next">
+                                    <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar jugadores">+</button>
+                                </div>
+                            </div>
+                            <div class="fechas-dia-plan-row__grupo-item form-group-inline form-group-quantity">
+                                <label for="numero-grupos-output" data-i18n="label_num_grupos">Nº de grupos</label>
+                                <output id="numero-grupos-output" class="config-quantity-readonly" for="tamanio-grupo" aria-live="polite" aria-readonly="true" tabindex="-1">—</output>
+                                <input type="hidden" name="numero_grupos" id="numero-grupos">
+                            </div>
+                        </div>
                         <div class="fechas-calendario-layout">
                             <div id="calendario-dias-finsemana" class="calendario-dias-container fechas-calendario-layout__cal"></div>
                             <div id="campos-dias-finsemana" class="fechas-dia-plan-panel" aria-live="polite">
@@ -83,23 +98,6 @@
                                     <span data-i18n-html="calendario_hint_rango">Clic o <strong>arrastra</strong> para elegir rango. </span><strong class="calendario-count">0</strong> <span data-i18n="calendario_hint_dias_suffix">días seleccionados.</span>
                                 </p>
                                 <div id="dias-campos-container-finsemana" class="fechas-dia-plan-list" hidden></div>
-                                <div id="fechas-grupo-bar" class="fechas-dia-plan-row fechas-dia-plan-row--grupo">
-                                    <div id="fechas-grupo-fields" class="fechas-dia-plan-row__grupo">
-                                        <div class="fechas-dia-plan-row__grupo-item form-group-inline form-group-quantity">
-                                            <label for="tamanio-grupo" data-i18n="label_tamanio_grupo">Tamaño del grupo *</label>
-                                            <div class="ancillary-counter-wrap reserva-quantity-wrap">
-                                                <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir jugadores">−</button>
-                                                <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" max="54" required class="ancillary-counter reserva-quantity-input" readonly title="Número de jugadores" enterkeyhint="next">
-                                                <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar jugadores">+</button>
-                                            </div>
-                                        </div>
-                                        <div class="fechas-dia-plan-row__grupo-item form-group-inline form-group-quantity">
-                                            <label for="numero-grupos-output" data-i18n="label_num_grupos">Nº de grupos</label>
-                                            <output id="numero-grupos-output" class="config-quantity-readonly" for="tamanio-grupo" aria-live="polite" aria-readonly="true" tabindex="-1">—</output>
-                                            <input type="hidden" name="numero_grupos" id="numero-grupos">
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -168,7 +166,7 @@
                         </div>
                         <!-- Precios en tiempo real: Hotelbeds (JS). Reserva del paquete vía Stripe desde esta página. -->
                         <div id="hotelbeds-precios-block" class="hotelbeds-precios-wrap" aria-live="polite">
-                            <p class="hotelbeds-block hotelbeds-info comida-sin-fechas" id="precios-block-initial-msg" data-i18n="config_hint_falta_ambos">Completa el paso 1 (fechas) y el paso 2 (número de jugadores) para ver las opciones de esta sección.</p>
+                            <p class="hotelbeds-block hotelbeds-info comida-sin-fechas" id="precios-block-initial-msg" data-i18n="config_hint_falta_ambos">Completa el paso 1 (fechas y número de jugadores) para ver las opciones de esta sección.</p>
                         </div>
                         <!-- Enlace secundario a Booking.com (solo referencia) -->
                         <div id="booking-com-widget" class="booking-com-widget booking-com-widget-secondary" style="display: none;">
@@ -182,7 +180,7 @@
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo" data-i18n="config_comida">4. Opciones para comer</h3>
                         <div id="comida-por-dia-wrap">
-                            <p class="comida-sin-fechas" id="comida-sin-fechas" data-i18n="config_hint_falta_ambos">Completa el paso 1 (fechas) y el paso 2 (número de jugadores) para ver las opciones de esta sección.</p>
+                            <p class="comida-sin-fechas" id="comida-sin-fechas" data-i18n="config_hint_falta_ambos">Completa el paso 1 (fechas y número de jugadores) para ver las opciones de esta sección.</p>
                             <div id="comida-por-dia-container" class="comida-por-dia-container" style="display:none;"></div>
                             <p class="comida-postbooking-nota" id="comida-postbooking-nota" data-i18n="config_comida_postbooking">Una vez realizado el pago del paquete, en la página de confirmación facilitaremos la reserva en todos los restaurantes recomendados de Lerma, Saldaña y Burgos no ligados al club.</p>
                         </div>
@@ -191,7 +189,7 @@
                     <!-- Servicios Adicionales (por día de salida; se genera con el calendario) -->
                     <div class="configurador-seccion servicios-adicionales-section">
                         <h3 class="configurador-titulo" data-i18n="servicios_adicionales">5. Servicios adicionales</h3>
-                        <p class="comida-sin-fechas" id="ancillary-sin-prereqs" data-i18n="config_hint_falta_ambos">Completa el paso 1 (fechas) y el paso 2 (número de jugadores) para ver las opciones de esta sección.</p>
+                        <p class="comida-sin-fechas" id="ancillary-sin-prereqs" data-i18n="config_hint_falta_ambos">Completa el paso 1 (fechas y número de jugadores) para ver las opciones de esta sección.</p>
                         <div id="ancillary-por-dia-container" class="ancillary-por-dia-container" style="display:none;" aria-live="polite"></div>
                     </div>
 
