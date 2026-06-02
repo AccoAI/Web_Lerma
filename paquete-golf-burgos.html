@@ -79,15 +79,15 @@
                         <div id="fechas-grupo-default-bar" class="fechas-grupo-default-bar">
                             <div id="fechas-tamanio-grupo-wrap" class="fechas-dia-plan-row__grupo-item form-group-inline form-group-quantity">
                                 <label for="tamanio-grupo" data-i18n="label_tamanio_grupo">Tamaño del grupo *</label>
-                                <div class="ancillary-counter-wrap reserva-quantity-wrap">
+                                <div class="ancillary-counter-wrap reserva-quantity-wrap fechas-grupo-counter">
                                     <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir jugadores">−</button>
                                     <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" max="54" value="4" required class="ancillary-counter reserva-quantity-input" readonly title="Número de jugadores" enterkeyhint="next">
                                     <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar jugadores">+</button>
                                 </div>
                             </div>
-                            <div class="fechas-dia-plan-row__grupo-item form-group-inline form-group-quantity">
+                            <div class="fechas-dia-plan-row__grupo-item fechas-grupo-default-bar__grupos form-group-inline form-group-quantity">
                                 <label for="numero-grupos-output" data-i18n="label_num_grupos">Nº de grupos</label>
-                                <output id="numero-grupos-output" class="config-quantity-readonly" for="tamanio-grupo" aria-live="polite" aria-readonly="true" tabindex="-1">—</output>
+                                <output id="numero-grupos-output" class="config-quantity-readonly fechas-grupo-num-display" for="tamanio-grupo" aria-live="polite" aria-readonly="true" tabindex="-1">—</output>
                                 <input type="hidden" name="numero_grupos" id="numero-grupos">
                             </div>
                         </div>
@@ -149,7 +149,7 @@
                         </details>
                         <div class="agregar-usuario-line">
                             <button type="button" class="btn-agregar-usuario" id="agregar-usuario">
-                                <span>+</span> Añadir participante
+                                <span>+</span> <span data-i18n="btn_anadir_participante">Añadir participante (opcional)</span>
                             </button>
                             <span id="participantes-contador" class="participantes-contador" aria-live="polite"></span>
                         </div>
@@ -172,9 +172,8 @@
                         <div id="booking-com-widget" class="booking-com-widget booking-com-widget-secondary" style="display: none;">
                             <p class="booking-com-note">Si no ves precios arriba: <a id="booking-link-lerma" href="https://www.booking.com/searchresults.html?ss=Lerma%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer">Lerma</a> · <a id="booking-link-burgos" href="https://www.booking.com/searchresults.html?ss=Burgos%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer">Burgos</a></p>
                         </div>
+                        <p class="paquete-logistica-nota hotel-ciudad-label">Una vez confirmado el paquete, en la página de confirmación te facilitaremos enlaces recomendados para <strong>vuelo a Madrid</strong> y <strong>alquiler de coche</strong> (ideal SUV o furgoneta si viajas con palos de golf).</p>
                     </div>
-
-                    <p class="paquete-logistica-nota hotel-ciudad-label">Una vez confirmado el paquete, en la página de confirmación te facilitaremos enlaces recomendados para <strong>vuelo a Madrid</strong> y <strong>alquiler de coche</strong> (ideal SUV o furgoneta si viajas con palos de golf).</p>
 
                     <!-- Opciones de Comida -->
                     <div class="configurador-seccion">

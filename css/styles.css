@@ -1953,16 +1953,140 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
-    gap: 1rem 1.75rem;
-    margin-bottom: 1rem;
-    padding: 0.75rem 1rem;
-    background: var(--color-bg-light);
-    border: 1px solid rgba(26, 77, 58, 0.12);
-    border-radius: 6px;
+    gap: 2rem 3rem;
+    margin-bottom: 1.5rem;
+    padding: 1.35rem 1.75rem;
+    background: linear-gradient(135deg, rgba(26, 77, 58, 0.06) 0%, rgba(26, 77, 58, 0.02) 100%);
+    border: 1px solid rgba(26, 77, 58, 0.14);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(26, 77, 58, 0.06);
 }
 
 .fechas-grupo-default-bar .fechas-dia-plan-row__grupo-item {
     flex: 0 0 auto;
+    gap: 0.55rem;
+}
+
+.fechas-grupo-default-bar .fechas-dia-plan-row__grupo-item label {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    letter-spacing: 0.01em;
+}
+
+.fechas-grupo-default-bar .fechas-grupo-counter {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    min-width: 11rem;
+    padding: 0.2rem;
+    background: var(--color-white);
+    border: 1px solid rgba(26, 77, 58, 0.18);
+    border-radius: 999px;
+    box-shadow: inset 0 1px 2px rgba(26, 77, 58, 0.04);
+    overflow: hidden;
+}
+
+.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-btn {
+    width: 3rem;
+    min-width: 3rem;
+    height: 3rem;
+    padding: 0;
+    margin: 0;
+    border: none !important;
+    outline: none;
+    box-shadow: none;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    color: var(--color-primary);
+    font-size: 1.65rem;
+    font-weight: 500;
+    line-height: 1;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-btn-minus,
+.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-btn-plus {
+    border-left: none !important;
+    border-right: none !important;
+}
+
+.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-btn:hover {
+    background: rgba(26, 77, 58, 0.1);
+    color: var(--color-primary-dark);
+}
+
+.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-btn:active {
+    transform: scale(0.92);
+    background: rgba(26, 77, 58, 0.16);
+}
+
+.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-btn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-btn:focus-visible {
+    outline: 2px solid rgba(26, 77, 58, 0.45);
+    outline-offset: 2px;
+}
+
+.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-counter {
+    flex: 1 1 auto;
+    width: 3.75rem;
+    min-width: 3.75rem;
+    max-width: none;
+    height: 3rem;
+    padding: 0;
+    margin: 0;
+    border: none !important;
+    border-left: 1px solid rgba(26, 77, 58, 0.1) !important;
+    border-right: 1px solid rgba(26, 77, 58, 0.1) !important;
+    border-radius: 0;
+    background: transparent;
+    color: var(--color-primary-dark);
+    font-family: inherit;
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    line-height: 3rem;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-counter::-webkit-outer-spin-button,
+.fechas-grupo-default-bar .fechas-grupo-counter .ancillary-counter::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.fechas-grupo-default-bar .fechas-grupo-num-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3.75rem;
+    width: 3.75rem;
+    height: 3rem;
+    padding: 0;
+    box-sizing: border-box;
+    border: 1px solid rgba(26, 77, 58, 0.15);
+    border-radius: 10px;
+    background: var(--color-white);
+    color: var(--color-primary-dark);
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    box-shadow: inset 0 1px 2px rgba(26, 77, 58, 0.04);
+}
+
+.fechas-grupo-default-bar .fechas-dia-plan-row__grupo-item .ancillary-counter-wrap {
+    background: transparent;
+    border: none;
+    border-radius: 0;
 }
 
 .fechas-dia-plan-hint {
@@ -1971,10 +2095,11 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 .fechas-dia-plan-list {
     display: grid;
-    grid-template-columns: 8.75rem minmax(10rem, 1fr) minmax(7.25rem, auto) 7.25rem;
-    column-gap: 0.65rem;
+    grid-template-columns: 6.5rem minmax(0, 7.5rem) minmax(0, auto) 6.75rem;
+    column-gap: 0.45rem;
     row-gap: 0.65rem;
     align-items: stretch;
+    min-width: 0;
 }
 
 .fechas-dia-plan-row {
@@ -1982,11 +2107,13 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     grid-column: 1 / -1;
     grid-template-columns: subgrid;
     align-items: center;
-    column-gap: 0.65rem;
+    column-gap: 0.45rem;
     row-gap: 0.5rem;
-    padding: 0.65rem 0.85rem;
+    padding: 0.65rem 0.75rem;
     background: var(--color-bg-light);
     border: 1px solid rgba(26, 77, 58, 0.12);
+    min-width: 0;
+    overflow: hidden;
 }
 
 .fechas-dia-plan-row__campo,
@@ -2006,16 +2133,30 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 .fechas-dia-plan-row__campo .campo-dia-toggle {
     grid-column: 2;
     width: 100%;
-    max-width: none;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.fechas-dia-plan-panel .campo-dia-toggle__btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0.34rem 0.2rem;
+    font-size: 0.72rem;
+    line-height: 1.15;
+    border-width: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .fechas-dia-plan-row__hora {
     grid-column: 3;
-    flex: 0 0 auto;
+    flex: 0 1 auto;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.35rem;
     margin-left: 0;
+    min-width: 0;
 }
 
 .fechas-dia-plan-row__jugadores {
@@ -2025,19 +2166,64 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     align-items: flex-start;
     gap: 0.25rem;
     min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .fechas-dia-plan-row__jugadores label {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 500;
     color: var(--color-text-light);
     white-space: nowrap;
 }
 
-.fechas-dia-plan-row__jugadores .ancillary-counter-wrap {
+.fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .ancillary-counter-wrap {
+    width: 100%;
+    max-width: 6.5rem;
+    min-width: 0;
     background: #fff;
     border: 1px solid rgba(26, 77, 58, 0.18);
     border-radius: 4px;
+}
+
+.fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .ancillary-btn {
+    width: 1.65rem;
+    min-width: 1.65rem;
+    height: 1.65rem;
+    font-size: 0.95rem;
+    border: none !important;
+    background: var(--color-bg-light);
+}
+
+.fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .ancillary-btn-minus,
+.fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .ancillary-btn-plus {
+    border-left: none !important;
+    border-right: none !important;
+}
+
+.fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .fechas-jugadores-dia {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 1.75rem;
+    max-width: none;
+    padding: 0.2rem 0.15rem;
+    font-size: 0.85rem;
+    text-align: center;
+    border: none !important;
+    border-left: 1px solid rgba(26, 77, 58, 0.12) !important;
+    border-right: 1px solid rgba(26, 77, 58, 0.12) !important;
+}
+
+.fechas-dia-plan-panel .fechas-dia-plan-row__hora .hora-salida-picker__h,
+.fechas-dia-plan-panel .fechas-dia-plan-row__hora .hora-salida-picker__m {
+    min-width: 3rem;
+    padding: 0.32rem 0.35rem;
+    font-size: 0.82rem;
+}
+
+.fechas-dia-plan-panel .fechas-dia-plan-row__hora label {
+    font-size: 0.75rem;
+    flex-shrink: 0;
 }
 
 .fechas-dia-plan-list[hidden] {
@@ -2171,22 +2357,39 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     }
 
     .fechas-dia-plan-panel .fechas-dia-plan-list {
-        grid-template-columns: 7.5rem minmax(7rem, 1fr) minmax(6.5rem, auto) 6.75rem;
-        column-gap: 0.5rem;
+        grid-template-columns: 6rem minmax(0, 6.75rem) minmax(0, auto) 6.25rem;
+        column-gap: 0.4rem;
     }
 
     .fechas-dia-plan-panel .fechas-dia-plan-row {
-        padding: 0.6rem 0.65rem;
+        padding: 0.55rem 0.6rem;
+        column-gap: 0.4rem;
+    }
+
+    .fechas-dia-plan-panel .fechas-dia-plan-row__campo .campos-dias-item__dia-label {
+        font-size: 0.8rem;
+        line-height: 1.2;
+    }
+
+    .fechas-dia-plan-panel .fechas-dia-plan-row__campo .campo-dia-toggle {
+        gap: 0.2rem;
     }
 
     .fechas-dia-plan-panel .fechas-dia-plan-row__campo .campo-dia-toggle__btn {
-        font-size: 0.75rem;
-        padding: 0.38rem 0.4rem;
+        font-size: 0.68rem;
+        padding: 0.3rem 0.15rem;
     }
 
     .fechas-dia-plan-panel .fechas-dia-plan-row__hora label,
     .fechas-dia-plan-panel .fechas-dia-plan-row__jugadores label {
-        font-size: 0.75rem;
+        font-size: 0.72rem;
+    }
+
+    .fechas-dia-plan-panel .fechas-dia-plan-row__hora .hora-salida-picker__h,
+    .fechas-dia-plan-panel .fechas-dia-plan-row__hora .hora-salida-picker__m {
+        min-width: 2.85rem;
+        padding: 0.28rem 0.3rem;
+        font-size: 0.78rem;
     }
 }
 
@@ -3147,6 +3350,11 @@ body.hb-tariff-debug-on .hotelbeds-card--picked {
     border-radius: 6px;
     font-size: 0.92rem;
     line-height: 1.45;
+}
+
+.configurador-seccion .paquete-logistica-nota {
+    margin-top: 1rem;
+    margin-bottom: 0;
 }
 /* —— Confirmación post-pago (confirmacion-reserva.html) —— */
 /* Sin solapamiento tipo paquete: contenido debajo de header + hero compacto */
@@ -4236,6 +4444,77 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     gap: 1rem;
 }
 
+.config-dia-tabs-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    min-width: 0;
+}
+
+.config-dia-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    padding: 0.15rem 0;
+}
+
+.config-dia-tab {
+    position: relative;
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    padding: 0.45rem 0.85rem;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--color-primary);
+    background: #fff;
+    border: 1px solid rgba(26, 77, 58, 0.22);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.config-dia-tab:hover {
+    border-color: var(--color-primary);
+    background: rgba(26, 77, 58, 0.05);
+}
+
+.config-dia-tab.is-active {
+    color: #fff;
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 6px rgba(26, 77, 58, 0.18);
+}
+
+.config-dia-tab.has-selection:not(.is-active)::after {
+    content: '';
+    position: absolute;
+    top: 0.2rem;
+    right: 0.35rem;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: var(--color-secondary, #8b9a46);
+    box-shadow: 0 0 0 1px #fff;
+}
+
+.config-dia-tab:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.config-dia-panel {
+    min-width: 0;
+}
+
+.config-dia-fields-store {
+    display: none !important;
+}
+
 .comida-dia-block {
     padding: 1rem 1.25rem;
     background: rgba(26, 77, 58, 0.05);
@@ -4384,7 +4663,7 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     gap: 0.65rem;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity;
+    scroll-snap-type: none;
     overscroll-behavior-x: contain;
     padding: 0.15rem 0.1rem 0.35rem;
     margin: 0 -0.1rem;
@@ -4410,12 +4689,38 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
 
 .comida-menu-card--config {
     cursor: default;
-    overflow: visible;
+    overflow: hidden;
     scroll-snap-align: none;
+    transform: none !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.comida-menu-card--config:hover {
-    transform: none;
+.comida-menu-card--config:hover,
+.comida-menu-card--config:focus-within {
+    transform: none !important;
+    border-color: rgba(26, 77, 58, 0.18);
+    box-shadow: none;
+}
+
+.comida-menu-card--config.comida-menu-card--added,
+.comida-menu-card--config.comida-menu-card--added:hover,
+.comida-menu-card--config.comida-menu-card--added:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.comida-menu-card--config .comida-menu-card__photo {
+    transform: none !important;
+    transition: none !important;
+}
+
+.comida-menu-card--config:hover .comida-menu-card__photo,
+.comida-menu-card--config:focus-within .comida-menu-card__photo {
+    transform: none !important;
+}
+
+.comida-menu-card--config:hover .comida-menu-card__cta {
+    opacity: 0.95;
 }
 
 .comida-menu-card[data-menu="huevos"] {
@@ -4435,10 +4740,6 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     box-shadow: 0 4px 12px rgba(26, 77, 58, 0.14);
 }
 
-.comida-menu-card--config:hover .comida-menu-card__photo {
-    transform: none;
-}
-
 .comida-menu-card:focus-visible {
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
@@ -4453,6 +4754,7 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    transform: translateZ(0);
 }
 
 .comida-menu-card__photo {
@@ -11183,6 +11485,7 @@ body.page-torneo .torneo-detalle-section {
     display: flex;
     flex-direction: column;
     gap: 0.85rem;
+    min-width: 0;
 }
 
 .ancillary-dia-block {

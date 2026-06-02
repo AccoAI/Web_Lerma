@@ -3,8 +3,12 @@
  */
 (function () {
     var OPCIONES = [
-        { v: 'lerma', l: 'Golf Lerma' },
-        { v: 'saldana', l: 'Saldaña Golf' }
+        { v: 'lerma', l: 'Golf Lerma', title: 'Golf Lerma' },
+        { v: 'saldana', l: 'Saldaña Golf', title: 'Saldaña Golf' }
+    ];
+    var OPCIONES_CORTAS = [
+        { v: 'lerma', l: 'Lerma', title: 'Golf Lerma' },
+        { v: 'saldana', l: 'Saldaña', title: 'Saldaña Golf' }
     ];
 
     function escapeAttr(s) {
@@ -65,12 +69,13 @@
     function buildCampoDiaToggleItem(dayIndex, savedValue, options) {
         options = options || {};
         var saved = savedValue === 'lerma' || savedValue === 'saldana' ? savedValue : '';
+        var opciones = options.shortLabels ? OPCIONES_CORTAS : OPCIONES;
         var item = document.createElement('div');
         item.className = 'campos-dias-item campos-dias-item--campo-toggle';
-        var btnsHtml = OPCIONES.map(function (o) {
+        var btnsHtml = opciones.map(function (o) {
             var on = saved === o.v;
             return (
-                '<button type="button" class="campo-dia-toggle__btn' + (on ? ' is-active' : '') + '" data-campo="' + o.v + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
+                '<button type="button" class="campo-dia-toggle__btn' + (on ? ' is-active' : '') + '" data-campo="' + o.v + '" aria-pressed="' + (on ? 'true' : 'false') + '" title="' + escapeAttr(o.title || o.l) + '">' +
                 escapeAttr(o.l) +
                 '</button>'
             );

@@ -413,14 +413,14 @@ function escapeAttrValue(s) {
         .replace(/</g, '&lt;');
 }
 
-function htmlTarjetaFotoMedia(imgUrl, blockClass) {
+function htmlTarjetaFotoMedia(imgUrl, blockClass, eagerLoad) {
     var safeUrl = sanitizePublicAssetPath(imgUrl);
     if (!safeUrl) {
         return '<span class="' + blockClass + '__media" aria-hidden="true"></span>';
     }
     return (
         '<span class="' + blockClass + '__media" aria-hidden="true">' +
-        '<img class="' + blockClass + '__photo" src="' + escapeAttrValue(safeUrl) + '" alt="" loading="lazy" decoding="async">' +
+        '<img class="' + blockClass + '__photo" src="' + escapeAttrValue(safeUrl) + '" alt="" loading="' + (eagerLoad ? 'eager' : 'lazy') + '" decoding="async">' +
         '</span>'
     );
 }
@@ -511,6 +511,10 @@ function initConfiguradorPaquete() {
     var comidaPorDiaContainer = document.getElementById('comida-por-dia-container');
     var ancillaryPorDiaContainer = document.getElementById('ancillary-por-dia-container');
     var ancillarySinPrereqs = document.getElementById('ancillary-sin-prereqs');
+    var comidaDiaActivo = 1;
+    var ancillaryDiaActivo = 1;
+    var comidaDiasNav = [];
+    var ancillaryDiasNav = [];
     function campoDiaTieneReservaFinSemana(idx) {
         if (!form || idx < 1) return false;
         if (typeof window.campoDiaTieneReservaEnDom === 'function') {
@@ -638,7 +642,7 @@ function initConfiguradorPaquete() {
         var nFechas = (fd.getAll('fechas[]') || []).length;
         syncTamanioGrupoDesdeDias(nFechas);
         recalcNumeroGrupos();
-        actualizarBloqueComida(nFechas, fd.getAll('fechas[]') || []);
+        syncComidaBloqueLimites();
         actualizarBloqueAncillaryPorDia(nFechas, fd.getAll('fechas[]') || []);
         actualizarResumen();
     }
@@ -681,6 +685,7 @@ function initConfiguradorPaquete() {
             campoWrap.className = 'fechas-dia-plan-row__campo';
             var campoItem = window.buildCampoDiaToggleItem(i, prevCampo[i] || '', {
                 required: true,
+                shortLabels: true,
                 onChange: onCampoDiaPlanChangeFinSemana
             });
             var diaLbl = campoItem.querySelector('.campos-dias-item__dia-label');
@@ -694,9 +699,9 @@ function initConfiguradorPaquete() {
             horaWrap.className = 'fechas-dia-plan-row__hora';
             var horaName = numDias === 1 ? 'hora_salida' : 'hora_salida_dia_' + i;
             var horaId = numDias === 1 ? 'hora-salida' : 'hora-salida-dia-' + i + '-fs';
-            var horaLbl = (window.i18n && window.i18n.t) ? window.i18n.t('label_hora_salida') : 'Hora de salida';
+            var horaLbl = (window.i18n && window.i18n.t) ? window.i18n.t('label_hora') : 'Hora *';
             horaWrap.innerHTML =
-                '<label for="' + horaId + '">' + horaLbl + ' *</label>' +
+                '<label for="' + horaId + '" title="' + ((window.i18n && window.i18n.t) ? window.i18n.t('label_hora_salida') : 'Hora de salida') + '">' + horaLbl + '</label>' +
                 '<input type="time" id="' + horaId + '" name="' + horaName + '" title="Hora día ' + i + '" disabled value="' + (prevHora[i] || '') + '">';
 
             row.appendChild(campoWrap);
@@ -1098,6 +1103,216 @@ function initConfiguradorPaquete() {
         guardarReservasComidaDia(dia, reservas);
         syncComidaMenuCardState(input.closest('.comida-menu-card'), val > 0);
         syncComidaDiaCardBadge(dia, input.closest('.comida-dia-card'));
+        syncComidaDiaTabsBadges();
+    }
+
+    function htmlConfigDiaTabBtn(diaIndex, titulo, isActive, hasSelection, group) {
+        return (
+            '<button type="button" class="config-dia-tab' +
+            (isActive ? ' is-active' : '') +
+            (hasSelection ? ' has-selection' : '') +
+            '" role="tab" aria-selected="' + (isActive ? 'true' : 'false') +
+            '" data-dia-tab="' + diaIndex +
+            '" data-dia-tab-group="' + group + '">' +
+            escapeHtmlComida(titulo) + '</button>'
+        );
+    }
+
+    function syncConfigDiaTabsActive(group, activeDia) {
+        var root = group === 'comida' ? comidaPorDiaContainer : ancillaryPorDiaContainer;
+        if (!root) return;
+        root.querySelectorAll('.config-dia-tab[data-dia-tab-group="' + group + '"]').forEach(function (btn) {
+            var d = parseInt(btn.getAttribute('data-dia-tab'), 10);
+            var on = d === activeDia;
+            btn.classList.toggle('is-active', on);
+            btn.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+    }
+
+    function comidaDiaTieneSeleccion(dia) {
+        var reservas = leerReservasComidaDia(dia);
+        return reservas.length > 0 && reservasTienenMenuClub(reservas);
+    }
+
+    function syncComidaDiaTabsBadges() {
+        if (!comidaPorDiaContainer) return;
+        comidaPorDiaContainer.querySelectorAll('.config-dia-tab[data-dia-tab-group="comida"]').forEach(function (btn) {
+            var d = parseInt(btn.getAttribute('data-dia-tab'), 10);
+            btn.classList.toggle('has-selection', comidaDiaTieneSeleccion(d));
+        });
+    }
+
+    function ensureComidaLegacyHiddenFields(dia, reservas) {
+        if (!form) return;
+        var store = comidaPorDiaContainer && comidaPorDiaContainer.querySelector('.config-dia-fields-store');
+        var parent = store || form;
+        var firstLegacy = reservas[0] || {};
+        var specs = [
+            { name: 'comida_reservas_dia_' + dia, value: reservas.length ? JSON.stringify(reservas) : '' },
+            { name: 'comida_opcion_dia_' + dia, value: firstLegacy.tipo === 'club' ? ('club:' + firstLegacy.menuId) : (firstLegacy.tipo === 'externo' ? 'externo' : '') },
+            { name: 'comida_menu_id_' + dia, value: firstLegacy.tipo === 'club' ? firstLegacy.menuId : '' },
+            { name: 'comida_rest_id_' + dia, value: firstLegacy.tipo === 'externo' ? firstLegacy.restId : '' },
+            { name: 'comida_dia_' + dia, value: firstLegacy.tipo === 'externo' ? firstLegacy.zona : '' },
+            { name: 'comida_comensales_dia_' + dia, value: firstLegacy.tipo === 'club' ? String(firstLegacy.comensales || '') : '' },
+            { name: 'cena_dia_' + dia, value: '' },
+            { name: 'cena_rest_id_' + dia, value: '' }
+        ];
+        for (var si = 0; si < specs.length; si++) {
+            var spec = specs[si];
+            var hid = parent.querySelector('input[name="' + spec.name + '"]');
+            if (!hid) hid = form.querySelector('input[name="' + spec.name + '"]');
+            if (!hid) {
+                hid = document.createElement('input');
+                hid.type = 'hidden';
+                hid.name = spec.name;
+                parent.appendChild(hid);
+            } else if (store && hid.parentElement !== store && store !== form) {
+                store.appendChild(hid);
+            }
+            hid.value = spec.value == null ? '' : String(spec.value);
+        }
+    }
+
+    function renderComidaDiaPanel(diaIndex) {
+        if (!comidaPorDiaContainer) return;
+        var panel = comidaPorDiaContainer.querySelector('.comida-dia-panel');
+        if (!panel) return;
+        var navItem = null;
+        for (var ni = 0; ni < comidaDiasNav.length; ni++) {
+            if (comidaDiasNav[ni].index === diaIndex) { navItem = comidaDiasNav[ni]; break; }
+        }
+        if (!navItem) return;
+        var reservas = leerReservasComidaDia(diaIndex);
+        var nJug = getNumJugadoresComida();
+        for (var ri = 0; ri < reservas.length; ri++) {
+            if (reservas[ri].tipo === 'club') {
+                if (!reservas[ri].comensales || reservas[ri].comensales < 1) reservas[ri].comensales = nJug;
+                reservas[ri].comensales = Math.min(Math.max(1, reservas[ri].comensales), Math.max(nJug, 20));
+                reservas[ri].hora = normalizarHoraComida(reservas[ri].hora);
+            }
+        }
+        ensureComidaLegacyHiddenFields(diaIndex, reservas);
+        var menus = typeof window.getCasaClubMenus === 'function' ? window.getCasaClubMenus() : [];
+        var tieneSel = reservas.length > 0;
+        var html = '';
+        html += '<article class="comida-dia-card' + (tieneSel ? ' comida-dia-card--selected' : '') + '" data-dia-card="' + diaIndex + '">';
+        html += '<header class="comida-dia-card__head">';
+        html += '<h4 class="comida-dia-card__fecha">' + escapeHtmlComida(navItem.titulo) + '</h4>';
+        if (reservasTienenMenuClub(reservas)) {
+            html += '<span class="comida-dia-card__badge comida-dia-card__badge--pack">Incluido en el paquete</span>';
+        }
+        html += '</header>';
+        html += '<section class="comida-dia-card__section">';
+        html += '<div class="comida-dia-card__section-head">';
+        html += '<h5 class="comida-dia-card__section-title">Casa Club Lerma</h5>';
+        html += '<span class="comida-dia-card__tag">Solo comidas</span>';
+        html += '</div>';
+        html += '<div class="comida-menu-grid" role="group" aria-label="Menús Casa Club">';
+        for (var mi = 0; mi < menus.length; mi++) {
+            var menu = menus[mi];
+            var reservaMenu = findReservaClubMenu(reservas, menu.id);
+            html += htmlComidaMenuCard(menu, diaIndex, reservaMenu ? reservaMenu.r : null, nJug);
+        }
+        html += '</div></section></article>';
+        panel.innerHTML = html;
+        syncComidaDiaTabsBadges();
+        syncConfigDiaTabsActive('comida', diaIndex);
+    }
+
+    function setComidaDiaActivo(diaIndex) {
+        var ok = false;
+        for (var i = 0; i < comidaDiasNav.length; i++) {
+            if (comidaDiasNav[i].index === diaIndex) { ok = true; break; }
+        }
+        if (!ok) return;
+        comidaDiaActivo = diaIndex;
+        renderComidaDiaPanel(diaIndex);
+    }
+
+    function leerAncillaryDiaFromForm(dia) {
+        var ib = form && form.querySelector('input[name="ancillary_buggy_dia_' + dia + '"]');
+        var ic = form && form.querySelector('input[name="ancillary_carrito_mano_dia_' + dia + '"]');
+        var ie = form && form.querySelector('input[name="ancillary_carrito_electrico_dia_' + dia + '"]');
+        return {
+            buggy: ib ? Math.max(0, parseInt(ib.value || '0', 10)) : 0,
+            mano: ic ? Math.max(0, parseInt(ic.value || '0', 10)) : 0,
+            elec: ie ? Math.max(0, parseInt(ie.value || '0', 10)) : 0
+        };
+    }
+
+    function ancillaryDiaTieneSeleccion(dia) {
+        var p = leerAncillaryDiaFromForm(dia);
+        return (p.buggy + p.mano + p.elec) > 0;
+    }
+
+    function syncAncillaryDiaTabsBadges() {
+        if (!ancillaryPorDiaContainer) return;
+        ancillaryPorDiaContainer.querySelectorAll('.config-dia-tab[data-dia-tab-group="ancillary"]').forEach(function (btn) {
+            var d = parseInt(btn.getAttribute('data-dia-tab'), 10);
+            btn.classList.toggle('has-selection', ancillaryDiaTieneSeleccion(d));
+        });
+    }
+
+    function renderAncillaryDiaPanel(diaIndex, prevByDay) {
+        if (!ancillaryPorDiaContainer) return;
+        var panel = ancillaryPorDiaContainer.querySelector('.ancillary-dia-panel');
+        var store = ancillaryPorDiaContainer.querySelector('.config-dia-fields-store');
+        if (!panel || !store) return;
+        var navItem = null;
+        for (var ni = 0; ni < ancillaryDiasNav.length; ni++) {
+            if (ancillaryDiasNav[ni].index === diaIndex) { navItem = ancillaryDiasNav[ni]; break; }
+        }
+        if (!navItem) return;
+        var servicios = getAncillaryServiciosConfig();
+        var p = (prevByDay && prevByDay[diaIndex]) ? prevByDay[diaIndex] : leerAncillaryDiaFromForm(diaIndex);
+        var cardsHtml = '';
+        for (var si = 0; si < servicios.length; si++) {
+            var svc = servicios[si];
+            var qty = p[svc.field] != null ? p[svc.field] : 0;
+            cardsHtml += htmlAncillaryServiceCard(svc, diaIndex, qty);
+        }
+        panel.innerHTML =
+            '<div class="ancillary-dia-header">' + escapeHtmlComida(navItem.titulo) + '</div>' +
+            '<div class="ancillary-service-grid" role="group" aria-label="' + escapeHtmlComida(navItem.titulo) + '">' +
+            cardsHtml +
+            '</div>';
+        store.innerHTML = '';
+        for (var pi = 0; pi < ancillaryDiasNav.length; pi++) {
+            var idx = ancillaryDiasNav[pi].index;
+            if (idx === diaIndex) continue;
+            var pv = (prevByDay && prevByDay[idx]) ? prevByDay[idx] : leerAncillaryDiaFromForm(idx);
+            for (var sj = 0; sj < servicios.length; sj++) {
+                var svcH = servicios[sj];
+                var hid = document.createElement('input');
+                hid.type = 'hidden';
+                hid.name = svcH.inputPrefix + idx;
+                hid.value = String(pv[svcH.field] != null ? pv[svcH.field] : 0);
+                store.appendChild(hid);
+            }
+        }
+        syncAncillaryDiaTabsBadges();
+        syncConfigDiaTabsActive('ancillary', diaIndex);
+        if (typeof fillAncillaryPrices === 'function') fillAncillaryPrices();
+    }
+
+    function leerAncillaryPrevByDay(playableDays) {
+        var prev = {};
+        for (var pi = 0; pi < playableDays.length; pi++) {
+            var i = playableDays[pi];
+            prev[i] = leerAncillaryDiaFromForm(i);
+        }
+        return prev;
+    }
+
+    function setAncillaryDiaActivo(diaIndex) {
+        var ok = false;
+        for (var i = 0; i < ancillaryDiasNav.length; i++) {
+            if (ancillaryDiasNav[i].index === diaIndex) { ok = true; break; }
+        }
+        if (!ok) return;
+        var prev = leerAncillaryPrevByDay(ancillaryDiasNav.map(function (n) { return n.index; }));
+        ancillaryDiaActivo = diaIndex;
+        renderAncillaryDiaPanel(diaIndex, prev);
     }
 
     function htmlComidaMenuCard(menu, dia, reserva, nJug) {
@@ -1111,7 +1326,7 @@ function initConfiguradorPaquete() {
         var selectedCls = added ? ' comida-menu-card--added' : '';
         return (
             '<article class="comida-menu-card comida-menu-card--config' + selectedCls + '" data-dia="' + dia + '" data-menu="' + escapeHtmlComida(menu.id) + '">' +
-            htmlTarjetaFotoMedia(menu.imagen, 'comida-menu-card') +
+            htmlTarjetaFotoMedia(menu.imagen, 'comida-menu-card', true) +
             '<div class="comida-menu-card__content">' +
             '<span class="comida-menu-card__nombre">' + escapeHtmlComida(menu.label) + '</span>' +
             (precio !== '' ? '<span class="comida-menu-card__precio"><span class="comida-menu-card__precio-num">' + precio + ' €</span><span class="comida-menu-card__precio-unit">/ pers.</span></span>' : '') +
@@ -1146,69 +1361,54 @@ function initConfiguradorPaquete() {
         if (!prereqsOk || count < 1) {
             comidaPorDiaContainer.style.display = 'none';
             comidaPorDiaContainer.innerHTML = '';
+            comidaDiasNav = [];
             return;
         }
-        var menus = typeof window.getCasaClubMenus === 'function' ? window.getCasaClubMenus() : [];
         var prevReservas = {};
         for (var pi = 1; pi <= count; pi++) {
             prevReservas[pi] = leerReservasComidaDia(pi).filter(function (r) {
                 return r.tipo !== 'externo';
             });
         }
-        comidaPorDiaContainer.style.display = 'block';
-        comidaPorDiaContainer.innerHTML = '';
-        for (var i = 1; i <= count; i++) {
-            var iso = fechas[i - 1];
-            var titulo = formatearEtiquetaDiaComida(iso) || ('Día ' + i);
-            var reservas = prevReservas[i] || [];
-            var nJug = getNumJugadoresComida();
-            for (var ri = 0; ri < reservas.length; ri++) {
-                if (reservas[ri].tipo === 'club') {
-                    if (!reservas[ri].comensales || reservas[ri].comensales < 1) reservas[ri].comensales = nJug;
-                    reservas[ri].comensales = Math.min(Math.max(1, reservas[ri].comensales), Math.max(nJug, 20));
-                    reservas[ri].hora = normalizarHoraComida(reservas[ri].hora);
-                }
-            }
-            var tieneSel = reservas.length > 0;
-            var html = '';
-
-            html += '<article class="comida-dia-card' + (tieneSel ? ' comida-dia-card--selected' : '') + '" data-dia-card="' + i + '">';
-            html += '<header class="comida-dia-card__head">';
-            html += '<h4 class="comida-dia-card__fecha">' + escapeHtmlComida(titulo) + '</h4>';
-            if (reservasTienenMenuClub(reservas)) {
-                html += '<span class="comida-dia-card__badge comida-dia-card__badge--pack">Incluido en el paquete</span>';
-            }
-            html += '</header>';
-
-            html += '<section class="comida-dia-card__section">';
-            html += '<div class="comida-dia-card__section-head">';
-            html += '<h5 class="comida-dia-card__section-title">Casa Club Lerma</h5>';
-            html += '<span class="comida-dia-card__tag">Solo comidas</span>';
-            html += '</div>';
-            html += '<div class="comida-menu-grid" role="group" aria-label="Menús Casa Club">';
-            for (var mi = 0; mi < menus.length; mi++) {
-                var menu = menus[mi];
-                var reservaMenu = findReservaClubMenu(reservas, menu.id);
-                html += htmlComidaMenuCard(menu, i, reservaMenu ? reservaMenu.r : null, nJug);
-            }
-            html += '</div></section>';
-
-            var firstLegacy = reservas[0] || {};
-            html += '<input type="hidden" name="comida_reservas_dia_' + i + '" value="' + escapeHtmlComida(JSON.stringify(reservas)) + '">' +
-                '<input type="hidden" name="comida_opcion_dia_' + i + '" value="' + escapeHtmlComida(firstLegacy.tipo === 'club' ? ('club:' + firstLegacy.menuId) : (firstLegacy.tipo === 'externo' ? 'externo' : '')) + '">' +
-                '<input type="hidden" name="comida_menu_id_' + i + '" value="' + escapeHtmlComida(firstLegacy.tipo === 'club' ? firstLegacy.menuId : '') + '">' +
-                '<input type="hidden" name="comida_rest_id_' + i + '" value="' + escapeHtmlComida(firstLegacy.tipo === 'externo' ? firstLegacy.restId : '') + '">' +
-                '<input type="hidden" name="comida_dia_' + i + '" value="' + escapeHtmlComida(firstLegacy.tipo === 'externo' ? firstLegacy.zona : '') + '">' +
-                '<input type="hidden" name="comida_comensales_dia_' + i + '" value="' + (firstLegacy.tipo === 'club' ? String(firstLegacy.comensales || '') : '') + '">' +
-                '<input type="hidden" name="cena_dia_' + i + '" value="">' +
-                '<input type="hidden" name="cena_rest_id_' + i + '" value="">';
-            html += '</article>';
-
-            var block = document.createElement('div');
-            block.className = 'comida-dia-card-wrap';
-            block.innerHTML = html;
-            comidaPorDiaContainer.appendChild(block.firstElementChild || block);
+        comidaDiasNav = [];
+        for (var di = 1; di <= count; di++) {
+            var isoNav = fechas[di - 1];
+            comidaDiasNav.push({
+                index: di,
+                titulo: formatearEtiquetaDiaComida(isoNav) || ('Día ' + di)
+            });
         }
+        if (comidaDiaActivo > count || comidaDiaActivo < 1) comidaDiaActivo = 1;
+        var tabsHtml = '<div class="config-dia-tabs-wrap"><div class="config-dia-tabs" role="tablist" aria-label="Días de comida" data-dia-tab-group="comida">';
+        for (var ti = 0; ti < comidaDiasNav.length; ti++) {
+            var nav = comidaDiasNav[ti];
+            tabsHtml += htmlConfigDiaTabBtn(nav.index, nav.titulo, nav.index === comidaDiaActivo, comidaDiaTieneSeleccion(nav.index), 'comida');
+        }
+        tabsHtml += '</div><div class="comida-dia-panel config-dia-panel" role="tabpanel"></div>';
+        tabsHtml += '<div class="config-dia-fields-store" hidden aria-hidden="true"></div></div>';
+        comidaPorDiaContainer.style.display = 'block';
+        comidaPorDiaContainer.innerHTML = tabsHtml;
+        for (var hi = 1; hi <= count; hi++) {
+            ensureComidaLegacyHiddenFields(hi, prevReservas[hi] || []);
+        }
+        renderComidaDiaPanel(comidaDiaActivo);
+    }
+
+    function syncComidaBloqueLimites() {
+        if (!comidaPorDiaContainer || comidaPorDiaContainer.style.display === 'none') return;
+        var nJug = getNumJugadoresComida();
+        var maxPax = Math.max(nJug, 20);
+        comidaPorDiaContainer.querySelectorAll('.comida-menu-comensales').forEach(function (input) {
+            input.setAttribute('max', String(maxPax));
+            var val = parseInt(input.value, 10) || 0;
+            if (val > maxPax) {
+                input.value = String(maxPax);
+                aplicarComensalesMenuClub(input);
+            } else if (val > 0 && val < nJug) {
+                input.value = String(nJug);
+                aplicarComensalesMenuClub(input);
+            }
+        });
     }
 
     function agregarReservaExterna(dia, restId, zona) {
@@ -1255,57 +1455,52 @@ function initConfiguradorPaquete() {
         if (!prereqsOk || count < 1) {
             ancillaryPorDiaContainer.innerHTML = '';
             ancillaryPorDiaContainer.style.display = 'none';
+            ancillaryDiasNav = [];
             if (ancillarySinPrereqs) {
                 ancillarySinPrereqs.style.display = 'block';
                 setConfigSeccionHint(ancillarySinPrereqs, getConfigPrereqHintI18nKey(prereqState));
             }
             return;
         }
-        var prev = {};
-        for (var pi = 1; pi <= count; pi++) {
-            var ib = form && form.querySelector('input[name="ancillary_buggy_dia_' + pi + '"]');
-            var ic = form && form.querySelector('input[name="ancillary_carrito_mano_dia_' + pi + '"]');
-            var ie = form && form.querySelector('input[name="ancillary_carrito_electrico_dia_' + pi + '"]');
-            prev[pi] = {
-                buggy: ib ? Math.max(0, parseInt(ib.value || '0', 10)) : 0,
-                mano: ic ? Math.max(0, parseInt(ic.value || '0', 10)) : 0,
-                elec: ie ? Math.max(0, parseInt(ie.value || '0', 10)) : 0
-            };
-        }
-        ancillaryPorDiaContainer.innerHTML = '';
-        var any = false;
-        var servicios = getAncillaryServiciosConfig();
+        var playable = [];
         for (var i = 1; i <= count; i++) {
             if (!campoDiaTieneReservaFinSemana(i)) continue;
-            any = true;
             var iso = fechas[i - 1];
-            var titulo = formatearEtiquetaDiaComida(iso) || ('Día ' + i);
-            var p = prev[i] || { buggy: 0, mano: 0, elec: 0 };
-            var cardsHtml = '';
-            for (var si = 0; si < servicios.length; si++) {
-                var svc = servicios[si];
-                var qty = p[svc.field] != null ? p[svc.field] : 0;
-                cardsHtml += htmlAncillaryServiceCard(svc, i, qty);
-            }
-            var block = document.createElement('div');
-            block.className = 'ancillary-dia-block';
-            block.innerHTML =
-                '<div class="ancillary-dia-header">' + escapeHtmlComida(titulo) + '</div>' +
-                '<div class="ancillary-service-grid" role="group" aria-label="' + escapeHtmlComida(titulo) + '">' +
-                cardsHtml +
-                '</div>';
-            ancillaryPorDiaContainer.appendChild(block);
+            playable.push(i);
         }
-        ancillaryPorDiaContainer.style.display = any ? 'block' : 'none';
-        if (ancillarySinPrereqs) {
-            if (!any) {
+        if (!playable.length) {
+            ancillaryPorDiaContainer.innerHTML = '';
+            ancillaryPorDiaContainer.style.display = 'none';
+            ancillaryDiasNav = [];
+            if (ancillarySinPrereqs) {
                 ancillarySinPrereqs.style.display = 'block';
                 setConfigSeccionHint(ancillarySinPrereqs, 'config_hint_falta_campo');
-            } else {
-                ancillarySinPrereqs.style.display = 'none';
             }
+            return;
         }
-        if (typeof fillAncillaryPrices === 'function') fillAncillaryPrices();
+        var prev = leerAncillaryPrevByDay(playable);
+        ancillaryDiasNav = playable.map(function (idx) {
+            return {
+                index: idx,
+                titulo: formatearEtiquetaDiaComida(fechas[idx - 1]) || ('Día ' + idx)
+            };
+        });
+        var activoValido = false;
+        for (var av = 0; av < ancillaryDiasNav.length; av++) {
+            if (ancillaryDiasNav[av].index === ancillaryDiaActivo) { activoValido = true; break; }
+        }
+        if (!activoValido) ancillaryDiaActivo = ancillaryDiasNav[0].index;
+        var tabsHtml = '<div class="config-dia-tabs-wrap"><div class="config-dia-tabs" role="tablist" aria-label="Días de servicios adicionales" data-dia-tab-group="ancillary">';
+        for (var ti = 0; ti < ancillaryDiasNav.length; ti++) {
+            var nav = ancillaryDiasNav[ti];
+            tabsHtml += htmlConfigDiaTabBtn(nav.index, nav.titulo, nav.index === ancillaryDiaActivo, ancillaryDiaTieneSeleccion(nav.index), 'ancillary');
+        }
+        tabsHtml += '</div><div class="ancillary-dia-panel config-dia-panel" role="tabpanel"></div>';
+        tabsHtml += '<div class="config-dia-fields-store" hidden aria-hidden="true"></div></div>';
+        ancillaryPorDiaContainer.innerHTML = tabsHtml;
+        ancillaryPorDiaContainer.style.display = 'block';
+        if (ancillarySinPrereqs) ancillarySinPrereqs.style.display = 'none';
+        renderAncillaryDiaPanel(ancillaryDiaActivo, prev);
     }
 
     var comidaPickerControl = null;
@@ -1626,9 +1821,9 @@ function initConfiguradorPaquete() {
             if (t && t.id === 'tamanio-grupo') {
                 recalcNumeroGrupos();
                 schedulePickerIframeRefreshFromForm();
+                syncComidaBloqueLimites();
                 var fdTg = new FormData(form);
                 var faTg = fdTg.getAll('fechas[]') || [];
-                actualizarBloqueComida(faTg.length, faTg);
                 actualizarBloqueAncillaryPorDia(faTg.length, faTg);
                 if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
             }
@@ -1639,15 +1834,27 @@ function initConfiguradorPaquete() {
             if (t && t.id === 'tamanio-grupo') {
                 recalcNumeroGrupos();
                 schedulePickerIframeRefreshFromForm();
+                syncComidaBloqueLimites();
                 var fdTg2 = new FormData(form);
                 var faTg2 = fdTg2.getAll('fechas[]') || [];
-                actualizarBloqueComida(faTg2.length, faTg2);
                 actualizarBloqueAncillaryPorDia(faTg2.length, faTg2);
                 if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
             }
             if (t && t.matches && t.matches('#tamanio-grupo, #hora-salida, #handicap-grupo, .ancillary-counter, .fechas-jugadores-dia, .comida-menu-comensales, .comida-comensales-counter, input[name^="hora_salida"]')) actualizarResumen();
+            if (t && t.classList && t.classList.contains('ancillary-counter') && ancillaryPorDiaContainer && ancillaryPorDiaContainer.contains(t)) {
+                syncAncillaryDiaTabsBadges();
+            }
         });
         form.addEventListener('click', function (e) {
+            var diaTab = e.target.closest('.config-dia-tab');
+            if (diaTab && form.contains(diaTab)) {
+                e.preventDefault();
+                var group = diaTab.getAttribute('data-dia-tab-group');
+                var diaTabIdx = parseInt(diaTab.getAttribute('data-dia-tab'), 10);
+                if (group === 'comida' && !isNaN(diaTabIdx)) setComidaDiaActivo(diaTabIdx);
+                if (group === 'ancillary' && !isNaN(diaTabIdx)) setAncillaryDiaActivo(diaTabIdx);
+                return;
+            }
             var abrir = e.target.closest('.comida-abrir-picker');
             if (abrir && form.contains(abrir)) {
                 return;

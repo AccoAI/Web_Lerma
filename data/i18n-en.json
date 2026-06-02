@@ -242,7 +242,7 @@
   "label_nombre_req": "Name *",
   "label_handicap_grupo": "Group handicap (indicative)",
   "placeholder_handicap": "E.g. 18 or 15-25",
-  "btn_anadir_participante": "Add participant",
+  "btn_anadir_participante": "Add participant (optional)",
   "servicios_adicionales": "5. Additional services",
   "anc_buggies": "Buggy",
   "anc_carrito_mano": "Pull cart",
