@@ -1976,16 +1976,27 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     margin-bottom: 1.25rem;
 }
 
+.fechas-golf-section {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--color-bg-light);
+}
+
+.fechas-golf-section > .configurador-titulo {
+    margin-top: 0;
+}
+
+.fechas-golf-espera-personas {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
 .fechas-partidas-bar {
     margin-bottom: 1.25rem;
 }
 
 .fechas-golf-body[hidden] {
     display: none !important;
-}
-
-.fechas-golf-body > .configurador-titulo {
-    margin-top: 0;
 }
 
 .fechas-grupo-default-bar .fechas-dia-plan-row__grupo-item {

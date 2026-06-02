@@ -689,9 +689,11 @@ function initConfiguradorPaquete() {
 
     function syncFechasGolfBodyVisibility() {
         var body = document.getElementById('fechas-golf-body');
+        var espera = document.getElementById('fechas-golf-espera-personas');
         if (!body) return;
         var ready = isTamanioGrupoCompleto();
         body.hidden = !ready;
+        if (espera) espera.hidden = ready;
         if (ready) recalcNumeroGrupos();
     }
 

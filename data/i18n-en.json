@@ -216,6 +216,7 @@
   "paquete_info_pdf": "Once your booking is made, we will send you a PDF by email with all our recommendations for the capital to enjoy a perfect weekend in Burgos.",
   "config_selecciona_fechas": "1. Select your dates",
   "config_seleccion_golf": "1. Golf selection",
+  "config_golf_espera_personas": "We're waiting for you to enter the number of people in the package (above).",
   "calendario_hint_rango": "Click or <strong>drag</strong> to choose a range. ",
   "calendario_hint_dias_suffix": "days selected.",
   "config_campo_dia": "Course for each day *",

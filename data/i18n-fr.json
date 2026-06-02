@@ -216,6 +216,7 @@
   "paquete_info_pdf": "Une fois votre réservation effectuée, nous vous enverrons un PDF par email avec toutes nos recommandations de la capitale pour profiter d'un week-end parfait à Burgos.",
   "config_selecciona_fechas": "1. Sélectionnez vos dates",
   "config_seleccion_golf": "1. Sélection du golf",
+  "config_golf_espera_personas": "Nous attendons que vous indiquiez le nombre de personnes dans le forfait (ci-dessus).",
   "calendario_hint_rango": "Cliquez ou <strong>faites glisser</strong> pour choisir une plage. ",
   "calendario_hint_dias_suffix": "jours sélectionnés.",
   "config_campo_dia": "Parcours pour chaque jour *",
