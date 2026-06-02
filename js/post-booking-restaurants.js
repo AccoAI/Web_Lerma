@@ -10,7 +10,7 @@
 
     el.innerHTML =
       '<h2 class="configurador-titulo post-travel-title">Opciones para comer</h2>' +
-      '<p class="post-travel-intro">Elige zona y restaurante. Reserva en el visor (TheFork o CoverManager) o llama al restaurante del club, como en el configurador del paquete.</p>' +
+      '<p class="post-travel-intro">Elige zona y restaurante. Reserva en el visor (TheFork o CoverManager) o llama al restaurante del club.</p>' +
       '<div class="comida-restaurante-picker-panel post-booking-picker-panel">' +
       '<div id="post-booking-restaurant-root" class="comida-restaurante-picker-root"></div>' +
       '</div>';

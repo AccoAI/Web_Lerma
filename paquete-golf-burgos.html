@@ -68,9 +68,6 @@
         <div class="container">
             <h2 class="section-title" data-i18n="paquete_golf_burgos_title">Paquete Golf Burgos</h2>
             <p class="paquete-intro" data-i18n="paquete_golf_burgos_intro">Configura tu paquete personalizado: elige las noches, el hotel y las opciones de comida.</p>
-            <div class="paquete-info-destacada" style="background: rgba(139, 69, 19, 0.1); padding: 1.5rem; border-radius: 8px; margin: 2rem 0; border-left: 4px solid var(--color-primary);">
-                        <p style="margin: 0; font-size: 1rem; color: var(--color-text);" data-i18n="recibir_pdf">📧 Recibirás por correo: Un PDF con todas nuestras recomendaciones de la capital para disfrutar de un fin de semana perfecto en Burgos.</p>
-            </div>
             
             <!-- Configurador de Paquete -->
             <div class="configurador-paquete">
@@ -183,22 +180,10 @@
                     <!-- Opciones de Comida -->
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo" data-i18n="config_comida">4. Opciones para comer</h3>
-                        <p class="comida-intro" data-i18n="config_comida_intro">Por cada día de tu estancia, añade un menú del <strong>Casa Club</strong> al paquete o reserva en un restaurante recomendado. Comida o cena y la hora las eliges al reservar en CoverManager o TheFork.</p>
                         <div id="comida-por-dia-wrap">
                             <p class="comida-sin-fechas" id="comida-sin-fechas">Selecciona las fechas en el calendario para indicar dónde comer cada día.</p>
                             <div id="comida-por-dia-container" class="comida-por-dia-container" style="display:none;"></div>
-                            <div id="comida-restaurante-picker-panel" class="comida-restaurante-picker-panel" hidden>
-                                <div class="comida-picker-panel-inner">
-                                    <div class="comida-picker-panel-head">
-                                        <p id="comida-picker-context" class="comida-picker-context"></p>
-                                        <button type="button" class="comida-picker-cerrar" id="comida-picker-cerrar">Cerrar</button>
-                                    </div>
-                                    <div id="comida-restaurante-picker-root" class="comida-restaurante-picker-root"></div>
-                                    <div class="comida-picker-commit-wrap">
-                                        <button type="button" class="btn-comida-picker-guardar" id="comida-picker-guardar">Guardar restaurante recomendado para <span id="comida-picker-guardar-slot"></span></button>
-                                    </div>
-                                </div>
-                            </div>
+                            <p class="comida-postbooking-nota" id="comida-postbooking-nota" data-i18n="config_comida_postbooking">Una vez realizado el pago del paquete, en la página de confirmación podrás reservar en restaurantes recomendados de Lerma, Saldaña y Burgos (comida o cena, a tu hora).</p>
                         </div>
                     </div>
 
@@ -244,9 +229,6 @@
                         <div id="resumen-paquete" class="resumen-detalle">
                             <p data-i18n="resumen_completa">Completa las opciones para ver el resumen</p>
                         </div>
-                    </div>
-                    <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(139, 69, 19, 0.05); border-radius: 6px; font-size: 0.9rem; color: var(--color-text-light);">
-                        <p style="margin: 0;" data-i18n="recibir_pdf">📧 Recibirás por correo: Un PDF con todas nuestras recomendaciones de la capital para disfrutar de un fin de semana perfecto en Burgos.</p>
                     </div>
                     <button type="submit" form="configuradorForm" class="btn-reservar-paquete" data-i18n="btn_reservar_paquete">Reservar Paquete</button>
                 </aside>

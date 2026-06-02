@@ -1753,6 +1753,11 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     font-weight: 500;
 }
 
+.resumen-subtotal-tabla tr.resumen-incluido td:last-child {
+    color: var(--color-primary, #1a4d3a);
+    font-weight: 600;
+}
+
 .resumen-subtotal-tabla tr.resumen-descuento td:last-child {
     color: rgba(255, 255, 255, 0.9);
 }
@@ -3093,6 +3098,15 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     background: #f8f8f8;
 }
 
+.post-booking-rentcars-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    flex: 1 1 0;
+    min-width: min(280px, 58%);
+    width: 100%;
+}
+
 .post-booking-rentcars-widget-host {
     margin-top: 0;
     min-height: 420px;
@@ -3100,15 +3114,55 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     max-width: none;
 }
 
-.post-booking-rentcars-widget-object {
+.post-booking-rentcars-widget-iframe {
     display: block;
     width: 100%;
-    min-height: 420px;
     border: 0;
     background: #fff;
+    min-height: 420px;
 }
 
-.post-booking-rentcars-embed-row .post-booking-rentcars-widget-host {
+.post-booking-rentcars-results-panel {
+    padding: 1rem 1.1rem;
+    background: rgba(44, 85, 48, 0.08);
+    border: 2px solid var(--color-primary, #1a4d3a);
+    border-radius: 6px;
+}
+
+.post-booking-rentcars-results-panel[hidden] {
+    display: none !important;
+}
+
+.post-booking-rentcars-results-k {
+    margin: 0 0 0.25rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #666;
+}
+
+.post-booking-rentcars-results-t {
+    margin: 0 0 0.85rem;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    color: #333;
+}
+
+.post-booking-rentcars-results-cta {
+    display: inline-block;
+    width: 100%;
+    max-width: 22rem;
+    text-align: center;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+.post-booking-rentcars-fallback-hint {
+    margin-top: 0.35rem;
+}
+
+.post-booking-rentcars-embed-row .post-booking-rentcars-stack {
     flex: 1 1 0;
     min-width: min(280px, 58%);
 }
@@ -3965,11 +4019,18 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     padding: 1rem 1.1rem 0.25rem;
 }
 
-.comida-dia-card__section--externos {
-    padding-bottom: 1.1rem;
-    border-top: 1px solid rgba(26, 77, 58, 0.08);
-    margin-top: 0.35rem;
-    padding-top: 1rem;
+.comida-postbooking-nota {
+    margin: 1rem 0 0;
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: #444;
+    background: rgba(44, 85, 48, 0.06);
+    border-left: 3px solid var(--color-primary, #1a4d3a);
+}
+
+.comida-postbooking-nota[hidden] {
+    display: none !important;
 }
 
 .comida-dia-card__section-head {
@@ -4167,10 +4228,38 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
 }
 
 /* Mismo contador +/- que buggies (ancillary-pack-cell) */
+.comida-dia-card__resumen-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.65rem 0.85rem;
+    margin-left: auto;
+}
+
 .comida-dia-card__comensales.ancillary-pack-cell {
     flex: 0 0 auto;
     min-width: 6.25rem;
-    margin-left: auto;
+}
+
+.comida-dia-card__hora.ancillary-pack-cell {
+    flex: 0 0 auto;
+    min-width: 5.75rem;
+}
+
+.comida-dia-card__hora .comida-hora-comida {
+    width: 100%;
+    padding: 0.45rem 0.5rem;
+    border: 2px solid #ddd;
+    border-radius: 0;
+    font-size: 0.9375rem;
+    background: #fff;
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+.comida-dia-card__hora .comida-hora-comida:focus {
+    outline: none;
+    border-color: var(--color-primary);
 }
 
 .comida-dia-card__comensales .ancillary-pack-title {
@@ -4182,9 +4271,17 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
 }
 
 @media (max-width: 520px) {
-    .comida-dia-card__comensales.ancillary-pack-cell {
+    .comida-dia-card__resumen-controls {
         margin-left: 0;
         flex: 1 1 100%;
+    }
+
+    .comida-dia-card__comensales.ancillary-pack-cell {
+        flex: 1 1 calc(50% - 0.5rem);
+    }
+
+    .comida-dia-card__hora.ancillary-pack-cell {
+        flex: 1 1 calc(50% - 0.5rem);
     }
 }
 
