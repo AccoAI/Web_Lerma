@@ -173,16 +173,8 @@
                     </div>
                 </form>
                 <div class="resumen-mobile-wrapper">
-                    <div class="resumen-mobile-tab" id="resumen-mobile-tab" aria-expanded="false">
-                        <div class="resumen-mobile-tab-main" role="button" tabindex="0" aria-label="Desplegar resumen del paquete">
-                            <span class="resumen-mobile-chevron" aria-hidden="true">▲</span>
-                            <div class="resumen-mobile-tab-amounts">
-                                <span class="resumen-mobile-total-line"><span class="resumen-mobile-amount-label">Total</span> <span class="resumen-mobile-total" id="resumen-total-mobile">—</span></span>
-                                <span class="resumen-mobile-por-persona-line" id="resumen-por-persona-mobile-wrap" hidden><span class="resumen-mobile-amount-label">Por persona</span> <span class="resumen-mobile-por-persona" id="resumen-por-persona-mobile"></span></span>
-                            </div>
-                        </div>
-                        <div class="resumen-mobile-btn-wrap"></div>
-                    </div>
+                    <div class="resumen-mobile-sheet" id="resumen-mobile-tab" aria-expanded="false">
+                        <div class="resumen-mobile-sheet-handle" role="button" tabindex="0" aria-label="Plegar resumen del paquete"></div>
                 <aside class="configurador-resumen">
                     <div class="resumen-content">
                         <h3 data-i18n="resumen_paquete">Resumen de tu paquete</h3>
@@ -240,6 +232,16 @@
                     </div>
                     <button type="button" form="configuradorForm" class="btn-reservar-paquete btn-configurador-submit" data-i18n="btn_reservar_paquete">Reservar Paquete</button>
                 </aside>
+                    <div class="resumen-mobile-tab">
+                        <div class="resumen-mobile-tab-main" role="button" tabindex="0" aria-label="Desplegar resumen del paquete">
+                            <span class="resumen-mobile-chevron" aria-hidden="true">▲</span>
+                            <div class="resumen-mobile-tab-amounts">
+                                <span class="resumen-mobile-total-line"><span class="resumen-mobile-amount-label">Total</span> <span class="resumen-mobile-total" id="resumen-total-mobile">—</span></span>
+                                <span class="resumen-mobile-por-persona-line" id="resumen-por-persona-mobile-wrap" hidden><span class="resumen-mobile-amount-label">Por persona</span> <span class="resumen-mobile-por-persona" id="resumen-por-persona-mobile"></span></span>
+                            </div>
+                        </div>
+                        <div class="resumen-mobile-btn-wrap"></div>
+                    </div>
                 </div>
                 </div>
             </div>

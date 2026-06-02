@@ -1706,6 +1706,14 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     display: none;
 }
 
+.resumen-mobile-sheet {
+    display: contents;
+}
+
+.resumen-mobile-sheet-handle {
+    display: none;
+}
+
 .resumen-content h3 {
     font-family: var(--font-primary);
     font-size: 1.8rem;
@@ -11693,15 +11701,13 @@ body.page-torneo .torneo-detalle-section {
         padding: 2rem 1.5rem;
     }
 
-    /* Resumen móvil: barra inferior fija + panel que sube al desplegar */
+    /* Resumen móvil: una sola hoja que sube y baja desde abajo */
     .configurador-paquete .configurador-layout {
         padding-bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
     }
 
     .resumen-mobile-wrapper {
-        display: flex;
-        flex-direction: column-reverse;
-        align-items: stretch;
+        display: block;
         position: fixed;
         left: 0;
         right: 0;
@@ -11717,13 +11723,35 @@ body.page-torneo .torneo-detalle-section {
         pointer-events: none;
     }
 
-    /* El panel de resumen no debe colgar nunca de la barra inferior */
-    .resumen-mobile-tab .configurador-resumen {
-        display: none !important;
+    .resumen-mobile-sheet {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        max-width: 100%;
+        pointer-events: auto;
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+        border-radius: 12px 12px 0 0;
+        box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.24);
+        overflow: hidden;
+        color: var(--color-white);
     }
 
-    .resumen-mobile-wrapper > * {
-        pointer-events: auto;
+    .resumen-mobile-sheet-handle {
+        display: none;
+        flex: 0 0 auto;
+        width: 2.75rem;
+        height: 0.32rem;
+        margin: 0.45rem auto 0.55rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.45);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+    }
+
+    .resumen-mobile-wrapper.expanded .resumen-mobile-sheet-handle {
+        display: block;
     }
 
     body.native-picker-open .resumen-mobile-wrapper {
@@ -11756,17 +11784,17 @@ body.page-torneo .torneo-detalle-section {
         width: 100%;
         min-height: 4.25rem;
         padding: 0;
-        border-radius: 12px 12px 0 0;
-        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-        color: var(--color-white);
+        border-radius: 0;
+        background: transparent;
+        color: inherit;
         cursor: default;
         font-family: var(--font-primary);
-        box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.24);
+        box-shadow: none;
         border: none;
         line-height: 1.15;
         text-align: left;
         position: relative;
-        z-index: 902;
+        z-index: 2;
         flex-shrink: 0;
     }
 
@@ -11784,6 +11812,7 @@ body.page-torneo .torneo-detalle-section {
         padding: 0.55rem 0.35rem 0.55rem 0.75rem;
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
     }
 
     .resumen-mobile-tab-amounts {
@@ -11874,33 +11903,22 @@ body.page-torneo .torneo-detalle-section {
         height: auto;
         margin: 0;
         padding: 0 1rem;
-        border-radius: 12px 12px 0 0;
+        border-radius: 0;
+        background: transparent;
         overflow: hidden;
         z-index: 1;
         box-shadow: none;
         transform: none;
-        transition: max-height 0.35s ease, box-shadow 0.25s ease;
+        transition: max-height 0.35s ease;
         touch-action: auto;
-        flex-shrink: 0;
-    }
-
-    .resumen-mobile-wrapper.expanded .configurador-resumen::before {
-        content: '';
-        display: block;
-        width: 2.75rem;
-        height: 0.32rem;
-        margin: 0.45rem auto 0.55rem;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.45);
-        flex-shrink: 0;
-        cursor: grab;
+        flex-shrink: 1;
+        min-height: 0;
     }
 
     .resumen-mobile-wrapper.expanded .configurador-resumen {
         max-height: min(78vh, 680px);
-        padding-top: 0.15rem;
+        padding-top: 0;
         padding-bottom: 0.35rem;
-        box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.18);
     }
 
     .resumen-mobile-wrapper.expanded .configurador-resumen .btn-reservar-paquete {

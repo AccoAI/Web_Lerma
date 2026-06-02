@@ -2198,6 +2198,10 @@ function initConfiguradorPaquete() {
     function procesarReservaConfiguradorPaquete() {
             if (!form) return;
 
+            if (typeof window.ensureMobileResumenExpanded === 'function') {
+                window.ensureMobileResumenExpanded();
+            }
+
             var formDataEarly = new FormData(form);
             var nochesEarly = formDataEarly.get('noches');
             if (!nochesEarly || parseInt(nochesEarly, 10) < 1) {
@@ -2308,6 +2312,29 @@ function initConfiguradorPaquete() {
 
 // Resumen móvil: barra inferior desplegable (estilo bottom sheet, como torneos)
 (function () {
+    function isMobileResumenBarVisible() {
+        var tab = document.querySelector('.resumen-mobile-wrapper .resumen-mobile-tab');
+        return tab && window.getComputedStyle(tab).display !== 'none';
+    }
+
+    function ensureMobileResumenExpanded() {
+        var wrapper = document.querySelector('.resumen-mobile-wrapper');
+        if (!wrapper || !isMobileResumenBarVisible() || wrapper.classList.contains('expanded')) {
+            return false;
+        }
+        if (typeof window.setMobileResumenDrawerOpen === 'function') {
+            window.setMobileResumenDrawerOpen(true);
+        } else {
+            wrapper.classList.add('expanded');
+            document.body.classList.add('resumen-drawer-open');
+            var sheet = document.getElementById('resumen-mobile-tab');
+            if (sheet) sheet.setAttribute('aria-expanded', 'true');
+        }
+        return true;
+    }
+
+    window.ensureMobileResumenExpanded = ensureMobileResumenExpanded;
+
     function triggerMobileReserva() {
         if (typeof window.procesarReservaConfiguradorPaquete === 'function') {
             window.procesarReservaConfiguradorPaquete();
@@ -2378,7 +2405,8 @@ function initConfiguradorPaquete() {
         });
         var tab = document.getElementById('resumen-mobile-tab');
         var wrapper = tab && tab.closest('.resumen-mobile-wrapper');
-        var tabMain = wrapper && (wrapper.querySelector('.resumen-mobile-tab-main') || tab);
+        var tabMain = wrapper && wrapper.querySelector('.resumen-mobile-tab-main');
+        var sheetHandle = wrapper && wrapper.querySelector('.resumen-mobile-sheet-handle');
         if (tab && tabMain && wrapper) {
             var drawer = wrapper.querySelector('.configurador-resumen');
             var drawerContent = drawer && drawer.querySelector('.resumen-content');
@@ -2395,16 +2423,24 @@ function initConfiguradorPaquete() {
                     document.body.classList.remove('resumen-drawer-open');
                 }
                 tab.setAttribute('aria-expanded', open ? 'true' : 'false');
+                var openLabel = 'Desplegar resumen del paquete';
+                var closeLabel = 'Plegar resumen del paquete';
+                tabMain.setAttribute('aria-label', open ? closeLabel : openLabel);
+                if (sheetHandle) {
+                    sheetHandle.setAttribute('aria-label', open ? closeLabel : openLabel);
+                    sheetHandle.setAttribute('aria-hidden', open ? 'false' : 'true');
+                }
             }
             window.setMobileResumenDrawerOpen = setDrawerOpen;
 
             function toggle() {
                 setDrawerOpen(!wrapper.classList.contains('expanded'));
             }
-            tabMain.addEventListener('click', function (e) {
+            function onToggleTap(e) {
                 e.stopPropagation();
                 toggle();
-            });
+            }
+            tabMain.addEventListener('click', onToggleTap);
             tabMain.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
@@ -2414,6 +2450,16 @@ function initConfiguradorPaquete() {
                     setDrawerOpen(false);
                 }
             });
+            if (sheetHandle) {
+                sheetHandle.setAttribute('aria-hidden', 'true');
+                sheetHandle.addEventListener('click', onToggleTap);
+                sheetHandle.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggle();
+                    }
+                });
+            }
             if (drawer) {
                 drawer.addEventListener('touchstart', function (e) {
                     if (!wrapper.classList.contains('expanded') || !e.touches || !e.touches.length) return;
