@@ -11717,6 +11717,11 @@ body.page-torneo .torneo-detalle-section {
         pointer-events: none;
     }
 
+    /* El panel de resumen no debe colgar nunca de la barra inferior */
+    .resumen-mobile-tab .configurador-resumen {
+        display: none !important;
+    }
+
     .resumen-mobile-wrapper > * {
         pointer-events: auto;
     }
