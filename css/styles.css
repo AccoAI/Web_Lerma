@@ -1000,6 +1000,26 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     box-sizing: border-box;
 }
 
+@media (min-width: 1025px) {
+    .configurador-paquete .configurador-layout {
+        grid-template-columns: minmax(0, 1fr) minmax(300px, 1fr);
+        gap: clamp(1rem, 1.5vw, 1.5rem);
+    }
+
+    .configurador-paquete .configurador-layout .resumen-mobile-wrapper {
+        width: 100%;
+        max-width: none;
+        justify-self: stretch;
+    }
+
+    .configurador-paquete .configurador-resumen,
+    .resumen-mobile-wrapper .configurador-resumen {
+        width: 100%;
+        max-width: none;
+        box-sizing: border-box;
+    }
+}
+
 .configurador-paquete .configurador-form,
 .configurador-paquete .configurador-layout .resumen-mobile-wrapper {
     min-width: 0;
