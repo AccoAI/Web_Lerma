@@ -425,6 +425,33 @@ function htmlTarjetaFotoMedia(imgUrl, blockClass, eagerLoad) {
     );
 }
 
+function getJugadoresDiaCount(form, dayIndex) {
+    if (!form) return NaN;
+    var inp = form.querySelector('input[name="jugadores_dia_' + dayIndex + '"]');
+    if (!inp) return NaN;
+    return parseInt(String(inp.value || '').trim(), 10);
+}
+
+function getTamanioGrupoCount(form, fd) {
+    if (!form) return 0;
+    var sync = document.getElementById('tamanio-grupo-sync');
+    if (sync && sync.value) {
+        var sn = parseInt(String(sync.value).trim(), 10);
+        if (!isNaN(sn) && sn >= 1) return sn;
+    }
+    var tg = document.getElementById('tamanio-grupo');
+    if (tg && tg.value) {
+        var tn = parseInt(String(tg.value).trim(), 10);
+        if (!isNaN(tn) && tn >= 1) return tn;
+    }
+    if (fd) {
+        var raw = String(fd.get('tamanio_grupo') || '').trim();
+        var fn = parseInt(raw, 10);
+        if (raw !== '' && !isNaN(fn) && fn >= 1) return fn;
+    }
+    return 0;
+}
+
 // Función global para obtener grupos de correspondencia
 function getConfigPrereqState(form) {
     if (!form) return { fechas: false, personas: false };
@@ -433,17 +460,17 @@ function getConfigPrereqState(form) {
     var personas = false;
     if (nFechas >= 1) {
         personas = true;
+        var fallback = getTamanioGrupoCount(form, fd);
         for (var i = 1; i <= nFechas; i++) {
-            var jd = parseInt(String(fd.get('jugadores_dia_' + i) || '').trim(), 10);
+            var jd = getJugadoresDiaCount(form, i);
             if (isNaN(jd) || jd < 1) {
+                if (fallback >= 1) continue;
                 personas = false;
                 break;
             }
         }
     } else {
-        var raw = String(fd.get('tamanio_grupo') || '').trim();
-        var n = parseInt(raw, 10);
-        personas = raw !== '' && !isNaN(n) && n >= 1;
+        personas = getTamanioGrupoCount(form, fd) >= 1;
     }
     return {
         fechas: nFechas >= 1,
@@ -463,9 +490,9 @@ function getConfigPrereqHintText(stateOrKey) {
     if (!key) return '';
     if (window.i18n && window.i18n.t) return window.i18n.t(key);
     var fallbacks = {
-        config_hint_falta_fechas: 'Selecciona las fechas en el calendario (paso 1) para ver las opciones de esta sección.',
-        config_hint_falta_personas: 'Indica el tamaño del grupo (paso 1) para ver las opciones de esta sección.',
-        config_hint_falta_ambos: 'Completa el paso 1 (fechas y número de jugadores) para ver las opciones de esta sección.',
+        config_hint_falta_fechas: 'Selecciona las fechas en el calendario (paso 1 · Selección de golf) para ver las opciones de esta sección.',
+        config_hint_falta_personas: 'Indica cuántas personas viajan (selector superior, antes del paso 1) para ver las opciones de esta sección.',
+        config_hint_falta_ambos: 'Indica cuántas personas viajan (arriba) y selecciona fechas en el calendario (paso 1) para ver las opciones de esta sección.',
         config_hint_falta_campo: 'Indica el campo para cada día seleccionado (paso 1) para configurar los servicios adicionales.'
     };
     return fallbacks[key] || '';
@@ -586,6 +613,7 @@ function initConfiguradorPaquete() {
         var nFechas = (fdCampo.getAll('fechas[]') || []).length;
         var fechasCampo = fdCampo.getAll('fechas[]') || [];
         syncPlanHoraRowsFinSemana(nFechas);
+        actualizarBloqueComida(nFechas, fechasCampo);
         actualizarBloqueAncillaryPorDia(nFechas, fechasCampo);
         actualizarResumen();
     }
@@ -675,10 +703,12 @@ function initConfiguradorPaquete() {
     function onJugadoresDiaChange() {
         var fd = new FormData(form);
         var nFechas = (fd.getAll('fechas[]') || []).length;
+        var fechasJug = fd.getAll('fechas[]') || [];
         syncTamanioGrupoDesdeDias(nFechas);
         recalcNumeroGrupos();
         syncComidaBloqueLimites();
-        actualizarBloqueAncillaryPorDia(nFechas, fd.getAll('fechas[]') || []);
+        actualizarBloqueComida(nFechas, fechasJug);
+        actualizarBloqueAncillaryPorDia(nFechas, fechasJug);
         actualizarResumen();
     }
 
@@ -750,7 +780,7 @@ function initConfiguradorPaquete() {
             jugWrap.innerHTML =
                 '<label for="' + jugId + '">' + jugLbl + ' *</label>' +
                 '<div class="ancillary-counter-wrap reserva-quantity-wrap">' +
-                '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir jugadores">−</button>' +
+                '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir jugadores">-</button>' +
                 '<input type="number" id="' + jugId + '" name="jugadores_dia_' + i + '" min="1" max="54" value="' + jugVal + '" class="ancillary-counter fechas-jugadores-dia reserva-quantity-input" readonly required title="Jugadores día ' + i + '">' +
                 '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar jugadores">+</button>' +
                 '</div>';
@@ -1886,6 +1916,7 @@ function initConfiguradorPaquete() {
                 syncComidaBloqueLimites();
                 var fdTg = new FormData(form);
                 var faTg = fdTg.getAll('fechas[]') || [];
+                actualizarBloqueComida(faTg.length, faTg);
                 actualizarBloqueAncillaryPorDia(faTg.length, faTg);
                 if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
             }
@@ -1900,6 +1931,7 @@ function initConfiguradorPaquete() {
                 syncComidaBloqueLimites();
                 var fdTg2 = new FormData(form);
                 var faTg2 = fdTg2.getAll('fechas[]') || [];
+                actualizarBloqueComida(faTg2.length, faTg2);
                 actualizarBloqueAncillaryPorDia(faTg2.length, faTg2);
                 if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
             }

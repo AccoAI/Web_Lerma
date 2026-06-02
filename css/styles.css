@@ -2357,8 +2357,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 .fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .ancillary-counter-wrap {
-    display: grid;
-    grid-template-columns: 1.9rem minmax(0, 1fr) 1.9rem;
+    display: flex;
     align-items: stretch;
     width: 100%;
     min-width: 0;
@@ -2369,26 +2368,30 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     overflow: hidden;
 }
 
+.fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .ancillary-counter-wrap > * {
+    flex: 1 1 0;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
 .fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .ancillary-btn {
-    width: 1.9rem;
-    min-width: 1.9rem;
+    width: auto;
+    max-width: none;
     height: 1.9rem;
-    flex-shrink: 0;
+    padding: 0;
     font-size: 1rem;
     font-weight: 600;
+    line-height: 1;
     border: none !important;
     background: var(--color-bg-light);
     color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .ancillary-btn-minus {
-    grid-column: 1;
-    border-left: none !important;
-    border-right: none !important;
-}
-
+.fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .ancillary-btn-minus,
 .fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .ancillary-btn-plus {
-    grid-column: 3;
     border-left: none !important;
     border-right: none !important;
 }
@@ -2408,20 +2411,28 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 .fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .fechas-jugadores-dia {
-    grid-column: 2;
-    width: 100%;
-    min-width: 0;
+    width: auto;
     max-width: none;
     margin: 0;
-    padding: 0.2rem 0.35rem;
+    padding: 0;
+    height: 1.9rem;
+    line-height: 1.9rem;
     font-size: 0.9rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     text-align: center;
+    text-indent: 0;
     border: none !important;
     border-left: 1px solid rgba(26, 77, 58, 0.15) !important;
     border-right: 1px solid rgba(26, 77, 58, 0.15) !important;
-    box-sizing: border-box;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .fechas-jugadores-dia::-webkit-outer-spin-button,
+.fechas-dia-plan-panel .fechas-dia-plan-row__jugadores .fechas-jugadores-dia::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .fechas-dia-plan-panel .fechas-dia-plan-row__hora .hora-salida-picker {
