@@ -185,77 +185,67 @@
                         <div id="resumen-paquete" class="resumen-detalle">
                             <p data-i18n="resumen_completa">Completa las opciones para ver el resumen</p>
                         </div>
+                        <section id="datos-reserva-panel" class="datos-reserva-inline" aria-labelledby="datos-reserva-panel-titulo">
+                        <h3 id="datos-reserva-panel-titulo" class="datos-reserva-inline__titulo" data-i18n="datos_reserva_modal_titulo">Datos para la reserva</h3>
+                        <p class="datos-reserva-inline__lead" data-i18n="datos_reserva_inline_lead">Indica tus datos de contacto para finalizar la reserva.</p>
+                        <div id="usuarios-container" class="datos-reserva-inline__usuarios" data-extra-opcionales="true" data-simplificar-extras="true" data-grupos-correspondencia="true">
+                            <div class="usuario-form usuario-form-reserva" data-usuario="1">
+                                <div class="usuario-form-header"><h4 class="usuario-numero" data-i18n="datos_reserva">Datos de la reserva *</h4></div>
+                                <div class="usuario-campos">
+                                    <div class="form-group-usuario">
+                                        <label data-i18n="label_nombre_req">Nombre *</label>
+                                        <input type="text" form="configuradorForm" name="usuario[1][nombre]" required enterkeyhint="next">
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label>Correo *</label>
+                                        <input type="email" form="configuradorForm" name="usuario[1][correo]" required enterkeyhint="next">
+                                    </div>
+                                    <div class="form-group-usuario form-group-telefono">
+                                        <label data-i18n="label_movil">Móvil *</label>
+                                        <div class="telefono-wrapper">
+                                            <select class="telefono-prefijo" form="configuradorForm" name="usuario[1][movil_prefijo]" aria-label="Prefijo país">
+                                                <option value="+34" selected>+34</option>
+                                                <option value="+33">+33</option>
+                                                <option value="+44">+44</option>
+                                                <option value="+39">+39</option>
+                                                <option value="+351">+351</option>
+                                                <option value="+49">+49</option>
+                                            </select>
+                                            <input type="tel" form="configuradorForm" name="usuario[1][movil]" class="telefono-numero" placeholder="612 345 678" required enterkeyhint="next">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <details class="participantes-extras-opcional participantes-extras-opcional--inline">
+                            <summary class="participantes-extras-summary"><span data-i18n="extras_participantes_summary">Correspondencia por club y handicap</span> <span class="extras-opcional-tag" data-i18n="opcional_tag">opcional</span></summary>
+                            <div class="participantes-extras-body">
+                                <div id="correspondencia-grupos-wrap" class="correspondencia-grupos-wrap" style="display:none;" aria-hidden="true"></div>
+                                <div class="handicap-grupo-block handicap-grupo-inline">
+                                    <label for="handicap-grupo" data-i18n="label_handicap_grupo">Hcp. grupo (orientativo)</label>
+                                    <input type="text" form="configuradorForm" id="handicap-grupo" name="handicap_grupo" data-i18n-placeholder="placeholder_handicap" placeholder="Ej. 18" title="Handicap aproximado del grupo">
+                                </div>
+                            </div>
+                        </details>
+                        <div class="agregar-usuario-line agregar-usuario-line--inline">
+                            <button type="button" class="btn-agregar-usuario btn-agregar-usuario--compact" id="agregar-usuario">
+                                <span>+</span> <span data-i18n="btn_anadir_participante">Añadir participante (opcional)</span>
+                            </button>
+                            <span id="participantes-contador" class="participantes-contador" aria-live="polite"></span>
+                        </div>
+                        <label class="datos-reserva-consent">
+                            <input type="checkbox" form="configuradorForm" id="consentimiento-comercial" name="consentimiento_comercial" value="1">
+                            <span data-i18n="consentimiento_comercial_label">Autorizo el uso de mis datos de contacto con fines comerciales por parte de Golf Lerma. <span class="extras-opcional-tag" data-i18n="opcional_tag">opcional</span></span>
+                        </label>
+                        </section>
                     </div>
                     <button type="button" form="configuradorForm" class="btn-reservar-paquete btn-configurador-submit" data-i18n="btn_reservar_paquete">Reservar Paquete</button>
-                    <p id="datos-reserva-ok-hint" class="datos-reserva-ok-hint" hidden data-i18n="datos_reserva_ok_hint">Datos guardados. Pulsa de nuevo «Reservar Paquete» para ir al pago.</p>
                 </aside>
                 </div>
                 </div>
             </div>
         </div>
     </section>
-
-    <!-- Modal: datos de reserva (al pulsar Reservar Paquete) -->
-    <div id="datos-reserva-modal" class="datos-reserva-modal" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="datos-reserva-modal-titulo">
-        <div class="datos-reserva-modal__backdrop" tabindex="-1"></div>
-        <div class="datos-reserva-modal__panel">
-            <button type="button" class="datos-reserva-modal__cerrar" aria-label="Cerrar">×</button>
-            <h3 id="datos-reserva-modal-titulo" class="datos-reserva-modal__titulo" data-i18n="datos_reserva_modal_titulo">Datos para la reserva</h3>
-            <p class="datos-reserva-modal__lead" data-i18n="datos_reserva_modal_lead">Indica tus datos de contacto. Después podrás pulsar de nuevo «Reservar Paquete» para ir al pago.</p>
-            <div id="usuarios-container" class="datos-reserva-modal__usuarios" data-extra-opcionales="true" data-simplificar-extras="true" data-grupos-correspondencia="true">
-                <div class="usuario-form usuario-form-reserva" data-usuario="1">
-                    <div class="usuario-form-header"><h4 class="usuario-numero" data-i18n="datos_reserva">Datos de la reserva *</h4></div>
-                    <div class="usuario-campos">
-                        <div class="form-group-usuario">
-                            <label data-i18n="label_nombre_req">Nombre *</label>
-                            <input type="text" form="configuradorForm" name="usuario[1][nombre]" required enterkeyhint="next">
-                        </div>
-                        <div class="form-group-usuario">
-                            <label>Correo *</label>
-                            <input type="email" form="configuradorForm" name="usuario[1][correo]" required enterkeyhint="next">
-                        </div>
-                        <div class="form-group-usuario form-group-telefono">
-                            <label data-i18n="label_movil">Móvil *</label>
-                            <div class="telefono-wrapper">
-                                <select class="telefono-prefijo" form="configuradorForm" name="usuario[1][movil_prefijo]" aria-label="Prefijo país">
-                                    <option value="+34" selected>+34</option>
-                                    <option value="+33">+33</option>
-                                    <option value="+44">+44</option>
-                                    <option value="+39">+39</option>
-                                    <option value="+351">+351</option>
-                                    <option value="+49">+49</option>
-                                </select>
-                                <input type="tel" form="configuradorForm" name="usuario[1][movil]" class="telefono-numero" placeholder="612 345 678" required enterkeyhint="next">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <details class="participantes-extras-opcional participantes-extras-opcional--modal">
-                <summary class="participantes-extras-summary"><span data-i18n="extras_participantes_summary">Correspondencia por club y handicap</span> <span class="extras-opcional-tag" data-i18n="opcional_tag">opcional</span></summary>
-                <div class="participantes-extras-body">
-                    <div id="correspondencia-grupos-wrap" class="correspondencia-grupos-wrap" style="display:none;" aria-hidden="true"></div>
-                    <div class="handicap-grupo-block handicap-grupo-inline">
-                        <label for="handicap-grupo" data-i18n="label_handicap_grupo">Hcp. grupo (orientativo)</label>
-                        <input type="text" form="configuradorForm" id="handicap-grupo" name="handicap_grupo" data-i18n-placeholder="placeholder_handicap" placeholder="Ej. 18" title="Handicap aproximado del grupo">
-                    </div>
-                </div>
-            </details>
-            <div class="agregar-usuario-line agregar-usuario-line--modal">
-                <button type="button" class="btn-agregar-usuario btn-agregar-usuario--compact" id="agregar-usuario">
-                    <span>+</span> <span data-i18n="btn_anadir_participante">Añadir participante (opcional)</span>
-                </button>
-                <span id="participantes-contador" class="participantes-contador" aria-live="polite"></span>
-            </div>
-            <label class="datos-reserva-consent">
-                <input type="checkbox" form="configuradorForm" id="consentimiento-comercial" name="consentimiento_comercial" value="1" required>
-                <span data-i18n="consentimiento_comercial_label">Autorizo el uso de mis datos de contacto con fines comerciales por parte de Golf Lerma.</span>
-            </label>
-            <div class="datos-reserva-modal__actions">
-                <button type="button" class="btn-reservar-paquete datos-reserva-modal__guardar" data-i18n="btn_guardar_datos_reserva">Guardar y continuar</button>
-            </div>
-        </div>
-    </div>
 
     <!-- Footer -->
     <footer class="footer">

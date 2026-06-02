@@ -2167,8 +2167,7 @@ function initConfiguradorPaquete() {
                 return;
             }
 
-            if (window.configuradorDatosReserva && window.configuradorDatosReserva.shouldInterceptSubmit()) {
-                window.configuradorDatosReserva.open();
+            if (window.configuradorDatosReserva && !window.configuradorDatosReserva.validateForSubmit(form)) {
                 return;
             }
 
