@@ -327,20 +327,26 @@
         embedCtxEl.style.display = 'none';
         embedCtxEl.setAttribute('hidden', '');
 
+        var embedRow = document.createElement('div');
+        embedRow.className = 'restaurante-paquete-embed-row';
+        embedRow.style.display = 'none';
+        embedRow.setAttribute('hidden', '');
+
         var wrap = document.createElement('div');
         wrap.className = 'restaurante-paquete-iframe-wrap';
         var ifr = document.createElement('iframe');
         ifr.className = 'restaurante-paquete-iframe';
         ifr.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
         wrap.appendChild(ifr);
+        embedRow.appendChild(embedCtxEl);
+        embedRow.appendChild(wrap);
 
         panel.appendChild(meta);
         panel.appendChild(fichaInfo);
         panel.appendChild(pDesc);
         panel.appendChild(inhouseEl);
-        panel.appendChild(embedCtxEl);
+        panel.appendChild(embedRow);
         panel.appendChild(telP);
-        panel.appendChild(wrap);
 
         container.appendChild(catRow);
         container.appendChild(tablist);
@@ -366,6 +372,8 @@
             }
 
             if (r.reservaInhouse) {
+                embedRow.style.display = 'none';
+                embedRow.setAttribute('hidden', '');
                 embedCtxEl.style.display = 'none';
                 embedCtxEl.setAttribute('hidden', '');
                 embedCtxEl.innerHTML = '';
@@ -405,6 +413,8 @@
                 inhouseEl.style.display = 'none';
                 inhouseEl.setAttribute('hidden', '');
                 inhouseEl.innerHTML = '';
+                embedRow.style.display = '';
+                embedRow.removeAttribute('hidden');
                 wrap.style.display = '';
 
                 if (r.telefono) {
@@ -465,10 +475,12 @@
                 inhouseEl.style.display = 'none';
                 inhouseEl.setAttribute('hidden', '');
                 inhouseEl.innerHTML = '';
+                embedRow.style.display = 'none';
+                embedRow.setAttribute('hidden', '');
                 embedCtxEl.style.display = 'none';
                 embedCtxEl.setAttribute('hidden', '');
                 embedCtxEl.innerHTML = '';
-                wrap.style.display = '';
+                wrap.style.display = 'none';
                 ifr.removeAttribute('src');
                 return;
             }

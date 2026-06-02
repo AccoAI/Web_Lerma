@@ -431,15 +431,10 @@ function initConfiguradorPaquete() {
 
     function campoDiaTieneReservaFinSemana(idx) {
         if (!form || idx < 1) return false;
-        var sel = null;
-        if (diasCamposContainerFinSemana) {
-            var items = diasCamposContainerFinSemana.querySelectorAll('.campos-dias-item');
-            var item = items[idx - 1];
-            if (item) sel = item.querySelector('select[name="campo-dia-' + idx + '"]') || item.querySelector('select');
+        if (typeof window.campoDiaTieneReservaEnDom === 'function') {
+            return window.campoDiaTieneReservaEnDom(diasCamposContainerFinSemana, form, idx);
         }
-        if (!sel) sel = form.querySelector('#dias-campos-container-finsemana select[name="campo-dia-' + idx + '"]');
-        if (!sel) sel = form.querySelector('select[name="campo-dia-' + idx + '"]');
-        return !!(sel && String(sel.value || '').trim() !== '');
+        return false;
     }
 
     function syncHoraSalidaWrapVisible() {
@@ -500,30 +495,17 @@ function initConfiguradorPaquete() {
     }
 
     function generarCamposPorDiaFinSemana(numDias) {
-        if (!diasCamposContainerFinSemana) return;
-        var prev = {};
-        var oldItems = diasCamposContainerFinSemana.querySelectorAll('.campos-dias-item');
-        for (var i = 1; i <= numDias; i++) {
-            var oldItem = oldItems[i - 1];
-            var sel = oldItem && (oldItem.querySelector('select[name="campo-dia-' + i + '"]') || oldItem.querySelector('select'));
-            if (!sel && form) sel = form.querySelector('#dias-campos-container-finsemana select[name="campo-dia-' + i + '"]');
-            if (sel && sel.value) prev[i] = sel.value;
-        }
-        diasCamposContainerFinSemana.innerHTML = '';
-        for (var i = 1; i <= numDias; i++) {
-            var saved = prev[i] || '';
-            var item = document.createElement('div');
-            item.className = 'campos-dias-item';
-            item.innerHTML = [
-                '<label for="campo-dia-' + i + '-sel">Día ' + i + '</label>',
-                '<select id="campo-dia-' + i + '-sel" name="campo-dia-' + i + '">',
-                '<option value="">Sin reserva</option>',
-                '<option value="lerma"' + (saved === 'lerma' ? ' selected' : '') + '>Golf Lerma</option>',
-                '<option value="saldana"' + (saved === 'saldana' ? ' selected' : '') + '>Saldaña Golf</option>',
-                '</select>'
-            ].join('');
-            diasCamposContainerFinSemana.appendChild(item);
-        }
+        if (!diasCamposContainerFinSemana || typeof window.fillCampoDiaContainer !== 'function') return;
+        window.fillCampoDiaContainer(diasCamposContainerFinSemana, numDias, form, {
+            onChange: function () {
+                var fdCampo = new FormData(form);
+                var nFechas = (fdCampo.getAll('fechas[]') || []).length;
+                var fechasCampo = fdCampo.getAll('fechas[]') || [];
+                generarHoraSalidaPorDiaFinSemana(nFechas);
+                actualizarBloqueAncillaryPorDia(nFechas, fechasCampo);
+                actualizarResumen();
+            }
+        });
     }
 
     function getHotelLabelFromValue(val) {

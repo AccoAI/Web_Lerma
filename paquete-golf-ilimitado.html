@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="description" content="Golf Ilimitado en Burgos - Juega los green fees que reserves en Golf Lerma y Saldaña Golf. Pagas por días de estancia.">
+    <meta name="description" content="Golf Ilimitado en Burgos - Juega al golf de forma ilimitada, barra libre en Golf Lerma y Saldaña Golf, dos campos de 18 hoyos.">
     <title>Golf Ilimitado en Burgos - Golf Lerma</title>
     <link rel="icon" href="FOTOS/Logo-Golf-Lerma-Footer-1.png" type="image/png">
     <link rel="apple-touch-icon" href="FOTOS/Logo-Golf-Lerma-Footer-1.png">
@@ -67,12 +67,12 @@
     <section class="paquete-detalle" style="margin-top: 0; padding-top: calc(var(--header-height) + 1.5rem);">
         <div class="container">
             <h2 class="section-title" data-i18n="paquete_golf_ilimitado_title">Golf Ilimitado en Burgos</h2>
-            <p class="paquete-intro" data-i18n="paquete_golf_ilimitado_intro">Reserva los días que quieras jugar y combina green fees en Golf Lerma y Saldaña Golf. Pagas por días de estancia; dentro de cada día puedes reservar las salidas que necesites (funcionalidad en evolución).</p>
+            <p class="paquete-intro" data-i18n="paquete_golf_ilimitado_intro">Juega al golf de forma ilimitada, barra libre de golf en Golf Lerma y Saldaña Golf: dos campos de 18 hoyos para disfrutar sin límite de salidas.</p>
             <div class="paquete-info-destacada" style="background: rgba(139, 69, 19, 0.1); padding: 1.5rem; border-radius: 8px; margin: 2rem 0; border-left: 4px solid var(--color-primary);">
                 <div class="incluidos-info">
-                    <div class="incluido-item"><span class="incluido-icon">✓</span><span>Green fees en Golf Lerma y Saldaña Golf (según reservas del día)</span></div>
-                    <div class="incluido-item"><span class="incluido-icon">✓</span><span>Precio por días de paquete, no por número fijo de hoyos</span></div>
-                    <div class="incluido-item"><span class="incluido-icon">✓</span><span>Alojamiento opcional en Lerma o Burgos</span></div>
+                    <div class="incluido-item"><span class="incluido-icon">✓</span><span data-i18n="paquete_golf_ilimitado_bullet_1">Barra libre de green fees en Golf Lerma y Saldaña Golf</span></div>
+                    <div class="incluido-item"><span class="incluido-icon">✓</span><span data-i18n="paquete_golf_ilimitado_bullet_2">Dos campos de 18 hoyos en la misma estancia</span></div>
+                    <div class="incluido-item"><span class="incluido-icon">✓</span><span data-i18n="paquete_golf_ilimitado_bullet_3">Alojamiento opcional en Lerma o Burgos</span></div>
                 </div>
             </div>
 
@@ -297,6 +297,7 @@
     <script src="js/correspondencias.js"></script>
     <script src="js/stripe-pago.js"></script>
     <script src="js/hora-salida-picker.js"></script>
+    <script src="js/campo-dia-picker.js"></script>
     <script src="js/main.js"></script>
     <script src="js/chatbot.js"></script>
     <script src="js/calendario-dias.js"></script>
@@ -422,27 +423,8 @@
             }
 
             function generarCamposPorDia36h(numDias) {
-                if (!diasCamposContainer36h) return;
-                var prev = {};
-                for (var i = 1; i <= numDias; i++) {
-                    var sel = form && form.querySelector('select[name="campo-dia-' + i + '"]');
-                    if (sel && sel.value) prev[i] = sel.value;
-                }
-                diasCamposContainer36h.innerHTML = '';
-                for (var i = 1; i <= numDias; i++) {
-                    var saved = prev[i] || '';
-                    var item = document.createElement('div');
-                    item.className = 'campos-dias-item';
-                    item.innerHTML = [
-                        '<label for="campo-dia-' + i + '-sel-36h">Día ' + i + '</label>',
-                        '<select id="campo-dia-' + i + '-sel-36h" name="campo-dia-' + i + '" required>',
-                        '<option value="">Sin reserva</option>',
-                        '<option value="lerma"' + (saved === 'lerma' ? ' selected' : '') + '>Golf Lerma</option>',
-                        '<option value="saldana"' + (saved === 'saldana' ? ' selected' : '') + '>Saldaña Golf</option>',
-                        '</select>'
-                    ].join('');
-                    diasCamposContainer36h.appendChild(item);
-                }
+                if (!diasCamposContainer36h || typeof window.fillCampoDiaContainer !== 'function') return;
+                window.fillCampoDiaContainer(diasCamposContainer36h, numDias, form, { required: true });
             }
 
             function recalcNumeroGrupos() {

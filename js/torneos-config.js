@@ -50,27 +50,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function generarCamposPorDiaTorneos(numDias) {
-        if (!diasCamposContainerTorneos) return;
-        var prev = {};
-        for (var i = 1; i <= numDias; i++) {
-            var sel = form && form.querySelector('select[name="campo-dia-' + i + '"]');
-            if (sel && sel.value) prev[i] = sel.value;
-        }
-        diasCamposContainerTorneos.innerHTML = '';
-        for (var i = 1; i <= numDias; i++) {
-            var saved = prev[i] || '';
-            var item = document.createElement('div');
-            item.className = 'campos-dias-item';
-            item.innerHTML = [
-                '<label for="campo-dia-' + i + '-sel-torneos">Día ' + i + '</label>',
-                '<select id="campo-dia-' + i + '-sel-torneos" name="campo-dia-' + i + '" required>',
-                '<option value="">Sin reserva</option>',
-                '<option value="lerma"' + (saved === 'lerma' ? ' selected' : '') + '>Golf Lerma</option>',
-                '<option value="saldana"' + (saved === 'saldana' ? ' selected' : '') + '>Saldaña Golf</option>',
-                '</select>'
-            ].join('');
-            diasCamposContainerTorneos.appendChild(item);
-        }
+        if (!diasCamposContainerTorneos || typeof window.fillCampoDiaContainer !== 'function') return;
+        window.fillCampoDiaContainer(diasCamposContainerTorneos, numDias, form, { required: true });
     }
 
     function refillHotelSelectTorneos(i, ciudad) {
