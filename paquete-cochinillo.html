@@ -116,13 +116,17 @@
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo">2. Datos de los participantes</h3>
                         <div class="reserva-datos-iniciales">
-                            <div class="form-group-inline">
+                            <div class="form-group-inline form-group-quantity">
                                 <label for="tamanio-grupo">Tamaño del grupo *</label>
-                                <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" required placeholder="Ej. 4" title="Número de jugadores">
+                                <div class="ancillary-counter-wrap reserva-quantity-wrap">
+                                    <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir jugadores">−</button>
+                                    <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" max="54" required class="ancillary-counter reserva-quantity-input" readonly title="Número de jugadores">
+                                    <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar jugadores">+</button>
+                                </div>
                             </div>
-                            <div class="form-group-inline">
+                            <div class="form-group-inline form-group-quantity">
                                 <label for="numero-grupos-output">Nº de grupos</label>
-                                <output id="numero-grupos-output" for="tamanio-grupo" aria-live="polite" aria-readonly="true" tabindex="-1">1</output>
+                                <output id="numero-grupos-output" class="config-quantity-readonly" for="tamanio-grupo" aria-live="polite" aria-readonly="true" tabindex="-1">—</output>
                                 <input type="hidden" name="numero_grupos" id="numero-grupos">
                             </div>
                         </div>
@@ -295,6 +299,7 @@
     <script src="js/stripe-pago.js"></script>
     <script src="js/hora-salida-picker.js"></script>
     <script src="js/footer-contact.js"></script>
+    <script src="js/configurador-form-nav.js"></script>
     <script src="js/main.js"></script>
     <script src="js/chatbot.js"></script>
     <script src="js/calendario-dias.js"></script>
@@ -312,9 +317,9 @@
                 var hid = document.getElementById('numero-grupos');
                 if (!tg) return;
                 var n = parseInt(tg.value, 10);
-                var val = (n >= 1) ? String(Math.ceil(n / 4)) : '';
-                if (out) out.textContent = val;
-                if (hid) hid.value = val;
+                var hidVal = (n >= 1) ? String(Math.ceil(n / 4)) : '';
+                if (out) out.textContent = hidVal || '—';
+                if (hid) hid.value = hidVal;
                 if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
             }
 

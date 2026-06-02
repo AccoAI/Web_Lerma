@@ -1752,6 +1752,18 @@
     if (host && typeof host.__hbRefreshUiState === 'function') host.__hbRefreshUiState();
   }
 
+  function hbFunnelCounterFieldHtml(id, min, max, label) {
+    return (
+      '<div class="hb-funnel-field hb-funnel-field--counter">' +
+      '<span class="hb-funnel-field__k">' + escapeHtml(label) + '</span>' +
+      '<div class="ancillary-counter-wrap hb-funnel-counter-wrap">' +
+      '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>' +
+      '<input type="number" min="' + min + '" max="' + max + '" id="' + id + '" class="ancillary-counter hb-funnel-counter" readonly>' +
+      '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar">+</button>' +
+      '</div></div>'
+    );
+  }
+
   function ensureHotelFunnelInlineUi(root) {
     if (!root) return null;
     var existing = root.querySelector('#hb-hotel-funnel-inline');
@@ -1782,10 +1794,8 @@
       '</div>' +
       '<div class="hb-hotel-funnel-inline__controls">' +
       '  <div class="hb-hotel-funnel-inline__grid">' +
-      '    <label class="hb-funnel-field"><span class="hb-funnel-field__k">Adultos</span>' +
-      '      <input type="number" min="1" max="54" id="hb-funnel-inline-adults" placeholder=""></label>' +
-      '    <label class="hb-funnel-field"><span class="hb-funnel-field__k">Habit.</span>' +
-      '      <input type="number" min="1" max="20" id="hb-funnel-inline-rooms" placeholder=""></label>' +
+      hbFunnelCounterFieldHtml('hb-funnel-inline-adults', 1, 54, 'Personas') +
+      hbFunnelCounterFieldHtml('hb-funnel-inline-rooms', 1, 20, 'Habit.') +
       '  </div>' +
       '  <div class="hb-hotel-funnel-inline__actions">' +
       '    <button type="button" class="hb-hotel-funnel-btn hb-hotel-funnel-btn--secondary" id="hb-funnel-inline-check" disabled>' +
@@ -2386,7 +2396,15 @@
         adultsInp.__hbUserEdited = true;
         resetFunnelValidation();
       });
+      adultsInp.addEventListener('change', function () {
+        adultsInp.__hbUserEdited = true;
+        resetFunnelValidation();
+      });
       roomsInp.addEventListener('input', function () {
+        roomsInp.__hbUserEdited = true;
+        resetFunnelValidation();
+      });
+      roomsInp.addEventListener('change', function () {
         roomsInp.__hbUserEdited = true;
         resetFunnelValidation();
       });
@@ -3136,6 +3154,24 @@
 
     var formData = getFormData();
     if (!formData) return;
+
+    var formEl = document.getElementById('configuradorForm');
+    if (typeof window.getConfigPrereqState === 'function' && formEl) {
+      var prState = window.getConfigPrereqState(formEl);
+      var prKey = typeof window.getConfigPrereqHintI18nKey === 'function'
+        ? window.getConfigPrereqHintI18nKey(prState)
+        : '';
+      if (prKey) {
+        window.LIVE_HOTEL_PRICES = null;
+        clearHotelbedsBookingContext();
+        setBookingWidgetVisible(false);
+        var hintTxt = typeof window.getConfigPrereqHintText === 'function'
+          ? window.getConfigPrereqHintText(prKey)
+          : '';
+        renderBlock('<p class="hotelbeds-block hotelbeds-info">' + escapeHtml(hintTxt) + '</p>');
+        return;
+      }
+    }
 
     var range = getCheckInCheckOut(formData);
     if (!range) {

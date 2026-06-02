@@ -18,6 +18,7 @@
             val = Math.min(max, val + 1);
         }
         input.value = String(val);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
         input.dispatchEvent(new Event('change', { bubbles: true }));
     }
 

@@ -174,9 +174,9 @@ document.addEventListener('DOMContentLoaded', function() {
         var hid = document.getElementById('numero-grupos-torneos');
         if (!tg) return;
         var n = parseInt(tg.value, 10);
-        var val = (n >= 1) ? String(Math.ceil(n / 4)) : '';
-        if (out) out.textContent = val;
-        if (hid) hid.value = val;
+        var hidVal = (n >= 1) ? String(Math.ceil(n / 4)) : '';
+        if (out) out.textContent = hidVal || '—';
+        if (hid) hid.value = hidVal;
         if (typeof actualizarResumenTorneo === 'function') actualizarResumenTorneo();
     }
 

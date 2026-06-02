@@ -249,6 +249,7 @@
     <script src="js/stripe-pago.js"></script>
     <script src="js/hora-salida-picker.js"></script>
     <script src="js/footer-contact.js"></script>
+    <script src="js/configurador-form-nav.js"></script>
     <script src="js/main.js"></script>
     <script src="js/chatbot.js"></script>
     <script src="js/calendario-dias.js"></script>
@@ -335,15 +336,6 @@
                 });
             }
 
-            /* Resumen móvil: pestaña desplegable */
-            var tab = document.getElementById('resumen-mobile-tab');
-            var wrapper = tab ? tab.closest('.resumen-mobile-wrapper') : null;
-            if (tab && wrapper) {
-                tab.addEventListener('click', function() {
-                    wrapper.classList.toggle('expanded');
-                    tab.setAttribute('aria-expanded', wrapper.classList.contains('expanded'));
-                });
-            }
         });
     </script>
 </body>

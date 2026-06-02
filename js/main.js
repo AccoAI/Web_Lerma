@@ -398,6 +398,48 @@ window.roundEuros = roundEuros;
 window.formatEurosResumen = formatEurosResumen;
 
 // Función global para obtener grupos de correspondencia
+function getConfigPrereqState(form) {
+    if (!form) return { fechas: false, personas: false };
+    var fd = new FormData(form);
+    var nFechas = (fd.getAll('fechas[]') || []).length;
+    var raw = String(fd.get('tamanio_grupo') || '').trim();
+    var n = parseInt(raw, 10);
+    return {
+        fechas: nFechas >= 1,
+        personas: raw !== '' && !isNaN(n) && n >= 1
+    };
+}
+
+function getConfigPrereqHintI18nKey(state) {
+    if (!state.fechas && !state.personas) return 'config_hint_falta_ambos';
+    if (!state.fechas) return 'config_hint_falta_fechas';
+    if (!state.personas) return 'config_hint_falta_personas';
+    return '';
+}
+
+function getConfigPrereqHintText(stateOrKey) {
+    var key = typeof stateOrKey === 'string' ? stateOrKey : getConfigPrereqHintI18nKey(stateOrKey);
+    if (!key) return '';
+    if (window.i18n && window.i18n.t) return window.i18n.t(key);
+    var fallbacks = {
+        config_hint_falta_fechas: 'Selecciona las fechas en el calendario (paso 1) para ver las opciones de esta sección.',
+        config_hint_falta_personas: 'Indica el tamaño del grupo (paso 2) para ver las opciones de esta sección.',
+        config_hint_falta_ambos: 'Completa el paso 1 (fechas) y el paso 2 (número de jugadores) para ver las opciones de esta sección.',
+        config_hint_falta_campo: 'Indica el campo para cada día seleccionado (paso 1) para configurar los servicios adicionales.'
+    };
+    return fallbacks[key] || '';
+}
+
+function setConfigSeccionHint(el, i18nKey) {
+    if (!el || !i18nKey) return;
+    el.setAttribute('data-i18n', i18nKey);
+    el.textContent = getConfigPrereqHintText(i18nKey);
+}
+
+window.getConfigPrereqState = getConfigPrereqState;
+window.getConfigPrereqHintI18nKey = getConfigPrereqHintI18nKey;
+window.getConfigPrereqHintText = getConfigPrereqHintText;
+
 function getCorrespondenciaGrupos(f) {
     if (!f) return [];
     var rows = f.querySelectorAll('.correspondencia-grupos-row');
@@ -427,6 +469,7 @@ function initConfiguradorPaquete() {
         var comidaPostbookingNota = document.getElementById('comida-postbooking-nota');
     var comidaPorDiaContainer = document.getElementById('comida-por-dia-container');
     var ancillaryPorDiaContainer = document.getElementById('ancillary-por-dia-container');
+    var ancillarySinPrereqs = document.getElementById('ancillary-sin-prereqs');
     var horaPorDiaWrapFS = document.getElementById('hora-salida-por-dia-finsemana');
     var horaUnicaWrapFS = document.getElementById('hora-salida-unica-finsemana');
 
@@ -862,10 +905,19 @@ function initConfiguradorPaquete() {
 
     function actualizarBloqueComida(count, fechas) {
         fechas = fechas || [];
-        if (comidaSinFechas) comidaSinFechas.style.display = count >= 1 ? 'none' : 'block';
-        if (comidaPostbookingNota) comidaPostbookingNota.hidden = count < 1;
+        var prereqState = getConfigPrereqState(form);
+        var prereqsOk = prereqState.fechas && prereqState.personas;
+        if (comidaSinFechas) {
+            if (!prereqsOk) {
+                comidaSinFechas.style.display = 'block';
+                setConfigSeccionHint(comidaSinFechas, getConfigPrereqHintI18nKey(prereqState));
+            } else {
+                comidaSinFechas.style.display = 'none';
+            }
+        }
+        if (comidaPostbookingNota) comidaPostbookingNota.hidden = !prereqsOk || count < 1;
         if (!comidaPorDiaContainer) return;
-        if (count < 1) {
+        if (!prereqsOk || count < 1) {
             comidaPorDiaContainer.style.display = 'none';
             comidaPorDiaContainer.innerHTML = '';
             return;
@@ -985,9 +1037,15 @@ function initConfiguradorPaquete() {
     function actualizarBloqueAncillaryPorDia(count, fechas) {
         fechas = fechas || [];
         if (!ancillaryPorDiaContainer) return;
-        if (count < 1) {
+        var prereqState = getConfigPrereqState(form);
+        var prereqsOk = prereqState.fechas && prereqState.personas;
+        if (!prereqsOk || count < 1) {
             ancillaryPorDiaContainer.innerHTML = '';
             ancillaryPorDiaContainer.style.display = 'none';
+            if (ancillarySinPrereqs) {
+                ancillarySinPrereqs.style.display = 'block';
+                setConfigSeccionHint(ancillarySinPrereqs, getConfigPrereqHintI18nKey(prereqState));
+            }
             return;
         }
         var prev = {};
@@ -1045,6 +1103,14 @@ function initConfiguradorPaquete() {
             ancillaryPorDiaContainer.appendChild(block);
         }
         ancillaryPorDiaContainer.style.display = any ? 'block' : 'none';
+        if (ancillarySinPrereqs) {
+            if (!any) {
+                ancillarySinPrereqs.style.display = 'block';
+                setConfigSeccionHint(ancillarySinPrereqs, 'config_hint_falta_campo');
+            } else {
+                ancillarySinPrereqs.style.display = 'none';
+            }
+        }
         if (typeof fillAncillaryPrices === 'function') fillAncillaryPrices();
     }
 
@@ -1360,7 +1426,9 @@ function initConfiguradorPaquete() {
                 schedulePickerIframeRefreshFromForm();
                 var fdTg = new FormData(form);
                 var faTg = fdTg.getAll('fechas[]') || [];
-                if (faTg.length >= 1) actualizarBloqueComida(faTg.length, faTg);
+                actualizarBloqueComida(faTg.length, faTg);
+                actualizarBloqueAncillaryPorDia(faTg.length, faTg);
+                if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
             }
             actualizarResumen();
         });
@@ -1371,7 +1439,9 @@ function initConfiguradorPaquete() {
                 schedulePickerIframeRefreshFromForm();
                 var fdTg2 = new FormData(form);
                 var faTg2 = fdTg2.getAll('fechas[]') || [];
-                if (faTg2.length >= 1) actualizarBloqueComida(faTg2.length, faTg2);
+                actualizarBloqueComida(faTg2.length, faTg2);
+                actualizarBloqueAncillaryPorDia(faTg2.length, faTg2);
+                if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
             }
             if (t && t.matches && t.matches('#tamanio-grupo, #hora-salida, #handicap-grupo, .ancillary-counter, .comida-comensales-counter, input[name^="hora_salida"]')) actualizarResumen();
         });
@@ -1406,13 +1476,20 @@ function initConfiguradorPaquete() {
         window.actualizarResumen = actualizarResumen;
         document.addEventListener('i18n:changed', function () {
             if (typeof actualizarResumen === 'function') actualizarResumen();
-            if (form && ancillaryPorDiaContainer) {
+            if (form) {
                 var fdi = new FormData(form);
-                var ni = (fdi.getAll('fechas[]') || []).length;
-                if (ni >= 1) actualizarBloqueAncillaryPorDia(ni, fdi.getAll('fechas[]') || []);
+                var fechasI18n = fdi.getAll('fechas[]') || [];
+                actualizarBloqueComida(fechasI18n.length, fechasI18n);
+                actualizarBloqueAncillaryPorDia(fechasI18n.length, fechasI18n);
             }
         });
         recalcNumeroGrupos();
+        if (form) {
+            var fdInit = new FormData(form);
+            var faInit = fdInit.getAll('fechas[]') || [];
+            actualizarBloqueComida(faInit.length, faInit);
+            actualizarBloqueAncillaryPorDia(faInit.length, faInit);
+        }
         if (!window.__golfLermaPaqueteMsgBound) {
             window.__golfLermaPaqueteMsgBound = true;
             window.addEventListener('message', onPaqueteWindowMessage);
@@ -1425,9 +1502,9 @@ function initConfiguradorPaquete() {
         var hid = document.getElementById('numero-grupos');
         if (!tg) return;
         var n = parseInt(tg.value, 10);
-        var val = (n >= 1) ? String(Math.ceil(n / 4)) : '';
-        if (out) out.textContent = val;
-        if (hid) hid.value = val;
+        var hidVal = (n >= 1) ? String(Math.ceil(n / 4)) : '';
+        if (out) out.textContent = hidVal || '—';
+        if (hid) hid.value = hidVal;
         if (typeof actualizarResumen === 'function') actualizarResumen();
     }
 
@@ -1697,6 +1774,11 @@ function initConfiguradorPaquete() {
         clone.classList.add('btn-reservar-paquete-mobile');
         clone.removeAttribute('id');
         btnWrap.appendChild(clone);
+        if (typeof window.refreshConfiguradorFormNav === 'function') {
+            var fid = clone.getAttribute('form') || (btn.getAttribute('form'));
+            var targetForm = fid ? document.getElementById(fid) : null;
+            window.refreshConfiguradorFormNav(targetForm);
+        }
     }
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.resumen-mobile-wrapper').forEach(function (wrapper) {
@@ -1705,16 +1787,37 @@ function initConfiguradorPaquete() {
         var tab = document.getElementById('resumen-mobile-tab');
         var wrapper = tab && tab.closest('.resumen-mobile-wrapper');
         if (tab && wrapper) {
-            function toggle() {
-                wrapper.classList.toggle('expanded');
-                tab.setAttribute('aria-expanded', wrapper.classList.contains('expanded'));
+            function setDrawerOpen(open) {
+                if (open) {
+                    wrapper.classList.add('expanded');
+                    document.body.classList.add('resumen-drawer-open');
+                } else {
+                    wrapper.classList.remove('expanded');
+                    document.body.classList.remove('resumen-drawer-open');
+                }
+                tab.setAttribute('aria-expanded', open ? 'true' : 'false');
             }
-            tab.addEventListener('click', toggle);
+            function toggle() {
+                setDrawerOpen(!wrapper.classList.contains('expanded'));
+            }
+            tab.addEventListener('click', function (e) {
+                e.stopPropagation();
+                toggle();
+            });
             tab.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     toggle();
                 }
+                if (e.key === 'Escape' && wrapper.classList.contains('expanded')) {
+                    setDrawerOpen(false);
+                }
+            });
+            document.addEventListener('click', function (e) {
+                if (!wrapper.classList.contains('expanded')) return;
+                var drawer = wrapper.querySelector('.configurador-resumen');
+                if (drawer && (drawer.contains(e.target) || tab.contains(e.target))) return;
+                setDrawerOpen(false);
             });
             var obs = new MutationObserver(updateMobileTotal);
             var resumen = wrapper.querySelector('.resumen-detalle, #resumen-paquete, #resumen-detalle, #resumen-pausadrive, #resumen-ryder, .resumen-content');

@@ -138,7 +138,8 @@ function initUsuariosForm() {
         const nuevoUsuario = crearFormularioUsuario(contadorUsuarios);
         usuariosContainer.appendChild(nuevoUsuario);
         const sel = nuevoUsuario.querySelector('.select-club-correspondencia');
-        if (sel && typeof window.inicializarSelectCorrespondencia === 'function') window.inicializarSelectCorrespondencia(sel);
+        if (typeof window.inicializarSelectCorrespondencia === 'function') window.inicializarSelectCorrespondencia(sel);
+        if (typeof window.refreshConfiguradorFormNav === 'function') window.refreshConfiguradorFormNav();
         nuevoUsuario.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         actualizarContadorYBotón();
     });

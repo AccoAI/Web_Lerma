@@ -125,13 +125,17 @@
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo">2. Datos de los participantes</h3>
                         <div class="reserva-datos-iniciales">
-                            <div class="form-group-inline">
+                            <div class="form-group-inline form-group-quantity">
                                 <label for="tamanio-grupo-torneos">Tamaño del grupo *</label>
-                                <input type="number" id="tamanio-grupo-torneos" name="tamanio_grupo" min="1" required placeholder="Ej. 4" title="Número de jugadores">
+                                <div class="ancillary-counter-wrap reserva-quantity-wrap">
+                                    <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir jugadores">−</button>
+                                    <input type="number" id="tamanio-grupo-torneos" name="tamanio_grupo" min="1" max="54" required class="ancillary-counter reserva-quantity-input" readonly title="Número de jugadores">
+                                    <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar jugadores">+</button>
+                                </div>
                             </div>
-                            <div class="form-group-inline">
+                            <div class="form-group-inline form-group-quantity">
                                 <label for="numero-grupos-output-torneos">Nº de grupos</label>
-                                <output id="numero-grupos-output-torneos" for="tamanio-grupo-torneos" aria-live="polite" aria-readonly="true" tabindex="-1">1</output>
+                                <output id="numero-grupos-output-torneos" class="config-quantity-readonly" for="tamanio-grupo-torneos" aria-live="polite" aria-readonly="true" tabindex="-1">—</output>
                                 <input type="hidden" name="numero_grupos" id="numero-grupos-torneos">
                             </div>
                         </div>
@@ -354,6 +358,7 @@
     <script src="js/correspondencias-data.js"></script>
     <script src="js/correspondencias.js"></script>
     <script src="js/footer-contact.js"></script>
+    <script src="js/configurador-form-nav.js"></script>
     <script src="js/main.js"></script>
     <script src="js/hora-salida-picker.js"></script>
     <script src="js/campo-dia-picker.js"></script>
