@@ -1124,9 +1124,6 @@ function initConfiguradorPaquete() {
         if (val <= 0) {
             if (found) reservas.splice(found.idx, 1);
         } else {
-            if (!found && val < nJug) {
-                val = nJug;
-            }
             if (found) {
                 found.r.comensales = val;
                 found.r.hora = getHoraComidaDesdeDom(dia) || getHoraComidaDiaDesdeReservas(reservas);
@@ -1227,8 +1224,8 @@ function initConfiguradorPaquete() {
         var nJug = getNumJugadoresComida();
         for (var ri = 0; ri < reservas.length; ri++) {
             if (reservas[ri].tipo === 'club') {
-                if (!reservas[ri].comensales || reservas[ri].comensales < 1) reservas[ri].comensales = nJug;
-                reservas[ri].comensales = Math.min(Math.max(1, reservas[ri].comensales), Math.max(nJug, 20));
+                var maxPaxRender = Math.max(nJug, 20);
+                reservas[ri].comensales = Math.min(Math.max(1, parseInt(reservas[ri].comensales, 10) || 1), maxPaxRender);
             }
         }
         var horaDia = getHoraComidaDiaDesdeReservas(reservas);
@@ -1365,11 +1362,12 @@ function initConfiguradorPaquete() {
 
     function htmlComidaMenuCard(menu, dia, reserva, nJug) {
         var added = !!reserva;
-        var paxVal = added ? Math.min(Math.max(1, reserva.comensales || nJug), Math.max(nJug, 20)) : 0;
-        var precio = menu.precioPorPersona != null ? menu.precioPorPersona : '';
         var maxPax = Math.max(nJug, 20);
+        var paxVal = added ? Math.min(Math.max(1, parseInt(reserva.comensales, 10) || 1), maxPax) : 0;
+        var precio = menu.precioPorPersona != null ? menu.precioPorPersona : '';
         var inputId = 'comida-menu-pax-dia-' + dia + '-' + menu.id;
         var selectedCls = added ? ' comida-menu-card--added' : '';
+        var paxLbl = (window.i18n && window.i18n.t) ? window.i18n.t('label_num_comensales') : 'Número de comensales';
         return (
             '<article class="comida-menu-card comida-menu-card--config' + selectedCls + '" data-dia="' + dia + '" data-menu="' + escapeHtmlComida(menu.id) + '">' +
             htmlTarjetaFotoMedia(menu.imagen, 'comida-menu-card', true) +
@@ -1377,9 +1375,10 @@ function initConfiguradorPaquete() {
             '<span class="comida-menu-card__nombre">' + escapeHtmlComida(menu.label) + '</span>' +
             (precio !== '' ? '<span class="comida-menu-card__precio"><span class="comida-menu-card__precio-num">' + precio + ' €</span><span class="comida-menu-card__precio-unit">/ pers.</span></span>' : '') +
             '<div class="comida-menu-card__controls">' +
+            '<span class="comida-menu-card__pax-label">' + escapeHtmlComida(paxLbl) + '</span>' +
             '<div class="ancillary-counter-wrap comida-menu-card__counter">' +
             '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Menos comensales">−</button>' +
-            '<input type="number" id="' + inputId + '" min="0" max="' + maxPax + '" value="' + paxVal + '" class="ancillary-counter comida-menu-comensales" data-dia="' + dia + '" data-menu="' + escapeHtmlComida(menu.id) + '" readonly aria-label="Comensales">' +
+            '<input type="number" id="' + inputId + '" min="0" max="' + maxPax + '" value="' + paxVal + '" class="ancillary-counter comida-menu-comensales" data-dia="' + dia + '" data-menu="' + escapeHtmlComida(menu.id) + '" readonly aria-label="' + escapeHtmlComida(paxLbl) + '">' +
             '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Más comensales">+</button>' +
             '</div></div></div></article>'
         );
@@ -1444,9 +1443,6 @@ function initConfiguradorPaquete() {
             var val = parseInt(input.value, 10) || 0;
             if (val > maxPax) {
                 input.value = String(maxPax);
-                aplicarComensalesMenuClub(input);
-            } else if (val > 0 && val < nJug) {
-                input.value = String(nJug);
                 aplicarComensalesMenuClub(input);
             }
         });

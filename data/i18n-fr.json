@@ -229,6 +229,7 @@
   "config_datos_participantes": "2. Données de la réservation",
   "label_tamanio_grupo": "Taille du groupe *",
   "label_jugadores_dia": "Joueurs",
+  "label_num_comensales": "Nombre de convives",
   "label_hora_salida": "Heure de départ",
   "label_num_grupos": "Nº de groupes",
   "label_num_partidas": "Nº de parties",

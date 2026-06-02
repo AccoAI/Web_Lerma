@@ -229,6 +229,7 @@
   "config_datos_participantes": "2. Booking details",
   "label_tamanio_grupo": "Group size *",
   "label_jugadores_dia": "Players",
+  "label_num_comensales": "Number of diners",
   "label_hora_salida": "Departure time",
   "label_num_grupos": "No. of groups",
   "label_num_partidas": "No. of flights",
