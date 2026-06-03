@@ -538,6 +538,8 @@ function initConfiguradorPaquete() {
     var comidaPorDiaContainer = document.getElementById('comida-por-dia-container');
     var ancillaryPorDiaContainer = document.getElementById('ancillary-por-dia-container');
     var ancillarySinPrereqs = document.getElementById('ancillary-sin-prereqs');
+    var tiendaGolfContainer = document.getElementById('tienda-golf-container');
+    var tiendaGolfSinPrereqs = document.getElementById('tienda-golf-sin-prereqs');
     var comidaDiaActivo = 1;
     var ancillaryDiaActivo = 1;
     var comidaDiasNav = [];
@@ -615,6 +617,7 @@ function initConfiguradorPaquete() {
         syncPlanHoraRowsFinSemana(nFechas);
         actualizarBloqueComida(nFechas, fechasCampo);
         actualizarBloqueAncillaryPorDia(nFechas, fechasCampo);
+        actualizarBloqueTiendaGolf(nFechas, fechasCampo);
         actualizarResumen();
     }
 
@@ -711,6 +714,7 @@ function initConfiguradorPaquete() {
         syncComidaBloqueLimites();
         actualizarBloqueComida(nFechas, fechasJug);
         actualizarBloqueAncillaryPorDia(nFechas, fechasJug);
+        actualizarBloqueTiendaGolf(nFechas, fechasJug);
         actualizarResumen();
     }
 
@@ -1578,7 +1582,9 @@ function initConfiguradorPaquete() {
             if (ancillaryDiasNav[av].index === ancillaryDiaActivo) { activoValido = true; break; }
         }
         if (!activoValido) ancillaryDiaActivo = ancillaryDiasNav[0].index;
-        var tabsHtml = '<div class="config-dia-tabs-wrap"><div class="config-dia-tabs" role="tablist" aria-label="Días de servicios adicionales" data-dia-tab-group="ancillary">';
+        var alquileresTabLbl = (window.i18n && window.i18n.t) ? window.i18n.t('alquileres_burgos') : 'Días de alquileres';
+        if (!alquileresTabLbl || alquileresTabLbl === 'alquileres_burgos') alquileresTabLbl = 'Días de alquileres';
+        var tabsHtml = '<div class="config-dia-tabs-wrap"><div class="config-dia-tabs" role="tablist" aria-label="' + escapeHtmlComida(alquileresTabLbl) + '" data-dia-tab-group="ancillary">';
         for (var ti = 0; ti < ancillaryDiasNav.length; ti++) {
             var nav = ancillaryDiasNav[ti];
             tabsHtml += htmlConfigDiaTabBtn(nav.index, nav.titulo, nav.index === ancillaryDiaActivo, ancillaryDiaTieneSeleccion(nav.index), 'ancillary');
@@ -1589,6 +1595,88 @@ function initConfiguradorPaquete() {
         ancillaryPorDiaContainer.style.display = 'block';
         if (ancillarySinPrereqs) ancillarySinPrereqs.style.display = 'none';
         renderAncillaryDiaPanel(ancillaryDiaActivo, prev);
+    }
+
+    function getTiendaGolfConfig() {
+        var p = (typeof getPrecios === 'function') ? getPrecios() : (window.PRECIOS_DATA || {});
+        var defs = p.tiendaGolfProductos;
+        if (defs && defs.length) return defs;
+        return [
+            { id: 'guantes', precioKey: 'guantesGolf', i18n: 'tienda_guantes', fallback: 'Guantes de Golf', imagen: 'FOTOS/00108427603926____1__1200x1200.avif', inputName: 'tienda_guantes', inputId: 'tienda-guantes' },
+            { id: 'tees', precioKey: 'paqueteTees', i18n: 'tienda_tees', fallback: 'Paquete de Tees', imagen: 'FOTOS/tourteepro_1.jpg', inputName: 'tienda_tees', inputId: 'tienda-tees' },
+            { id: 'bolas', precioKey: 'paqueteBolas', i18n: 'tienda_bolas', fallback: 'Paquete de Bolas', imagen: 'FOTOS/picture.jpg', inputName: 'tienda_bolas', inputId: 'tienda-bolas' },
+        ];
+    }
+
+    function leerTiendaQtyFromForm(inputName) {
+        if (!form) return 0;
+        var inp = form.querySelector('input[name="' + inputName + '"]');
+        return inp ? Math.max(0, parseInt(inp.value || '0', 10)) : 0;
+    }
+
+    function tieneDiasJugables(count) {
+        for (var i = 1; i <= count; i++) {
+            if (campoDiaTieneReservaFinSemana(i)) return true;
+        }
+        return false;
+    }
+
+    function htmlTiendaProductCard(svc, qty) {
+        var label = (window.i18n && window.i18n.t && svc.i18n) ? window.i18n.t(svc.i18n) : svc.fallback;
+        var selected = qty > 0 ? ' ancillary-service-card--selected' : '';
+        return (
+            '<article class="ancillary-service-card ancillary-service-card--' + escapeHtmlComida(svc.id) + selected + '" data-tienda-id="' + escapeHtmlComida(svc.id) + '">' +
+            htmlTarjetaFotoMedia(svc.imagen, 'ancillary-service-card') +
+            '<div class="ancillary-service-card__content">' +
+            '<span class="ancillary-service-card__title">' + escapeHtmlComida(label) + '</span>' +
+            '<span class="ancillary-precio" data-ancillary="' + escapeHtmlComida(svc.precioKey) + '"></span>' +
+            '<div class="config-card-controls config-card-controls--solo-counter">' +
+            '<div class="ancillary-counter-wrap config-card-counter">' +
+            '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>' +
+            '<input type="number" id="' + escapeHtmlComida(svc.inputId) + '" name="' + escapeHtmlComida(svc.inputName) + '" min="0" max="20" value="' + qty + '" class="ancillary-counter" readonly>' +
+            '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar">+</button>' +
+            '</div></div></article>'
+        );
+    }
+
+    function actualizarBloqueTiendaGolf(count, fechas) {
+        if (!tiendaGolfContainer) return;
+        fechas = fechas || [];
+        var prereqState = getConfigPrereqState(form);
+        var prereqsOk = prereqState.fechas && prereqState.personas;
+        if (!prereqsOk || count < 1) {
+            tiendaGolfContainer.innerHTML = '';
+            tiendaGolfContainer.style.display = 'none';
+            if (tiendaGolfSinPrereqs) {
+                tiendaGolfSinPrereqs.style.display = 'block';
+                setConfigSeccionHint(tiendaGolfSinPrereqs, getConfigPrereqHintI18nKey(prereqState));
+            }
+            return;
+        }
+        if (!tieneDiasJugables(count)) {
+            tiendaGolfContainer.innerHTML = '';
+            tiendaGolfContainer.style.display = 'none';
+            if (tiendaGolfSinPrereqs) {
+                tiendaGolfSinPrereqs.style.display = 'block';
+                setConfigSeccionHint(tiendaGolfSinPrereqs, 'config_hint_falta_campo');
+            }
+            return;
+        }
+        var productos = getTiendaGolfConfig();
+        var cardsHtml = '';
+        for (var pi = 0; pi < productos.length; pi++) {
+            var prod = productos[pi];
+            cardsHtml += htmlTiendaProductCard(prod, leerTiendaQtyFromForm(prod.inputName));
+        }
+        var tiendaLbl = (window.i18n && window.i18n.t) ? window.i18n.t('tienda_golf_burgos') : 'Tienda de Golf';
+        if (!tiendaLbl || tiendaLbl === 'tienda_golf_burgos') tiendaLbl = 'Tienda de Golf';
+        tiendaGolfContainer.innerHTML =
+            '<div class="ancillary-service-grid tienda-golf-grid" role="group" aria-label="' + escapeHtmlComida(tiendaLbl) + '">' +
+            cardsHtml +
+            '</div>';
+        tiendaGolfContainer.style.display = 'block';
+        if (tiendaGolfSinPrereqs) tiendaGolfSinPrereqs.style.display = 'none';
+        if (typeof fillAncillaryPrices === 'function') fillAncillaryPrices();
     }
 
     var comidaPickerControl = null;
@@ -1815,6 +1903,7 @@ function initConfiguradorPaquete() {
                 }
                 actualizarBloqueComida(count, fechas || []);
                 actualizarBloqueAncillaryPorDia(count, fechas || []);
+                actualizarBloqueTiendaGolf(count, fechas || []);
                 if (typeof actualizarResumen === 'function') actualizarResumen();
                 schedulePickerIframeRefreshFromForm();
             }
@@ -1921,6 +2010,7 @@ function initConfiguradorPaquete() {
                 var faTg = fdTg.getAll('fechas[]') || [];
                 actualizarBloqueComida(faTg.length, faTg);
                 actualizarBloqueAncillaryPorDia(faTg.length, faTg);
+                actualizarBloqueTiendaGolf(faTg.length, faTg);
                 if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
             }
             scheduleActualizarResumen();
@@ -1936,6 +2026,7 @@ function initConfiguradorPaquete() {
                 var faTg2 = fdTg2.getAll('fechas[]') || [];
                 actualizarBloqueComida(faTg2.length, faTg2);
                 actualizarBloqueAncillaryPorDia(faTg2.length, faTg2);
+                actualizarBloqueTiendaGolf(faTg2.length, faTg2);
                 if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
             }
             if (t && t.matches && t.matches('#tamanio-grupo, #hora-salida, #handicap-grupo, .ancillary-counter:not(.comida-menu-comensales), .fechas-jugadores-dia, .comida-comensales-counter, input[name^="hora_salida"]')) scheduleActualizarResumen();
@@ -1980,6 +2071,7 @@ function initConfiguradorPaquete() {
                 var fechasI18n = fdi.getAll('fechas[]') || [];
                 actualizarBloqueComida(fechasI18n.length, fechasI18n);
                 actualizarBloqueAncillaryPorDia(fechasI18n.length, fechasI18n);
+                actualizarBloqueTiendaGolf(fechasI18n.length, fechasI18n);
             }
         });
         recalcNumeroGrupos();
@@ -1989,6 +2081,7 @@ function initConfiguradorPaquete() {
             var faInit = fdInit.getAll('fechas[]') || [];
             actualizarBloqueComida(faInit.length, faInit);
             actualizarBloqueAncillaryPorDia(faInit.length, faInit);
+            actualizarBloqueTiendaGolf(faInit.length, faInit);
         }
         if (!window.__golfLermaPaqueteMsgBound) {
             window.__golfLermaPaqueteMsgBound = true;
@@ -2062,7 +2155,21 @@ function initConfiguradorPaquete() {
                 qE += Math.max(0, parseInt(formData.get('ancillary_carrito_electrico_dia_' + ian) || '0', 10));
             }
             var tieneAnc = (qB + qC + qE) > 0;
-            resumenHTML += '<p><strong>Servicios adicionales:</strong> ' + (tieneAnc ? 'Sí' : '—') + '</p>';
+            var hasTiendaGolf = !!document.getElementById('tienda-golf-container');
+            var lblAlquileresResumen = hasTiendaGolf
+                ? ((window.i18n && window.i18n.t) ? window.i18n.t('resumen_alquileres') : 'Alquileres')
+                : 'Servicios adicionales';
+            if (!lblAlquileresResumen || lblAlquileresResumen === 'resumen_alquileres') lblAlquileresResumen = 'Alquileres';
+            resumenHTML += '<p><strong>' + lblAlquileresResumen + ':</strong> ' + (tieneAnc ? 'Sí' : '—') + '</p>';
+            if (hasTiendaGolf) {
+                var qGuantes = Math.max(0, parseInt(formData.get('tienda_guantes') || '0', 10));
+                var qTees = Math.max(0, parseInt(formData.get('tienda_tees') || '0', 10));
+                var qBolas = Math.max(0, parseInt(formData.get('tienda_bolas') || '0', 10));
+                var tieneTienda = (qGuantes + qTees + qBolas) > 0;
+                var lblTiendaResumen = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_tienda_golf') : 'Tienda de golf';
+                if (!lblTiendaResumen || lblTiendaResumen === 'resumen_tienda_golf') lblTiendaResumen = 'Tienda de golf';
+                resumenHTML += '<p><strong>' + lblTiendaResumen + ':</strong> ' + (tieneTienda ? 'Sí' : '—') + '</p>';
+            }
             resumenHTML += '</div>';
 
             var numParticipants = Math.max(1, parseInt((formData.get('tamanio_grupo') || '').trim(), 10) || form.querySelectorAll('.usuario-form').length);
@@ -2160,7 +2267,19 @@ function initConfiguradorPaquete() {
                 (anc.carritoElectrico || 5) * qCarritoElec
             );
 
-            var base = roundEuros(gf + aloj + comidaVal + ancVal);
+            var tiendaVal = 0;
+            if (hasTiendaGolf) {
+                var qGuantesT = Math.max(0, parseInt(formData.get('tienda_guantes') || '0', 10));
+                var qTeesT = Math.max(0, parseInt(formData.get('tienda_tees') || '0', 10));
+                var qBolasT = Math.max(0, parseInt(formData.get('tienda_bolas') || '0', 10));
+                tiendaVal = roundEuros(
+                    (anc.guantesGolf || 13) * qGuantesT +
+                    (anc.paqueteTees || 4) * qTeesT +
+                    (anc.paqueteBolas || 35) * qBolasT
+                );
+            }
+
+            var base = roundEuros(gf + aloj + comidaVal + ancVal + tiendaVal);
             var descPct = tieneCorrespondencia ? DESCUENTO_PACK_PORC : 12;
             var desc = roundEuros(base * descPct / 100);
             var subtotal = roundEuros(base - desc);
@@ -2172,8 +2291,21 @@ function initConfiguradorPaquete() {
             } else {
                 resumenHTML += '<tr><td>Green fees</td><td>' + formatEurosResumen(gf) + ' €</td></tr>';
             }
-            resumenHTML += '<tr><td>Casa Club (menús en pack)</td><td>' + (comidaVal > 0 ? formatEurosResumen(comidaVal) + ' €' : '—') + '</td></tr>';
-            resumenHTML += '<tr><td>Servicios adicionales</td><td>' + (ancVal > 0 ? formatEurosResumen(ancVal) + ' €' : '—') + '</td></tr>';
+            var lblMenusRow = hasTiendaGolf
+                ? ((window.i18n && window.i18n.t) ? window.i18n.t('resumen_menus_casa_club') : 'Menús Casa Club Lerma')
+                : 'Casa Club (menús en pack)';
+            if (!lblMenusRow || lblMenusRow === 'resumen_menus_casa_club') lblMenusRow = 'Menús Casa Club Lerma';
+            resumenHTML += '<tr><td>' + lblMenusRow + '</td><td>' + (comidaVal > 0 ? formatEurosResumen(comidaVal) + ' €' : '—') + '</td></tr>';
+            var lblAlquileresRow = hasTiendaGolf
+                ? ((window.i18n && window.i18n.t) ? window.i18n.t('resumen_alquileres') : 'Alquileres')
+                : 'Servicios adicionales';
+            if (!lblAlquileresRow || lblAlquileresRow === 'resumen_alquileres') lblAlquileresRow = 'Alquileres';
+            resumenHTML += '<tr><td>' + lblAlquileresRow + '</td><td>' + (ancVal > 0 ? formatEurosResumen(ancVal) + ' €' : '—') + '</td></tr>';
+            if (hasTiendaGolf) {
+                var lblTiendaRow = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_tienda_golf') : 'Tienda de golf';
+                if (!lblTiendaRow || lblTiendaRow === 'resumen_tienda_golf') lblTiendaRow = 'Tienda de golf';
+                resumenHTML += '<tr><td>' + lblTiendaRow + '</td><td>' + (tiendaVal > 0 ? formatEurosResumen(tiendaVal) + ' €' : '—') + '</td></tr>';
+            }
             var pdfBurgosLbl = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_pdf_burgos') : 'PDF recomendaciones de Burgos';
             var gratisLbl = 'GRATIS';
             if (window.i18n && window.i18n.t) {

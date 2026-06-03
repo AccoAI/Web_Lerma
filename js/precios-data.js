@@ -45,8 +45,18 @@ window.PRECIOS_DATA = {
     bolasPersonalizadas: 25,
     equipacionEquipos: 35,
     gestionTrofeos: 50,
-    premioEconomico: 0
+    premioEconomico: 0,
+    guantesGolf: 13,
+    paqueteTees: 4,
+    paqueteBolas: 35
   },
+
+  /** Tienda de golf (paquete Burgos; contadores por producto, no por día) */
+  tiendaGolfProductos: [
+    { id: 'guantes', precioKey: 'guantesGolf', i18n: 'tienda_guantes', fallback: 'Guantes de Golf', imagen: 'FOTOS/00108427603926____1__1200x1200.avif', inputName: 'tienda_guantes', inputId: 'tienda-guantes' },
+    { id: 'tees', precioKey: 'paqueteTees', i18n: 'tienda_tees', fallback: 'Paquete de Tees', imagen: 'FOTOS/tourteepro_1.jpg', inputName: 'tienda_tees', inputId: 'tienda-tees' },
+    { id: 'bolas', precioKey: 'paqueteBolas', i18n: 'tienda_bolas', fallback: 'Paquete de Bolas', imagen: 'FOTOS/picture.jpg', inputName: 'tienda_bolas', inputId: 'tienda-bolas' },
+  ],
 
   /** Tarjetas servicios adicionales por día (buggies / carritos) */
   ancillaryServicios: [
