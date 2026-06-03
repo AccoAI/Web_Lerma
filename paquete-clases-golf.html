@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Clases de golf - Configura noches, hotel, comidas y green fees en Golf Lerma y Saldaña Golf">
+    <title>Clases de golf - Golf Lerma</title>
+    <link rel="icon" href="FOTOS/Logo-Golf-Lerma-Footer-1.png" type="image/png">
+    <link rel="apple-touch-icon" href="FOTOS/Logo-Golf-Lerma-Footer-1.png">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="fondo-golf-lerma-estandar">
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="header-logo">
+                <a href="index.html#inicio">
+                    <img src="FOTOS/Logo-Golf-Lerma-Footer-1.png" alt="Golf Lerma" class="header-logo-image">
+                </a>
+            </div>
+            <button class="menu-toggle" aria-label="Abrir menú">
+                <span class="menu-toggle-bars">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+                <span class="menu-toggle-label" data-i18n="menu_label">MENU</span>
+            </button>
+            <nav class="nav" id="mainNav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="index.html#inicio" class="nav-link" data-i18n="nav_inicio">INICIO</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="el-campo.html" class="nav-link" data-i18n="nav_el_campo">EL CAMPO</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="bodas-eventos.html" class="nav-link" data-i18n="nav_bodas_eventos">BODAS & EVENTOS</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="simulador.html" class="nav-link" data-i18n="nav_simulador">SIMULADOR</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="correspondencias.html" class="nav-link" data-i18n="nav_correspondencias">CORRESPONDENCIAS</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="camara-tiempo.html" class="nav-link" data-i18n="nav_tiempo">TIEMPO</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <a href="hazte-socio.html" class="btn-hazte-socio" data-i18n="btn_hazte_socio">Hazte Socio</a>
+                <a href="area-socio.html" class="btn-login" data-i18n="btn_area_socio">Area Socio</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="pagina-hero-foto">
+        <img src="FOTOS/GolfLermaEstandar.jpg" alt="" class="pagina-hero-foto-img">
+        <div class="pagina-hero-foto-overlay"></div>
+    </div>
+
+    <!-- Clases de golf -->
+    <section class="paquete-detalle" style="margin-top: 0; padding-top: calc(var(--header-height) + 1.5rem);">
+        <div class="container">
+            <h2 class="section-title" data-i18n="paquete_clases_golf_title">Clases de golf</h2>
+            <p class="paquete-intro" data-i18n="paquete_clases_golf_intro">Configura tu paquete personalizado: elige las noches, el hotel y las opciones de comida.</p>
+            
+            <!-- Configurador de Paquete -->
+            <div class="configurador-paquete">
+                <div class="configurador-layout">
+                <form id="configuradorForm" class="configurador-form" novalidate>
+                    <!-- Fechas / noches (calendario) -->
+                    <div class="configurador-seccion configurador-seccion--fechas">
+                        <div id="fechas-tamanio-grupo-pre" class="fechas-grupo-default-bar fechas-tamanio-grupo-pre">
+                            <div id="fechas-tamanio-grupo-wrap" class="fechas-dia-plan-row__grupo-item fechas-grupo-personas-wrap form-group-quantity">
+                                <label for="tamanio-grupo" data-i18n="label_num_personas">Número de personas *</label>
+                                <p id="tamanio-grupo-hint" class="fechas-grupo-personas-hint" data-i18n="hint_num_personas">Pulsa el botón verde + para indicar cuántas personas viajan.</p>
+                                <div class="ancillary-counter-wrap reserva-quantity-wrap fechas-grupo-counter fechas-grupo-counter--personas" role="group" aria-labelledby="tamanio-grupo-hint">
+                                    <button type="button" class="ancillary-btn ancillary-btn-minus fechas-grupo-btn fechas-grupo-btn--minus" aria-label="Quitar una persona">
+                                        <span class="fechas-grupo-btn__symbol" aria-hidden="true">−</span>
+                                    </button>
+                                    <input type="number" id="tamanio-grupo" name="tamanio_grupo" min="1" max="54" required class="ancillary-counter reserva-quantity-input fechas-grupo-personas-value" readonly title="Número de personas" enterkeyhint="next" placeholder="0" aria-describedby="tamanio-grupo-hint">
+                                    <button type="button" class="ancillary-btn ancillary-btn-plus fechas-grupo-btn fechas-grupo-btn--plus" aria-label="Añadir una persona">
+                                        <span class="fechas-grupo-btn__symbol" aria-hidden="true">+</span>
+                                        <span class="fechas-grupo-btn__label" data-i18n="btn_anadir_persona">Añadir</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fechas-golf-section">
+                            <h3 class="configurador-titulo" data-i18n="config_seleccion_golf">1. Selección de golf</h3>
+                            <p id="fechas-golf-espera-personas" class="comida-sin-fechas fechas-golf-espera-personas" data-i18n="config_golf_espera_personas">Estamos a la espera de que indiques el número de personas en el paquete (arriba).</p>
+                            <div id="fechas-golf-body" class="fechas-golf-body" hidden>
+                            <div id="fechas-partidas-bar" class="fechas-grupo-default-bar fechas-partidas-bar">
+                                <div class="fechas-dia-plan-row__grupo-item form-group-inline form-group-quantity">
+                                    <label for="numero-grupos-output" data-i18n="label_num_partidas">Nº de partidas</label>
+                                    <output id="numero-grupos-output" class="config-quantity-readonly fechas-grupo-num-display" for="tamanio-grupo" aria-live="polite" aria-readonly="true" tabindex="-1">—</output>
+                                    <input type="hidden" name="numero_grupos" id="numero-grupos">
+                                </div>
+                            </div>
+                            <div class="fechas-calendario-layout">
+                                <div id="calendario-dias-finsemana" class="calendario-dias-container fechas-calendario-layout__cal"></div>
+                                <div id="campos-dias-finsemana" class="fechas-dia-plan-panel" aria-live="polite">
+                                    <p id="fechas-dia-plan-hint" class="calendario-hint fechas-dia-plan-hint">
+                                        <span class="calendario-hint-instruction" data-i18n="calendario_hint_llegada_salida">Elige el día de llegada y después el día de salida. Se marcarán todos los días intermedios.</span>
+                                        <span class="calendario-range-label" hidden></span>
+                                        <strong class="calendario-count">0</strong>
+                                        <span class="calendario-hint-dias-suffix" data-i18n="calendario_hint_dias_suffix"> días en el paquete.</span>
+                                    </p>
+                                    <div id="dias-campos-container-finsemana" class="fechas-dia-plan-list" hidden></div>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+
+                    <!-- Alojamiento: bloque siempre visible; Hotelbeds solo consulta API con fechas en el calendario -->
+                    <div class="configurador-seccion" id="configurador-hotel-wrap">
+                        <h3 class="configurador-titulo" data-i18n="config_alojamiento_burgos">2. Alojamiento</h3>
+                        <p class="hotel-ciudad-label">Elige el hotel para cada noche. Puedes combinar Lerma y Burgos (ej.: una noche en Lerma y otra en Burgos).</p>
+                        <div id="hotel-por-noche-block" class="hotel-por-noche-block">
+                            <span class="campos-dias-label">Hotel para cada noche:</span>
+                            <p class="hotel-noche-hint">Elige primero el <strong>lugar</strong> (Lerma o Burgos) y después el <strong>hotel</strong> de ese lugar.</p>
+                            <div id="hoteles-por-noche-container" class="campos-dias-row"></div>
+                        </div>
+                        <!-- Precios en tiempo real: Hotelbeds (JS). Reserva del paquete vía Stripe desde esta página. -->
+                        <div id="hotelbeds-precios-block" class="hotelbeds-precios-wrap" aria-live="polite">
+                            <p class="hotelbeds-block hotelbeds-info comida-sin-fechas" id="precios-block-initial-msg" data-i18n="config_hint_falta_ambos">Completa el paso 1 (fechas y número de jugadores) para ver las opciones de esta sección.</p>
+                        </div>
+                        <!-- Enlace secundario a Booking.com (solo referencia) -->
+                        <div id="booking-com-widget" class="booking-com-widget booking-com-widget-secondary" style="display: none;">
+                            <p class="booking-com-note">Si no ves precios arriba: <a id="booking-link-lerma" href="https://www.booking.com/searchresults.html?ss=Lerma%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer">Lerma</a> · <a id="booking-link-burgos" href="https://www.booking.com/searchresults.html?ss=Burgos%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer">Burgos</a></p>
+                        </div>
+                        <p class="paquete-logistica-nota hotel-ciudad-label">Una vez confirmado el paquete, en la página de confirmación te facilitaremos enlaces recomendados para <strong>vuelo a Madrid</strong> y <strong>alquiler de coche</strong> (ideal SUV o furgoneta si viajas con palos de golf).</p>
+                    </div>
+
+                    <!-- Alquileres (por día de salida; se genera con el calendario) -->
+                    <div class="configurador-seccion servicios-adicionales-section">
+                        <h3 class="configurador-titulo" data-i18n="alquileres_burgos">3. Alquileres</h3>
+                        <p class="comida-sin-fechas" id="ancillary-sin-prereqs" data-i18n="config_hint_falta_ambos">Completa el paso 1 (fechas y número de jugadores) para ver las opciones de esta sección.</p>
+                        <div id="ancillary-por-dia-container" class="ancillary-por-dia-container" style="display:none;" aria-live="polite"></div>
+                    </div>
+
+                    <!-- Tienda de Golf -->
+                    <div class="configurador-seccion tienda-golf-section">
+                        <h3 class="configurador-titulo" data-i18n="tienda_golf_burgos">4. Tienda de Golf</h3>
+                        <p class="comida-sin-fechas" id="tienda-golf-sin-prereqs" data-i18n="config_hint_falta_ambos">Completa el paso 1 (fechas y número de jugadores) para ver las opciones de esta sección.</p>
+                        <div id="tienda-golf-container" class="ancillary-por-dia-container tienda-golf-container" style="display:none;" aria-live="polite"></div>
+                    </div>
+
+                    <!-- Menús Casa Club Lerma -->
+                    <div class="configurador-seccion">
+                        <h3 class="configurador-titulo" data-i18n="menus_casa_club_burgos">5. Menús Casa Club Lerma</h3>
+                        <div id="comida-por-dia-wrap">
+                            <p class="comida-sin-fechas" id="comida-sin-fechas" data-i18n="config_hint_falta_ambos">Completa el paso 1 (fechas y número de jugadores) para ver las opciones de esta sección.</p>
+                            <div id="comida-por-dia-container" class="comida-por-dia-container" style="display:none;"></div>
+                            <p class="comida-postbooking-nota" id="comida-postbooking-nota" data-i18n="config_comida_postbooking">Una vez realizado el pago del paquete, en la página de confirmación facilitaremos la reserva en todos los restaurantes recomendados de Lerma, Saldaña y Burgos no ligados al club.</p>
+                        </div>
+                    </div>
+
+                    <!-- Forma de pago -->
+                    <div class="forma-pago-block">
+                        <p class="forma-pago-label">Forma de pago</p>
+                        <div class="opciones-grid opciones-grid-2">
+                            <label class="opcion-card opcion-card-compact">
+                                <input type="radio" name="forma_pago" value="unico" checked>
+                                <div class="opcion-content">
+                                    <span class="opcion-icon">💳</span>
+                                    <span class="opcion-texto" data-i18n="pago_unico">Pago único</span>
+                                    <span class="opcion-desc" data-i18n="pago_unico_desc">Una sola transacción por el importe total</span>
+                                </div>
+                            </label>
+                            <label class="opcion-card opcion-card-compact">
+                                <input type="radio" name="forma_pago" value="por_persona">
+                                <div class="opcion-content">
+                                    <span class="opcion-icon">🔗</span>
+                                    <span class="opcion-texto" data-i18n="pago_por_persona">Pago por persona</span>
+                                    <span class="opcion-desc" data-i18n="pago_por_persona_desc">Cada uno recibe un enlace para pagar su parte</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </form>
+                <div class="resumen-mobile-wrapper">
+                    <div class="resumen-mobile-sheet" id="resumen-mobile-tab" aria-expanded="false">
+                        <div class="resumen-mobile-sheet-handle" role="button" tabindex="0" aria-label="Plegar resumen del paquete"></div>
+                <aside class="configurador-resumen">
+                    <div class="resumen-content">
+                        <h3 data-i18n="resumen_paquete">Resumen de tu paquete</h3>
+                        <div id="resumen-paquete" class="resumen-detalle">
+                            <p data-i18n="resumen_completa">Completa las opciones para ver el resumen</p>
+                        </div>
+                        <section id="datos-reserva-panel" class="datos-reserva-inline" hidden aria-hidden="true" aria-labelledby="datos-reserva-panel-titulo">
+                        <h3 id="datos-reserva-panel-titulo" class="datos-reserva-inline__titulo" data-i18n="datos_reserva_modal_titulo">Datos para la reserva</h3>
+                        <p class="datos-reserva-inline__lead" data-i18n="datos_reserva_inline_lead">Indica tus datos de contacto y pulsa de nuevo «Reservar Paquete» para ir al pago.</p>
+                        <div id="usuarios-container" class="datos-reserva-inline__usuarios" data-extra-opcionales="true" data-simplificar-extras="true" data-grupos-correspondencia="true">
+                            <div class="usuario-form usuario-form-reserva" data-usuario="1">
+                                <div class="usuario-campos">
+                                    <div class="form-group-usuario">
+                                        <label data-i18n="label_nombre_req">Nombre *</label>
+                                        <input type="text" form="configuradorForm" name="usuario[1][nombre]" required enterkeyhint="next">
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label>Correo *</label>
+                                        <input type="email" form="configuradorForm" name="usuario[1][correo]" required enterkeyhint="next">
+                                    </div>
+                                    <div class="form-group-usuario form-group-telefono">
+                                        <label data-i18n="label_movil">Móvil *</label>
+                                        <div class="telefono-wrapper">
+                                            <select class="telefono-prefijo" form="configuradorForm" name="usuario[1][movil_prefijo]" aria-label="Prefijo país">
+                                                <option value="+34" selected>+34</option>
+                                                <option value="+33">+33</option>
+                                                <option value="+44">+44</option>
+                                                <option value="+39">+39</option>
+                                                <option value="+351">+351</option>
+                                                <option value="+49">+49</option>
+                                            </select>
+                                            <input type="tel" form="configuradorForm" name="usuario[1][movil]" class="telefono-numero" placeholder="612 345 678" required enterkeyhint="next">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <details class="participantes-extras-opcional participantes-extras-opcional--inline">
+                            <summary class="participantes-extras-summary"><span data-i18n="extras_correspondencia_summary">Correspondencia por club</span> <span class="extras-opcional-tag" data-i18n="opcional_tag">opcional</span></summary>
+                            <div class="participantes-extras-body">
+                                <div id="correspondencia-grupos-wrap" class="correspondencia-grupos-wrap" style="display:none;" aria-hidden="true"></div>
+                            </div>
+                        </details>
+                        <div class="agregar-usuario-line agregar-usuario-line--inline">
+                            <button type="button" class="btn-agregar-usuario btn-agregar-usuario--compact" id="agregar-usuario">
+                                <span>+</span> <span data-i18n="btn_anadir_participante">Añadir participante (opcional)</span>
+                            </button>
+                            <span id="participantes-contador" class="participantes-contador" aria-live="polite"></span>
+                        </div>
+                        <label class="datos-reserva-consent">
+                            <input type="checkbox" form="configuradorForm" id="consentimiento-comercial" name="consentimiento_comercial" value="1">
+                            <span data-i18n="consentimiento_comercial_label">Autorizo el uso de mis datos de contacto con fines comerciales por parte de Golf Lerma. <span class="extras-opcional-tag" data-i18n="opcional_tag">opcional</span></span>
+                        </label>
+                        </section>
+                    </div>
+                    <button type="button" form="configuradorForm" class="btn-reservar-paquete btn-configurador-submit" data-i18n="btn_reservar_paquete">Reservar Paquete</button>
+                </aside>
+                    <div class="resumen-mobile-tab">
+                        <div class="resumen-mobile-tab-main" role="button" tabindex="0" aria-label="Desplegar resumen del paquete">
+                            <span class="resumen-mobile-chevron" aria-hidden="true">▲</span>
+                            <div class="resumen-mobile-tab-amounts">
+                                <span class="resumen-mobile-total-line"><span class="resumen-mobile-amount-label">Total</span> <span class="resumen-mobile-total" id="resumen-total-mobile">—</span></span>
+                                <span class="resumen-mobile-por-persona-line" id="resumen-por-persona-mobile-wrap" hidden><span class="resumen-mobile-amount-label">Por persona</span> <span class="resumen-mobile-por-persona" id="resumen-por-persona-mobile"></span></span>
+                            </div>
+                        </div>
+                        <div class="resumen-mobile-btn-wrap"></div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 data-i18n="footer_contacto">Contacto</h3>
+                    <div class="contact-info">
+                        <p><strong>Golf Lerma:</strong><br>
+                        Autovía Madrid-Burgos, km. 195,5<br>
+                        Lerma · Burgos</p>
+                        <p><strong>Saldaña Golf:</strong><br>
+                        Urbanización Golf Saldaña<br>
+                        Saldaña de Burgos · Burgos</p>
+                        <p><strong>Teléfono:</strong> (+34) 947 56 46 30</p>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer_enlaces">Enlaces</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html#campo" data-i18n="link_el_campo">El Campo</a></li>
+                        <li><a href="index.html#paquetes" data-i18n="link_paquetes">Paquetes de Golf</a></li>
+                        <li><a href="bodas-eventos.html" data-i18n="link_bodas">Bodas & Eventos</a></li>
+                        <li><a href="simulador.html" data-i18n="link_simulador">Simulador</a></li>
+                        <li><a href="hazte-socio.html" data-i18n="link_hazte_socio">Hazte Socio</a></li>
+                        <li><a href="area-socio.html" data-i18n="link_area_socio">Área Socio</a></li>
+                        <li><a href="correspondencias.html" data-i18n="link_correspondencias">Correspondencias</a></li>
+                        <li><a href="camara-tiempo.html" data-i18n="link_tiempo">Tiempo</a></li>
+                        <li><a href="index.html#contacto" data-i18n="link_contacto">Contacto</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer_legal">Legal</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html#politica-privacidad" data-i18n="link_politica">Política de privacidad</a></li>
+                        <li><a href="index.html#advertencia-legal" data-i18n="link_advertencia">Advertencia legal</a></li>
+                        <li><a href="index.html#proteccion-datos" data-i18n="link_proteccion">Protección de Datos</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p data-i18n="footer_bottom">Copyright © Golf Lerma 2024 · Política de privacidad · Advertencia legal · Protección de Datos</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/i18n.js"></script>
+    <script src="js/precios-data.js"></script>
+    <script src="js/hotelbeds-config.js"></script>
+    <script src="js/correspondencias-data.js"></script>
+    <script src="js/correspondencias.js"></script>
+    <script src="js/stripe-pago.js"></script>
+    <script src="js/restaurantes-paquete.js"></script>
+    <script src="js/hora-salida-picker.js"></script>
+    <script src="js/campo-dia-picker.js"></script>
+    <script src="js/footer-contact.js"></script>
+    <script src="js/configurador-form-nav.js"></script>
+    <script src="js/configurador-datos-reserva.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/chatbot.js"></script>
+    <script src="js/calendario-dias.js"></script>
+    <script src="js/usuarios-form.js"></script>
+    <script src="js/ancillary-counters.js"></script>
+    <script>
+      window.HOTELBEDS_PAGE = {
+        onResumen: function () {
+          if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
+        },
+      };
+    </script>
+    <script src="js/hotelbeds-paquetes.js"></script>
+</body>
+</html>
+

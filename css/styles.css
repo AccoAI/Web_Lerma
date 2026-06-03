@@ -951,6 +951,113 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     opacity: 1;
 }
 
+.paquetes-grid--secundaria {
+    grid-template-columns: repeat(2, 1fr);
+    margin-top: 3rem;
+}
+
+.paquete-wrapper--full {
+    margin-top: 3rem;
+}
+
+.paquete-card--full {
+    min-height: 220px;
+}
+
+.paquete-descripcion--destacada {
+    font-size: 1.15rem;
+    letter-spacing: 1px;
+}
+
+.paquetes-comparativa-wrap {
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+}
+
+.paquetes-comparativa-heading {
+    font-family: var(--font-primary);
+    font-size: 1.25rem;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--color-primary);
+    margin: 0 0 1.25rem;
+}
+
+.paquetes-comparativa-table-host {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.paquetes-comparativa {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    background: var(--color-white);
+    box-shadow: var(--shadow);
+}
+
+.paquetes-comparativa th,
+.paquetes-comparativa td {
+    padding: 0.85rem 1rem;
+    border: 1px solid rgba(15, 51, 36, 0.12);
+    text-align: center;
+    vertical-align: middle;
+}
+
+.paquetes-comparativa thead th {
+    background: var(--color-primary);
+    color: var(--color-white);
+    font-weight: 500;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    line-height: 1.35;
+}
+
+.paquetes-comparativa__feature-col,
+.paquetes-comparativa tbody th[scope="row"] {
+    text-align: left;
+    font-weight: 500;
+    color: var(--color-text);
+    background: var(--color-bg-light);
+    min-width: 12rem;
+}
+
+.paquetes-comp-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    background: #2e7d4f;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.paquetes-comp-dash {
+    color: rgba(15, 51, 36, 0.35);
+    font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+    .paquetes-grid--secundaria {
+        grid-template-columns: 1fr;
+    }
+
+    .paquetes-comparativa {
+        font-size: 0.85rem;
+    }
+
+    .paquetes-comparativa th,
+    .paquetes-comparativa td {
+        padding: 0.65rem 0.5rem;
+    }
+}
+
 /* Secciones */
 .section-title {
     font-family: var(--font-primary);
