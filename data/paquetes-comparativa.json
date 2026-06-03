@@ -10,12 +10,12 @@
     { "i18n": "comp_golf", "fallback": "Golf", "golfComida": true, "golfBurgos": true, "campeonatoBurgos": true },
     { "i18n": "comp_alquileres_golf", "fallback": "Alquileres golf", "golfComida": true, "golfBurgos": true, "campeonatoBurgos": true },
     { "i18n": "comp_comida", "fallback": "Comida", "golfComida": true, "golfBurgos": true, "campeonatoBurgos": true },
-    { "i18n": "comp_hotel", "fallback": "Hotel", "golfComida": false, "golfBurgos": true, "campeonatoBurgos": true },
     { "i18n": "comp_articulos_tienda", "fallback": "Artículos tienda", "golfComida": true, "golfBurgos": true, "campeonatoBurgos": true },
+    { "i18n": "comp_hotel", "fallback": "Hotel", "golfComida": false, "golfBurgos": true, "campeonatoBurgos": true },
     { "i18n": "comp_equipo_personalizado", "fallback": "Equipo personalizado (bolas/polos)", "golfComida": false, "golfBurgos": false, "campeonatoBurgos": true },
     { "i18n": "comp_premios", "fallback": "Premios (artículos/bono tienda/pack canalla)", "golfComida": false, "golfBurgos": false, "campeonatoBurgos": true },
-    { "i18n": "comp_puros", "fallback": "Puros", "golfComida": false, "golfBurgos": false, "campeonatoBurgos": true },
-    { "i18n": "comp_postbooking_coche", "fallback": "Postbooking - Alquiler coche", "golfComida": false, "golfBurgos": true, "campeonatoBurgos": true },
+    { "i18n": "comp_puros", "fallback": "Cava de puros", "golfComida": false, "golfBurgos": false, "campeonatoBurgos": true },
+    { "i18n": "comp_postbooking_coche", "fallback": "Postbooking - Alquiler coche", "golfComida": false, "golfBurgos": true, "campeonatoBurgos": true, "sepBefore": true },
     { "i18n": "comp_postbooking_restaurantes", "fallback": "Postbooking - Restaurantes externos", "golfComida": false, "golfBurgos": true, "campeonatoBurgos": true },
     { "i18n": "comp_postbooking_guia_burgos", "fallback": "Postbooking - Guía Burgos regalo", "golfComida": false, "golfBurgos": true, "campeonatoBurgos": true }
   ]

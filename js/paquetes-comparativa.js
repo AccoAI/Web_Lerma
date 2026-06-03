@@ -39,7 +39,9 @@
             var row = data.rows[ri];
             var label = t(row.i18n, row.fallback);
             var rowEl = document.createElement('div');
-            rowEl.className = 'pcg-row' + (ri % 2 === 1 ? ' pcg-row--alt' : '');
+            var rowCls = 'pcg-row' + (ri % 2 === 1 ? ' pcg-row--alt' : '');
+            if (row.sepBefore) rowCls += ' pcg-row--section-sep';
+            rowEl.className = rowCls;
             rowEl.innerHTML = '<div class="pcg-feature-label">' + label + '</div>';
 
             for (var cj = 0; cj < cols.length; cj++) {
