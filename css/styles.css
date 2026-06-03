@@ -3287,10 +3287,36 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     border: 2px solid var(--color-primary);
 }
 
-/* Tras elegir hotel: solo funnel + habitaciones (lista de tarjetas oculta) */
-.hotelbeds-results.hotelbeds-results--room-pick .hotelbeds-list,
+/* Tras elegir hotel: tarjeta del hotel seleccionado + selector de habitaciones */
 .hotelbeds-results.hotelbeds-results--room-pick > .hotelbeds-note:last-of-type {
     display: none;
+}
+
+.hotelbeds-results.hotelbeds-results--room-pick .hotelbeds-list {
+    display: none;
+}
+
+.hotelbeds-results.hotelbeds-results--room-pick .hb-hotel-funnel-inline__hotel {
+    display: none;
+}
+
+.hb-hotel-funnel-inline__picked-card {
+    margin-bottom: 0.65rem;
+}
+
+.hb-hotel-funnel-inline__picked-card .hotelbeds-item-wrap {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.hb-hotel-funnel-inline__picked-card .hotelbeds-card--picked {
+    border: 2px solid var(--color-primary);
+    box-shadow: 0 4px 14px rgba(26, 77, 58, 0.12);
+}
+
+.hb-hotel-funnel-inline__picked-card[hidden] {
+    display: none !important;
 }
 
 .hb-funnel-change-hotel {
@@ -12929,17 +12955,14 @@ body.page-torneo .torneo-detalle-section {
 }
 
 .chatbot-header h3 {
-    font-size: 0.95rem;
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+    font-size: 0.9rem;
     font-weight: 500;
-    letter-spacing: 0.05em;
-}
-
-.chatbot-header-badge {
-    margin: 0.25rem 0 0;
-    font-size: 0.7rem;
-    opacity: 0.9;
-    font-weight: 400;
     letter-spacing: 0.02em;
+    line-height: 1.2;
+    white-space: nowrap;
 }
 
 .chatbot-close {

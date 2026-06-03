@@ -54,7 +54,6 @@
             '<div class="chatbot-window" id="chatbotWindow" role="dialog" aria-label="Chat de consultas">' +
             '  <div class="chatbot-header">' +
             '    <h3>¿En qué podemos ayudarte?</h3>' +
-            '    <p class="chatbot-header-badge" aria-hidden="true">Respuestas en tiempo real con IA</p>' +
             '    <button type="button" class="chatbot-close" aria-label="Cerrar chat">×</button>' +
             '  </div>' +
             '  <div class="chatbot-messages" id="chatbotMessages"></div>' +
@@ -73,7 +72,7 @@
         var sendBtn = root.querySelector('.chatbot-send');
         var closeBtn = root.querySelector('.chatbot-close');
 
-        var mensajeInicial = 'Hola, soy el asistente de Golf Lerma. Puedo ayudarte con horarios, reservas, precios o cómo contactarnos. ¿Qué necesitas?';
+        var mensajeInicial = 'Hola, soy el asistente virtual de Golf Lerma. Puedo ayudarte con horarios, reservas, precios o cómo contactarnos. ¿Qué necesitas?';
         var conversationHistory = [];
         if (!messages.querySelector('.chatbot-msg')) {
             addMsg(messages, mensajeInicial, false);

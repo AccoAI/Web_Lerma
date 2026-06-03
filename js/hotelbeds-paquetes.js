@@ -1715,6 +1715,42 @@
     return out;
   }
 
+  function markHotelCardsPicked(form) {
+    var code = String(
+      (form.querySelector('input[name="hb_selected_hotel_code"]') || {}).value || ''
+    ).trim();
+    document.querySelectorAll('.hotelbeds-card--selectable').forEach(function (el) {
+      var c = el.getAttribute('data-hb-hotel-code');
+      if (code && c === code) el.classList.add('hotelbeds-card--picked');
+      else el.classList.remove('hotelbeds-card--picked');
+    });
+  }
+
+  function ensurePickedHotelCardSlot(host) {
+    if (!host) return null;
+    var slot = host.querySelector('#hb-funnel-inline-picked-card');
+    if (slot) return slot;
+    slot = document.createElement('div');
+    slot.id = 'hb-funnel-inline-picked-card';
+    slot.className = 'hb-hotel-funnel-inline__picked-card';
+    slot.hidden = true;
+    var controls = host.querySelector('.hb-hotel-funnel-inline__controls');
+    if (controls) host.insertBefore(slot, controls);
+    else host.appendChild(slot);
+    return slot;
+  }
+
+  function restorePickedCardToList(root, slot) {
+    if (!slot) return;
+    var list = root && root.querySelector('.hotelbeds-list');
+    while (slot.firstChild) {
+      var child = slot.firstChild;
+      if (list) list.appendChild(child);
+      else slot.removeChild(child);
+    }
+    slot.hidden = true;
+  }
+
   function syncHotelCardsListVisibility(root, form) {
     if (!root || !form) return;
     var block = root.querySelector('.hotelbeds-results');
@@ -1722,12 +1758,23 @@
     var code = String(
       (form.querySelector('input[name="hb_selected_hotel_code"]') || {}).value || ''
     ).trim();
+    var host = root.querySelector('#hb-hotel-funnel-inline');
+    var slot = ensurePickedHotelCardSlot(host);
+    markHotelCardsPicked(form);
+
     if (code) {
       block.classList.add('hotelbeds-results--room-pick');
       block.setAttribute('data-hb-picked-hotel', code);
+      var pickedCard = root.querySelector('.hotelbeds-card--picked');
+      var wrap = pickedCard && pickedCard.closest('.hotelbeds-item-wrap');
+      if (slot && wrap) {
+        if (wrap.parentNode !== slot) slot.appendChild(wrap);
+        slot.hidden = false;
+      }
     } else {
       block.classList.remove('hotelbeds-results--room-pick');
       block.removeAttribute('data-hb-picked-hotel');
+      restorePickedCardToList(root, slot);
     }
   }
 
@@ -1745,6 +1792,7 @@
       if (ratesBox) ratesBox.innerHTML = '';
       if (resultBox) resultBox.innerHTML = '';
     }
+    markHotelCardsPicked(form);
     document.querySelectorAll('.hotelbeds-card--picked').forEach(function (el) {
       el.classList.remove('hotelbeds-card--picked');
     });
@@ -2233,13 +2281,15 @@
       if (btnChangeHotel) btnChangeHotel.hidden = !hotelCode;
       syncHotelCardsListVisibility(root, form);
       if (!hotelCode) {
+        hotelLine.hidden = false;
         hotelLine.textContent = 'Elige un hotel para continuar.';
         if (datesLine) datesLine.textContent = '';
         host.__hbRatesHotel = '';
         host.__hbAutoRatesHotel = '';
         return;
       }
-      hotelLine.textContent = hotelNameForCode(hotelCode);
+      hotelLine.hidden = true;
+      hotelLine.textContent = '';
       if (datesLine) {
         try {
           var range = getCheckInCheckOut(new FormData(form));
@@ -2333,14 +2383,8 @@
       }
       markRateValidated(form, def.rateKey, def.rateType, def);
       if (!applyHotelConfirm(host, form, result, { scrollToPay: false })) return;
-      var pkg = calcTotalPaquete(def);
-      result.innerHTML =
-        '<p class="hb-funnel-ok"><strong>' +
-        escapeHtml(hotelNameForCode(hotelCode)) +
-        '</strong> · ' +
-        escapeHtml(funnelRatePickLabel(def)) +
-        (pkg != null ? ' · <strong>' + escapeHtml(fmtEuros(pkg) + ' €') + '</strong> (paquete)' : '') +
-        '. Puedes cambiar habitación abajo o pulsar <strong>Reservar paquete</strong>.</p>';
+      if (result) result.innerHTML = '';
+      refreshHotelCardPackagePrices();
       refreshUiState();
     };
 
@@ -2370,11 +2414,8 @@
         var offer = getPickedOfferFromFunnel(host, hotelCode);
         if (offer && String(offer.rateType || '').toUpperCase() === 'BOOKABLE' && isRateValidated()) {
           if (applyHotelConfirm(host, form, result, { scrollToPay: false })) {
-            var pkgCh = calcTotalPaquete(offer);
-            result.innerHTML =
-              '<p class="hb-funnel-ok">Tarifa actualizada' +
-              (pkgCh != null ? ' · <strong>' + escapeHtml(fmtEuros(pkgCh) + ' €') + '</strong> (paquete)' : '') +
-              '.</p>';
+            if (result) result.innerHTML = '';
+            refreshHotelCardPackagePrices();
           }
         } else if (offer && String(offer.rateType || '').toUpperCase() === 'RECHECK') {
           form.querySelector('input[name="hb_funnel_ready"]').value = '';
@@ -2536,7 +2577,11 @@
           if (typeof host.__hbRefreshUiState === 'function') host.__hbRefreshUiState();
         }
         syncHotelCardsListVisibility(root, form);
-        if (host && host.scrollIntoView) host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        var pickedSlot = host && host.querySelector('#hb-funnel-inline-picked-card');
+        var scrollTarget = (pickedSlot && !pickedSlot.hidden) ? pickedSlot : host;
+        if (scrollTarget && scrollTarget.scrollIntoView) {
+          scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       }
     }
 
