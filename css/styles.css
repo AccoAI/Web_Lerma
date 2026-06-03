@@ -1553,6 +1553,45 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     color: var(--color-white);
     border-color: var(--color-primary-dark);
 }
+
+/* Rango llegada → salida (estilo booking) */
+.calendario-dia.range-start,
+.calendario-dia.range-end {
+    background: var(--color-primary);
+    color: var(--color-white);
+    border-color: var(--color-primary-dark);
+    font-weight: 700;
+}
+
+.calendario-dia.range-middle {
+    background: rgba(26, 77, 58, 0.2);
+    color: var(--color-primary-dark);
+    border-color: rgba(26, 77, 58, 0.12);
+    border-radius: 0;
+}
+
+.calendario-dia.range-start {
+    border-radius: 8px 0 0 8px;
+}
+
+.calendario-dia.range-end {
+    border-radius: 0 8px 8px 0;
+}
+
+.calendario-dia.range-start.range-end {
+    border-radius: 8px;
+}
+
+.calendario-dia.range-preview:not(.range-start):not(.range-end) {
+    background: rgba(26, 77, 58, 0.1);
+}
+
+.calendario-hint .calendario-range-label {
+    display: inline;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
 .calendario-dia.today {
     border-color: var(--color-accent);
     box-shadow: 0 0 0 1px var(--color-accent);
@@ -2132,8 +2171,10 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     flex-direction: column;
     align-items: stretch;
     gap: 0.35rem;
-    width: max-content;
+    width: 100%;
+    min-width: 0;
     max-width: 100%;
+    box-sizing: border-box;
 }
 
 .fechas-tamanio-grupo-pre .fechas-grupo-personas-wrap > label {
@@ -2146,10 +2187,12 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 .fechas-grupo-personas-hint {
     margin: 0 0 0.5rem;
     font-size: 0.88rem;
-    line-height: 1.4;
+    line-height: 1.45;
     color: var(--color-text);
     opacity: 0.82;
-    white-space: nowrap;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .fechas-tamanio-grupo-pre .fechas-grupo-counter--personas {
@@ -2157,7 +2200,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     align-items: stretch;
     width: 100%;
     min-width: 0;
-    max-width: 22rem;
+    max-width: 100%;
     padding: 0.35rem;
     gap: 0.35rem;
     border: 2px solid rgba(26, 77, 58, 0.22);
@@ -11686,6 +11729,17 @@ body.page-torneo .torneo-detalle-section {
 
     .configurador-seccion {
         min-width: 0;
+    }
+
+    .fechas-grupo-default-bar.fechas-tamanio-grupo-pre {
+        padding: 1rem 1rem 1.1rem;
+        gap: 0;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .fechas-grupo-personas-hint {
+        font-size: 0.84rem;
     }
 
     .opciones-grid {

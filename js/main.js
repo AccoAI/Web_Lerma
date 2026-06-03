@@ -490,7 +490,7 @@ function getConfigPrereqHintText(stateOrKey) {
     if (!key) return '';
     if (window.i18n && window.i18n.t) return window.i18n.t(key);
     var fallbacks = {
-        config_hint_falta_fechas: 'Selecciona las fechas en el calendario (paso 1 · Selección de golf) para ver las opciones de esta sección.',
+        config_hint_falta_fechas: 'Indica el día de llegada y el día de salida en el calendario (paso 1 · Selección de golf) para ver las opciones de esta sección.',
         config_hint_falta_personas: 'Indica cuántas personas viajan (selector superior, antes del paso 1) para ver las opciones de esta sección.',
         config_hint_falta_ambos: 'Indica cuántas personas viajan (arriba) y selecciona fechas en el calendario (paso 1) para ver las opciones de esta sección.',
         config_hint_falta_campo: 'Indica el campo para cada día seleccionado (paso 1) para configurar los servicios adicionales.'
@@ -1804,7 +1804,8 @@ function initConfiguradorPaquete() {
             form: form,
             nameFechas: 'fechas[]',
             nameNoches: 'noches',
-            maxSeleccion: 7,
+            selectionMode: 'llegada-salida',
+            maxSeleccion: 14,
             hintContainer: fechasDiaPlanHint || null,
             onChange: function (count, fechas) {
                 generarPlanPorDiaFinSemana(count, fechas || []);
