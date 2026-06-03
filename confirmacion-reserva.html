@@ -69,8 +69,8 @@
             <p id="confirmStatusFallback" class="confirmacion-status-fallback confirm-loading">Verificando con Stripe…</p>
 
             <div id="confirmExtras" class="confirmacion-extras" hidden>
-                <div id="confirmTravel" class="confirmacion-seccion-card post-travel-box" hidden aria-live="polite"></div>
                 <div id="confirmRestaurants" class="confirmacion-seccion-card post-travel-box post-restaurants-box" hidden aria-live="polite"></div>
+                <div id="confirmTravel" class="confirmacion-seccion-card post-travel-box" hidden aria-live="polite"></div>
 
                 <div id="confirmActions" class="confirmacion-voucher-actions" hidden>
                     <h3 class="configurador-titulo">Bono de alojamiento</h3>
@@ -215,9 +215,6 @@
           '</tbody></table></div>';
       }
 
-      if (typeof window.renderPostBookingTravel === 'function') {
-        window.renderPostBookingTravel('confirmTravel', data.trip || null);
-      }
       if (data.embed && typeof window.setPaqueteEmbedOverride === 'function') {
         window.setPaqueteEmbedOverride(data.embed);
       } else if (data.trip && data.trip.pickup && typeof window.setPaqueteEmbedOverride === 'function') {
@@ -231,6 +228,9 @@
       }
       if (typeof window.renderPostBookingRestaurants === 'function') {
         window.renderPostBookingRestaurants('confirmRestaurants');
+      }
+      if (typeof window.renderPostBookingTravel === 'function') {
+        window.renderPostBookingTravel('confirmTravel', data.trip || null);
       }
 
       if (data.voucher_available && data.voucher_download_url && data.voucher_url) {
