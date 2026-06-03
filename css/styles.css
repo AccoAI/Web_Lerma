@@ -969,59 +969,127 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     letter-spacing: 1px;
 }
 
-.paquetes-comparativa-wrap {
-    margin-top: 3rem;
+.paquetes-comparativa-bloque-wrap {
     margin-bottom: 1rem;
 }
 
-.paquetes-comparativa-heading {
-    font-family: var(--font-primary);
-    font-size: 1.25rem;
-    font-weight: 500;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    text-align: center;
-    color: var(--color-primary);
-    margin: 0 0 1.25rem;
-}
-
-.paquetes-comparativa-table-host {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
-.paquetes-comparativa {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.95rem;
+.paquetes-comparativa-bloque {
+    display: grid;
+    grid-template-columns: minmax(9.5rem, 1.12fr) repeat(3, minmax(0, 1fr));
+    gap: 0;
     background: var(--color-white);
     box-shadow: var(--shadow);
+    border: 1px solid rgba(15, 51, 36, 0.1);
 }
 
-.paquetes-comparativa th,
-.paquetes-comparativa td {
-    padding: 0.85rem 1rem;
-    border: 1px solid rgba(15, 51, 36, 0.12);
-    text-align: center;
-    vertical-align: middle;
-}
-
-.paquetes-comparativa thead th {
+.pcg-corner {
+    grid-column: 1;
+    grid-row: 1;
+    padding: 1rem;
     background: var(--color-primary);
     color: var(--color-white);
-    font-weight: 500;
+    display: flex;
+    align-items: flex-end;
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.pcg-corner-label {
+    margin: 0;
+    font-family: var(--font-primary);
     font-size: 0.85rem;
-    letter-spacing: 0.5px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
     line-height: 1.35;
 }
 
-.paquetes-comparativa__feature-col,
-.paquetes-comparativa tbody th[scope="row"] {
-    text-align: left;
-    font-weight: 500;
+.pcg-pack-col {
+    grid-row: 1;
+    padding: 0.85rem 0.65rem 0.65rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    border-left: 1px solid rgba(15, 51, 36, 0.1);
+    background: var(--color-white);
+}
+
+.pcg-pack-col[data-col="golfComida"] { grid-column: 2; }
+.pcg-pack-col[data-col="golfBurgos"] { grid-column: 3; }
+.pcg-pack-col[data-col="campeonatoBurgos"] { grid-column: 4; }
+
+.pcg-pack-col .pcg-pack-title {
+    min-height: auto;
+    font-size: 1.05rem;
+    letter-spacing: 1px;
+    padding: 0 0.25rem;
+}
+
+.pcg-pack-col .pcg-pack-card {
+    flex: 1 1 auto;
+    min-height: 240px;
+    width: 100%;
+}
+
+.pcg-pack-features {
+    display: none;
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem 0 0;
+    border-top: 1px solid rgba(15, 51, 36, 0.12);
+}
+
+.pcg-pack-features__item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.25rem;
+    font-size: 0.88rem;
     color: var(--color-text);
+    border-bottom: 1px solid rgba(15, 51, 36, 0.06);
+}
+
+.pcg-pack-features__item .paquetes-comp-check {
+    width: 1.35rem;
+    height: 1.35rem;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.pcg-row {
+    display: contents;
+}
+
+.pcg-feature-label {
+    padding: 0.72rem 1rem;
+    border-top: 1px solid rgba(15, 51, 36, 0.1);
     background: var(--color-bg-light);
-    min-width: 12rem;
+    font-weight: 500;
+    font-size: 0.88rem;
+    color: var(--color-text);
+    text-align: left;
+    display: flex;
+    align-items: center;
+    line-height: 1.35;
+}
+
+.pcg-cell {
+    padding: 0.72rem 0.5rem;
+    border-top: 1px solid rgba(15, 51, 36, 0.1);
+    border-left: 1px solid rgba(15, 51, 36, 0.08);
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    background: var(--color-white);
+}
+
+.pcg-row--alt .pcg-feature-label {
+    background: rgba(15, 51, 36, 0.04);
+}
+
+.pcg-row--alt .pcg-cell {
+    background: rgba(15, 51, 36, 0.02);
 }
 
 .paquetes-comp-check {
@@ -1038,9 +1106,15 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     line-height: 1;
 }
 
-.paquetes-comp-dash {
-    color: rgba(15, 51, 36, 0.35);
-    font-size: 1.1rem;
+@media (max-width: 900px) {
+    .paquetes-comparativa-bloque-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .paquetes-comparativa-bloque {
+        min-width: 680px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -1048,13 +1122,44 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         grid-template-columns: 1fr;
     }
 
-    .paquetes-comparativa {
-        font-size: 0.85rem;
+    .paquetes-comparativa-bloque-wrap {
+        overflow-x: visible;
     }
 
-    .paquetes-comparativa th,
-    .paquetes-comparativa td {
-        padding: 0.65rem 0.5rem;
+    .paquetes-comparativa-bloque {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        min-width: 0;
+        border: none;
+        box-shadow: none;
+        background: transparent;
+    }
+
+    .pcg-corner,
+    .pcg-row {
+        display: none;
+    }
+
+    .pcg-pack-col {
+        grid-column: auto !important;
+        grid-row: auto !important;
+        border: 1px solid rgba(15, 51, 36, 0.12);
+        box-shadow: var(--shadow);
+        padding: 1rem;
+    }
+
+    .pcg-pack-col .pcg-pack-title {
+        font-size: 1.25rem;
+        letter-spacing: 2px;
+    }
+
+    .pcg-pack-col .pcg-pack-card {
+        min-height: 220px;
+    }
+
+    .pcg-pack-features {
+        display: block;
     }
 }
 

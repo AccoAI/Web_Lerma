@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="description" content="Paquete Golf+Comida - Configura noches, hotel, comidas y green fees en Golf Lerma y Saldaña Golf">
+    <meta name="description" content="Paquete Golf+Comida - Configura fechas, comidas y green fees en Golf Lerma y Saldaña Golf">
     <title>Paquete Golf+Comida - Golf Lerma</title>
     <link rel="icon" href="FOTOS/Logo-Golf-Lerma-Footer-1.png" type="image/png">
     <link rel="apple-touch-icon" href="FOTOS/Logo-Golf-Lerma-Footer-1.png">
@@ -67,7 +67,7 @@
     <section class="paquete-detalle" style="margin-top: 0; padding-top: calc(var(--header-height) + 1.5rem);">
         <div class="container">
             <h2 class="section-title" data-i18n="paquete_golf_comida_title">Paquete Golf+Comida</h2>
-            <p class="paquete-intro" data-i18n="paquete_golf_comida_intro">Configura tu paquete personalizado: elige las noches, el hotel y las opciones de comida.</p>
+            <p class="paquete-intro" data-i18n="paquete_golf_comida_intro">Configura tu paquete: elige las fechas de golf y las opciones de comida.</p>
             
             <!-- Configurador de Paquete -->
             <div class="configurador-paquete">
@@ -118,43 +118,23 @@
                         </div>
                     </div>
 
-                    <!-- Alojamiento: bloque siempre visible; Hotelbeds solo consulta API con fechas en el calendario -->
-                    <div class="configurador-seccion" id="configurador-hotel-wrap">
-                        <h3 class="configurador-titulo" data-i18n="config_alojamiento_burgos">2. Alojamiento</h3>
-                        <p class="hotel-ciudad-label">Elige el hotel para cada noche. Puedes combinar Lerma y Burgos (ej.: una noche en Lerma y otra en Burgos).</p>
-                        <div id="hotel-por-noche-block" class="hotel-por-noche-block">
-                            <span class="campos-dias-label">Hotel para cada noche:</span>
-                            <p class="hotel-noche-hint">Elige primero el <strong>lugar</strong> (Lerma o Burgos) y después el <strong>hotel</strong> de ese lugar.</p>
-                            <div id="hoteles-por-noche-container" class="campos-dias-row"></div>
-                        </div>
-                        <!-- Precios en tiempo real: Hotelbeds (JS). Reserva del paquete vía Stripe desde esta página. -->
-                        <div id="hotelbeds-precios-block" class="hotelbeds-precios-wrap" aria-live="polite">
-                            <p class="hotelbeds-block hotelbeds-info comida-sin-fechas" id="precios-block-initial-msg" data-i18n="config_hint_falta_ambos">Completa el paso 1 (fechas y número de jugadores) para ver las opciones de esta sección.</p>
-                        </div>
-                        <!-- Enlace secundario a Booking.com (solo referencia) -->
-                        <div id="booking-com-widget" class="booking-com-widget booking-com-widget-secondary" style="display: none;">
-                            <p class="booking-com-note">Si no ves precios arriba: <a id="booking-link-lerma" href="https://www.booking.com/searchresults.html?ss=Lerma%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer">Lerma</a> · <a id="booking-link-burgos" href="https://www.booking.com/searchresults.html?ss=Burgos%2C+Espa%C3%B1a" target="_blank" rel="noopener noreferrer">Burgos</a></p>
-                        </div>
-                        <p class="paquete-logistica-nota hotel-ciudad-label">Una vez confirmado el paquete, en la página de confirmación te facilitaremos enlaces recomendados para <strong>vuelo a Madrid</strong> y <strong>alquiler de coche</strong> (ideal SUV o furgoneta si viajas con palos de golf).</p>
-                    </div>
-
                     <!-- Alquileres (por día de salida; se genera con el calendario) -->
                     <div class="configurador-seccion servicios-adicionales-section">
-                        <h3 class="configurador-titulo" data-i18n="alquileres_burgos">3. Alquileres</h3>
+                        <h3 class="configurador-titulo" data-i18n="alquileres_comida">2. Alquileres</h3>
                         <p class="comida-sin-fechas" id="ancillary-sin-prereqs" data-i18n="config_hint_falta_ambos">Completa el paso 1 (fechas y número de jugadores) para ver las opciones de esta sección.</p>
                         <div id="ancillary-por-dia-container" class="ancillary-por-dia-container" style="display:none;" aria-live="polite"></div>
                     </div>
 
                     <!-- Tienda de Golf -->
                     <div class="configurador-seccion tienda-golf-section">
-                        <h3 class="configurador-titulo" data-i18n="tienda_golf_burgos">4. Tienda de Golf</h3>
+                        <h3 class="configurador-titulo" data-i18n="tienda_golf_comida">3. Tienda de Golf</h3>
                         <p class="comida-sin-fechas" id="tienda-golf-sin-prereqs" data-i18n="config_hint_falta_ambos">Completa el paso 1 (fechas y número de jugadores) para ver las opciones de esta sección.</p>
                         <div id="tienda-golf-container" class="ancillary-por-dia-container tienda-golf-container" style="display:none;" aria-live="polite"></div>
                     </div>
 
                     <!-- Menús Casa Club Lerma -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo" data-i18n="menus_casa_club_burgos">5. Menús Casa Club Lerma</h3>
+                        <h3 class="configurador-titulo" data-i18n="menus_casa_club_comida">4. Menús Casa Club Lerma</h3>
                         <div id="comida-por-dia-wrap">
                             <p class="comida-sin-fechas" id="comida-sin-fechas" data-i18n="config_hint_falta_ambos">Completa el paso 1 (fechas y número de jugadores) para ver las opciones de esta sección.</p>
                             <div id="comida-por-dia-container" class="comida-por-dia-container" style="display:none;"></div>
@@ -308,7 +288,6 @@
 
     <script src="js/i18n.js"></script>
     <script src="js/precios-data.js"></script>
-    <script src="js/hotelbeds-config.js"></script>
     <script src="js/correspondencias-data.js"></script>
     <script src="js/correspondencias.js"></script>
     <script src="js/stripe-pago.js"></script>
@@ -323,14 +302,6 @@
     <script src="js/calendario-dias.js"></script>
     <script src="js/usuarios-form.js"></script>
     <script src="js/ancillary-counters.js"></script>
-    <script>
-      window.HOTELBEDS_PAGE = {
-        onResumen: function () {
-          if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
-        },
-      };
-    </script>
-    <script src="js/hotelbeds-paquetes.js"></script>
 </body>
 </html>
 

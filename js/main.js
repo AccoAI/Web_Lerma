@@ -2118,7 +2118,8 @@ function initConfiguradorPaquete() {
         var count = (formData.getAll('fechas[]') || []).length;
         var nNoches = parseInt(noches || '0', 10) || 0;
         var hbFunnelReady = String(formData.get('hb_funnel_ready') || '').trim() === '1';
-        var necesitaHotel = nNoches >= 1 || hbFunnelReady;
+        var packSinAlojamiento = !configuradorHotelWrap;
+        var necesitaHotel = !packSinAlojamiento && (nNoches >= 1 || hbFunnelReady);
         var hotelOk = !necesitaHotel || (function () {
             for (var i = 1; i <= nNoches; i++) { if ((formData.get('hotel-noche-' + i) || '').trim()) return true; }
             return hbFunnelReady;
@@ -2137,7 +2138,9 @@ function initConfiguradorPaquete() {
             var resumenHTML = '<div class="resumen-items">';
             resumenHTML += '<p><strong>Estancia:</strong> ' + noches + ' ' + (noches === '1' ? 'noche' : 'noches') + '</p>';
             resumenHTML += '<p><strong>Green fees:</strong> ' + salidasConCampo + ' ' + (salidasConCampo === 1 ? 'salida' : 'salidas') + '</p>';
-            resumenHTML += '<p><strong>Alojamiento:</strong> ' + (necesitaHotel && hotelOk ? (noches + ' ' + (noches === '1' ? 'noche' : 'noches')) : '—') + '</p>';
+            if (!packSinAlojamiento) {
+                resumenHTML += '<p><strong>Alojamiento:</strong> ' + (necesitaHotel && hotelOk ? (noches + ' ' + (noches === '1' ? 'noche' : 'noches')) : '—') + '</p>';
+            }
             resumenHTML += '<p><strong>Reservas de comida:</strong> ' + (numServicios > 0 ? 'x' + numServicios : '—') + '</p>';
 
             var usuarios = form.querySelectorAll('.usuario-form');

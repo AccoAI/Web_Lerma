@@ -1,5 +1,6 @@
 /**
- * Tabla comparativa de paquetes (landing). Datos en data/paquetes-comparativa.json
+ * Comparativa integrada: tarjetas + checks alineados por columna (landing).
+ * Datos en data/paquetes-comparativa.json
  */
 (function () {
     function t(key, fallback) {
@@ -17,45 +18,55 @@
         return '';
     }
 
-    function renderTable(data) {
-        var host = document.getElementById('paquetes-comparativa-table');
-        if (!host || !data || !data.rows) return;
+    function renderIntegrated(data) {
+        var bloque = document.getElementById('paquetes-comparativa-bloque');
+        if (!bloque || !data || !data.rows) return;
+
+        bloque.querySelectorAll('.pcg-row').forEach(function (el) { el.remove(); });
 
         var cols = data.columns || ['golfComida', 'golfBurgos', 'campeonatoBurgos'];
-        var colLabels = [];
-        for (var ci = 0; ci < cols.length; ci++) {
-            var colKey = cols[ci];
-            var colDef = data.columnLabels && data.columnLabels[colKey];
-            colLabels.push(colDef ? t(colDef.i18n, colDef.fallback) : colKey);
-        }
-
-        var html = '<table class="paquetes-comparativa"><thead><tr>';
-        html += '<th scope="col" class="paquetes-comparativa__feature-col">' + t('comp_col_incluye', 'Qué incluye') + '</th>';
-        for (var cj = 0; cj < colLabels.length; cj++) {
-            html += '<th scope="col">' + colLabels[cj] + '</th>';
-        }
-        html += '</tr></thead><tbody>';
+        var mobileLists = {};
+        cols.forEach(function (colKey) {
+            var colEl = bloque.querySelector('.pcg-pack-col[data-col="' + colKey + '"]');
+            var list = colEl && colEl.querySelector('.pcg-pack-features');
+            if (list) {
+                list.innerHTML = '';
+                mobileLists[colKey] = list;
+            }
+        });
 
         for (var ri = 0; ri < data.rows.length; ri++) {
             var row = data.rows[ri];
-            html += '<tr><th scope="row">' + t(row.i18n, row.fallback) + '</th>';
+            var label = t(row.i18n, row.fallback);
+            var rowEl = document.createElement('div');
+            rowEl.className = 'pcg-row' + (ri % 2 === 1 ? ' pcg-row--alt' : '');
+            rowEl.innerHTML = '<div class="pcg-feature-label">' + label + '</div>';
+
             for (var cj = 0; cj < cols.length; cj++) {
-                html += '<td>' + cellHtml(!!row[cols[cj]]) + '</td>';
+                var colKey = cols[cj];
+                var included = !!row[colKey];
+                var cell = document.createElement('div');
+                cell.className = 'pcg-cell';
+                cell.innerHTML = cellHtml(included);
+                rowEl.appendChild(cell);
+
+                var mobList = mobileLists[colKey];
+                if (mobList && included) {
+                    var li = document.createElement('li');
+                    li.className = 'pcg-pack-features__item';
+                    li.innerHTML = '<span class="paquetes-comp-check" aria-hidden="true">✓</span><span>' + label + '</span>';
+                    mobList.appendChild(li);
+                }
             }
-            html += '</tr>';
+            bloque.appendChild(rowEl);
         }
-        html += '</tbody></table>';
-        host.innerHTML = html;
     }
 
     function loadAndRender() {
         fetch('data/paquetes-comparativa.json')
             .then(function (r) { return r.json(); })
-            .then(renderTable)
-            .catch(function () {
-                var host = document.getElementById('paquetes-comparativa-table');
-                if (host) host.innerHTML = '';
-            });
+            .then(renderIntegrated)
+            .catch(function () { /* sin datos, se mantienen solo las tarjetas */ });
     }
 
     document.addEventListener('DOMContentLoaded', loadAndRender);
