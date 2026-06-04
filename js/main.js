@@ -2161,6 +2161,11 @@ function initConfiguradorPaquete() {
                 actualizarBloqueTiendaGolf(faTg2.length, faTg2);
                 if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
             }
+            if (t && t.classList && t.classList.contains('comida-menu-comensales')) {
+                aplicarComensalesMenuClub(t);
+                scheduleActualizarResumen();
+                return;
+            }
             if (t && t.matches && t.matches('#tamanio-grupo, #hora-salida, #handicap-grupo, .ancillary-counter:not(.comida-menu-comensales), .fechas-jugadores-dia, .comida-comensales-counter, input[name^="hora_salida"]')) scheduleActualizarResumen();
             if (t && t.classList && t.classList.contains('ancillary-counter') && ancillaryPorDiaContainer && ancillaryPorDiaContainer.contains(t)) {
                 syncAncillaryDiaTabsBadges();

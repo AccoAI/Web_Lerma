@@ -142,6 +142,7 @@
         form.classList.toggle('configurador-form--flujo-todas-tras-golf', desbloquearTodasTrasGolf);
 
         if (desbloquearTodasTrasGolf) {
+            var yaDesbloqueado = form.getAttribute('data-config-todas-tras-golf') === '1';
             for (var u = 0; u < steps.length; u++) {
                 var stepAll = steps[u];
                 stepAll.hidden = false;
@@ -149,10 +150,12 @@
                     syncFechasGolfGate(form);
                 }
             }
-            if (typeof window.syncConfiguradorContenidoPostGolf === 'function') {
+            if (!yaDesbloqueado && typeof window.syncConfiguradorContenidoPostGolf === 'function') {
                 window.syncConfiguradorContenidoPostGolf(form);
             }
+            form.setAttribute('data-config-todas-tras-golf', '1');
         } else {
+            form.removeAttribute('data-config-todas-tras-golf');
             var unlockNext = true;
 
             for (var i = 0; i < steps.length; i++) {

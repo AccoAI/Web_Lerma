@@ -121,6 +121,51 @@
     return id ? document.getElementById(id) : null;
   }
 
+  function isHotelbedsSectionVisible() {
+    var wrap = document.getElementById(pageOpts().hotelWrapId || 'configurador-hotel-wrap');
+    return !!(wrap && !wrap.hidden);
+  }
+
+  /** Fechas + personas (sin exigir campo de golf). */
+  function hotelbedsFetchPrereqsOk(formEl, formData) {
+    if (!formData) return false;
+    if (!getCheckInCheckOut(formData)) return false;
+    var noches = parseInt(formData.get('noches') || '0', 10);
+    if (noches < 1) return false;
+    if (typeof window.getConfigPrereqState === 'function' && formEl) {
+      var prState = window.getConfigPrereqState(formEl);
+      if (!prState.fechas || !prState.personas) return false;
+    }
+    return true;
+  }
+
+  function availabilityCacheMatches(formData) {
+    var range = getCheckInCheckOut(formData);
+    if (!range || !window.__HB_LAST_AVAIL__ || !window.__HB_LAST_AVAIL_RANGE__) return false;
+    var cached = window.__HB_LAST_AVAIL_RANGE__;
+    if (cached.checkIn !== range.checkIn || cached.checkOut !== range.checkOut) return false;
+    var occ = clampHotelbedsOccupancy(getListOccupancyForAvailability(formData));
+    var prev = window.__HB_LAST_AVAIL_OCC__;
+    if (!prev) return false;
+    return (
+      prev.rooms === occ.rooms &&
+      prev.adults === occ.adults &&
+      (prev.children || 0) === (occ.children || 0)
+    );
+  }
+
+  function tryRenderFromCache() {
+    if (!window.__HB_LAST_AVAIL__ || !isHotelbedsSectionVisible()) return false;
+    return loadHotelContentEnrichment().then(function () {
+      if (!isHotelbedsSectionVisible()) return;
+      renderHotelbedsResults(window.__HB_LAST_AVAIL__, []);
+    }).then(function () {
+      return true;
+    }).catch(function () {
+      return false;
+    });
+  }
+
   function getFormData() {
     var form = getForm();
     if (!form) return null;
@@ -3190,7 +3235,10 @@
     refreshHotelCardPackagePrices();
   }
 
-  function run() {
+  function run(opts) {
+    opts = opts || {};
+    var silentPrefetch = opts.silentPrefetch === true || !isHotelbedsSectionVisible();
+
     if (runAbortCtrl) {
       try { runAbortCtrl.abort(); } catch (e) { /* ignore */ }
     }
@@ -3200,43 +3248,53 @@
     var formData = getFormData();
     if (!formData) return;
 
-    var formEl = document.getElementById('configuradorForm');
-    if (typeof window.getConfigPrereqState === 'function' && formEl) {
-      var prState = window.getConfigPrereqState(formEl);
-      var prKey = typeof window.getConfigPrereqHintI18nKey === 'function'
-        ? window.getConfigPrereqHintI18nKey(prState)
-        : '';
-      if (prKey) {
+    var formEl = document.getElementById(pageOpts().formId || 'configuradorForm');
+
+    if (!hotelbedsFetchPrereqsOk(formEl, formData)) {
+      if (!silentPrefetch) {
         window.LIVE_HOTEL_PRICES = null;
         clearHotelbedsBookingContext();
         setBookingWidgetVisible(false);
-        var hintTxt = typeof window.getConfigPrereqHintText === 'function'
-          ? window.getConfigPrereqHintText(prKey)
-          : '';
+        var prState =
+          typeof window.getConfigPrereqState === 'function' && formEl
+            ? window.getConfigPrereqState(formEl)
+            : { fechas: false, personas: false };
+        var prKey =
+          typeof window.getConfigPrereqHintI18nKey === 'function'
+            ? window.getConfigPrereqHintI18nKey(prState)
+            : 'config_hint_falta_ambos';
+        var hintTxt =
+          typeof window.getConfigPrereqHintText === 'function'
+            ? window.getConfigPrereqHintText(prKey)
+            : 'Completa fechas y número de personas para ver hoteles.';
         renderBlock('<p class="hotelbeds-block hotelbeds-info">' + escapeHtml(hintTxt) + '</p>');
-        return;
       }
+      return;
+    }
+
+    if (!silentPrefetch && availabilityCacheMatches(formData)) {
+      tryRenderFromCache();
+      return;
     }
 
     var range = getCheckInCheckOut(formData);
     if (!range) {
-      window.LIVE_HOTEL_PRICES = null;
-      clearHotelbedsBookingContext();
-      setBookingWidgetVisible(false);
-      renderBlock('<p class="hotelbeds-block hotelbeds-info">Selecciona las fechas en el calendario para ver precios en tiempo real (Hotelbeds).</p>');
+      if (!silentPrefetch) {
+        window.LIVE_HOTEL_PRICES = null;
+        clearHotelbedsBookingContext();
+        setBookingWidgetVisible(false);
+        renderBlock(
+          '<p class="hotelbeds-block hotelbeds-info">Selecciona las fechas en el calendario para ver precios en tiempo real (Hotelbeds).</p>'
+        );
+      }
       return;
     }
 
-    var noches = parseInt(formData.get('noches') || '0', 10);
-    if (noches < 1) {
-      window.LIVE_HOTEL_PRICES = null;
-      clearHotelbedsBookingContext();
-      setBookingWidgetVisible(false);
-      renderBlock('<p class="hotelbeds-block hotelbeds-info">Selecciona las fechas de estancia para ver hoteles y precios en tiempo real.</p>');
-      return;
+    if (!silentPrefetch) {
+      renderLoading();
+    } else {
+      window.__HB_PREFETCH_IN_FLIGHT__ = true;
     }
-
-    renderLoading();
     window.__HB_API_DOWN__ = '';
 
     syncAllowedBurgosFromPriority();
@@ -3244,10 +3302,13 @@
     var occ = clampHotelbedsOccupancy(getListOccupancyForAvailability(formData));
     var codePool = getBrgHotelCodeList();
     if (!codePool.length) {
-      renderBlock(
-        '<div class="hotelbeds-block hotelbeds-info">No hay códigos de hotel configurados (BRG_HOTEL_CODES).</div>'
-      );
-      document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
+      window.__HB_PREFETCH_IN_FLIGHT__ = false;
+      if (!silentPrefetch) {
+        renderBlock(
+          '<div class="hotelbeds-block hotelbeds-info">No hay códigos de hotel configurados (BRG_HOTEL_CODES).</div>'
+        );
+        document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
+      }
       return;
     }
 
@@ -3267,7 +3328,10 @@
             'rawApi:', result.rawApiCount,
             'pool:', result.poolSize
           );
-          renderNoAvailabilityForDates(result && result.poolSize, result && result.occ, result && result.rawApiCount);
+          window.__HB_PREFETCH_IN_FLIGHT__ = false;
+          if (!silentPrefetch) {
+            renderNoAvailabilityForDates(result && result.poolSize, result && result.occ, result && result.rawApiCount);
+          }
           return;
         }
         var hb = { hotels: { hotels: hotels, total: hotels.length } };
@@ -3292,11 +3356,23 @@
       })
       .then(function (hb) {
         if (thisAbort && thisAbort.signal && thisAbort.signal.aborted) return;
+        window.__HB_PREFETCH_IN_FLIGHT__ = false;
         if (!hb) return;
+        if (silentPrefetch) {
+          document.dispatchEvent(new CustomEvent('hotelbeds-prefetch-ready'));
+          if (isHotelbedsSectionVisible()) {
+            return loadHotelContentEnrichment().then(function () {
+              renderHotelbedsResults(hb, []);
+            });
+          }
+          return;
+        }
         renderHotelbedsResults(hb, []);
       })
       .catch(function (err) {
         if (thisAbort && thisAbort.signal && thisAbort.signal.aborted) return;
+        window.__HB_PREFETCH_IN_FLIGHT__ = false;
+        if (silentPrefetch) return;
         showCatalogAfterAvailabilityFailure(err);
       });
   }
@@ -3506,6 +3582,11 @@
     var id = target.id || '';
     if (name === 'hb-funnel-rate-pick') return true;
     if (name.indexOf('hb_') === 0) return true;
+    if (/^campo-dia-\d+$/.test(name)) return true;
+    if (/^hora_salida/.test(name)) return true;
+    if (name.indexOf('comida_') === 0) return true;
+    if (name.indexOf('ancillary_') === 0) return true;
+    if (name.indexOf('tienda_') === 0) return true;
     if (id === 'hb-funnel-inline-adults' || id === 'hb-funnel-inline-rooms') return true;
     if (target.closest && target.closest('#hb-hotel-funnel-inline')) {
       var tag = (target.tagName || '').toUpperCase();
@@ -3524,12 +3605,43 @@
 
   function schedule() {
     if (debounceTimer) clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(run, DEBOUNCE_MS);
+    debounceTimer = setTimeout(function () {
+      var formEl = document.getElementById(pageOpts().formId || 'configuradorForm');
+      var formData = getFormData();
+      if (!hotelbedsFetchPrereqsOk(formEl, formData)) {
+        if (isHotelbedsSectionVisible()) run({ silentPrefetch: false });
+        return;
+      }
+      if (isHotelbedsSectionVisible()) {
+        if (window.__HB_PREFETCH_IN_FLIGHT__) {
+          renderLoading();
+          return;
+        }
+        if (availabilityCacheMatches(formData)) {
+          tryRenderFromCache();
+          return;
+        }
+        run({ silentPrefetch: false });
+        return;
+      }
+      if (!availabilityCacheMatches(formData)) {
+        run({ silentPrefetch: true });
+      }
+    }, DEBOUNCE_MS);
   }
 
   window.actualizarPreciosHotelbeds = function () {
     schedule();
   };
+
+  window.scheduleHotelbedsPrefetch = function () {
+    schedule();
+  };
+
+  document.addEventListener('hotelbeds-prefetch-ready', function () {
+    if (!isHotelbedsSectionVisible()) return;
+    if (availabilityCacheMatches(getFormData())) tryRenderFromCache();
+  });
 
   window.refreshHotelCardPackagePrices = refreshHotelCardPackagePrices;
   window.refreshFunnelRatePackagePrices = refreshFunnelRatePackagePrices;
