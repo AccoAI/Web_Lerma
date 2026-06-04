@@ -1498,7 +1498,6 @@ function initConfiguradorPaquete() {
 
     function htmlComidaMenuCardOpco(menu, selectedId, nJug) {
         var checked = selectedId === menu.id;
-        var precio = menu.precioPorPersona != null ? menu.precioPorPersona : '';
         var packNote = i18nComidaReplace('comida_menu_opco_pack_note', 'Incluido en el precio del paquete', null);
         var grupoNote = i18nComidaReplace('comida_menu_opco_grupo', 'Para las {n} personas del paquete', { n: nJug });
         return (
@@ -1507,7 +1506,6 @@ function initConfiguradorPaquete() {
             '<div class="comida-menu-opco-card__content opcion-content">' +
             htmlTarjetaFotoMedia(menu.imagen, 'comida-menu-opco-card', true) +
             '<span class="comida-menu-opco-card__nombre">' + escapeHtmlComida(menu.label) + '</span>' +
-            (precio !== '' ? '<span class="comida-menu-card__precio comida-menu-card__precio--referencia" aria-hidden="true"><span class="comida-menu-card__precio-num">' + precio + ' €</span><span class="comida-menu-card__precio-unit">/ pers.</span></span>' : '') +
             '<span class="comida-menu-opco-card__pack-note">' + escapeHtmlComida(packNote) + '</span>' +
             '<span class="comida-menu-opco-card__grupo">' + escapeHtmlComida(grupoNote) + '</span>' +
             '</div></label>'
@@ -2418,14 +2416,19 @@ function initConfiguradorPaquete() {
             resumenHTML += '<table class="resumen-subtotal-tabla">';
             if (necesitaHotel) {
                 resumenHTML += '<tr><td>Pack golf + alojamiento</td><td>' + formatEurosResumen(gf + aloj) + ' €</td></tr>';
+            } else if (packGolfComidaMenusOpco) {
+                var lblGfMenus = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_gf_menus_comida') : 'Green fees + Menús Casa Club Lerma';
+                if (!lblGfMenus || lblGfMenus === 'resumen_gf_menus_comida') lblGfMenus = 'Green fees + Menús Casa Club Lerma';
+                var gfMenusTotal = roundEuros(gf + comidaVal);
+                resumenHTML += '<tr><td>' + lblGfMenus + '</td><td>' + (gfMenusTotal > 0 ? formatEurosResumen(gfMenusTotal) + ' €' : '—') + '</td></tr>';
             } else {
                 resumenHTML += '<tr><td>Green fees</td><td>' + formatEurosResumen(gf) + ' €</td></tr>';
+                var lblMenusRow = hasTiendaGolf
+                    ? ((window.i18n && window.i18n.t) ? window.i18n.t('resumen_menus_casa_club') : 'Menús Casa Club Lerma')
+                    : 'Casa Club (menús en pack)';
+                if (!lblMenusRow || lblMenusRow === 'resumen_menus_casa_club') lblMenusRow = 'Menús Casa Club Lerma';
+                resumenHTML += '<tr><td>' + lblMenusRow + '</td><td>' + (comidaVal > 0 ? formatEurosResumen(comidaVal) + ' €' : '—') + '</td></tr>';
             }
-            var lblMenusRow = hasTiendaGolf
-                ? ((window.i18n && window.i18n.t) ? window.i18n.t('resumen_menus_casa_club') : 'Menús Casa Club Lerma')
-                : 'Casa Club (menús en pack)';
-            if (!lblMenusRow || lblMenusRow === 'resumen_menus_casa_club') lblMenusRow = 'Menús Casa Club Lerma';
-            resumenHTML += '<tr><td>' + lblMenusRow + '</td><td>' + (comidaVal > 0 ? formatEurosResumen(comidaVal) + ' €' : '—') + '</td></tr>';
             var lblAlquileresRow = hasTiendaGolf
                 ? ((window.i18n && window.i18n.t) ? window.i18n.t('resumen_alquileres') : 'Alquileres')
                 : 'Servicios adicionales';
