@@ -2599,6 +2599,28 @@ function initConfiguradorPaquete() {
 
     window.procesarReservaConfiguradorPaquete = procesarReservaConfiguradorPaquete;
 
+    window.syncConfiguradorContenidoPostGolf = function (targetForm) {
+        if (packGolfComidaMenusOpco) return;
+        var f = targetForm || form;
+        if (!f) return;
+        var fdSync = new FormData(f);
+        if (typeof window.isConfigPasoGolfCompleto === 'function' && !window.isConfigPasoGolfCompleto(f, fdSync)) {
+            return;
+        }
+        var fechasSync = fdSync.getAll('fechas[]') || [];
+        var countSync = fechasSync.length;
+        if (countSync < 1) return;
+        generarPlanPorDiaFinSemana(countSync, fechasSync);
+        if (configuradorHotelWrap) {
+            actualizarBloqueHotel();
+            if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
+        }
+        actualizarBloqueComida(countSync, fechasSync);
+        actualizarBloqueAncillaryPorDia(countSync, fechasSync);
+        actualizarBloqueTiendaGolf(countSync, fechasSync);
+        if (typeof actualizarResumen === 'function') actualizarResumen();
+    };
+
     if (form) {
         form.addEventListener('submit', function (e) {
             e.preventDefault();

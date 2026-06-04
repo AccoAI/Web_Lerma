@@ -62,10 +62,17 @@
         if (!document.getElementById('dias-campos-container-finsemana')) return true;
         var count = (fd.getAll('fechas[]') || []).length;
         if (count < 1) return false;
-        for (var i = 1; i <= count; i++) {
-            if (!(fd.get('campo-dia-' + i) || '').trim()) return false;
+        var packGolfComida = document.body.classList.contains('pack-golf-comida');
+        if (packGolfComida) {
+            for (var i = 1; i <= count; i++) {
+                if (!(fd.get('campo-dia-' + i) || '').trim()) return false;
+            }
+            return true;
         }
-        return true;
+        for (var j = 1; j <= count; j++) {
+            if ((fd.get('campo-dia-' + j) || '').trim()) return true;
+        }
+        return false;
     }
 
     function isConfigStepComplete(step, form, fd, stepIndex) {
@@ -112,6 +119,10 @@
         if (body && ready) body.hidden = false;
     }
 
+    function isPackFlujoProgresivoPorPasos() {
+        return document.body.classList.contains('pack-golf-comida');
+    }
+
     function updateConfiguradorFlujoProgresivo(formOrId) {
         var form = typeof formOrId === 'string'
             ? document.getElementById(formOrId)
@@ -124,25 +135,44 @@
         if (!steps.length) return;
 
         var fd = new FormData(form);
-        var unlockNext = true;
+        var packPorPasos = isPackFlujoProgresivoPorPasos();
+        var golfCompleto = isConfigPasoGolfCompleto(form, fd);
+        var desbloquearTodasTrasGolf = !packPorPasos && golfCompleto;
 
-        for (var i = 0; i < steps.length; i++) {
-            var step = steps[i];
-            var isFechas = step.classList.contains('configurador-seccion--fechas');
+        form.classList.toggle('configurador-form--flujo-todas-tras-golf', desbloquearTodasTrasGolf);
 
-            if (isFechas) {
-                step.hidden = false;
-                syncFechasGolfGate(form);
-            } else if (unlockNext) {
-                step.hidden = false;
-            } else {
-                step.hidden = true;
+        if (desbloquearTodasTrasGolf) {
+            for (var u = 0; u < steps.length; u++) {
+                var stepAll = steps[u];
+                stepAll.hidden = false;
+                if (stepAll.classList.contains('configurador-seccion--fechas')) {
+                    syncFechasGolfGate(form);
+                }
             }
+            if (typeof window.syncConfiguradorContenidoPostGolf === 'function') {
+                window.syncConfiguradorContenidoPostGolf(form);
+            }
+        } else {
+            var unlockNext = true;
 
-            if (!unlockNext) continue;
+            for (var i = 0; i < steps.length; i++) {
+                var step = steps[i];
+                var isFechas = step.classList.contains('configurador-seccion--fechas');
 
-            if (!isConfigStepComplete(step, form, fd, i)) {
-                unlockNext = false;
+                if (isFechas) {
+                    step.hidden = false;
+                    syncFechasGolfGate(form);
+                } else if (unlockNext) {
+                    step.hidden = false;
+                } else {
+                    step.hidden = true;
+                }
+
+                if (!unlockNext) continue;
+
+                if (!isConfigStepComplete(step, form, fd, i)) {
+                    unlockNext = false;
+                }
             }
         }
 
