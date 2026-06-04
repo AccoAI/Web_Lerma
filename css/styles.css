@@ -3715,6 +3715,9 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     border-radius: 8px;
     background: rgba(26, 77, 58, 0.06);
     border: 1px solid rgba(26, 77, 58, 0.15);
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: clip;
 }
 
 .hb-hotel-funnel-inline__head {
@@ -3900,6 +3903,43 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         width: 100%;
         min-width: 4rem;
     }
+
+    .hotelbeds-precios-wrap {
+        padding-left: 0.65rem;
+        padding-right: 0.65rem;
+    }
+
+    .hb-funnel-rate-pick__main {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.35rem;
+    }
+
+    .hb-funnel-rate-pick__price-col {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.2rem 0.45rem;
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .hb-funnel-rate-pick__pkg-note {
+        white-space: normal;
+        text-align: left;
+        flex: 1 1 100%;
+        letter-spacing: 0.02em;
+    }
+
+    .hb-funnel-rate-price {
+        white-space: normal;
+    }
+
+    .hb-funnel-rate-pick__sub {
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
 }
 .hb-funnel-rate-list {
     list-style: none;
@@ -3914,11 +3954,16 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     align-items: flex-start;
     font-size: 0.88rem;
     line-height: 1.35;
+    min-width: 0;
+    max-width: 100%;
 }
 .hb-funnel-rate-pick__body {
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
+    flex: 1;
+    min-width: 0;
+    max-width: 100%;
 }
 .hb-funnel-rate-pick__main {
     display: flex;
@@ -3926,17 +3971,20 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     align-items: flex-start;
     gap: 0.75rem;
     width: 100%;
+    min-width: 0;
 }
 .hb-funnel-rate-pick__label {
-    flex: 1;
+    flex: 1 1 auto;
     min-width: 0;
+    overflow-wrap: break-word;
 }
 .hb-funnel-rate-pick__price-col {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 0.1rem;
-    flex-shrink: 0;
+    flex: 0 1 auto;
+    min-width: 0;
 }
 .hb-funnel-rate-pick__pkg-note {
     font-size: 0.68rem;
@@ -3945,6 +3993,9 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     text-transform: uppercase;
     letter-spacing: 0.03em;
     white-space: nowrap;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    text-align: right;
 }
 .hb-funnel-rates-intro {
     margin-bottom: 0.35rem;
@@ -4263,6 +4314,21 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     border-color: rgba(139, 69, 19, 0.22);
 }
 
+.confirmacion-post-pago .post-restaurants-box,
+.confirmacion-post-pago .post-booking-picker-panel,
+.confirmacion-post-pago .comida-restaurante-picker-root {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+    .confirmacion-post-pago .restaurante-paquete-embed-row .restaurante-paquete-iframe-wrap,
+    .confirmacion-post-pago .restaurante-paquete-embed-row .restaurante-paquete-embed-ctx {
+        min-width: 0;
+    }
+}
+
 .post-booking-embed {
     margin-top: 1.25rem;
     padding-top: 1rem;
@@ -4345,15 +4411,26 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     flex-direction: column;
     gap: 0.65rem;
     flex: 1 1 0;
-    min-width: min(280px, 58%);
+    min-width: 0;
     width: 100%;
+    max-width: 100%;
 }
 
 .post-booking-rentcars-widget-host {
     margin-top: 0;
     min-height: 420px;
     width: 100%;
-    max-width: none;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.post-booking-rentcars-mobile-fallback {
+    display: none;
+}
+
+.post-booking-rentcars-mobile-fallback .post-booking-embed-intro {
+    margin-bottom: 0.85rem;
 }
 
 .post-booking-rentcars-widget-iframe {
@@ -4366,7 +4443,63 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
 
 .post-booking-rentcars-embed-row .post-booking-rentcars-stack {
     flex: 1 1 0;
-    min-width: min(280px, 58%);
+    min-width: 0;
+}
+
+@media (min-width: 640px) {
+    .post-booking-rentcars-embed-row.post-booking-rentcars-embed-row {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .post-booking-rentcars-embed-row .post-booking-rentcars-ctx {
+        flex: 0 0 min(17.5rem, 38%);
+        max-width: 17.5rem;
+    }
+
+    .post-booking-rentcars-embed-row .post-booking-rentcars-stack {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 639px) {
+    .confirmacion-post-pago .post-booking-travel-panel,
+    .confirmacion-post-pago .post-booking-rentcars-block,
+    .post-booking-rentcars-embed-row {
+        max-width: 100%;
+        overflow-x: clip;
+        box-sizing: border-box;
+    }
+
+    .post-booking-rentcars-embed-row {
+        flex-direction: column !important;
+        gap: 0.75rem;
+    }
+
+    .post-booking-rentcars-embed-row .post-booking-rentcars-ctx,
+    .post-booking-rentcars-embed-row .post-booking-rentcars-stack,
+    .post-booking-rentcars-embed-row .restaurante-paquete-iframe-wrap {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        flex: 1 1 auto !important;
+    }
+
+    .post-booking-rentcars-desktop-only,
+    .post-booking-embed-intro--desktop-only,
+    .post-booking-embed-hint--desktop-only {
+        display: none !important;
+    }
+
+    .post-booking-rentcars-mobile-fallback {
+        display: block;
+    }
+
+    .post-booking-rentcars-cta {
+        max-width: none;
+        width: 100%;
+    }
 }
 
 .post-booking-rentcars-resumen {
@@ -12099,13 +12232,19 @@ body.page-torneo .torneo-detalle-section {
         flex-direction: column;
         gap: 0.6rem;
         width: 100%;
-        max-width: 280px;
+        max-width: min(100%, calc(100vw - 2.5rem));
     }
 
     .hero-btn {
         width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
         text-align: center;
-        padding: 0.9rem 1.5rem;
+        padding: 0.9rem 1.25rem;
+        white-space: normal;
+        line-height: 1.35;
+        letter-spacing: 1px;
+        font-size: clamp(0.8125rem, 3.4vw, 0.9375rem);
     }
 
     .hero-side-block {
@@ -12247,38 +12386,104 @@ body.page-torneo .torneo-detalle-section {
         min-width: 0;
     }
 
-    /* Visor embebido (TheFork / CoverManager): casi ancho completo en móvil */
-    .paquete-detalle .comida-restaurante-picker-panel {
-        width: calc(100% + 2.5rem + 2.5rem);
-        margin-left: -2.5rem;
-        margin-right: -2.5rem;
+    /* Visor embebido (TheFork / CoverManager) en configurador: sangrado dentro del form */
+    .paquete-detalle:not(.confirmacion-post-pago) .configurador-form .comida-restaurante-picker-panel {
+        width: calc(100% + 3rem);
+        margin-left: -1.5rem;
+        margin-right: -1.5rem;
         box-sizing: border-box;
         padding: 0.85rem 0.45rem 1.1rem;
     }
 
-    .paquete-detalle .comida-picker-panel-head {
+    .paquete-detalle:not(.confirmacion-post-pago) .comida-picker-panel-head {
         padding-left: 0.35rem;
         padding-right: 0.35rem;
     }
 
-    .paquete-detalle .comida-picker-commit-wrap {
+    .paquete-detalle:not(.confirmacion-post-pago) .comida-picker-commit-wrap {
         padding-left: 0.35rem;
         padding-right: 0.35rem;
     }
 
-    .paquete-detalle .restaurantes-paquete-panel {
+    .paquete-detalle:not(.confirmacion-post-pago) .restaurantes-paquete-panel {
         padding-left: 0.35rem;
         padding-right: 0.35rem;
     }
 
-    .paquete-detalle .restaurante-paquete-embed-row,
-    .paquete-detalle .restaurante-paquete-iframe-wrap {
+    .paquete-detalle:not(.confirmacion-post-pago) .restaurante-paquete-embed-row,
+    .paquete-detalle:not(.confirmacion-post-pago) .restaurante-paquete-iframe-wrap {
         max-width: none;
         width: 100%;
         margin-left: 0;
         margin-right: 0;
         padding-left: 0;
         padding-right: 0;
+    }
+
+    /* Postbooking confirmación: sin sangrado; tabs y datos dentro del margen */
+    .confirmacion-post-pago .post-travel-box {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        overflow-x: clip;
+    }
+
+    .confirmacion-post-pago .comida-restaurante-picker-panel.post-booking-picker-panel {
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        padding: 0.75rem 0.65rem 1rem;
+    }
+
+    .confirmacion-post-pago .restaurantes-paquete-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        max-width: 100%;
+        padding-bottom: 0.2rem;
+        scrollbar-width: thin;
+    }
+
+    .confirmacion-post-pago .restaurantes-paquete-tab {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    .confirmacion-post-pago .restaurantes-paquete-categorias,
+    .confirmacion-post-pago .restaurantes-paquete-panel,
+    .confirmacion-post-pago .restaurante-paquete-embed-row,
+    .confirmacion-post-pago .restaurante-paquete-embed-row .restaurante-paquete-embed-ctx,
+    .confirmacion-post-pago .restaurante-paquete-embed-row .restaurante-paquete-iframe-wrap,
+    .confirmacion-post-pago .restaurante-paquete-inhouse {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .confirmacion-post-pago .restaurante-paquete-inhouse-datos li {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.2rem;
+    }
+
+    .confirmacion-post-pago .restaurante-paquete-inhouse-k {
+        min-width: 0;
+    }
+
+    .confirmacion-post-pago .restaurante-paquete-inhouse-v {
+        overflow-wrap: anywhere;
+        max-width: 100%;
+    }
+
+    .confirmacion-post-pago .restaurante-paquete-iframe-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .confirmacion-post-pago .restaurante-paquete-iframe-wrap iframe {
+        width: 100%;
+        max-width: 100%;
     }
 
     .configurador-seccion {

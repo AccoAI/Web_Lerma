@@ -40,6 +40,18 @@
     return (cfg.rentcarsWidgetSrc || '').trim();
   }
 
+  function rentcarsMobileFallbackHtml(embedUrl) {
+    if (!embedUrl) return '';
+    return (
+      '<div class="post-booking-rentcars-mobile-fallback">' +
+      '<p class="post-booking-embed-intro">En el móvil, el buscador embebido no se adapta bien. Abre Rentcars con tu enlace de afiliado e introduce las fechas del paquete.</p>' +
+      '<a class="btn-reservar-paquete post-booking-rentcars-cta" href="' +
+      escapeHtml(embedUrl) +
+      '" target="_blank" rel="noopener noreferrer sponsored">Buscar coche en Rentcars</a>' +
+      '</div>'
+    );
+  }
+
   function renderTripContext(trip) {
     var rows =
       '<li><span class="restaurante-paquete-inhouse-k">Zona sugerida</span> ' +
@@ -89,31 +101,36 @@
 
     if (src) {
       html +=
-        '<p class="post-booking-embed-intro">Busca arriba y pulsa «Buscar». Los resultados se abren en Rentcars (pestaña nueva); esta página de confirmación permanece abierta.</p>' +
+        '<p class="post-booking-embed-intro post-booking-embed-intro--desktop-only">Busca arriba y pulsa «Buscar». Los resultados se abren en Rentcars (pestaña nueva); esta página de confirmación permanece abierta.</p>' +
         '<div class="restaurante-paquete-embed-row post-booking-rentcars-embed-row">' +
         renderTripContext(trip) +
         '<div class="post-booking-rentcars-stack">' +
-        '<div class="post-booking-rentcars-widget-host restaurante-paquete-iframe-wrap">' +
+        '<div class="post-booking-rentcars-widget-host restaurante-paquete-iframe-wrap post-booking-rentcars-desktop-only">' +
         '<iframe class="post-booking-rentcars-widget-iframe" title="Buscar coche en Rentcars" ' +
         'sandbox="allow-scripts allow-forms allow-same-origin allow-popups" ' +
         'src="' +
         escapeHtml(src) +
         '" loading="lazy" referrerpolicy="no-referrer-when-downgrade" height="420"></iframe>' +
-        '</div></div></div>';
+        '</div>' +
+        rentcarsMobileFallbackHtml(embedUrl) +
+        '</div></div>';
     } else if (embedUrl) {
       html +=
-        '<p class="post-booking-embed-intro">Compara coches para tu viaje. Recomendamos SUV o furgoneta si viajas con palos.</p>' +
+        '<p class="post-booking-embed-intro post-booking-embed-intro--desktop-only">Compara coches para tu viaje. Recomendamos SUV o furgoneta si viajas con palos.</p>' +
         '<div class="restaurante-paquete-embed-row post-booking-rentcars-embed-row">' +
         renderTripContext(trip) +
-        '<div class="restaurante-paquete-iframe-wrap post-booking-iframe-wrap">' +
+        '<div class="post-booking-rentcars-stack">' +
+        '<div class="restaurante-paquete-iframe-wrap post-booking-iframe-wrap post-booking-rentcars-desktop-only">' +
         '<iframe id="post-booking-rentcars-iframe" class="restaurante-paquete-iframe post-booking-rentcars-iframe" ' +
         'title="Buscar coche en Rentcars" src="' +
         escapeHtml(embedUrl) +
         '" loading="lazy" referrerpolicy="no-referrer-when-downgrade" height="' +
         String(iframeHeight) +
         '"></iframe>' +
+        '</div>' +
+        rentcarsMobileFallbackHtml(embedUrl) +
         '</div></div>' +
-        '<p class="post-booking-embed-hint">Configura <code>rentcarsWidgetSrc</code> en <code>js/travel-affiliates.js</code> para el buscador oficial.</p>';
+        '<p class="post-booking-embed-hint post-booking-embed-hint--desktop-only">Configura <code>rentcarsWidgetSrc</code> en <code>js/travel-affiliates.js</code> para el buscador oficial.</p>';
     } else {
       html +=
         '<p class="post-booking-embed-intro">Configura tu enlace de afiliado en <code>js/travel-affiliates.js</code>.</p>';
