@@ -638,11 +638,16 @@ a.hero-saldaña-link:hover {
 
 .paquetes-configuradores__header .paquetes-section-subtitle {
     margin: 0.85rem auto 0;
-    max-width: 40rem;
+    max-width: 100%;
+    width: 100%;
     text-align: center;
     color: var(--color-text);
-    line-height: 1.5;
+    line-height: 1.35;
     opacity: 0.9;
+    white-space: nowrap;
+    font-size: clamp(0.58rem, 1.05vw, 1rem);
+    letter-spacing: clamp(0.5px, 0.12vw, 2px);
+    box-sizing: border-box;
 }
 
 .paquetes-destacados {
@@ -1039,6 +1044,13 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     width: 100%;
 }
 
+.pcg-grid-spacer {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 3.75rem;
+    background: var(--color-white);
+}
+
 .pcg-pack-col {
     grid-row: 1;
     padding: 0 0.75rem 0.75rem;
@@ -1131,10 +1143,19 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 .pcg-row {
-    display: contents;
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+}
+
+@supports not (grid-template-columns: subgrid) {
+    .pcg-row {
+        grid-template-columns: minmax(8.75rem, 0.82fr) repeat(3, minmax(0, 1.06fr));
+    }
 }
 
 .pcg-feature-label {
+    grid-column: 1;
     padding: 0.4rem 1.1rem;
     border-top: 1px solid rgba(15, 51, 36, 0.1);
     background: var(--color-bg-light);
@@ -1145,6 +1166,18 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     display: flex;
     align-items: center;
     line-height: 1.25;
+}
+
+.pcg-row .pcg-cell:nth-child(2) {
+    grid-column: 2;
+}
+
+.pcg-row .pcg-cell:nth-child(3) {
+    grid-column: 3;
+}
+
+.pcg-row .pcg-cell:nth-child(4) {
+    grid-column: 4;
 }
 
 .pcg-cell {
@@ -1220,6 +1253,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         background: transparent;
     }
 
+    .pcg-grid-spacer,
     .pcg-row {
         display: none;
     }
