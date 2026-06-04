@@ -642,6 +642,14 @@ a.hero-saldaña-link:hover {
     margin-top: clamp(2.5rem, 5vw, 4rem);
 }
 
+.paquetes-secundarios .paquetes-section-title {
+    margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
+}
+
+.paquetes-secundarios .paquete-wrapper {
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+
     .paquetes-configuradores .container {
         width: 100%;
         max-width: 100%;
