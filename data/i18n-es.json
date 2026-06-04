@@ -35,6 +35,7 @@
   "hero_btn_calendario": "Calendario de Torneos",
   "hero_btn_paquetes": "Paquetes de Golf",
   "paquetes_section_title": "Paquetes de Golf",
+  "paquetes_section_subtitle": "Los mejores descuentos en todos nuestros productos y servicios si reservas nuestros paquetes",
   "hero_saldana_texto": "Complete su partida en",
 
   "paquete_fin_semana_title": "Paquete Golf Burgos",
@@ -256,6 +257,8 @@
   "config_golf_espera_personas": "Estamos a la espera de que indiques el número de personas en el paquete (arriba).",
   "calendario_hint_rango": "Clic o <strong>arrastra</strong> para elegir rango. ",
   "calendario_hint_llegada_salida": "Elige el día de llegada y después el día de salida. Se marcarán todos los días intermedios.",
+  "calendario_hint_dia_unico": "Elige el día de tu partida en Golf Lerma.",
+  "calendario_dia_seleccionado": "Día seleccionado: {fecha}",
   "calendario_hint_elige_salida": "Llegada: {llegada} — ahora elige el día de salida.",
   "calendario_rango_resumen": "Llegada: {llegada} · Salida: {salida} ({dias} días)",
   "calendario_rango_resumen_1": "Llegada y salida: {llegada} (1 día)",

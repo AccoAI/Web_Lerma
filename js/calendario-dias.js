@@ -101,6 +101,7 @@
             var hintContainer = opts.hintContainer || null;
             var selectionMode = opts.selectionMode || 'llegada-salida';
             var isLlegadaSalida = selectionMode === 'llegada-salida';
+            var isDiaUnico = selectionMode === 'dia-unico';
 
             minDate.setHours(0, 0, 0, 0);
             maxDate.setHours(23, 59, 59, 999);
@@ -139,6 +140,31 @@
 
                 var count = fechasForm.length;
                 if (countEl) countEl.textContent = String(count);
+
+                if (isDiaUnico) {
+                    if (countEl) countEl.hidden = true;
+                    if (suffixEl) suffixEl.hidden = true;
+                    if (count >= 1) {
+                        if (instructionEl) instructionEl.hidden = true;
+                        if (rangeEl) {
+                            rangeEl.hidden = false;
+                            rangeEl.textContent = t(
+                                'calendario_dia_seleccionado',
+                                'Día seleccionado: ' + formatFechaCorta(fechasForm[0])
+                            ).replace('{fecha}', formatFechaCorta(fechasForm[0]));
+                        }
+                    } else {
+                        if (instructionEl) {
+                            instructionEl.hidden = false;
+                            instructionEl.textContent = t(
+                                'calendario_hint_dia_unico',
+                                'Elige el día de tu partida en Golf Lerma.'
+                            );
+                        }
+                        if (rangeEl) rangeEl.hidden = true;
+                    }
+                    return;
+                }
 
                 if (!isLlegadaSalida) {
                     if (instructionEl) instructionEl.hidden = false;
@@ -239,6 +265,18 @@
             }
 
             function onDayActivate(iso) {
+                if (isDiaUnico) {
+                    if (fechas.length === 1 && fechas[0] === iso) {
+                        fechas = [];
+                    } else {
+                        fechas = [iso];
+                    }
+                    pendingLlegada = null;
+                    hoverSalida = null;
+                    render();
+                    emit();
+                    return;
+                }
                 if (isLlegadaSalida) {
                     if (pendingLlegada != null) {
                         aplicarRango(pendingLlegada, iso);
@@ -273,7 +311,7 @@
                     var isEnd = inRange && iso === salidaIso;
                     var isMiddle = inRange && !isStart && !isEnd;
 
-                    cell.classList.toggle('selected', inRange && !isLlegadaSalida);
+                    cell.classList.toggle('selected', inRange && (!isLlegadaSalida || isDiaUnico));
                     cell.classList.toggle('range-start', isLlegadaSalida && isStart);
                     cell.classList.toggle('range-end', isLlegadaSalida && isEnd);
                     cell.classList.toggle('range-middle', isLlegadaSalida && isMiddle);
@@ -339,7 +377,7 @@
                             hoverSalida = iso;
                             render();
                         }, { passive: true });
-                    } else {
+                    } else if (!isDiaUnico) {
                         cell.addEventListener('mousedown', function (e) {
                             e.preventDefault();
                             dragStart = iso;
@@ -352,13 +390,13 @@
             }
 
             function onDocMove(e) {
-                if (isLlegadaSalida || dragStart == null) return;
+                if (isLlegadaSalida || isDiaUnico || dragStart == null) return;
                 var t = e.target.closest('.calendario-dia[data-date]');
                 if (t && t.getAttribute('data-date') !== dragStart) isDragging = true;
             }
 
             function onDocUp(e) {
-                if (isLlegadaSalida || dragStart == null) return;
+                if (isLlegadaSalida || isDiaUnico || dragStart == null) return;
                 var t = e.target.closest('.calendario-dia[data-date]');
                 var endIso =
                     t && !t.classList.contains('disabled') && !t.classList.contains('calendario-dia-empty')
@@ -404,7 +442,7 @@
             });
 
             buildMonth();
-            if (!isLlegadaSalida) {
+            if (!isLlegadaSalida && !isDiaUnico) {
                 document.addEventListener('mousemove', onDocMove);
                 document.addEventListener('mouseup', onDocUp);
             }

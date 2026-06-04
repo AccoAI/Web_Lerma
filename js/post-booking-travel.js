@@ -123,13 +123,22 @@
     return html;
   }
 
-  function renderTravelBlock(containerId, trip) {
+  function renderTravelBlock(containerId, trip, paqueteId) {
     var cfg = window.TRAVEL_AFFILIATES || {};
     var affiliateHome = (cfg.rentalcars || '').trim();
     var sky = (cfg.skyscanner || '').trim();
     var iframeHeight = parseInt(cfg.rentalcarsIframeHeight, 10) || 780;
     var el = document.getElementById(containerId);
     if (!el) return;
+
+    if (
+      typeof window.paqueteIncluyePostbookingViajeYRestaurantes === 'function' &&
+      !window.paqueteIncluyePostbookingViajeYRestaurantes(paqueteId)
+    ) {
+      el.hidden = true;
+      el.innerHTML = '';
+      return;
+    }
 
     var hasRental = affiliateHome || widgetSrc() || affiliateUrl();
     if (!hasRental && !sky) {

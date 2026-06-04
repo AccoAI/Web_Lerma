@@ -35,6 +35,7 @@
   "hero_btn_calendario": "Tournament Calendar",
   "hero_btn_paquetes": "Golf Packages",
   "paquetes_section_title": "Golf Packages",
+  "paquetes_section_subtitle": "The best discounts on all our products and services when you book our packages",
   "hero_saldana_texto": "Complete your round at",
 
   "paquete_fin_semana_title": "Burgos Golf Package",
@@ -256,6 +257,8 @@
   "config_golf_espera_personas": "We're waiting for you to enter the number of people in the package (above).",
   "calendario_hint_rango": "Click or <strong>drag</strong> to choose a range. ",
   "calendario_hint_llegada_salida": "Choose your arrival date, then your departure date. All days in between will be included.",
+  "calendario_hint_dia_unico": "Choose the date of your round at Golf Lerma.",
+  "calendario_dia_seleccionado": "Selected date: {fecha}",
   "calendario_hint_elige_salida": "Arrival: {llegada} — now choose your departure date.",
   "calendario_rango_resumen": "Arrival: {llegada} · Departure: {salida} ({dias} days)",
   "calendario_rango_resumen_1": "Arrival and departure: {llegada} (1 day)",

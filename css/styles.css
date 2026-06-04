@@ -404,7 +404,8 @@ img {
 }
 
 .hero-subtitle,
-.hero-btn {
+.hero-btn,
+.paquetes-section-subtitle {
     font-size: 1rem;
     font-weight: 300;
     letter-spacing: 2px;
@@ -635,6 +636,15 @@ a.hero-saldaña-link:hover {
     line-height: 1.15;
 }
 
+.paquetes-configuradores__header .paquetes-section-subtitle {
+    margin: 0.85rem auto 0;
+    max-width: 40rem;
+    text-align: center;
+    color: var(--color-text);
+    line-height: 1.5;
+    opacity: 0.9;
+}
+
 .paquetes-destacados {
     width: 100%;
 }
@@ -792,6 +802,10 @@ a.hero-saldaña-link:hover {
     max-width: 100px;
     object-fit: contain;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.paquete-logos-campos--solo-lerma {
+    gap: 0;
 }
 
 .paquete-fin-semana,
@@ -1025,32 +1039,6 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     width: 100%;
 }
 
-.pcg-corner {
-    grid-column: 1;
-    grid-row: 1;
-    align-self: start;
-    box-sizing: border-box;
-    width: calc(100% - 1.5rem);
-    margin: 0 0.75rem;
-    padding: 1.15rem 1rem;
-    background: var(--color-primary);
-    color: var(--color-white);
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    border-right: none;
-}
-
-.pcg-corner-label {
-    margin: 0;
-    font-family: var(--font-primary);
-    font-size: clamp(0.8rem, 1.1vw, 0.95rem);
-    font-weight: 500;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    line-height: 1.35;
-}
-
 .pcg-pack-col {
     grid-row: 1;
     padding: 0 0.75rem 0.75rem;
@@ -1232,7 +1220,6 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
         background: transparent;
     }
 
-    .pcg-corner,
     .pcg-row {
         display: none;
     }
@@ -2675,6 +2662,32 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 .fechas-dia-plan-row__campo,
 .fechas-dia-plan-row__campo .campos-dias-item--campo-toggle {
     display: contents;
+}
+
+.pack-golf-comida .fechas-dia-plan-row {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.9fr) minmax(0, 0.95fr);
+}
+
+.fechas-dia-plan-campo-fijo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+    line-height: 1.25;
+}
+
+.fechas-dia-plan-campo-fijo__fecha {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-primary-dark, #143d2e);
+}
+
+.fechas-dia-plan-campo-fijo__campo {
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-primary, #1a4d3a);
 }
 
 .fechas-dia-plan-row__campo .campos-dias-item__dia-label {

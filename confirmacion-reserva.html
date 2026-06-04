@@ -121,6 +121,7 @@
     <script src="js/main.js"></script>
     <script src="js/travel-affiliates.js"></script>
     <script src="js/rentcars-search-url.js"></script>
+    <script src="js/post-booking-eligibility.js"></script>
     <script src="js/post-booking-receipt.js"></script>
     <script src="js/post-booking-travel.js"></script>
     <script src="js/post-booking-restaurants.js"></script>
@@ -141,6 +142,9 @@
   var btnPrint = document.getElementById('btnVoucherPrint');
 
   var nombresPaquete = {
+    'golf-comida': 'Paquete Golf+Comida',
+    'golf-burgos': 'Paquete Golf Burgos',
+    'campeonato-burgos': 'Paquete Campeonato Burgos',
     'fin-semana': 'Fin de Semana Golf Burgos',
     cochinillo: 'Paquete Golf + Cochinillo',
     'golf-vino': 'Paquete Golf y Vino',
@@ -215,22 +219,40 @@
           '</tbody></table></div>';
       }
 
-      if (data.embed && typeof window.setPaqueteEmbedOverride === 'function') {
-        window.setPaqueteEmbedOverride(data.embed);
-      } else if (data.trip && data.trip.pickup && typeof window.setPaqueteEmbedOverride === 'function') {
-        window.setPaqueteEmbedOverride({
-          dateISO: data.trip.pickup,
-          partySize: 1,
-          holderName: '',
-          holderEmail: data.customer_email || '',
-          holderPhone: '',
-        });
-      }
-      if (typeof window.renderPostBookingRestaurants === 'function') {
-        window.renderPostBookingRestaurants('confirmRestaurants');
-      }
-      if (typeof window.renderPostBookingTravel === 'function') {
-        window.renderPostBookingTravel('confirmTravel', data.trip || null);
+      var paqueteId = data.paquete || null;
+      var postbookingExtras =
+        typeof window.paqueteIncluyePostbookingViajeYRestaurantes === 'function' &&
+        window.paqueteIncluyePostbookingViajeYRestaurantes(paqueteId);
+
+      if (postbookingExtras) {
+        if (data.embed && typeof window.setPaqueteEmbedOverride === 'function') {
+          window.setPaqueteEmbedOverride(data.embed);
+        } else if (data.trip && data.trip.pickup && typeof window.setPaqueteEmbedOverride === 'function') {
+          window.setPaqueteEmbedOverride({
+            dateISO: data.trip.pickup,
+            partySize: 1,
+            holderName: '',
+            holderEmail: data.customer_email || '',
+            holderPhone: '',
+          });
+        }
+        if (typeof window.renderPostBookingRestaurants === 'function') {
+          window.renderPostBookingRestaurants('confirmRestaurants', paqueteId);
+        }
+        if (typeof window.renderPostBookingTravel === 'function') {
+          window.renderPostBookingTravel('confirmTravel', data.trip || null, paqueteId);
+        }
+      } else {
+        var restEl = document.getElementById('confirmRestaurants');
+        var travelEl = document.getElementById('confirmTravel');
+        if (restEl) {
+          restEl.hidden = true;
+          restEl.innerHTML = '';
+        }
+        if (travelEl) {
+          travelEl.hidden = true;
+          travelEl.innerHTML = '';
+        }
       }
 
       if (data.voucher_available && data.voucher_download_url && data.voucher_url) {

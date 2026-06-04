@@ -541,6 +541,16 @@ function initConfiguradorPaquete() {
     var tiendaGolfContainer = document.getElementById('tienda-golf-container');
     var tiendaGolfSinPrereqs = document.getElementById('tienda-golf-sin-prereqs');
     var packGolfComidaMenusOpco = document.body.classList.contains('pack-golf-comida');
+
+    function getConfiguradorPaqueteStripeId() {
+        if (packGolfComidaMenusOpco) return 'golf-comida';
+        var path = (location.pathname || '').toLowerCase();
+        if (path.indexOf('paquete-golf-burgos') >= 0) return 'golf-burgos';
+        if (path.indexOf('paquete-campeonato-burgos') >= 0) return 'campeonato-burgos';
+        if (path.indexOf('paquete-promociona-torneo') >= 0) return 'promociona-torneo';
+        if (path.indexOf('paquete-clases-golf') >= 0) return 'clases-golf';
+        return 'fin-semana';
+    }
     var comidaDiaActivo = 1;
     var ancillaryDiaActivo = 1;
     var comidaDiasNav = [];
@@ -763,17 +773,27 @@ function initConfiguradorPaquete() {
 
             var campoWrap = document.createElement('div');
             campoWrap.className = 'fechas-dia-plan-row__campo';
-            var campoItem = window.buildCampoDiaToggleItem(i, prevCampo[i] || '', {
-                required: true,
-                shortLabels: true,
-                onChange: onCampoDiaPlanChangeFinSemana
-            });
-            var diaLbl = campoItem.querySelector('.campos-dias-item__dia-label');
-            if (diaLbl && fechas[i - 1]) {
-                var etiqueta = formatearEtiquetaDiaComida(fechas[i - 1]);
-                if (etiqueta) diaLbl.textContent = etiqueta;
+            if (packGolfComidaMenusOpco) {
+                var etiquetaCampo = fechas[i - 1] ? formatearEtiquetaDiaComida(fechas[i - 1]) : 'Día ' + i;
+                campoWrap.innerHTML =
+                    '<div class="fechas-dia-plan-campo-fijo">' +
+                    '<span class="fechas-dia-plan-campo-fijo__fecha">' + escapeHtmlComida(etiquetaCampo || ('Día ' + i)) + '</span>' +
+                    '<span class="fechas-dia-plan-campo-fijo__campo">Golf Lerma</span>' +
+                    '<input type="hidden" name="campo-dia-' + i + '" value="lerma">' +
+                    '</div>';
+            } else {
+                var campoItem = window.buildCampoDiaToggleItem(i, prevCampo[i] || '', {
+                    required: true,
+                    shortLabels: true,
+                    onChange: onCampoDiaPlanChangeFinSemana
+                });
+                var diaLbl = campoItem.querySelector('.campos-dias-item__dia-label');
+                if (diaLbl && fechas[i - 1]) {
+                    var etiqueta = formatearEtiquetaDiaComida(fechas[i - 1]);
+                    if (etiqueta) diaLbl.textContent = etiqueta;
+                }
+                campoWrap.appendChild(campoItem);
             }
-            campoWrap.appendChild(campoItem);
 
             var horaWrap = document.createElement('div');
             horaWrap.className = 'fechas-dia-plan-row__hora';
@@ -1555,7 +1575,9 @@ function initConfiguradorPaquete() {
         if (comidaSinFechas) {
             comidaSinFechas.style.display = 'none';
         }
-        if (comidaPostbookingNota) comidaPostbookingNota.hidden = !prereqsOk || count < 1;
+        if (comidaPostbookingNota && !packGolfComidaMenusOpco) {
+            comidaPostbookingNota.hidden = !prereqsOk || count < 1;
+        }
         if (!comidaPorDiaContainer) return;
         if (!prereqsOk || count < 1) {
             comidaPorDiaContainer.style.display = 'none';
@@ -1994,8 +2016,8 @@ function initConfiguradorPaquete() {
             form: form,
             nameFechas: 'fechas[]',
             nameNoches: 'noches',
-            selectionMode: 'llegada-salida',
-            maxSeleccion: 14,
+            selectionMode: packGolfComidaMenusOpco ? 'dia-unico' : 'llegada-salida',
+            maxSeleccion: packGolfComidaMenusOpco ? 1 : 14,
             hintContainer: fechasDiaPlanHint || null,
             onChange: function (count, fechas) {
                 generarPlanPorDiaFinSemana(count, fechas || []);
@@ -2313,7 +2335,7 @@ function initConfiguradorPaquete() {
             for (var idx = 0; idx < numGF; idx++) {
                 var iso = fechasGF[idx];
                 if (!iso) continue;
-                var campoDia = formData.get('campo-dia-' + (idx + 1));
+                var campoDia = packGolfComidaMenusOpco ? 'lerma' : formData.get('campo-dia-' + (idx + 1));
                 if (!(campoDia && String(campoDia).trim())) continue;
                 var d = new Date(iso + 'T12:00:00');
                 var dow = d.getDay();
@@ -2566,7 +2588,7 @@ function initConfiguradorPaquete() {
                     totalEuros: totalEuros,
                     modo: formaPagoSubmit,
                     numParticipantes: numParticipantes,
-                    paquete: 'fin-semana',
+                    paquete: getConfiguradorPaqueteStripeId(),
                     formId: 'configuradorForm',
                     submitButton: submitBtn
                 });

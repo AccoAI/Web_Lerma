@@ -4,9 +4,18 @@
 (function () {
   'use strict';
 
-  function renderPostBookingRestaurants(containerId) {
+  function renderPostBookingRestaurants(containerId, paqueteId) {
     var el = document.getElementById(containerId);
-    if (!el || typeof window.mountRestaurantePaquetePicker !== 'function') return;
+    if (!el) return;
+    if (
+      typeof window.paqueteIncluyePostbookingViajeYRestaurantes === 'function' &&
+      !window.paqueteIncluyePostbookingViajeYRestaurantes(paqueteId)
+    ) {
+      el.hidden = true;
+      el.innerHTML = '';
+      return;
+    }
+    if (typeof window.mountRestaurantePaquetePicker !== 'function') return;
 
     el.innerHTML =
       '<h2 class="configurador-titulo post-travel-title">Opciones para comer</h2>' +

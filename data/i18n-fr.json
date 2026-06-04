@@ -35,6 +35,7 @@
   "hero_btn_calendario": "Calendrier des tournois",
   "hero_btn_paquetes": "Forfaits Golf",
   "paquetes_section_title": "Forfaits Golf",
+  "paquetes_section_subtitle": "Les meilleures remises sur tous nos produits et services si vous réservez nos forfaits",
   "hero_saldana_texto": "Complétez votre partie à",
 
   "paquete_fin_semana_title": "Forfait Golf Burgos",
@@ -256,6 +257,8 @@
   "config_golf_espera_personas": "Nous attendons que vous indiquiez le nombre de personnes dans le forfait (ci-dessus).",
   "calendario_hint_rango": "Cliquez ou <strong>faites glisser</strong> pour choisir une plage. ",
   "calendario_hint_llegada_salida": "Choisissez le jour d'arrivée, puis le jour de départ. Tous les jours intermédiaires seront inclus.",
+  "calendario_hint_dia_unico": "Choisissez le jour de votre partie à Golf Lerma.",
+  "calendario_dia_seleccionado": "Jour sélectionné : {fecha}",
   "calendario_hint_elige_salida": "Arrivée : {llegada} — choisissez maintenant le jour de départ.",
   "calendario_rango_resumen": "Arrivée : {llegada} · Départ : {salida} ({dias} jours)",
   "calendario_rango_resumen_1": "Arrivée et départ : {llegada} (1 jour)",
