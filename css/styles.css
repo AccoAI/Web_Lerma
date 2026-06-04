@@ -1027,13 +1027,17 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 .pcg-corner {
     grid-column: 1;
     grid-row: 1;
+    align-self: start;
+    box-sizing: border-box;
+    width: calc(100% - 1.5rem);
+    margin: 0 0.75rem;
     padding: 1.15rem 1rem;
     background: var(--color-primary);
     color: var(--color-white);
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    border-right: 1px solid rgba(255, 255, 255, 0.15);
+    border-right: none;
 }
 
 .pcg-corner-label {
@@ -1048,7 +1052,8 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 .pcg-pack-col {
     grid-row: 1;
-    padding: 0 0 0.75rem;
+    padding: 0 0.75rem 0.75rem;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: 0;
@@ -1062,6 +1067,8 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 .pcg-pack-col .pcg-pack-title {
     margin: 0;
+    width: 100%;
+    box-sizing: border-box;
     min-height: 3.75rem;
     padding: 1.1rem 0.85rem;
     background: var(--color-primary);
@@ -1084,8 +1091,9 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 .pcg-pack-col .pcg-pack-card {
     flex: 1 1 auto;
     min-height: clamp(280px, 32vw, 400px);
-    width: calc(100% - 1.5rem);
-    margin: 0.75rem 0.75rem 0;
+    width: 100%;
+    margin: 0.75rem 0 0;
+    box-sizing: border-box;
 }
 
 .pcg-pack-col .paquete-content {

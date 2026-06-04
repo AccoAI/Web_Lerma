@@ -533,7 +533,7 @@ function initConfiguradorPaquete() {
     var configuradorHotelWrap = document.getElementById('configurador-hotel-wrap');
     var hotelPorNocheBlock = document.getElementById('hotel-por-noche-block');
     var hotelesPorNocheContainer = document.getElementById('hoteles-por-noche-container');
-        var comidaSinFechas = document.getElementById('comida-sin-fechas');
+    var comidaSinFechas = document.getElementById('comida-sin-fechas');
         var comidaPostbookingNota = document.getElementById('comida-postbooking-nota');
     var comidaPorDiaContainer = document.getElementById('comida-por-dia-container');
     var ancillaryPorDiaContainer = document.getElementById('ancillary-por-dia-container');
@@ -553,13 +553,13 @@ function initConfiguradorPaquete() {
     }
 
     function leerHoraSalidaPrevFinSemana(numDias) {
-        var prev = {};
+            var prev = {};
         if (!form || !numDias) return prev;
-        for (var i = 1; i <= numDias; i++) {
+            for (var i = 1; i <= numDias; i++) {
             var name = numDias === 1 ? 'hora_salida' : 'hora_salida_dia_' + i;
             var inp = form.querySelector('input[name="' + name + '"]');
-            if (inp && inp.value) prev[i] = inp.value;
-        }
+                if (inp && inp.value) prev[i] = inp.value;
+            }
         return prev;
     }
 
@@ -574,7 +574,7 @@ function initConfiguradorPaquete() {
                 if (conCampo) {
                     el.removeAttribute('disabled');
                     if (el.tagName === 'INPUT') el.setAttribute('required', 'required');
-                } else {
+        } else {
                     el.setAttribute('disabled', 'disabled');
                     el.removeAttribute('required');
                 }
@@ -1632,7 +1632,7 @@ function initConfiguradorPaquete() {
             '<span class="ancillary-precio" data-ancillary="' + escapeHtmlComida(svc.precioKey) + '"></span>' +
             '<div class="config-card-controls config-card-controls--solo-counter">' +
             '<div class="ancillary-counter-wrap config-card-counter">' +
-            '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>' +
+                '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>' +
             '<input type="number" id="' + escapeHtmlComida(svc.inputId) + '" name="' + escapeHtmlComida(svc.inputName) + '" min="0" max="20" value="' + qty + '" class="ancillary-counter" readonly>' +
             '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar">+</button>' +
             '</div></div></article>'
@@ -1898,8 +1898,8 @@ function initConfiguradorPaquete() {
             onChange: function (count, fechas) {
                 generarPlanPorDiaFinSemana(count, fechas || []);
                 if (configuradorHotelWrap) {
-                    actualizarBloqueHotel();
-                    if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
+                        actualizarBloqueHotel();
+                        if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
                 }
                 actualizarBloqueComida(count, fechas || []);
                 actualizarBloqueAncillaryPorDia(count, fechas || []);
@@ -2139,7 +2139,7 @@ function initConfiguradorPaquete() {
             resumenHTML += '<p><strong>Estancia:</strong> ' + noches + ' ' + (noches === '1' ? 'noche' : 'noches') + '</p>';
             resumenHTML += '<p><strong>Green fees:</strong> ' + salidasConCampo + ' ' + (salidasConCampo === 1 ? 'salida' : 'salidas') + '</p>';
             if (!packSinAlojamiento) {
-                resumenHTML += '<p><strong>Alojamiento:</strong> ' + (necesitaHotel && hotelOk ? (noches + ' ' + (noches === '1' ? 'noche' : 'noches')) : '—') + '</p>';
+            resumenHTML += '<p><strong>Alojamiento:</strong> ' + (necesitaHotel && hotelOk ? (noches + ' ' + (noches === '1' ? 'noche' : 'noches')) : '—') + '</p>';
             }
             resumenHTML += '<p><strong>Reservas de comida:</strong> ' + (numServicios > 0 ? 'x' + numServicios : '—') + '</p>';
 
