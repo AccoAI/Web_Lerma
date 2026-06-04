@@ -16,7 +16,9 @@
   function getConfigSteps(form) {
     return Array.prototype.slice.call(
       form.querySelectorAll('.configurador-seccion, .forma-pago-block')
-    );
+    ).filter(function (step) {
+      return !step.hidden;
+    });
   }
 
   function findStep(el) {

@@ -619,6 +619,7 @@ function initConfiguradorPaquete() {
         actualizarBloqueComida(nFechas, fechasCampo);
         actualizarBloqueAncillaryPorDia(nFechas, fechasCampo);
         actualizarBloqueTiendaGolf(nFechas, fechasCampo);
+        if (typeof window.updateConfiguradorFlujoProgresivo === 'function') window.updateConfiguradorFlujoProgresivo(form);
         actualizarResumen();
     }
 
@@ -692,13 +693,20 @@ function initConfiguradorPaquete() {
     }
 
     function syncFechasGolfBodyVisibility() {
-        var body = document.getElementById('fechas-golf-body');
-        var espera = document.getElementById('fechas-golf-espera-personas');
-        if (!body) return;
-        var ready = isTamanioGrupoCompleto();
-        body.hidden = !ready;
-        if (espera) espera.hidden = ready;
-        if (ready) recalcNumeroGrupos();
+        if (typeof window.syncFechasGolfGate === 'function' && form) {
+            window.syncFechasGolfGate(form);
+        } else {
+            var body = document.getElementById('fechas-golf-body');
+            var espera = document.getElementById('fechas-golf-espera-personas');
+            if (!body) return;
+            var ready = isTamanioGrupoCompleto();
+            body.hidden = !ready;
+            if (espera) espera.hidden = ready;
+        }
+        if (isTamanioGrupoCompleto()) recalcNumeroGrupos();
+        if (typeof window.updateConfiguradorFlujoProgresivo === 'function' && form) {
+            window.updateConfiguradorFlujoProgresivo(form);
+        }
     }
 
     function syncFechasGrupoBarLayout(numDias) {
@@ -1472,6 +1480,20 @@ function initConfiguradorPaquete() {
         return true;
     }
 
+    function packGolfComidaGreenFeesCompleto(count, formData) {
+        if (count < 1) return false;
+        var salidas = 0;
+        for (var i = 1; i <= count; i++) {
+            if ((formData.get('campo-dia-' + i) || '').trim()) salidas++;
+        }
+        return salidas === count;
+    }
+
+    function packGolfComidaPackCoreListo(count, formData) {
+        if (!packGolfComidaMenusOpco || count < 1) return false;
+        return packGolfComidaGreenFeesCompleto(count, formData) && packOpcoTieneMenuSeleccionado(count);
+    }
+
     function seleccionarMenuOpcoEnDia(diaActivador, menuId) {
         if (!form || !menuId) return;
         var fd = new FormData(form);
@@ -1531,12 +1553,7 @@ function initConfiguradorPaquete() {
         var prereqState = getConfigPrereqState(form);
         var prereqsOk = prereqState.fechas && prereqState.personas;
         if (comidaSinFechas) {
-            if (!prereqsOk) {
-                comidaSinFechas.style.display = 'block';
-                setConfigSeccionHint(comidaSinFechas, getConfigPrereqHintI18nKey(prereqState));
-            } else {
-                comidaSinFechas.style.display = 'none';
-            }
+            comidaSinFechas.style.display = 'none';
         }
         if (comidaPostbookingNota) comidaPostbookingNota.hidden = !prereqsOk || count < 1;
         if (!comidaPorDiaContainer) return;
@@ -1645,10 +1662,7 @@ function initConfiguradorPaquete() {
             ancillaryPorDiaContainer.innerHTML = '';
             ancillaryPorDiaContainer.style.display = 'none';
             ancillaryDiasNav = [];
-            if (ancillarySinPrereqs) {
-                ancillarySinPrereqs.style.display = 'block';
-                setConfigSeccionHint(ancillarySinPrereqs, getConfigPrereqHintI18nKey(prereqState));
-            }
+            if (ancillarySinPrereqs) ancillarySinPrereqs.style.display = 'none';
             return;
         }
         var playable = [];
@@ -1661,10 +1675,7 @@ function initConfiguradorPaquete() {
             ancillaryPorDiaContainer.innerHTML = '';
             ancillaryPorDiaContainer.style.display = 'none';
             ancillaryDiasNav = [];
-            if (ancillarySinPrereqs) {
-                ancillarySinPrereqs.style.display = 'block';
-                setConfigSeccionHint(ancillarySinPrereqs, 'config_hint_falta_campo');
-            }
+            if (ancillarySinPrereqs) ancillarySinPrereqs.style.display = 'none';
             return;
         }
         var prev = leerAncillaryPrevByDay(playable);
@@ -1744,19 +1755,13 @@ function initConfiguradorPaquete() {
         if (!prereqsOk || count < 1) {
             tiendaGolfContainer.innerHTML = '';
             tiendaGolfContainer.style.display = 'none';
-            if (tiendaGolfSinPrereqs) {
-                tiendaGolfSinPrereqs.style.display = 'block';
-                setConfigSeccionHint(tiendaGolfSinPrereqs, getConfigPrereqHintI18nKey(prereqState));
-            }
+            if (tiendaGolfSinPrereqs) tiendaGolfSinPrereqs.style.display = 'none';
             return;
         }
         if (!tieneDiasJugables(count)) {
             tiendaGolfContainer.innerHTML = '';
             tiendaGolfContainer.style.display = 'none';
-            if (tiendaGolfSinPrereqs) {
-                tiendaGolfSinPrereqs.style.display = 'block';
-                setConfigSeccionHint(tiendaGolfSinPrereqs, 'config_hint_falta_campo');
-            }
+            if (tiendaGolfSinPrereqs) tiendaGolfSinPrereqs.style.display = 'none';
             return;
         }
         var productos = getTiendaGolfConfig();
@@ -2001,6 +2006,7 @@ function initConfiguradorPaquete() {
                 actualizarBloqueComida(count, fechas || []);
                 actualizarBloqueAncillaryPorDia(count, fechas || []);
                 actualizarBloqueTiendaGolf(count, fechas || []);
+                if (typeof window.updateConfiguradorFlujoProgresivo === 'function') window.updateConfiguradorFlujoProgresivo(form);
                 if (typeof actualizarResumen === 'function') actualizarResumen();
                 schedulePickerIframeRefreshFromForm();
             }
@@ -2036,6 +2042,7 @@ function initConfiguradorPaquete() {
             }
             if (t && t.name && /^campo-dia-\d+$/.test(t.name)) {
                 onCampoDiaPlanChangeFinSemana();
+                if (typeof window.updateConfiguradorFlujoProgresivo === 'function') window.updateConfiguradorFlujoProgresivo(form);
                 return;
             }
             if (t && t.classList && t.classList.contains('comida-hora-comida')) {
@@ -2185,6 +2192,9 @@ function initConfiguradorPaquete() {
             actualizarBloqueComida(faInit.length, faInit);
             actualizarBloqueAncillaryPorDia(faInit.length, faInit);
             actualizarBloqueTiendaGolf(faInit.length, faInit);
+            if (typeof window.updateConfiguradorFlujoProgresivo === 'function') {
+                window.updateConfiguradorFlujoProgresivo(form);
+            }
         }
         if (!window.__golfLermaPaqueteMsgBound) {
             window.__golfLermaPaqueteMsgBound = true;
@@ -2319,7 +2329,9 @@ function initConfiguradorPaquete() {
                 }
                 totalGF += p;
             }
-            if (numGF === 0) totalGF = (gfLerma.laborable || 33) + (gfSaldana.finDeSemana || 44);
+            if (numGF === 0 && !packGolfComidaMenusOpco) {
+                totalGF = (gfLerma.laborable || 33) + (gfSaldana.finDeSemana || 44);
+            }
             var gf = roundEuros(totalGF * numParticipants);
             window.__HB_GF_TOTAL__ = gf;
             if (typeof window.refreshHotelCardPackagePrices === 'function') window.refreshHotelCardPackagePrices();
@@ -2388,7 +2400,10 @@ function initConfiguradorPaquete() {
                 );
             }
 
-            var base = roundEuros(gf + aloj + comidaVal + ancVal + tiendaVal);
+            var packCoreListo = packGolfComidaPackCoreListo(count, formData);
+            var gfEnBase = packGolfComidaMenusOpco ? (packCoreListo ? gf : 0) : gf;
+            var comidaEnBase = packGolfComidaMenusOpco ? (packCoreListo ? comidaVal : 0) : comidaVal;
+            var base = roundEuros(gfEnBase + aloj + comidaEnBase + ancVal + tiendaVal);
             var descPct = tieneCorrespondencia ? DESCUENTO_PACK_PORC : 12;
             var desc = roundEuros(base * descPct / 100);
             var subtotal = roundEuros(base - desc);
@@ -2401,7 +2416,7 @@ function initConfiguradorPaquete() {
                 var lblGfMenus = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_gf_menus_comida') : 'Green fees + Menús Casa Club Lerma';
                 if (!lblGfMenus || lblGfMenus === 'resumen_gf_menus_comida') lblGfMenus = 'Green fees + Menús Casa Club Lerma';
                 var gfMenusTotal = roundEuros(gf + comidaVal);
-                resumenHTML += '<tr><td>' + lblGfMenus + '</td><td>' + (gfMenusTotal > 0 ? formatEurosResumen(gfMenusTotal) + ' €' : '—') + '</td></tr>';
+                resumenHTML += '<tr><td>' + lblGfMenus + '</td><td>' + (packCoreListo ? formatEurosResumen(gfMenusTotal) + ' €' : '—') + '</td></tr>';
             } else {
                 resumenHTML += '<tr><td>Green fees</td><td>' + formatEurosResumen(gf) + ' €</td></tr>';
                 var lblMenusRow = hasTiendaGolf
@@ -2469,8 +2484,12 @@ function initConfiguradorPaquete() {
             if (packGolfComidaMenusOpco) {
                 var fechasEarlyMenu = formDataEarly.getAll('fechas[]') || [];
                 var countEarlyMenu = fechasEarlyMenu.length;
-                if (countEarlyMenu >= 1 && !packOpcoTieneMenuSeleccionado(countEarlyMenu)) {
-                    alert(i18nComidaReplace('alert_menu_opco_obligatorio', 'Elige un menú de Casa Club Lerma para todo el grupo antes de reservar.', null));
+                if (countEarlyMenu >= 1 && !packGolfComidaPackCoreListo(countEarlyMenu, formDataEarly)) {
+                    if (!packGolfComidaGreenFeesCompleto(countEarlyMenu, formDataEarly)) {
+                        alert('Completa la selección de golf (campo en todos los días del paquete) antes de reservar.');
+                    } else {
+                        alert(i18nComidaReplace('alert_menu_opco_obligatorio', 'Elige un menú de Casa Club Lerma para todo el grupo antes de reservar.', null));
+                    }
                     var menuSec = document.querySelector('.configurador-seccion--menus-opco');
                     if (menuSec) menuSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     return;
