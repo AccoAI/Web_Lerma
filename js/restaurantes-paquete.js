@@ -275,6 +275,7 @@
     window.mountRestaurantePaquetePicker = function (container, options) {
         if (!container) return null;
         var soloExternos = !!(options && options.soloExternos);
+        var hideEmbedContext = !!(options && options.hideEmbedContext);
 
         container.innerHTML = '';
         container.className = (container.className + ' restaurantes-paquete-picker-inner').trim();
@@ -427,13 +428,25 @@
 
                 var srcEmbed = urlIframe(r);
                 var alto = r.iframeAlto != null ? r.iframeAlto : 700;
+                if (hideEmbedContext && typeof window.matchMedia === 'function') {
+                    if (window.matchMedia('(max-width: 639px)').matches) {
+                        alto = Math.max(480, Math.min(alto, Math.round(window.innerHeight * 0.72)));
+                    }
+                }
                 ifr.style.height = alto + 'px';
+                ifr.setAttribute('height', String(alto));
                 ifr.setAttribute('title', 'Reserva — ' + r.nombre);
                 var raw = absolutizarUrl(srcEmbed);
                 var syncCtx = typeof window.getPaqueteEmbedContext === 'function' ? window.getPaqueteEmbedContext() : null;
                 var synced = applyPaqueteEmbedSyncToUrl(raw, syncCtx);
                 var provider = embedProviderFromUrl(raw);
-                renderEmbedContextHint(embedCtxEl, syncCtx, provider, synced);
+                if (hideEmbedContext) {
+                    embedCtxEl.style.display = 'none';
+                    embedCtxEl.setAttribute('hidden', '');
+                    embedCtxEl.innerHTML = '';
+                } else {
+                    renderEmbedContextHint(embedCtxEl, syncCtx, provider, synced);
+                }
                 ifr.src = synced;
             }
         }

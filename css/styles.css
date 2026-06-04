@@ -1036,7 +1036,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 .paquetes-comparativa-bloque {
     display: grid;
-    grid-template-columns: minmax(8.75rem, 0.82fr) repeat(3, minmax(0, 1.06fr));
+    grid-template-columns: minmax(12.5rem, 1.12fr) repeat(3, minmax(0, 1.06fr));
     gap: 0;
     background: var(--color-white);
     box-shadow: 0 8px 32px rgba(15, 51, 36, 0.12);
@@ -1150,22 +1150,23 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 @supports not (grid-template-columns: subgrid) {
     .pcg-row {
-        grid-template-columns: minmax(8.75rem, 0.82fr) repeat(3, minmax(0, 1.06fr));
+        grid-template-columns: minmax(12.5rem, 1.12fr) repeat(3, minmax(0, 1.06fr));
     }
 }
 
 .pcg-feature-label {
     grid-column: 1;
-    padding: 0.4rem 1.1rem;
+    padding: 0.4rem 0.85rem;
     border-top: 1px solid rgba(15, 51, 36, 0.1);
     background: var(--color-bg-light);
     font-weight: 500;
-    font-size: clamp(0.88rem, 1.05vw, 1rem);
+    font-size: clamp(0.68rem, 0.82vw, 0.95rem);
     color: var(--color-text);
     text-align: left;
     display: flex;
     align-items: center;
-    line-height: 1.25;
+    line-height: 1.2;
+    white-space: nowrap;
 }
 
 .pcg-row .pcg-cell:nth-child(2) {
@@ -1230,7 +1231,12 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     }
 
     .paquetes-comparativa-bloque {
-        min-width: 820px;
+        min-width: 920px;
+    }
+
+    .pcg-feature-label {
+        font-size: clamp(0.66rem, 0.78vw, 0.92rem);
+        letter-spacing: 0.01em;
     }
 }
 
@@ -4322,10 +4328,39 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     box-sizing: border-box;
 }
 
+/* Postbooking restaurantes: widget CoverManager / TheFork (sin panel de datos del paquete) */
+.confirmacion-post-pago .restaurante-paquete-embed-row .restaurante-paquete-embed-ctx {
+    display: none !important;
+}
+
+.confirmacion-post-pago .restaurante-paquete-embed-row .restaurante-paquete-iframe-wrap {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: none;
+    min-height: 520px;
+}
+
+.confirmacion-post-pago .restaurante-paquete-embed-row .restaurante-paquete-iframe {
+    display: block;
+    width: 100%;
+    min-height: 520px;
+}
+
 @media (min-width: 640px) {
-    .confirmacion-post-pago .restaurante-paquete-embed-row .restaurante-paquete-iframe-wrap,
-    .confirmacion-post-pago .restaurante-paquete-embed-row .restaurante-paquete-embed-ctx {
+    .confirmacion-post-pago .restaurante-paquete-embed-row:not([hidden]) {
+        flex-direction: row;
+        align-items: stretch;
+    }
+
+    .confirmacion-post-pago .restaurante-paquete-embed-row .restaurante-paquete-iframe-wrap {
+        flex: 1 1 0;
         min-width: 0;
+        min-height: 620px;
+    }
+
+    .confirmacion-post-pago .restaurante-paquete-embed-row .restaurante-paquete-iframe {
+        min-height: 620px;
+        height: 720px !important;
     }
 }
 
@@ -4382,121 +4417,76 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     line-height: 1.4;
 }
 
-/* Rentcars post-booking: embed (iframe ciudad + panel fechas) */
+/* Rentcars post-booking: widget v13 embebido (recogida, fechas, Buscar) */
 .post-booking-rentcars-block {
     margin-top: 0.75rem;
 }
 
-.post-booking-rentcars-embed-row .post-booking-rentcars-ctx {
-    margin-bottom: 0;
-}
-
-.post-booking-rentcars-affiliate-note {
-    margin: 0.75rem 0 0;
-    font-size: 0.8rem;
-    line-height: 1.45;
-    color: #666;
-}
-
-.post-booking-rentcars-iframe {
-    width: 100%;
-    min-height: 420px;
-    border: 0;
-    display: block;
-    background: #f8f8f8;
-}
-
-.post-booking-rentcars-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 0.65rem;
-    flex: 1 1 0;
-    min-width: 0;
-    width: 100%;
-    max-width: 100%;
+.post-booking-rentcars-intro {
+    margin-bottom: 0.75rem;
 }
 
 .post-booking-rentcars-widget-host {
-    margin-top: 0;
-    min-height: 420px;
+    margin: 0.5rem 0 0;
+    width: 100%;
+    max-width: none;
+    min-height: 480px;
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+.post-booking-rentcars-widget-iframe,
+.post-booking-rentcars-iframe {
+    display: block;
     width: 100%;
     max-width: 100%;
-    overflow: hidden;
+    min-height: 480px;
+    height: min(75vh, 720px);
+    border: 0;
+    background: #fff;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.post-booking-rentcars-go-wrap {
+    margin: 0.85rem 0 0;
+    text-align: center;
+}
+
+.post-booking-rentcars-go {
+    display: inline-block;
+    width: 100%;
+    max-width: 28rem;
+    text-decoration: none;
     box-sizing: border-box;
 }
 
-.post-booking-rentcars-mobile-fallback {
-    display: none;
+.post-booking-rentcars-go[hidden] {
+    display: none !important;
 }
 
-.post-booking-rentcars-mobile-fallback .post-booking-embed-intro {
-    margin-bottom: 0.85rem;
-}
-
-.post-booking-rentcars-widget-iframe {
-    display: block;
-    width: 100%;
-    border: 0;
-    background: #fff;
-    min-height: 420px;
-}
-
-.post-booking-rentcars-embed-row .post-booking-rentcars-stack {
-    flex: 1 1 0;
-    min-width: 0;
-}
-
-@media (min-width: 640px) {
-    .post-booking-rentcars-embed-row.post-booking-rentcars-embed-row {
-        flex-direction: row;
-        align-items: flex-start;
-    }
-
-    .post-booking-rentcars-embed-row .post-booking-rentcars-ctx {
-        flex: 0 0 min(17.5rem, 38%);
-        max-width: 17.5rem;
-    }
-
-    .post-booking-rentcars-embed-row .post-booking-rentcars-stack {
-        flex: 1 1 0;
-        min-width: 0;
-    }
+.confirmacion-post-pago .post-booking-travel-panel {
+    overflow: visible;
 }
 
 @media (max-width: 639px) {
     .confirmacion-post-pago .post-booking-travel-panel,
-    .confirmacion-post-pago .post-booking-rentcars-block,
-    .post-booking-rentcars-embed-row {
+    .confirmacion-post-pago .post-booking-rentcars-block {
         max-width: 100%;
-        overflow-x: clip;
         box-sizing: border-box;
+        overflow: visible;
     }
 
-    .post-booking-rentcars-embed-row {
-        flex-direction: column !important;
-        gap: 0.75rem;
+    .post-booking-rentcars-widget-host {
+        min-height: min(72vh, 560px);
     }
 
-    .post-booking-rentcars-embed-row .post-booking-rentcars-ctx,
-    .post-booking-rentcars-embed-row .post-booking-rentcars-stack,
-    .post-booking-rentcars-embed-row .restaurante-paquete-iframe-wrap {
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
-        flex: 1 1 auto !important;
+    .post-booking-rentcars-widget-iframe,
+    .post-booking-rentcars-iframe {
+        min-height: min(72vh, 560px);
+        height: min(72vh, 640px);
     }
 
-    .post-booking-rentcars-desktop-only,
-    .post-booking-embed-intro--desktop-only,
-    .post-booking-embed-hint--desktop-only {
-        display: none !important;
-    }
-
-    .post-booking-rentcars-mobile-fallback {
-        display: block;
-    }
-
-    .post-booking-rentcars-cta {
+    .post-booking-rentcars-go {
         max-width: none;
         width: 100%;
     }
@@ -12429,11 +12419,14 @@ body.page-torneo .torneo-detalle-section {
         padding-right: 0;
     }
 
-    /* Postbooking confirmación: sin sangrado; tabs y datos dentro del margen */
+    /* Postbooking confirmación: sin sangrado; tabs dentro del margen */
     .confirmacion-post-pago .post-travel-box {
         padding-left: 1rem;
         padding-right: 1rem;
-        overflow-x: clip;
+    }
+
+    .confirmacion-post-pago .post-restaurants-box {
+        overflow: visible;
     }
 
     .confirmacion-post-pago .comida-restaurante-picker-panel.post-booking-picker-panel {
@@ -12470,29 +12463,31 @@ body.page-torneo .torneo-detalle-section {
         box-sizing: border-box;
     }
 
-    .confirmacion-post-pago .restaurante-paquete-inhouse-datos li {
+    .confirmacion-post-pago .restaurante-paquete-embed-row {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 0.2rem;
+        gap: 0.5rem;
     }
 
-    .confirmacion-post-pago .restaurante-paquete-inhouse-k {
-        min-width: 0;
-    }
-
-    .confirmacion-post-pago .restaurante-paquete-inhouse-v {
-        overflow-wrap: anywhere;
-        max-width: 100%;
-    }
-
-    .confirmacion-post-pago .restaurante-paquete-iframe-wrap {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .confirmacion-post-pago .restaurante-paquete-iframe-wrap iframe {
+    .confirmacion-post-pago .restaurante-paquete-embed-row .restaurante-paquete-iframe-wrap {
+        flex: 0 0 auto;
+        order: 1;
         width: 100%;
+        max-width: none;
+        margin: 0.5rem 0 0;
+        padding: 0;
+        overflow: visible;
+        min-height: 480px;
+    }
+
+    .confirmacion-post-pago .restaurante-paquete-iframe-wrap iframe,
+    .confirmacion-post-pago .restaurante-paquete-embed-row .restaurante-paquete-iframe {
+        display: block;
+        width: 100% !important;
         max-width: 100%;
+        min-height: 480px;
+        height: min(72vh, 720px) !important;
+        border: none;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     }
 
     .configurador-seccion {

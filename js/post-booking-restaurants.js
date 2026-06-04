@@ -30,7 +30,10 @@
     var root = document.getElementById('post-booking-restaurant-root');
     if (!root) return;
 
-    var picker = window.mountRestaurantePaquetePicker(root, { soloExternos: true });
+    var picker = window.mountRestaurantePaquetePicker(root, {
+      soloExternos: true,
+      hideEmbedContext: true,
+    });
     if (picker && typeof picker.setCategoria === 'function') {
       picker.setCategoria('burgos');
     }
