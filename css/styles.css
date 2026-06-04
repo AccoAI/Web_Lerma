@@ -5713,123 +5713,36 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     color: var(--color-text);
 }
 
-.pack-golf-comida .comida-menu-opco-hora-wrap {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.65rem 1rem;
-    margin-bottom: 1.25rem;
-}
-
-.pack-golf-comida .comida-menu-opco-hora-label {
-    font-weight: 500;
-    font-size: 0.9rem;
-}
-
-.pack-golf-comida .comida-menu-opco-hora-wrap select {
-    min-width: 7rem;
-    padding: 0.45rem 0.65rem;
-    border: 1px solid rgba(15, 51, 36, 0.25);
-    font-family: inherit;
-}
-
-.pack-golf-comida .comida-menu-grid--opco {
-    flex-wrap: wrap;
-    overflow-x: visible;
-    gap: 1rem;
-}
-
-.pack-golf-comida .comida-menu-opco-card {
-    flex: 1 1 min(11.5rem, 100%);
-    max-width: 14rem;
-    min-height: 0;
-    margin: 0;
+.pack-golf-comida .comida-menu-card--opco {
     cursor: pointer;
-    border-radius: 6px;
-    overflow: hidden;
+    margin: 0;
 }
 
-.pack-golf-comida .comida-menu-opco-card input[type="radio"] {
+.pack-golf-comida .comida-menu-opco-radio {
     position: absolute;
     opacity: 0;
     pointer-events: none;
+    width: 0;
+    height: 0;
 }
 
-.pack-golf-comida .comida-menu-opco-card__content {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.35rem;
-    padding: 0;
-    min-height: 13rem;
-    background: #1a4d3a;
-    border: 2px solid rgba(26, 77, 58, 0.18);
-    border-radius: 6px;
-    overflow: hidden;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.pack-golf-comida .comida-menu-opco-card:hover .comida-menu-opco-card__content,
-.pack-golf-comida .comida-menu-opco-card:focus-within .comida-menu-opco-card__content {
-    border-color: var(--color-primary);
-}
-
-.pack-golf-comida .comida-menu-opco-card input[type="radio"]:checked + .comida-menu-opco-card__content {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px var(--color-primary);
-}
-
-.pack-golf-comida .comida-menu-opco-card__nombre {
-    padding: 0.5rem 0.65rem 0;
-    font-weight: 600;
-    font-size: 0.88rem;
-    line-height: 1.3;
-    color: #fff;
-    text-align: center;
-}
-
-.pack-golf-comida .comida-menu-card__precio--referencia {
-    opacity: 0.32;
-    filter: grayscale(0.15);
-    text-align: center;
-    padding: 0 0.65rem;
-    color: rgba(255, 255, 255, 0.85);
-}
-
-.pack-golf-comida .comida-menu-opco-card__pack-note {
+.pack-golf-comida .comida-menu-opco-pack-note {
     display: block;
     text-align: center;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.92);
-    padding: 0 0.5rem;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.3;
 }
 
-.pack-golf-comida .comida-menu-opco-card__grupo {
+.pack-golf-comida .comida-menu-opco-grupo {
     display: block;
     text-align: center;
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.75);
-    padding: 0 0.5rem 0.65rem;
-}
-
-.pack-golf-comida .comida-menu-opco-card__media {
-    display: block;
-    position: relative;
-    width: 100%;
-    aspect-ratio: 4 / 3;
-    background-image: var(--comida-menu-fallback, linear-gradient(145deg, #3d5c45 0%, #1a4d3a 100%));
-    background-size: cover;
-    background-position: center;
-}
-
-.pack-golf-comida .comida-menu-opco-card__photo {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.72);
+    margin-top: 0.15rem;
 }
 
 .comida-menu-card {

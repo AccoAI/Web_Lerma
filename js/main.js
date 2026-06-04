@@ -1224,6 +1224,7 @@ function initConfiguradorPaquete() {
 
     function comidaDiaTieneSeleccion(dia) {
         var reservas = leerReservasComidaDia(dia);
+        if (packGolfComidaMenusOpco) return reservasTienenMenuClub(reservas);
         return reservas.length > 0 && reservasTienenMenuClub(reservas);
     }
 
@@ -1289,7 +1290,7 @@ function initConfiguradorPaquete() {
         }
         ensureComidaLegacyHiddenFields(diaIndex, reservas);
         var menus = typeof window.getCasaClubMenus === 'function' ? window.getCasaClubMenus() : [];
-        var tieneSel = reservas.length > 0;
+        var tieneSel = packGolfComidaMenusOpco ? reservasTienenMenuClub(reservas) : reservas.length > 0;
         var horaDiaId = 'comida-dia-hora-' + diaIndex;
         var html = '';
         html += '<article class="comida-dia-card' + (tieneSel ? ' comida-dia-card--selected' : '') + '" data-dia-card="' + diaIndex + '">';
@@ -1307,11 +1308,15 @@ function initConfiguradorPaquete() {
         html += '<h5 class="comida-dia-card__section-title">Casa Club Lerma</h5>';
         html += '<span class="comida-dia-card__tag">Solo comidas</span>';
         html += '</div>';
-        html += '<div class="comida-menu-grid" role="group" aria-label="Menús Casa Club">';
+        html += '<div class="comida-menu-grid' + (packGolfComidaMenusOpco ? ' comida-menu-grid--opco' : '') + '" role="' + (packGolfComidaMenusOpco ? 'radiogroup' : 'group') + '" aria-label="Menús Casa Club">';
         for (var mi = 0; mi < menus.length; mi++) {
             var menu = menus[mi];
-            var reservaMenu = findReservaClubMenu(reservas, menu.id);
-            html += htmlComidaMenuCard(menu, diaIndex, reservaMenu ? reservaMenu.r : null, nJug);
+            if (packGolfComidaMenusOpco) {
+                html += htmlComidaMenuCardOpco(menu, diaIndex, leerMenuPaqueteOpcoId(), nJug);
+            } else {
+                var reservaMenu = findReservaClubMenu(reservas, menu.id);
+                html += htmlComidaMenuCard(menu, diaIndex, reservaMenu ? reservaMenu.r : null, nJug);
+            }
         }
         html += '</div></section></article>';
         panel.innerHTML = html;
@@ -1461,26 +1466,32 @@ function initConfiguradorPaquete() {
 
     function packOpcoTieneMenuSeleccionado(count) {
         if (!packGolfComidaMenusOpco || count < 1) return true;
-        if (leerMenuPaqueteOpcoId()) return true;
         for (var d = 1; d <= count; d++) {
-            if (reservasTienenMenuClub(leerReservasComidaDia(d))) return true;
+            if (!reservasTienenMenuClub(leerReservasComidaDia(d))) return false;
         }
-        return false;
+        return true;
     }
 
-    function aplicarMenuPaqueteOpco(menuId, horaOverride) {
+    function seleccionarMenuOpcoEnDia(diaActivador, menuId) {
         if (!form || !menuId) return;
         var fd = new FormData(form);
         var fechas = fd.getAll('fechas[]') || [];
         var count = fechas.length;
         if (count < 1) return;
         var nJug = Math.max(1, getNumJugadoresComida());
-        var hora = horaOverride != null ? normalizarHoraComida(horaOverride) : null;
-        if (!hora) {
-            var selHora = form.querySelector('#comida-menu-opco-hora');
-            hora = selHora ? normalizarHoraComida(selHora.value) : HORA_COMIDA_DEFAULT;
-        }
         for (var d = 1; d <= count; d++) {
+            var hora = HORA_COMIDA_DEFAULT;
+            var selHora = form.querySelector('#comida-dia-hora-' + d);
+            if (selHora) {
+                hora = normalizarHoraComida(selHora.value);
+            } else {
+                var reservasH = leerReservasComidaDia(d);
+                hora = getHoraComidaDiaDesdeReservas(reservasH) || HORA_COMIDA_DEFAULT;
+            }
+            if (d === diaActivador) {
+                var selAct = form.querySelector('#comida-dia-hora-' + diaActivador);
+                if (selAct) hora = normalizarHoraComida(selAct.value);
+            }
             guardarReservasComidaDia(d, [{
                 tipo: 'club',
                 menuId: menuId,
@@ -1488,57 +1499,31 @@ function initConfiguradorPaquete() {
                 hora: hora,
             }]);
         }
+        syncComidaDiaTabsBadges();
+        if (comidaDiaActivo) renderComidaDiaPanel(comidaDiaActivo);
     }
 
     function syncComensalesMenuOpcoPaquete() {
         if (!packGolfComidaMenusOpco) return;
         var menuId = leerMenuPaqueteOpcoId();
-        if (menuId) aplicarMenuPaqueteOpco(menuId);
+        if (menuId) seleccionarMenuOpcoEnDia(comidaDiaActivo || 1, menuId);
     }
 
-    function htmlComidaMenuCardOpco(menu, selectedId, nJug) {
+    function htmlComidaMenuCardOpco(menu, dia, selectedId, nJug) {
         var checked = selectedId === menu.id;
         var packNote = i18nComidaReplace('comida_menu_opco_pack_note', 'Incluido en el precio del paquete', null);
         var grupoNote = i18nComidaReplace('comida_menu_opco_grupo', 'Para las {n} personas del paquete', { n: nJug });
+        var selectedCls = checked ? ' comida-menu-card--added' : '';
         return (
-            '<label class="comida-menu-opco-card opcion-card comida-menu-card' + (checked ? ' comida-menu-opco-card--selected' : '') + '" data-menu="' + escapeHtmlComida(menu.id) + '">' +
-            '<input type="radio" name="comida_menu_paquete" value="' + escapeHtmlComida(menu.id) + '"' + (checked ? ' checked' : '') + ' required>' +
-            '<div class="comida-menu-opco-card__content opcion-content">' +
-            htmlTarjetaFotoMedia(menu.imagen, 'comida-menu-opco-card', true) +
-            '<span class="comida-menu-opco-card__nombre">' + escapeHtmlComida(menu.label) + '</span>' +
-            '<span class="comida-menu-opco-card__pack-note">' + escapeHtmlComida(packNote) + '</span>' +
-            '<span class="comida-menu-opco-card__grupo">' + escapeHtmlComida(grupoNote) + '</span>' +
+            '<label class="comida-menu-card comida-menu-card--config comida-menu-card--opco' + selectedCls + '" data-dia="' + dia + '" data-menu="' + escapeHtmlComida(menu.id) + '">' +
+            '<input type="radio" name="comida_menu_paquete" class="comida-menu-opco-radio" value="' + escapeHtmlComida(menu.id) + '" data-dia="' + dia + '"' + (checked ? ' checked' : '') + '>' +
+            htmlTarjetaFotoMedia(menu.imagen, 'comida-menu-card', true) +
+            '<div class="comida-menu-card__content">' +
+            '<span class="comida-menu-card__nombre">' + escapeHtmlComida(menu.label) + '</span>' +
+            '<span class="comida-menu-opco-pack-note">' + escapeHtmlComida(packNote) + '</span>' +
+            '<span class="comida-menu-opco-grupo">' + escapeHtmlComida(grupoNote) + '</span>' +
             '</div></label>'
         );
-    }
-
-    function renderComidaMenuOpcoPaquete(count) {
-        if (!comidaPorDiaContainer) return;
-        var menus = typeof window.getCasaClubMenus === 'function' ? window.getCasaClubMenus() : [];
-        var selectedId = leerMenuPaqueteOpcoId();
-        var nJug = Math.max(1, getNumJugadoresComida());
-        var horaSel = HORA_COMIDA_DEFAULT;
-        if (count >= 1) {
-            var r0 = leerReservasComidaDia(1);
-            if (r0[0] && r0[0].hora) horaSel = normalizarHoraComida(r0[0].hora);
-        }
-        var lead = i18nComidaReplace('comida_menu_opco_lead', 'Elige un menú para todo el grupo (obligatorio). El importe se incluye en el precio cerrado del paquete.', null);
-        var horaLbl = i18nComidaReplace('comida_menu_opco_hora', 'Hora de la comida en Casa Club', null);
-        var html = '<div class="comida-menu-opco-bloque">';
-        html += '<p class="comida-menu-opco-lead">' + escapeHtmlComida(lead) + '</p>';
-        html += '<div class="comida-menu-opco-hora-wrap">';
-        html += '<label class="comida-menu-opco-hora-label" for="comida-menu-opco-hora">' + escapeHtmlComida(horaLbl) + '</label>';
-        html += '<select id="comida-menu-opco-hora" class="comida-dia-hora comida-hora-comida" aria-label="' + escapeHtmlComida(horaLbl) + '">' + htmlOpcionesHoraComida(horaSel) + '</select>';
-        html += '</div>';
-        html += '<div class="comida-menu-grid comida-menu-grid--opco" role="radiogroup" aria-label="Menús Casa Club">';
-        for (var mi = 0; mi < menus.length; mi++) {
-            html += htmlComidaMenuCardOpco(menus[mi], selectedId, nJug);
-        }
-        html += '</div></div>';
-        comidaPorDiaContainer.style.display = 'block';
-        comidaPorDiaContainer.innerHTML = html;
-        comidaDiasNav = [];
-        if (selectedId) aplicarMenuPaqueteOpco(selectedId, horaSel);
     }
 
     function actualizarBloqueComida(count, fechas) {
@@ -1561,10 +1546,6 @@ function initConfiguradorPaquete() {
             comidaDiasNav = [];
             return;
         }
-        if (packGolfComidaMenusOpco) {
-            renderComidaMenuOpcoPaquete(count);
-            return;
-        }
         var prevReservas = {};
         for (var pi = 1; pi <= count; pi++) {
             prevReservas[pi] = leerReservasComidaDia(pi).filter(function (r) {
@@ -1580,7 +1561,12 @@ function initConfiguradorPaquete() {
             });
         }
         if (comidaDiaActivo > count || comidaDiaActivo < 1) comidaDiaActivo = 1;
-        var tabsHtml = '<div class="config-dia-tabs-wrap"><div class="config-dia-tabs" role="tablist" aria-label="Días de comida" data-dia-tab-group="comida">';
+        var tabsHtml = '';
+        if (packGolfComidaMenusOpco) {
+            var leadOpco = i18nComidaReplace('comida_menu_opco_lead', 'Elige un menú para todo el grupo (obligatorio). El importe se incluye en el precio cerrado del paquete.', null);
+            tabsHtml += '<p class="comida-menu-opco-lead">' + escapeHtmlComida(leadOpco) + '</p>';
+        }
+        tabsHtml += '<div class="config-dia-tabs-wrap"><div class="config-dia-tabs" role="tablist" aria-label="Días de comida" data-dia-tab-group="comida">';
         for (var ti = 0; ti < comidaDiasNav.length; ti++) {
             var nav = comidaDiasNav[ti];
             tabsHtml += htmlConfigDiaTabBtn(nav.index, nav.titulo, nav.index === comidaDiaActivo, comidaDiaTieneSeleccion(nav.index), 'comida');
@@ -2082,13 +2068,8 @@ function initConfiguradorPaquete() {
                 return;
             }
             if (t && t.name === 'comida_menu_paquete') {
-                aplicarMenuPaqueteOpco(t.value);
-                scheduleActualizarResumen();
-                return;
-            }
-            if (t && t.id === 'comida-menu-opco-hora') {
-                var menuOpcoHora = leerMenuPaqueteOpcoId();
-                if (menuOpcoHora) aplicarMenuPaqueteOpco(menuOpcoHora, t.value);
+                var diaOpco = parseInt(t.getAttribute('data-dia'), 10) || comidaDiaActivo || 1;
+                seleccionarMenuOpcoEnDia(diaOpco, t.value);
                 scheduleActualizarResumen();
                 return;
             }
