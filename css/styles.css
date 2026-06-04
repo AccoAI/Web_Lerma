@@ -605,9 +605,41 @@ a.hero-saldaña-link:hover {
 
 /* Paquetes y Configuradores */
 .paquetes-configuradores {
-    padding: 4rem 0;
-    background: var(--color-white);
+    padding: clamp(3.5rem, 6vw, 5.5rem) 0;
+    background: linear-gradient(180deg, var(--color-bg-light) 0%, var(--color-white) 12rem);
     width: 100%;
+}
+
+.paquetes-configuradores__container {
+    width: 100%;
+    max-width: min(1560px, 98vw);
+    margin: 0 auto;
+    padding-left: clamp(0.75rem, 2vw, 2rem);
+    padding-right: clamp(0.75rem, 2vw, 2rem);
+}
+
+.paquetes-configuradores__header {
+    margin-bottom: clamp(2rem, 4vw, 3rem);
+}
+
+.paquetes-section-title {
+    font-family: var(--font-primary);
+    font-size: clamp(2.25rem, 5vw, 3.25rem);
+    font-weight: 300;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    text-align: center;
+    margin: 0;
+    color: var(--color-primary);
+    line-height: 1.15;
+}
+
+.paquetes-destacados {
+    width: 100%;
+}
+
+.paquetes-secundarios {
+    margin-top: clamp(2.5rem, 5vw, 4rem);
 }
 
     .paquetes-configuradores .container {
@@ -970,33 +1002,36 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 .paquetes-comparativa-bloque-wrap {
-    margin-bottom: 1rem;
+    margin-bottom: 0;
+    width: 100%;
 }
 
 .paquetes-comparativa-bloque {
     display: grid;
-    grid-template-columns: minmax(9.5rem, 1.12fr) repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(8.75rem, 0.82fr) repeat(3, minmax(0, 1.06fr));
     gap: 0;
     background: var(--color-white);
-    box-shadow: var(--shadow);
-    border: 1px solid rgba(15, 51, 36, 0.1);
+    box-shadow: 0 8px 32px rgba(15, 51, 36, 0.12);
+    border: 1px solid rgba(15, 51, 36, 0.12);
+    width: 100%;
 }
 
 .pcg-corner {
     grid-column: 1;
     grid-row: 1;
-    padding: 1rem;
+    padding: 1.15rem 1rem;
     background: var(--color-primary);
     color: var(--color-white);
     display: flex;
-    align-items: flex-start;
+    align-items: center;
+    justify-content: flex-start;
     border-right: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .pcg-corner-label {
     margin: 0;
     font-family: var(--font-primary);
-    font-size: 0.85rem;
+    font-size: clamp(0.8rem, 1.1vw, 0.95rem);
     font-weight: 500;
     letter-spacing: 1.5px;
     text-transform: uppercase;
@@ -1005,7 +1040,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 .pcg-pack-col {
     grid-row: 1;
-    padding: 0 0 0.65rem;
+    padding: 0 0 0.75rem;
     display: flex;
     flex-direction: column;
     gap: 0;
@@ -1019,24 +1054,50 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 .pcg-pack-col .pcg-pack-title {
     margin: 0;
-    min-height: auto;
-    padding: 1rem 0.65rem;
+    min-height: 3.75rem;
+    padding: 1.1rem 0.85rem;
     background: var(--color-primary);
     color: var(--color-white);
     font-family: var(--font-primary);
-    font-size: 0.85rem;
+    font-size: clamp(0.78rem, 1.15vw, 1rem);
     font-weight: 500;
     letter-spacing: 1.5px;
     text-transform: uppercase;
-    line-height: 1.35;
+    line-height: 1.3;
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+    overflow: visible;
 }
 
 .pcg-pack-col .pcg-pack-card {
     flex: 1 1 auto;
-    min-height: 240px;
-    width: calc(100% - 1.3rem);
-    margin: 0.65rem 0.65rem 0;
+    min-height: clamp(280px, 32vw, 400px);
+    width: calc(100% - 1.5rem);
+    margin: 0.75rem 0.75rem 0;
+}
+
+.pcg-pack-col .paquete-content {
+    padding: clamp(1.5rem, 2.5vw, 2.25rem) clamp(1rem, 2vw, 1.75rem) !important;
+}
+
+.pcg-pack-col .paquete-descripcion {
+    font-size: clamp(0.95rem, 1.35vw, 1.15rem) !important;
+    line-height: 1.45 !important;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+.pcg-pack-col .paquete-logo-campo {
+    height: clamp(38px, 4vw, 48px);
+    max-width: 110px;
+}
+
+.pcg-pack-col .paquete-overlay {
+    background: linear-gradient(to bottom, rgba(15, 51, 36, 0.35), rgba(26, 77, 58, 0.72));
 }
 
 .pcg-pack-features {
@@ -1069,27 +1130,27 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 .pcg-feature-label {
-    padding: 0.72rem 1rem;
+    padding: 0.85rem 1.1rem;
     border-top: 1px solid rgba(15, 51, 36, 0.1);
     background: var(--color-bg-light);
     font-weight: 500;
-    font-size: 0.88rem;
+    font-size: clamp(0.88rem, 1.05vw, 1rem);
     color: var(--color-text);
     text-align: left;
     display: flex;
     align-items: center;
-    line-height: 1.35;
+    line-height: 1.4;
 }
 
 .pcg-cell {
-    padding: 0.72rem 0.5rem;
+    padding: 0.85rem 0.5rem;
     border-top: 1px solid rgba(15, 51, 36, 0.1);
     border-left: 1px solid rgba(15, 51, 36, 0.08);
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 2.75rem;
+    min-height: 3.25rem;
     background: var(--color-white);
 }
 
@@ -1110,13 +1171,13 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
+    width: clamp(1.85rem, 2.5vw, 2.15rem);
+    height: clamp(1.85rem, 2.5vw, 2.15rem);
     border-radius: 50%;
     background: #2e7d4f;
     color: #fff;
     font-weight: 700;
-    font-size: 1rem;
+    font-size: clamp(1rem, 1.4vw, 1.2rem);
     line-height: 1;
 }
 
@@ -1124,10 +1185,14 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     .paquetes-comparativa-bloque-wrap {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        margin-left: calc(-1 * clamp(0.75rem, 2vw, 2rem));
+        margin-right: calc(-1 * clamp(0.75rem, 2vw, 2rem));
+        padding-left: clamp(0.75rem, 2vw, 2rem);
+        padding-right: clamp(0.75rem, 2vw, 2rem);
     }
 
     .paquetes-comparativa-bloque {
-        min-width: 680px;
+        min-width: 820px;
     }
 }
 
@@ -11726,9 +11791,14 @@ body.page-torneo .torneo-detalle-section {
         grid-template-columns: 1fr;
     }
 
-    .paquetes-configuradores .container {
-        padding-left: 0;
-        padding-right: 0;
+    .paquetes-configuradores .container,
+    .paquetes-configuradores__container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .paquetes-section-title {
+        letter-spacing: 0.12em;
     }
 
     .paquete-titulo-externo {
