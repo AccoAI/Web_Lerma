@@ -540,6 +540,7 @@ function initConfiguradorPaquete() {
     var ancillarySinPrereqs = document.getElementById('ancillary-sin-prereqs');
     var tiendaGolfContainer = document.getElementById('tienda-golf-container');
     var tiendaGolfSinPrereqs = document.getElementById('tienda-golf-sin-prereqs');
+    var packGolfComidaMenusOpco = document.body.classList.contains('pack-golf-comida');
     var comidaDiaActivo = 1;
     var ancillaryDiaActivo = 1;
     var comidaDiasNav = [];
@@ -1438,6 +1439,110 @@ function initConfiguradorPaquete() {
         );
     }
 
+    function i18nComidaReplace(key, fallback, vars) {
+        var txt = (window.i18n && window.i18n.t) ? window.i18n.t(key) : fallback;
+        if (!txt || txt === key) txt = fallback;
+        if (vars) {
+            Object.keys(vars).forEach(function (k) {
+                txt = txt.split('{' + k + '}').join(String(vars[k]));
+            });
+        }
+        return txt;
+    }
+
+    function leerMenuPaqueteOpcoId() {
+        if (!form) return '';
+        var checked = form.querySelector('input[name="comida_menu_paquete"]:checked');
+        if (checked && checked.value) return String(checked.value).trim();
+        var res0 = leerReservasComidaDia(1);
+        if (res0[0] && res0[0].tipo === 'club' && res0[0].menuId) return String(res0[0].menuId).trim();
+        return '';
+    }
+
+    function packOpcoTieneMenuSeleccionado(count) {
+        if (!packGolfComidaMenusOpco || count < 1) return true;
+        if (leerMenuPaqueteOpcoId()) return true;
+        for (var d = 1; d <= count; d++) {
+            if (reservasTienenMenuClub(leerReservasComidaDia(d))) return true;
+        }
+        return false;
+    }
+
+    function aplicarMenuPaqueteOpco(menuId, horaOverride) {
+        if (!form || !menuId) return;
+        var fd = new FormData(form);
+        var fechas = fd.getAll('fechas[]') || [];
+        var count = fechas.length;
+        if (count < 1) return;
+        var nJug = Math.max(1, getNumJugadoresComida());
+        var hora = horaOverride != null ? normalizarHoraComida(horaOverride) : null;
+        if (!hora) {
+            var selHora = form.querySelector('#comida-menu-opco-hora');
+            hora = selHora ? normalizarHoraComida(selHora.value) : HORA_COMIDA_DEFAULT;
+        }
+        for (var d = 1; d <= count; d++) {
+            guardarReservasComidaDia(d, [{
+                tipo: 'club',
+                menuId: menuId,
+                comensales: nJug,
+                hora: hora,
+            }]);
+        }
+    }
+
+    function syncComensalesMenuOpcoPaquete() {
+        if (!packGolfComidaMenusOpco) return;
+        var menuId = leerMenuPaqueteOpcoId();
+        if (menuId) aplicarMenuPaqueteOpco(menuId);
+    }
+
+    function htmlComidaMenuCardOpco(menu, selectedId, nJug) {
+        var checked = selectedId === menu.id;
+        var precio = menu.precioPorPersona != null ? menu.precioPorPersona : '';
+        var packNote = i18nComidaReplace('comida_menu_opco_pack_note', 'Incluido en el precio del paquete', null);
+        var grupoNote = i18nComidaReplace('comida_menu_opco_grupo', 'Para las {n} personas del paquete', { n: nJug });
+        return (
+            '<label class="comida-menu-opco-card opcion-card comida-menu-card' + (checked ? ' comida-menu-opco-card--selected' : '') + '" data-menu="' + escapeHtmlComida(menu.id) + '">' +
+            '<input type="radio" name="comida_menu_paquete" value="' + escapeHtmlComida(menu.id) + '"' + (checked ? ' checked' : '') + ' required>' +
+            '<div class="comida-menu-opco-card__content opcion-content">' +
+            htmlTarjetaFotoMedia(menu.imagen, 'comida-menu-opco-card', true) +
+            '<span class="comida-menu-opco-card__nombre">' + escapeHtmlComida(menu.label) + '</span>' +
+            (precio !== '' ? '<span class="comida-menu-card__precio comida-menu-card__precio--referencia" aria-hidden="true"><span class="comida-menu-card__precio-num">' + precio + ' €</span><span class="comida-menu-card__precio-unit">/ pers.</span></span>' : '') +
+            '<span class="comida-menu-opco-card__pack-note">' + escapeHtmlComida(packNote) + '</span>' +
+            '<span class="comida-menu-opco-card__grupo">' + escapeHtmlComida(grupoNote) + '</span>' +
+            '</div></label>'
+        );
+    }
+
+    function renderComidaMenuOpcoPaquete(count) {
+        if (!comidaPorDiaContainer) return;
+        var menus = typeof window.getCasaClubMenus === 'function' ? window.getCasaClubMenus() : [];
+        var selectedId = leerMenuPaqueteOpcoId();
+        var nJug = Math.max(1, getNumJugadoresComida());
+        var horaSel = HORA_COMIDA_DEFAULT;
+        if (count >= 1) {
+            var r0 = leerReservasComidaDia(1);
+            if (r0[0] && r0[0].hora) horaSel = normalizarHoraComida(r0[0].hora);
+        }
+        var lead = i18nComidaReplace('comida_menu_opco_lead', 'Elige un menú para todo el grupo (obligatorio). El importe se incluye en el precio cerrado del paquete.', null);
+        var horaLbl = i18nComidaReplace('comida_menu_opco_hora', 'Hora de la comida en Casa Club', null);
+        var html = '<div class="comida-menu-opco-bloque">';
+        html += '<p class="comida-menu-opco-lead">' + escapeHtmlComida(lead) + '</p>';
+        html += '<div class="comida-menu-opco-hora-wrap">';
+        html += '<label class="comida-menu-opco-hora-label" for="comida-menu-opco-hora">' + escapeHtmlComida(horaLbl) + '</label>';
+        html += '<select id="comida-menu-opco-hora" class="comida-dia-hora comida-hora-comida" aria-label="' + escapeHtmlComida(horaLbl) + '">' + htmlOpcionesHoraComida(horaSel) + '</select>';
+        html += '</div>';
+        html += '<div class="comida-menu-grid comida-menu-grid--opco" role="radiogroup" aria-label="Menús Casa Club">';
+        for (var mi = 0; mi < menus.length; mi++) {
+            html += htmlComidaMenuCardOpco(menus[mi], selectedId, nJug);
+        }
+        html += '</div></div>';
+        comidaPorDiaContainer.style.display = 'block';
+        comidaPorDiaContainer.innerHTML = html;
+        comidaDiasNav = [];
+        if (selectedId) aplicarMenuPaqueteOpco(selectedId, horaSel);
+    }
+
     function actualizarBloqueComida(count, fechas) {
         fechas = fechas || [];
         var prereqState = getConfigPrereqState(form);
@@ -1456,6 +1561,10 @@ function initConfiguradorPaquete() {
             comidaPorDiaContainer.style.display = 'none';
             comidaPorDiaContainer.innerHTML = '';
             comidaDiasNav = [];
+            return;
+        }
+        if (packGolfComidaMenusOpco) {
+            renderComidaMenuOpcoPaquete(count);
             return;
         }
         var prevReservas = {};
@@ -1490,6 +1599,10 @@ function initConfiguradorPaquete() {
 
     function syncComidaBloqueLimites() {
         if (!comidaPorDiaContainer || comidaPorDiaContainer.style.display === 'none') return;
+        if (packGolfComidaMenusOpco) {
+            syncComensalesMenuOpcoPaquete();
+            return;
+        }
         var nJug = getNumJugadoresComida();
         var maxPax = Math.max(nJug, 20);
         comidaPorDiaContainer.querySelectorAll('.comida-menu-comensales').forEach(function (input) {
@@ -1970,6 +2083,17 @@ function initConfiguradorPaquete() {
                 }
                 return;
             }
+            if (t && t.name === 'comida_menu_paquete') {
+                aplicarMenuPaqueteOpco(t.value);
+                scheduleActualizarResumen();
+                return;
+            }
+            if (t && t.id === 'comida-menu-opco-hora') {
+                var menuOpcoHora = leerMenuPaqueteOpcoId();
+                if (menuOpcoHora) aplicarMenuPaqueteOpco(menuOpcoHora, t.value);
+                scheduleActualizarResumen();
+                return;
+            }
             if (t && t.classList && t.classList.contains('comida-menu-comensales')) {
                 aplicarComensalesMenuClub(t);
                 scheduleActualizarResumen();
@@ -2133,6 +2257,9 @@ function initConfiguradorPaquete() {
             var numServicios = 0;
             for (var ic = 1; ic <= count; ic++) {
                 numServicios += leerReservasComidaDesdeFormData(formData, ic).length;
+            }
+            if (packGolfComidaMenusOpco && packOpcoTieneMenuSeleccionado(count)) {
+                numServicios = Math.max(numServicios, count);
             }
 
             var resumenHTML = '<div class="resumen-items">';
@@ -2354,6 +2481,16 @@ function initConfiguradorPaquete() {
                     try { tgFocus.focus({ preventScroll: true }); } catch (err) { tgFocus.focus(); }
                 }
                 return;
+            }
+            if (packGolfComidaMenusOpco) {
+                var fechasEarlyMenu = formDataEarly.getAll('fechas[]') || [];
+                var countEarlyMenu = fechasEarlyMenu.length;
+                if (countEarlyMenu >= 1 && !packOpcoTieneMenuSeleccionado(countEarlyMenu)) {
+                    alert(i18nComidaReplace('alert_menu_opco_obligatorio', 'Elige un menú de Casa Club Lerma para todo el grupo antes de reservar.', null));
+                    var menuSec = document.querySelector('.configurador-seccion--menus-opco');
+                    if (menuSec) menuSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    return;
+                }
             }
             var totalEarly = (typeof window.getTotalFromResumen === 'function') ? window.getTotalFromResumen() : 0;
             if (totalEarly <= 0) {
