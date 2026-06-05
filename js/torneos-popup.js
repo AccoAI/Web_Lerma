@@ -90,9 +90,20 @@
 
         if (maxW < 260) maxW = 260;
 
-        var cardH = Math.min(106, Math.max(92, Math.round(window.innerHeight * 0.1)));
+        // En monitores anchos el hero deja mucho espacio: limitar ancho para que el texto no quede diminuto.
+        var popupW = Math.min(maxW, 420);
 
-        overlay.style.setProperty('--torneos-popup-max-width', maxW + 'px');
+        var cardH = Math.round(window.innerHeight * 0.12);
+        if (window.innerHeight >= 800) cardH += 6;
+        if (window.innerHeight >= 900) cardH += 8;
+        if (popupW >= 340) cardH += 6;
+        if (popupW >= 380) cardH += 6;
+        cardH = Math.min(152, Math.max(112, cardH));
+        if (window.innerHeight <= 720) {
+            cardH = Math.min(cardH, 108);
+        }
+
+        overlay.style.setProperty('--torneos-popup-max-width', popupW + 'px');
         overlay.style.setProperty('--torneos-popup-card-height', cardH + 'px');
     }
 

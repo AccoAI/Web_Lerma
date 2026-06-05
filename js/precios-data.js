@@ -75,7 +75,7 @@ window.PRECIOS_DATA = {
     premios: [
       { id: 'bote', tipo: 'importe', i18n: 'camp_bote_efectivo', i18nDesc: 'camp_bote_efectivo_desc', fallback: 'Bote efectivo al ganador', imagen: 'FOTOS/campeonato/bote-efectivo.png', checkboxName: 'camp_bote_efectivo', inputName: 'camp_bote_efectivo_eur', inputId: 'camp-bote-eur' },
       { id: 'bono', tipo: 'importe', i18n: 'camp_bono_tienda', i18nDesc: 'camp_bono_tienda_desc', fallback: 'Bono de tienda Club Golf Lerma', imagen: 'FOTOS/campeonato/bono-tienda.png', checkboxName: 'camp_bono_tienda', inputName: 'camp_bono_tienda_eur', inputId: 'camp-bono-eur' },
-      { id: 'canalla', tipo: 'checkboxPorJugador', precioKey: 'packCanallaPremio', i18n: 'camp_pack_canalla', i18nDetalle: 'camp_pack_canalla_detalle', fallback: 'Pack canalla', imagen: '', inputName: 'camp_pack_canalla', leadTime: 20 },
+      { id: 'canalla', tipo: 'checkboxPorJugador', precioKey: 'packCanallaPremio', i18n: 'camp_pack_canalla', i18nDetalle: 'camp_pack_canalla_detalle', fallback: 'Pack canalla', imagen: 'FOTOS/campeonato/pack-canalla.png', inputName: 'camp_pack_canalla', leadTime: 20 },
       { id: 'copa', tipo: 'counter', precioKey: 'copaGanadorLerma', i18n: 'camp_copa_ganador', i18nDesc: 'camp_copa_ganador_detalle', fallback: 'Copa ganador Golf Lerma', imagen: 'FOTOS/campeonato/copa-ganador.png', inputName: 'camp_copa_ganador', inputId: 'camp-copa-ganador', leadTime: 20 }
     ],
     cava: [
