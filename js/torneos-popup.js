@@ -80,21 +80,22 @@
             : t('popup_mas_info', 'Más información');
     }
 
-    function getHeroAnchorLeft() {
+    function getHeroPopupBoundary() {
         var hero = document.querySelector('.hero-centro');
         if (!hero) return null;
         var refs = [
-            document.querySelector('.hero-buttons'),
+            document.querySelector('.hero-title'),
             document.querySelector('.hero-content'),
+            document.querySelector('.hero-buttons'),
             hero
         ];
-        var left = Infinity;
+        var boundary = 0;
         for (var i = 0; i < refs.length; i++) {
             if (!refs[i]) continue;
             var r = refs[i].getBoundingClientRect();
-            if (r.width > 0 && r.left < left) left = r.left;
+            if (r.width > 0 && r.left > boundary) boundary = r.left;
         }
-        return left === Infinity ? hero.getBoundingClientRect().left : left;
+        return boundary || hero.getBoundingClientRect().left;
     }
 
     function setTorneosMobileSheetOpen(open) {
@@ -112,15 +113,15 @@
             return;
         }
 
-        var anchorLeft = getHeroAnchorLeft();
-        if (anchorLeft == null) return;
+        var heroBoundary = getHeroPopupBoundary();
+        if (heroBoundary == null) return;
 
-        var gap = 16;
+        var gap = 10;
         var overlayStyle = window.getComputedStyle(overlay);
         var padLeft = parseFloat(overlayStyle.paddingLeft) || 24;
         var padTop = parseFloat(overlayStyle.paddingTop) || 24;
         var padBottom = parseFloat(overlayStyle.paddingBottom) || 24;
-        var popupW = Math.floor(anchorLeft - gap - padLeft);
+        var popupW = Math.floor(heroBoundary - gap - padLeft);
         popupW = Math.max(200, popupW);
 
         var cards = overlay.querySelectorAll('.torneos-popup-cards .torneos-popup');
@@ -133,11 +134,12 @@
         var cardH = Math.floor(cardsArea / cardCount);
         cardH = Math.min(148, Math.max(90, cardH));
 
-        var thumbRatio = popupW < 340 ? 0.2 : (popupW < 420 ? 0.22 : 0.26);
-        var thumbW = Math.round(Math.min(cardH, popupW * thumbRatio));
-        thumbW = Math.max(52, Math.min(thumbW, cardH));
+        var thumbRatio = popupW < 400 ? 0.32 : 0.28;
+        var thumbW = Math.round(popupW * thumbRatio);
+        var thumbMax = Math.round(cardH * 1.45);
+        thumbW = Math.max(72, Math.min(thumbW, thumbMax));
 
-        var compact = popupW < 380;
+        var compact = popupW < 440 || window.innerWidth < 1400;
         overlay.classList.toggle('torneos-popup--compact', compact);
 
         overlay.style.setProperty('--torneos-popup-max-width', popupW + 'px');

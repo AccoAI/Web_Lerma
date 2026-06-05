@@ -12029,6 +12029,16 @@ a[href^="tel:"]:hover {
 .torneos-popup-overlay .torneos-popup-imagen-wrap {
     background: rgba(0, 0, 0, 0.2);
     border-left: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
+
+.torneos-popup-overlay .torneos-popup-imagen {
+    object-fit: cover;
+    object-position: center center;
+}
+
+.torneos-popup-overlay.torneos-popup--compact .torneos-popup-imagen {
+    object-position: center 35%;
 }
 
 .torneos-popup-overlay .torneos-popup-item-btn {
@@ -12123,7 +12133,7 @@ a[href^="tel:"]:hover {
 
 @media (min-width: 769px) and (max-width: 1366px) {
     .torneos-popup-overlay {
-        padding: 0.85rem 0.75rem;
+        padding: 0.75rem 0.55rem;
     }
 
     .torneos-popup-overlay .torneos-popup-cards {
