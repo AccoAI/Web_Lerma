@@ -236,16 +236,41 @@
                         </div>
                     </div>
 
-                    <!-- Cava de puros (solo Campeonato Burgos) -->
+                    <!-- Cava de puros & Champagne (solo Campeonato Burgos) -->
                     <div class="configurador-seccion campeonato-extra-section" data-config-optional="true">
-                        <h3 class="configurador-titulo" data-i18n="config_cava_puros_campeonato">8. Cava de puros</h3>
+                        <h3 class="configurador-titulo" data-i18n="config_cava_puros_campeonato">8. Cava de puros &amp; Champagne</h3>
                         <p class="configurador-seccion-desc" data-i18n="config_cava_puros_campeonato_desc">Cava de puros en la entrega de premios o celebración del campeonato. Se recogerán en la Casa Club de Lerma.</p>
-                        <div class="ancillary-service-grid campeonato-extra-grid" role="group" aria-label="Cava de puros">
-                            <label class="ancillary-card ancillary-item">
-                                <input type="checkbox" name="camp_cava_puros" value="1">
-                                <span class="ancillary-nombre" data-i18n="camp_cava_puros">Cava de puros</span>
-                                <span class="ancillary-precio" data-ancillary="cavaPuros">— €</span>
-                            </label>
+                        <div class="campeonato-extra-grid campeonato-cava-grid" role="group" aria-label="Cava de puros y Champagne">
+                            <div class="campeonato-opcion-card campeonato-opcion-card--counter">
+                                <div class="campeonato-opcion-card__product-head">
+                                    <span class="campeonato-opcion-card__titulo" data-i18n="camp_puros_davidoff">Davidoff Nº 5</span>
+                                    <span class="campeonato-opcion-card__precio-unit" data-ancillary="puroDavidoffNo5">— €</span>
+                                </div>
+                                <p class="campeonato-opcion-card__desc" data-i18n="camp_puros_davidoff_detalle">Puros Davidoff número 5</p>
+                                <div class="campeonato-opcion-counter-wrap">
+                                    <div class="ancillary-counter-wrap config-card-counter">
+                                        <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir puros">−</button>
+                                        <input type="number" id="camp-puros-davidoff" name="camp_puros_davidoff" min="0" max="20" value="0" class="ancillary-counter" readonly aria-label="Cantidad de puros Davidoff Nº 5">
+                                        <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar puros">+</button>
+                                    </div>
+                                </div>
+                                <div class="campeonato-opcion-card__foto" data-camp-foto="davidoff" hidden aria-hidden="true"></div>
+                            </div>
+                            <div class="campeonato-opcion-card campeonato-opcion-card--counter">
+                                <div class="campeonato-opcion-card__product-head">
+                                    <span class="campeonato-opcion-card__titulo" data-i18n="camp_champagne_veuve">Veuve Clicquot</span>
+                                    <span class="campeonato-opcion-card__precio-unit" data-ancillary="champagneVeuveClicquot">— €</span>
+                                </div>
+                                <p class="campeonato-opcion-card__desc" data-i18n="camp_champagne_veuve_detalle">Botella de champagne Veuve Clicquot</p>
+                                <div class="campeonato-opcion-counter-wrap">
+                                    <div class="ancillary-counter-wrap config-card-counter">
+                                        <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir botellas">−</button>
+                                        <input type="number" id="camp-champagne-veuve" name="camp_champagne_veuve" min="0" max="20" value="0" class="ancillary-counter" readonly aria-label="Cantidad de botellas Veuve Clicquot">
+                                        <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar botellas">+</button>
+                                    </div>
+                                </div>
+                                <div class="campeonato-opcion-card__foto" data-camp-foto="champagne" hidden aria-hidden="true"></div>
+                            </div>
                         </div>
                     </div>
 

@@ -51,6 +51,8 @@ window.PRECIOS_DATA = {
     packCanallaPremio: 8,
     bonoTiendaCampeonato: 30,
     cavaPuros: 40,
+    puroDavidoffNo5: 40,
+    champagneVeuveClicquot: 60,
     guantesGolf: 13,
     paqueteTees: 4,
     paqueteBolas: 35

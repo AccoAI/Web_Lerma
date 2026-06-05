@@ -2325,7 +2325,9 @@ function initConfiguradorPaquete() {
                 if (!lblPurosRes || lblPurosRes === 'resumen_cava_puros') lblPurosRes = 'Cava de puros';
                 var tieneEquipoCamp = !!(formData.get('camp_bolas_personalizadas') || formData.get('camp_equipacion_polos'));
                 var tienePremiosCamp = !!(formData.get('camp_bote_efectivo') || formData.get('camp_bono_tienda') || formData.get('camp_pack_canalla'));
-                var tienePurosCamp = !!formData.get('camp_cava_puros');
+                var qPurosCamp = Math.max(0, parseInt(formData.get('camp_puros_davidoff') || '0', 10));
+                var qChampCamp = Math.max(0, parseInt(formData.get('camp_champagne_veuve') || '0', 10));
+                var tienePurosCamp = (qPurosCamp + qChampCamp) > 0;
                 resumenHTML += '<p><strong>' + lblEquipoRes + ':</strong> ' + (tieneEquipoCamp ? 'Sí' : '—') + '</p>';
                 resumenHTML += '<p><strong>' + lblPremiosRes + ':</strong> ' + (tienePremiosCamp ? 'Sí' : '—') + '</p>';
                 resumenHTML += '<p><strong>' + lblPurosRes + ':</strong> ' + (tienePurosCamp ? 'Sí' : '—') + '</p>';
@@ -2898,14 +2900,17 @@ function initNativePickerFix() {
 function fillAncillaryPrices() {
     var precios = (typeof getPrecios === 'function') ? getPrecios() : (window.PRECIOS_DATA || {});
     var anc = precios.ancillaries || {};
-    document.querySelectorAll('.ancillary-precio[data-ancillary]').forEach(function (span) {
+    document.querySelectorAll('.ancillary-precio[data-ancillary], .campeonato-opcion-card__precio-unit[data-ancillary]').forEach(function (span) {
         var key = span.getAttribute('data-ancillary');
         var val = anc[key];
         if (val != null && val !== '') {
             var inCard = span.closest('.ancillary-service-card');
+            var inCamp = span.classList.contains('campeonato-opcion-card__precio-unit');
             span.textContent = inCard
                 ? (Number(val) === 0 ? 'Consultar' : val + ' €')
-                : ('· ' + (Number(val) === 0 ? 'Consultar' : val + ' €'));
+                : inCamp
+                    ? (Number(val) === 0 ? 'Consultar' : val + ' €')
+                    : ('· ' + (Number(val) === 0 ? 'Consultar' : val + ' €'));
             span.style.visibility = 'visible';
         }
     });

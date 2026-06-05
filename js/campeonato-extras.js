@@ -122,9 +122,10 @@
         if (formData.get('camp_pack_canalla') && leadOk) {
             out.premios += (anc.packCanallaPremio || 8) * n;
         }
-        if (formData.get('camp_cava_puros')) {
-            out.cava += (anc.cavaPuros || 40);
-        }
+        var qPuros = Math.max(0, parseInt(formData.get('camp_puros_davidoff') || '0', 10));
+        var qChampagne = Math.max(0, parseInt(formData.get('camp_champagne_veuve') || '0', 10));
+        out.cava += qPuros * (anc.puroDavidoffNo5 || anc.cavaPuros || 40);
+        out.cava += qChampagne * (anc.champagneVeuveClicquot || 60);
 
         var round = (typeof roundEuros === 'function') ? roundEuros : function (x) { return Math.round(x * 100) / 100; };
         out.equipo = round(out.equipo);
