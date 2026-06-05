@@ -1036,7 +1036,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 .paquetes-comparativa-bloque {
     display: grid;
-    grid-template-columns: minmax(12.5rem, 1.12fr) repeat(3, minmax(0, 1.06fr));
+    grid-template-columns: max-content repeat(3, minmax(0, 1fr));
     gap: 0;
     background: var(--color-white);
     box-shadow: 0 8px 32px rgba(15, 51, 36, 0.12);
@@ -1150,13 +1150,13 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 @supports not (grid-template-columns: subgrid) {
     .pcg-row {
-        grid-template-columns: minmax(12.5rem, 1.12fr) repeat(3, minmax(0, 1.06fr));
+        grid-template-columns: max-content repeat(3, minmax(0, 1fr));
     }
 }
 
 .pcg-feature-label {
     grid-column: 1;
-    padding: 0.4rem 0.85rem;
+    padding: 0.4rem 0.5rem 0.4rem 0.85rem;
     border-top: 1px solid rgba(15, 51, 36, 0.1);
     background: var(--color-bg-light);
     font-weight: 500;
@@ -1167,6 +1167,8 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     align-items: center;
     line-height: 1.2;
     white-space: nowrap;
+    width: max-content;
+    max-width: 100%;
 }
 
 .pcg-row .pcg-cell:nth-child(2) {
@@ -1231,7 +1233,9 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     }
 
     .paquetes-comparativa-bloque {
-        min-width: 920px;
+        min-width: 0;
+        width: max-content;
+        max-width: none;
     }
 
     .pcg-feature-label {
