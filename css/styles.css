@@ -1035,8 +1035,9 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 }
 
 .paquetes-comparativa-bloque {
+    --pcg-label-col: clamp(15.75rem, 19vw, 19.35rem);
     display: grid;
-    grid-template-columns: max-content repeat(3, minmax(0, 1fr));
+    grid-template-columns: var(--pcg-label-col) repeat(3, minmax(0, 1fr));
     gap: 0;
     background: var(--color-white);
     box-shadow: 0 8px 32px rgba(15, 51, 36, 0.12);
@@ -1049,6 +1050,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     grid-row: 1;
     min-height: 3.75rem;
     background: var(--color-white);
+    border-right: 1px solid rgba(15, 51, 36, 0.08);
 }
 
 .pcg-pack-col {
@@ -1150,14 +1152,18 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 @supports not (grid-template-columns: subgrid) {
     .pcg-row {
-        grid-template-columns: max-content repeat(3, minmax(0, 1fr));
+        grid-template-columns: var(--pcg-label-col) repeat(3, minmax(0, 1fr));
     }
 }
 
 .pcg-feature-label {
     grid-column: 1;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     padding: 0.4rem 0.5rem 0.4rem 0.85rem;
     border-top: 1px solid rgba(15, 51, 36, 0.1);
+    border-right: 1px solid rgba(15, 51, 36, 0.08);
     background: var(--color-bg-light);
     font-weight: 500;
     font-size: clamp(0.68rem, 0.82vw, 0.95rem);
@@ -1167,8 +1173,6 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     align-items: center;
     line-height: 1.2;
     white-space: nowrap;
-    width: max-content;
-    max-width: 100%;
 }
 
 .pcg-row .pcg-cell:nth-child(2) {
@@ -1233,9 +1237,8 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     }
 
     .paquetes-comparativa-bloque {
-        min-width: 0;
-        width: max-content;
-        max-width: none;
+        --pcg-label-col: clamp(14.5rem, 42vw, 19.35rem);
+        min-width: min(100%, 36rem);
     }
 
     .pcg-feature-label {
@@ -11714,6 +11717,80 @@ a.btn-restaurante-paquete-reservar--secondary:hover {
 .torneos-popup-no-hoy input {
     width: 1rem;
     height: 1rem;
+}
+
+/* Popup torneos – escritorio: máximo espacio a la izquierda del hero (ancho vía --torneos-popup-max-width) */
+@media (min-width: 769px) {
+    .torneos-popup-overlay {
+        padding: clamp(1rem, 2.5vh, 2rem) clamp(1rem, 2vw, 1.75rem);
+        align-items: center;
+    }
+
+    .torneos-popup-overlay .torneos-popup-wrapper {
+        width: var(--torneos-popup-max-width, 300px);
+        max-width: 100%;
+    }
+
+    .torneos-popup-overlay .torneos-popup-header {
+        width: 100%;
+        margin-bottom: 0.65rem;
+    }
+
+    .torneos-popup-overlay .torneos-popup-titulo {
+        font-size: clamp(1.05rem, 1.35vw, 1.45rem);
+        letter-spacing: 2.5px;
+    }
+
+    .torneos-popup-overlay .torneos-popup-sheet-body {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        min-height: 0;
+    }
+
+    .torneos-popup-overlay .torneos-popup-cards {
+        width: 100%;
+        max-height: min(86vh, calc(100vh - 5rem));
+        gap: clamp(0.45rem, 1vh, 0.75rem);
+        overflow-y: auto;
+    }
+
+    .torneos-popup-overlay .torneos-popup-cards .torneos-popup {
+        width: 100%;
+        height: var(--torneos-popup-card-height, 100px);
+        min-height: 100px;
+        max-width: none;
+    }
+
+    .torneos-popup-overlay .torneos-popup-imagen-wrap {
+        width: var(--torneos-popup-card-height, 100px);
+        height: var(--torneos-popup-card-height, 100px);
+        flex-shrink: 0;
+    }
+
+    .torneos-popup-overlay .torneos-popup .torneos-popup-content {
+        padding: clamp(0.4rem, 0.9vw, 0.65rem) clamp(0.45rem, 1vw, 0.75rem);
+    }
+
+    .torneos-popup-overlay .torneos-popup-item-fecha {
+        font-size: clamp(0.82rem, 1vw, 1.05rem);
+    }
+
+    .torneos-popup-overlay .torneos-popup-item-titulo,
+    .torneos-popup-overlay .torneos-popup-item strong {
+        font-size: clamp(0.92rem, 1.15vw, 1.2rem);
+        min-height: 2.2em;
+    }
+
+    .torneos-popup-overlay .torneos-popup-item-btn {
+        font-size: clamp(0.78rem, 0.95vw, 0.95rem);
+        padding: clamp(0.35rem, 0.8vh, 0.55rem) 0.75rem;
+    }
+
+    .torneos-popup-overlay .torneos-popup-no-hoy {
+        font-size: clamp(0.62rem, 0.75vw, 0.72rem);
+        margin-top: 0.65rem;
+    }
 }
 
 /* Página detalle torneo (torneo.html) – imagen de fondo a pantalla completa, contenido superpuesto con opacidad */

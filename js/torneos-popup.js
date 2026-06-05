@@ -62,6 +62,62 @@
         return s;
     }
 
+    function isMobileViewport() {
+        return window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+    }
+
+    function updateTorneosPopupBounds(overlay) {
+        if (!overlay || overlay.hasAttribute('hidden') || isMobileViewport()) {
+            if (overlay) {
+                overlay.style.removeProperty('--torneos-popup-max-width');
+                overlay.style.removeProperty('--torneos-popup-card-height');
+            }
+            return;
+        }
+
+        var hero = document.querySelector('.hero-centro');
+        if (!hero) return;
+
+        var gap = 28;
+        var heroRect = hero.getBoundingClientRect();
+        var overlayStyle = window.getComputedStyle(overlay);
+        var padLeft = parseFloat(overlayStyle.paddingLeft) || 24;
+        var maxW = Math.floor(heroRect.left - gap - padLeft);
+
+        if (maxW < 260) maxW = 260;
+
+        var header = overlay.querySelector('.torneos-popup-header');
+        var noHoy = overlay.querySelector('.torneos-popup-no-hoy');
+        var cards = overlay.querySelectorAll('.torneos-popup-cards .torneos-popup');
+        var n = cards.length || 1;
+        var headerH = header ? header.offsetHeight : 36;
+        var noHoyH = noHoy ? noHoy.offsetHeight : 28;
+        var cardGap = 8 * Math.max(0, n - 1);
+        var verticalPad = 48;
+        var availH = window.innerHeight - verticalPad - headerH - noHoyH - cardGap - 12;
+        var cardH = Math.min(220, Math.max(100, Math.floor(availH / n)));
+
+        overlay.style.setProperty('--torneos-popup-max-width', maxW + 'px');
+        overlay.style.setProperty('--torneos-popup-card-height', cardH + 'px');
+    }
+
+    var desktopLayoutBound = false;
+
+    function setupDesktopLayout(overlay) {
+        function refresh() {
+            updateTorneosPopupBounds(overlay);
+        }
+
+        refresh();
+        requestAnimationFrame(refresh);
+
+        if (!desktopLayoutBound) {
+            desktopLayoutBound = true;
+            window.addEventListener('resize', refresh, { passive: true });
+            window.addEventListener('orientationchange', refresh, { passive: true });
+        }
+    }
+
     function showPopup(config) {
         var overlay = document.getElementById('torneosPopup');
         var titulo = document.getElementById('torneosPopupTitulo');
@@ -113,6 +169,7 @@
         }
 
         overlay.removeAttribute('hidden');
+        setupDesktopLayout(overlay);
 
         function close() {
             var w = overlay.querySelector('.torneos-popup-wrapper');
@@ -142,7 +199,7 @@
         }
 
         function isMobile() {
-            return window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+            return isMobileViewport();
         }
 
         var wrapper = overlay.querySelector('.torneos-popup-wrapper');
