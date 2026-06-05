@@ -2324,7 +2324,8 @@ function initConfiguradorPaquete() {
                 var lblPurosRes = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_cava_puros') : 'Cava de puros';
                 if (!lblPurosRes || lblPurosRes === 'resumen_cava_puros') lblPurosRes = 'Cava de puros';
                 var tieneEquipoCamp = !!(formData.get('camp_bolas_personalizadas') || formData.get('camp_equipacion_polos'));
-                var tienePremiosCamp = !!(formData.get('camp_bote_efectivo') || formData.get('camp_bono_tienda') || formData.get('camp_pack_canalla'));
+                var qCopaGanadorCamp = Math.max(0, parseInt(formData.get('camp_copa_ganador') || '0', 10));
+                var tienePremiosCamp = !!(formData.get('camp_bote_efectivo') || formData.get('camp_bono_tienda') || formData.get('camp_pack_canalla') || qCopaGanadorCamp > 0);
                 var qPurosCamp = Math.max(0, parseInt(formData.get('camp_puros_davidoff') || '0', 10));
                 var qChampCamp = Math.max(0, parseInt(formData.get('camp_champagne_veuve') || '0', 10));
                 var tienePurosCamp = (qPurosCamp + qChampCamp) > 0;

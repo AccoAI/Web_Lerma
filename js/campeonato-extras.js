@@ -40,16 +40,36 @@
         var days = daysUntilFirstFecha(form);
         form.querySelectorAll('[data-camp-lead-time]').forEach(function (card) {
             var cb = card.querySelector('input[type="checkbox"]');
+            var counter = card.querySelector('.ancillary-counter');
             var hint = card.querySelector('.campeonato-opcion-card__lead-hint');
-            if (!cb) return;
+            if (!cb && !counter) return;
+
+            function setCounterBlocked(blocked) {
+                if (!counter) return;
+                if (blocked) {
+                    counter.value = '0';
+                    counter.disabled = true;
+                    card.classList.remove('campeonato-opcion-card--selected');
+                } else {
+                    counter.disabled = false;
+                }
+                card.querySelectorAll('.ancillary-btn').forEach(function (btn) {
+                    btn.disabled = blocked;
+                });
+            }
+
             if (ok) {
                 card.classList.remove('campeonato-opcion-card--blocked');
-                cb.disabled = false;
+                if (cb) cb.disabled = false;
+                setCounterBlocked(false);
                 if (hint) hint.hidden = true;
             } else {
                 card.classList.add('campeonato-opcion-card--blocked');
-                cb.checked = false;
-                cb.disabled = true;
+                if (cb) {
+                    cb.checked = false;
+                    cb.disabled = true;
+                }
+                setCounterBlocked(true);
                 if (hint) {
                     hint.hidden = false;
                     var textEl = hint.querySelector('.campeonato-opcion-card__lead-text') || hint;
@@ -121,6 +141,10 @@
         }
         if (formData.get('camp_pack_canalla') && leadOk) {
             out.premios += (anc.packCanallaPremio || 8) * n;
+        }
+        if (leadOk) {
+            var qCopa = Math.max(0, parseInt(formData.get('camp_copa_ganador') || '0', 10));
+            out.premios += qCopa * (anc.copaGanadorLerma || 50);
         }
         var qPuros = Math.max(0, parseInt(formData.get('camp_puros_davidoff') || '0', 10));
         var qChampagne = Math.max(0, parseInt(formData.get('camp_champagne_veuve') || '0', 10));

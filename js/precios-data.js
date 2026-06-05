@@ -49,6 +49,7 @@ window.PRECIOS_DATA = {
     bolasPersonalizadasCampeonato: 8,
     poloPersonalizadoCampeonato: 45,
     packCanallaPremio: 8,
+    copaGanadorLerma: 50,
     bonoTiendaCampeonato: 30,
     cavaPuros: 40,
     puroDavidoffNo5: 40,
