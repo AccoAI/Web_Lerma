@@ -82,26 +82,25 @@
         var hero = document.querySelector('.hero-centro');
         if (!hero) return;
 
-        var gap = 28;
+        var gap = 20;
         var heroRect = hero.getBoundingClientRect();
         var overlayStyle = window.getComputedStyle(overlay);
         var padLeft = parseFloat(overlayStyle.paddingLeft) || 24;
-        var maxW = Math.floor(heroRect.left - gap - padLeft);
+        var padTop = parseFloat(overlayStyle.paddingTop) || 24;
+        var padBottom = parseFloat(overlayStyle.paddingBottom) || 24;
+        var popupW = Math.floor(heroRect.left - gap - padLeft);
 
-        if (maxW < 260) maxW = 260;
+        if (popupW < 260) popupW = 260;
 
-        // En monitores anchos el hero deja mucho espacio: limitar ancho para que el texto no quede diminuto.
-        var popupW = Math.min(maxW, 420);
-
-        var cardH = Math.round(window.innerHeight * 0.12);
-        if (window.innerHeight >= 800) cardH += 6;
-        if (window.innerHeight >= 900) cardH += 8;
-        if (popupW >= 340) cardH += 6;
-        if (popupW >= 380) cardH += 6;
-        cardH = Math.min(152, Math.max(112, cardH));
-        if (window.innerHeight <= 720) {
-            cardH = Math.min(cardH, 108);
-        }
+        var cards = overlay.querySelectorAll('.torneos-popup-cards .torneos-popup');
+        var cardCount = cards.length || 3;
+        var usableH = window.innerHeight - padTop - padBottom;
+        var headerReserve = 50;
+        var noHoyReserve = 36;
+        var cardGap = 8;
+        var cardsArea = usableH - headerReserve - noHoyReserve - (cardCount - 1) * cardGap;
+        var cardH = Math.floor(cardsArea / cardCount);
+        cardH = Math.min(148, Math.max(86, cardH));
 
         overlay.style.setProperty('--torneos-popup-max-width', popupW + 'px');
         overlay.style.setProperty('--torneos-popup-card-height', cardH + 'px');
