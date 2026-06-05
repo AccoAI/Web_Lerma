@@ -66,6 +66,37 @@
         return window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
     }
 
+    function t(key, fallback) {
+        if (window.i18n && window.i18n.t) {
+            var v = window.i18n.t(key);
+            if (v && v !== key) return v;
+        }
+        return fallback;
+    }
+
+    function masInfoLabel(compact) {
+        return compact
+            ? t('popup_mas_info_short', 'Más info')
+            : t('popup_mas_info', 'Más información');
+    }
+
+    function getHeroAnchorLeft() {
+        var hero = document.querySelector('.hero-centro');
+        if (!hero) return null;
+        var refs = [
+            document.querySelector('.hero-buttons'),
+            document.querySelector('.hero-content'),
+            hero
+        ];
+        var left = Infinity;
+        for (var i = 0; i < refs.length; i++) {
+            if (!refs[i]) continue;
+            var r = refs[i].getBoundingClientRect();
+            if (r.width > 0 && r.left < left) left = r.left;
+        }
+        return left === Infinity ? hero.getBoundingClientRect().left : left;
+    }
+
     function setTorneosMobileSheetOpen(open) {
         document.body.classList.toggle('torneos-sheet-open', !!open);
     }
@@ -75,35 +106,49 @@
             if (overlay) {
                 overlay.style.removeProperty('--torneos-popup-max-width');
                 overlay.style.removeProperty('--torneos-popup-card-height');
+                overlay.style.removeProperty('--torneos-popup-thumb-width');
+                overlay.classList.remove('torneos-popup--compact');
             }
             return;
         }
 
-        var hero = document.querySelector('.hero-centro');
-        if (!hero) return;
+        var anchorLeft = getHeroAnchorLeft();
+        if (anchorLeft == null) return;
 
-        var gap = 20;
-        var heroRect = hero.getBoundingClientRect();
+        var gap = 16;
         var overlayStyle = window.getComputedStyle(overlay);
         var padLeft = parseFloat(overlayStyle.paddingLeft) || 24;
         var padTop = parseFloat(overlayStyle.paddingTop) || 24;
         var padBottom = parseFloat(overlayStyle.paddingBottom) || 24;
-        var popupW = Math.floor(heroRect.left - gap - padLeft);
-
-        if (popupW < 260) popupW = 260;
+        var popupW = Math.floor(anchorLeft - gap - padLeft);
+        popupW = Math.max(200, popupW);
 
         var cards = overlay.querySelectorAll('.torneos-popup-cards .torneos-popup');
         var cardCount = cards.length || 3;
         var usableH = window.innerHeight - padTop - padBottom;
-        var headerReserve = 50;
-        var noHoyReserve = 36;
-        var cardGap = 8;
+        var headerReserve = 48;
+        var noHoyReserve = 34;
+        var cardGap = popupW < 360 ? 6 : 8;
         var cardsArea = usableH - headerReserve - noHoyReserve - (cardCount - 1) * cardGap;
         var cardH = Math.floor(cardsArea / cardCount);
-        cardH = Math.min(148, Math.max(86, cardH));
+        cardH = Math.min(148, Math.max(90, cardH));
+
+        var thumbRatio = popupW < 340 ? 0.2 : (popupW < 420 ? 0.22 : 0.26);
+        var thumbW = Math.round(Math.min(cardH, popupW * thumbRatio));
+        thumbW = Math.max(52, Math.min(thumbW, cardH));
+
+        var compact = popupW < 380;
+        overlay.classList.toggle('torneos-popup--compact', compact);
 
         overlay.style.setProperty('--torneos-popup-max-width', popupW + 'px');
         overlay.style.setProperty('--torneos-popup-card-height', cardH + 'px');
+        overlay.style.setProperty('--torneos-popup-thumb-width', thumbW + 'px');
+
+        var btnLabel = masInfoLabel(compact);
+        var btns = overlay.querySelectorAll('.torneos-popup-item-btn');
+        for (var b = 0; b < btns.length; b++) {
+            btns[b].textContent = btnLabel;
+        }
     }
 
     var desktopLayoutBound = false;
@@ -147,7 +192,7 @@
                 var btn = document.createElement('a');
                 btn.href = 'torneo.html';
                 btn.className = 'torneos-popup-item-btn';
-                btn.textContent = 'Más información';
+                btn.textContent = masInfoLabel(false);
                 btn.addEventListener('click', function (e) {
                     e.preventDefault();
                     try {
