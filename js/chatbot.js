@@ -19,7 +19,11 @@
 
     function addMsg(container, texto, esUser) {
         var div = crearElemento('div', 'chatbot-msg ' + (esUser ? 'user' : 'bot'));
-        div.textContent = texto;
+        if (!esUser && typeof window.linkifyPhoneNumbersInText === 'function') {
+            div.innerHTML = window.linkifyPhoneNumbersInText(texto);
+        } else {
+            div.textContent = texto;
+        }
         var time = crearElemento('span', 'chatbot-msg-time');
         var now = new Date();
         time.textContent = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');

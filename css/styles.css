@@ -11299,6 +11299,39 @@ a.btn-restaurante-paquete-reservar--secondary:hover {
     border-bottom-color: var(--color-accent);
 }
 
+.contact-phone-link,
+a[href^="tel:"] {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+    text-decoration-color: rgba(201, 169, 97, 0.55);
+    transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+
+.contact-phone-link:hover,
+a[href^="tel:"]:hover {
+    color: var(--color-accent);
+    text-decoration-color: var(--color-accent);
+}
+
+.footer .contact-phone-link,
+.footer a[href^="tel:"] {
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.chatbot-msg a.contact-phone-link {
+    color: var(--color-primary);
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .contact-phone-link,
+    a[href^="tel:"] {
+        -webkit-tap-highlight-color: rgba(26, 77, 58, 0.12);
+        padding: 0.1em 0;
+    }
+}
+
 .footer-links {
     list-style: none;
 }
@@ -11733,32 +11766,30 @@ a.btn-restaurante-paquete-reservar--secondary:hover {
     height: 1rem;
 }
 
-/* Popup torneos – estética fina: cristal oscuro, sin bloques blancos */
+/* Popup torneos – tarjetas blancas originales, márgenes compactos */
 .torneos-popup-overlay .torneos-popup-cards {
     background: transparent;
     padding: 0;
-    gap: 0.35rem;
+    gap: 0.32rem;
 }
 
 .torneos-popup-overlay .torneos-popup {
     --torneos-card-h: var(--torneos-popup-card-height, 100px);
-    background: rgba(15, 51, 36, 0.78);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.2);
+    background: var(--color-white);
+    border: none;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.11);
 }
 
 .torneos-popup-overlay .torneos-popup .torneos-popup-content {
-    padding: 0.45rem 0.55rem;
+    padding: 0.32rem 0.42rem;
     justify-content: center;
-    gap: 0.12rem;
+    gap: 0.06rem;
 }
 
 .torneos-popup-overlay .torneos-popup-item-fecha {
     font-size: clamp(0.66rem, 0.8vw, 0.82rem);
-    line-height: 1.15;
-    letter-spacing: 0.06em;
+    line-height: 1.12;
+    letter-spacing: 0.04em;
     color: var(--color-accent);
 }
 
@@ -11766,8 +11797,8 @@ a.btn-restaurante-paquete-reservar--secondary:hover {
 .torneos-popup-overlay .torneos-popup-item strong {
     font-size: clamp(0.7rem, 0.88vw, 0.9rem);
     min-height: 0;
-    line-height: 1.2;
-    color: rgba(255, 255, 255, 0.96);
+    line-height: 1.15;
+    color: #000;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -11775,8 +11806,8 @@ a.btn-restaurante-paquete-reservar--secondary:hover {
 }
 
 .torneos-popup-overlay .torneos-popup-imagen-wrap {
-    background: rgba(0, 0, 0, 0.2);
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    background: #f0f0f0;
+    border-left: none;
 }
 
 .torneos-popup-overlay .torneos-popup-item-btn {
@@ -11785,23 +11816,23 @@ a.btn-restaurante-paquete-reservar--secondary:hover {
     flex-shrink: 0;
     width: auto;
     max-width: 100%;
-    margin: 0.2rem 0 0;
-    padding: 0.38rem 0.72rem;
-    font-size: clamp(0.62rem, 0.74vw, 0.8rem);
+    margin: 0.12rem 0 0;
+    padding: 0.3rem 0.62rem;
+    font-size: clamp(0.6rem, 0.72vw, 0.76rem);
     font-weight: 300;
-    letter-spacing: 1.5px;
+    letter-spacing: 1px;
     line-height: 1.2;
     white-space: nowrap;
-    background: transparent;
+    text-align: center;
+    background: var(--color-primary);
     color: var(--color-white);
-    border: 1px solid rgba(255, 255, 255, 0.55);
-    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    border: none;
+    transition: background 0.2s ease, color 0.2s ease;
 }
 
 .torneos-popup-overlay .torneos-popup-item-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.85);
-    color: var(--color-white);
+    background: var(--color-accent);
+    color: var(--color-primary-dark);
 }
 
 /* Popup torneos – escritorio: máximo espacio a la izquierda del hero (ancho vía --torneos-popup-max-width) */
@@ -12030,7 +12061,7 @@ body.page-torneo .torneo-detalle-section {
     color: var(--color-white);
 }
 
-/* Popup torneos – móvil: bottom sheet fino (pestaña abajo, lista integrada) */
+/* Popup torneos – móvil: bottom sheet (verde + tarjetas blancas compactas) */
 @media (max-width: 768px) {
     .torneos-popup-overlay {
         padding: 0;
@@ -12044,6 +12075,7 @@ body.page-torneo .torneo-detalle-section {
     }
 
     .torneos-popup-overlay.torneos-popup-expanded {
+        z-index: 10200;
         pointer-events: auto;
         background: rgba(0, 0, 0, 0.45);
         backdrop-filter: blur(10px);
@@ -12066,19 +12098,25 @@ body.page-torneo .torneo-detalle-section {
         width: 100%;
         max-width: 100vw;
         box-sizing: border-box;
-        max-height: min(72vh, 34rem);
+        max-height: min(68vh, 30rem);
         display: flex;
         flex-direction: column;
-        background: linear-gradient(160deg, rgba(26, 77, 58, 0.97) 0%, rgba(15, 51, 36, 0.98) 100%);
-        box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.28);
-        border-radius: 14px 14px 0 0;
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.22);
+        border-radius: 12px 12px 0 0;
         overflow: hidden;
         z-index: 101;
-        transition: transform 0.32s ease;
+        transition: transform 0.3s ease;
         margin: 0;
         padding-bottom: env(safe-area-inset-bottom, 0);
         min-height: 0;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .torneos-popup-overlay.torneos-popup-expanded .torneos-popup-wrapper {
+        z-index: 10201;
+        width: 100vw;
+        max-width: 100vw;
+        border-radius: 14px 14px 0 0;
     }
 
     .torneos-popup-overlay.torneos-popup-closing .torneos-popup-wrapper {
@@ -12090,26 +12128,20 @@ body.page-torneo .torneo-detalle-section {
         align-items: center;
         justify-content: space-between;
         gap: 0.5rem;
-        padding: 0.8rem 1rem 0.75rem;
+        padding: 0.75rem 1rem;
         background: transparent;
         color: var(--color-white);
         cursor: pointer;
         font-family: var(--font-primary);
         flex-shrink: 0;
         -webkit-tap-highlight-color: transparent;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .torneos-popup-overlay:not(.torneos-popup-expanded) .torneos-popup-header {
-        border-bottom: none;
-        padding: 0.85rem 1rem;
     }
 
     .torneos-popup-overlay .torneos-popup-header .torneos-popup-titulo {
         margin: 0;
-        font-size: 0.82rem;
-        font-weight: 300;
-        letter-spacing: 2px;
+        font-size: 0.9rem;
+        font-weight: 400;
+        letter-spacing: 1px;
         text-transform: uppercase;
     }
 
@@ -12151,18 +12183,7 @@ body.page-torneo .torneo-detalle-section {
     }
 
     .torneos-popup-overlay.torneos-popup-expanded .torneos-popup-sheet-body {
-        max-height: calc(min(72vh, 34rem) - 3.25rem);
-    }
-
-    .torneos-popup-overlay.torneos-popup-expanded .torneos-popup-sheet-body::before {
-        content: '';
-        display: block;
-        width: 2.35rem;
-        height: 0.22rem;
-        margin: 0.45rem auto 0.15rem;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.38);
-        flex-shrink: 0;
+        max-height: calc(min(68vh, 30rem) - 3rem);
     }
 
     .torneos-popup-overlay .torneos-popup-cards {
@@ -12170,27 +12191,32 @@ body.page-torneo .torneo-detalle-section {
         min-height: 0;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
-        padding: 0.35rem 0.75rem 0.5rem;
+        padding: 0.35rem 0.65rem 0.4rem;
+        gap: 0.32rem;
+        margin: 0;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+    }
+
+    .torneos-popup-overlay.torneos-popup-expanded .torneos-popup-cards {
+        width: 100%;
+        align-items: stretch;
+        padding: 0.28rem 0 0;
         gap: 0;
-        margin: 0 0.5rem;
-        border-radius: 10px;
-        background: rgba(0, 0, 0, 0.14);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        margin: 0;
     }
 
     .torneos-popup-overlay.torneos-popup-expanded .torneos-popup-cards .torneos-popup {
-        --torneos-card-h: 88px;
+        --torneos-card-h: 86px;
         width: 100%;
         height: var(--torneos-card-h);
-        max-height: 88px;
+        max-height: 86px;
         max-width: none;
-        background: transparent;
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
-        border: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 0;
+        background: var(--color-white);
         box-shadow: none;
+        border-radius: 0;
+        border-bottom: 1px solid rgba(15, 51, 36, 0.08);
     }
 
     .torneos-popup-overlay.torneos-popup-expanded .torneos-popup-cards .torneos-popup:last-child {
@@ -12198,50 +12224,62 @@ body.page-torneo .torneo-detalle-section {
     }
 
     .torneos-popup-overlay.torneos-popup-expanded .torneos-popup .torneos-popup-content {
-        padding: 0.5rem 0.55rem 0.45rem 0.65rem;
+        padding: 0.3rem 0.4rem;
         justify-content: center;
+        gap: 0.05rem;
     }
 
     .torneos-popup-overlay.torneos-popup-expanded .torneos-popup-item-fecha {
-        font-size: 0.68rem;
+        font-size: 0.66rem;
+        color: var(--color-accent);
     }
 
     .torneos-popup-overlay.torneos-popup-expanded .torneos-popup-item-titulo,
     .torneos-popup-overlay.torneos-popup-expanded .torneos-popup-item strong {
-        font-size: 0.78rem;
+        font-size: 0.76rem;
+        color: #000;
     }
 
     .torneos-popup-overlay.torneos-popup-expanded .torneos-popup-item-btn {
-        margin-top: 0.25rem;
-        padding: 0.32rem 0.62rem;
-        font-size: 0.62rem;
-        letter-spacing: 1.2px;
+        margin-top: 0.1rem;
+        padding: 0.28rem 0.55rem;
+        font-size: 0.6rem;
+        letter-spacing: 1px;
+        background: var(--color-primary);
+        color: var(--color-white);
+        border: none;
     }
 
     .torneos-popup-overlay.torneos-popup-expanded .torneos-popup-imagen-wrap {
-        width: 72px;
-        max-width: 72px;
+        width: 70px;
+        max-width: 70px;
         height: 100%;
         align-self: stretch;
-        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        background: #f0f0f0;
     }
 
     .torneos-popup-overlay .torneos-popup-no-hoy {
         flex-shrink: 0;
-        background: transparent;
-        padding: 0.55rem 1rem 0.65rem;
-        padding-bottom: max(0.65rem, env(safe-area-inset-bottom));
-        font-size: 0.58rem;
-        letter-spacing: 0.08em;
-        color: rgba(255, 255, 255, 0.72);
+        background: var(--color-primary-dark);
+        padding: 0.45rem 0.85rem 0.6rem;
+        padding-bottom: max(0.6rem, env(safe-area-inset-bottom));
+        font-size: 0.6rem;
+        letter-spacing: 0.06em;
+        color: var(--color-white);
         justify-content: center;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .torneos-popup-overlay .torneos-popup-no-hoy input {
         width: 0.9rem;
         height: 0.9rem;
-        accent-color: var(--color-accent);
+    }
+
+    body.torneos-sheet-open .chatbot-wrapper {
+        visibility: hidden;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(110%);
+        transition: opacity 0.2s ease, transform 0.25s ease, visibility 0.2s;
     }
 }
 
