@@ -26,8 +26,6 @@
         if (menuCard) {
             menuCard.classList.toggle('comida-menu-card--added', val > 0);
         }
-        var campCard = input.closest('.campeonato-opcion-card--counter');
-        if (campCard) campCard.classList.toggle('campeonato-opcion-card--selected', val > 0);
     }
 
     document.addEventListener('click', handleClick);

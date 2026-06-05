@@ -2901,17 +2901,14 @@ function initNativePickerFix() {
 function fillAncillaryPrices() {
     var precios = (typeof getPrecios === 'function') ? getPrecios() : (window.PRECIOS_DATA || {});
     var anc = precios.ancillaries || {};
-    document.querySelectorAll('.ancillary-precio[data-ancillary], .campeonato-opcion-card__precio-unit[data-ancillary]').forEach(function (span) {
+    document.querySelectorAll('.ancillary-precio[data-ancillary]').forEach(function (span) {
         var key = span.getAttribute('data-ancillary');
         var val = anc[key];
         if (val != null && val !== '') {
             var inCard = span.closest('.ancillary-service-card');
-            var inCamp = span.classList.contains('campeonato-opcion-card__precio-unit');
             span.textContent = inCard
                 ? (Number(val) === 0 ? 'Consultar' : val + ' €')
-                : inCamp
-                    ? (Number(val) === 0 ? 'Consultar' : val + ' €')
-                    : ('· ' + (Number(val) === 0 ? 'Consultar' : val + ' €'));
+                : ('· ' + (Number(val) === 0 ? 'Consultar' : val + ' €'));
             span.style.visibility = 'visible';
         }
     });

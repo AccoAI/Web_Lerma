@@ -66,6 +66,24 @@ window.PRECIOS_DATA = {
     { id: 'bolas', precioKey: 'paqueteBolas', i18n: 'tienda_bolas', fallback: 'Paquete de Bolas', imagen: 'FOTOS/picture.jpg', inputName: 'tienda_bolas', inputId: 'tienda-bolas' },
   ],
 
+  /** Extras Campeonato Burgos (secciones 6–8) */
+  campeonatoExtras: {
+    equipo: [
+      { id: 'bolas', tipo: 'checkboxPorJugador', precioKey: 'bolasPersonalizadasCampeonato', i18n: 'camp_bolas_personalizadas', i18nDetalle: 'camp_bolas_precio_detalle', fallback: 'Bolas personalizadas', imagen: 'FOTOS/campeonato/bolas-personalizadas.png', inputName: 'camp_bolas_personalizadas', leadTime: 20 },
+      { id: 'polos', tipo: 'checkboxPorJugador', precioKey: 'poloPersonalizadoCampeonato', i18n: 'camp_equipacion_polos', i18nDetalle: 'camp_polos_precio_detalle', fallback: 'Equipación personalizada (polos)', imagen: 'FOTOS/campeonato/polos-personalizados.png', inputName: 'camp_equipacion_polos', leadTime: 20 }
+    ],
+    premios: [
+      { id: 'bote', tipo: 'importe', i18n: 'camp_bote_efectivo', i18nDesc: 'camp_bote_efectivo_desc', fallback: 'Bote efectivo al ganador', imagen: 'FOTOS/campeonato/bote-efectivo.png', checkboxName: 'camp_bote_efectivo', inputName: 'camp_bote_efectivo_eur', inputId: 'camp-bote-eur' },
+      { id: 'bono', tipo: 'importe', i18n: 'camp_bono_tienda', i18nDesc: 'camp_bono_tienda_desc', fallback: 'Bono de tienda Club Golf Lerma', imagen: 'FOTOS/campeonato/bono-tienda.png', checkboxName: 'camp_bono_tienda', inputName: 'camp_bono_tienda_eur', inputId: 'camp-bono-eur' },
+      { id: 'canalla', tipo: 'checkboxPorJugador', precioKey: 'packCanallaPremio', i18n: 'camp_pack_canalla', i18nDetalle: 'camp_pack_canalla_detalle', fallback: 'Pack canalla', imagen: '', inputName: 'camp_pack_canalla', leadTime: 20 },
+      { id: 'copa', tipo: 'counter', precioKey: 'copaGanadorLerma', i18n: 'camp_copa_ganador', i18nDesc: 'camp_copa_ganador_detalle', fallback: 'Copa ganador Golf Lerma', imagen: 'FOTOS/campeonato/copa-ganador.png', inputName: 'camp_copa_ganador', inputId: 'camp-copa-ganador', leadTime: 20 }
+    ],
+    cava: [
+      { id: 'montecristo', tipo: 'counter', precioKey: 'puroDavidoffNo5', i18n: 'camp_puros_montecristo', i18nDesc: 'camp_puros_montecristo_detalle', fallback: 'Montecristo Nº 5', imagen: 'FOTOS/campeonato/montecristo-5.png', inputName: 'camp_puros_davidoff', inputId: 'camp-puros-davidoff' },
+      { id: 'champagne', tipo: 'counter', precioKey: 'champagneVeuveClicquot', i18n: 'camp_champagne_veuve', i18nDesc: 'camp_champagne_veuve_detalle', fallback: 'Veuve Clicquot', imagen: 'FOTOS/campeonato/champagne.png', inputName: 'camp_champagne_veuve', inputId: 'camp-champagne-veuve' }
+    ]
+  },
+
   /** Tarjetas servicios adicionales por día (buggies / carritos) */
   ancillaryServicios: [
     { id: 'buggy', precioKey: 'buggy', i18n: 'anc_buggies', fallback: 'Buggies', imagen: 'FOTOS/servicios/buggy.png', field: 'buggy', inputPrefix: 'ancillary_buggy_dia_', inputIdPrefix: 'ancillary-buggy-dia-' },
