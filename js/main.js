@@ -2510,8 +2510,16 @@ function initConfiguradorPaquete() {
                 if (gratisI18n && gratisI18n !== 'resumen_gratis') gratisLbl = gratisI18n;
             }
             resumenHTML += '<tr class="resumen-incluido"><td>' + pdfBurgosLbl + '</td><td><span class="resumen-gratis-valor">' + gratisLbl + '</span></td></tr>';
-            resumenHTML += '<tr class="resumen-descuento"><td>Descuento pack (-' + descPct + '%)</td><td>-' + formatEurosResumen(desc) + ' €</td></tr>';
-            resumenHTML += '<tr class="resumen-total"><td>Total</td><td>' + formatEurosResumen(subtotal) + ' €</td></tr>';
+            var lblSubtotalBruto = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_subtotal_sin_descuento') : 'Subtotal (sin descuento pack)';
+            if (!lblSubtotalBruto || lblSubtotalBruto === 'resumen_subtotal_sin_descuento') lblSubtotalBruto = 'Subtotal (sin descuento pack)';
+            var lblDescuentoDetalle = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_descuento_pack_detalle') : 'aplica a todos los servicios y artículos';
+            if (!lblDescuentoDetalle || lblDescuentoDetalle === 'resumen_descuento_pack_detalle') lblDescuentoDetalle = 'aplica a todos los servicios y artículos';
+            var lblDescuentoPack = 'Descuento pack (-' + descPct + '%) – ' + lblDescuentoDetalle;
+            var lblTotalConDesc = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_total_con_descuento') : 'Total con descuento pack';
+            if (!lblTotalConDesc || lblTotalConDesc === 'resumen_total_con_descuento') lblTotalConDesc = 'Total con descuento pack';
+            resumenHTML += '<tr class="resumen-subtotal-bruto"><td>' + lblSubtotalBruto + '</td><td>' + formatEurosResumen(base) + ' €</td></tr>';
+            resumenHTML += '<tr class="resumen-descuento"><td>' + lblDescuentoPack + '</td><td class="resumen-descuento-importe">-' + formatEurosResumen(desc) + ' €</td></tr>';
+            resumenHTML += '<tr class="resumen-total"><td>' + lblTotalConDesc + '</td><td>' + formatEurosResumen(subtotal) + ' €</td></tr>';
             if (numParticipants > 1) {
                 resumenHTML += '<tr class="resumen-por-persona"><td>Por persona</td><td>' + formatEurosResumen(subtotal / numParticipants) + ' €</td></tr>';
             }

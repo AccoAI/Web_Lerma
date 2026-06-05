@@ -52,10 +52,11 @@
                 cb.disabled = true;
                 if (hint) {
                     hint.hidden = false;
+                    var textEl = hint.querySelector('.campeonato-opcion-card__lead-text') || hint;
                     if (days === null) {
-                        hint.textContent = t('camp_lead_time_sin_fechas', 'Indica las fechas del campeonato (paso 1) para comprobar la antelación mínima de 20 días.');
+                        textEl.textContent = t('camp_lead_time_sin_fechas', 'Indica las fechas del campeonato (paso 1) para comprobar la antelación mínima de 20 días.');
                     } else {
-                        hint.textContent = t('camp_lead_time_20', 'Solo disponible con 20 días o más de antelación respecto a la fecha de llegada.');
+                        textEl.textContent = t('camp_lead_time_20', 'Solo disponible con 20 días o más de antelación respecto a la fecha de llegada.');
                     }
                 }
             }
@@ -118,7 +119,7 @@
         if (formData.get('camp_bono_tienda')) {
             out.premios += parseEuroInput(formData, 'camp_bono_tienda_eur');
         }
-        if (formData.get('camp_pack_canalla')) {
+        if (formData.get('camp_pack_canalla') && leadOk) {
             out.premios += (anc.packCanallaPremio || 8) * n;
         }
         if (formData.get('camp_cava_puros')) {
