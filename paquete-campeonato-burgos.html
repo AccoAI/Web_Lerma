@@ -165,48 +165,71 @@
                     <!-- Equipo personalizado (solo Campeonato Burgos) -->
                     <div class="configurador-seccion campeonato-extra-section" data-config-optional="true">
                         <h3 class="configurador-titulo" data-i18n="config_equipo_campeonato">6. Equipo personalizado</h3>
-                        <p class="configurador-seccion-desc" data-i18n="config_equipo_campeonato_desc">Personaliza bolas y polos con el logo de tu campeonato.</p>
-                        <div class="ancillary-service-grid campeonato-extra-grid" role="group" aria-label="Equipo personalizado">
-                            <label class="ancillary-card ancillary-item">
-                                <input type="checkbox" name="camp_bolas_personalizadas" value="1">
-                                <span class="ancillary-nombre" data-i18n="camp_bolas_personalizadas">Bolas personalizadas</span>
-                                <span class="ancillary-precio" data-ancillary="bolasPersonalizadas">— €</span>
-                            </label>
-                            <label class="ancillary-card ancillary-item">
-                                <input type="checkbox" name="camp_equipacion_polos" value="1">
-                                <span class="ancillary-nombre" data-i18n="camp_equipacion_polos">Equipación personalizada (polos)</span>
-                                <span class="ancillary-precio" data-ancillary="equipacionEquipos">— €</span>
-                            </label>
+                        <p class="configurador-seccion-desc" data-i18n="config_equipo_campeonato_desc">Personaliza bolas y polos con el logo de tu campeonato. Se cobra una unidad por cada jugador del paquete.</p>
+                        <div class="campeonato-extra-grid" role="group" aria-label="Equipo personalizado">
+                            <div class="campeonato-opcion-card" data-camp-lead-time="20">
+                                <label class="campeonato-opcion-card__head">
+                                    <input type="checkbox" name="camp_bolas_personalizadas" value="1">
+                                    <span class="campeonato-opcion-card__titulo" data-i18n="camp_bolas_personalizadas">Bolas personalizadas</span>
+                                </label>
+                                <p class="campeonato-opcion-card__precio" data-i18n="camp_bolas_precio_detalle">8 € · paquete de 3 bolas por jugador</p>
+                                <p class="campeonato-opcion-card__lead-hint" hidden data-i18n="camp_lead_time_20">Solo disponible con 20 días o más de antelación respecto a la fecha de llegada.</p>
+                                <div class="campeonato-opcion-card__foto" data-camp-foto="bolas" hidden aria-hidden="true"></div>
+                            </div>
+                            <div class="campeonato-opcion-card" data-camp-lead-time="20">
+                                <label class="campeonato-opcion-card__head">
+                                    <input type="checkbox" name="camp_equipacion_polos" value="1">
+                                    <span class="campeonato-opcion-card__titulo" data-i18n="camp_equipacion_polos">Equipación personalizada (polos Ryder Golf Lerma y Saldaña)</span>
+                                </label>
+                                <p class="campeonato-opcion-card__precio" data-i18n="camp_polos_precio_detalle">45 € · un polo por jugador</p>
+                                <p class="campeonato-opcion-card__lead-hint" hidden data-i18n="camp_lead_time_20">Solo disponible con 20 días o más de antelación respecto a la fecha de llegada.</p>
+                                <div class="campeonato-opcion-card__foto" data-camp-foto="polos" hidden aria-hidden="true"></div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Premios (solo Campeonato Burgos) -->
                     <div class="configurador-seccion campeonato-extra-section" data-config-optional="true">
                         <h3 class="configurador-titulo" data-i18n="config_premios_campeonato">7. Premios</h3>
-                        <p class="configurador-seccion-desc" data-i18n="config_premios_campeonato_desc">Trofeos, artículos de tienda, bono o pack canalla para los ganadores.</p>
-                        <div class="ancillary-service-grid campeonato-extra-grid" role="group" aria-label="Premios">
-                            <label class="ancillary-card ancillary-item">
-                                <input type="checkbox" name="camp_gestion_trofeos" value="1">
-                                <span class="ancillary-nombre" data-i18n="camp_gestion_trofeos">Gestión de trofeos y entrega de premios</span>
-                                <span class="ancillary-precio" data-ancillary="gestionTrofeos">— €</span>
-                            </label>
-                            <label class="ancillary-card ancillary-item">
-                                <input type="checkbox" name="camp_bono_tienda" value="1">
-                                <span class="ancillary-nombre" data-i18n="camp_bono_tienda">Bono tienda (artículos)</span>
-                                <span class="ancillary-precio" data-ancillary="bonoTiendaCampeonato">— €</span>
-                            </label>
-                            <label class="ancillary-card ancillary-item">
-                                <input type="checkbox" name="camp_pack_canalla" value="1">
-                                <span class="ancillary-nombre" data-i18n="camp_pack_canalla">Pack canalla</span>
-                                <span class="ancillary-precio" data-ancillary="packCanallaPremio">— €</span>
-                            </label>
+                        <p class="configurador-seccion-desc" data-i18n="config_premios_campeonato_desc">Trofeos, artículos de tienda, bono o pack canalla para los ganadores. Se recogerán en la Casa Club de Lerma.</p>
+                        <div class="campeonato-extra-grid" role="group" aria-label="Premios">
+                            <div class="campeonato-opcion-card campeonato-opcion-card--importe">
+                                <label class="campeonato-opcion-card__head">
+                                    <input type="checkbox" name="camp_bote_efectivo" value="1">
+                                    <span class="campeonato-opcion-card__titulo" data-i18n="camp_bote_efectivo">Bote efectivo al ganador</span>
+                                </label>
+                                <p class="campeonato-opcion-card__desc" data-i18n="camp_bote_efectivo_desc">Importe que se entrega al ganador; se cobra en el paquete.</p>
+                                <div class="campeonato-opcion-importe-wrap">
+                                    <label class="campeonato-opcion-importe-label" for="camp-bote-eur" data-i18n="camp_importe_eur">Importe (€)</label>
+                                    <input type="number" id="camp-bote-eur" name="camp_bote_efectivo_eur" class="campeonato-importe-input" min="0" step="1" inputmode="decimal" placeholder="0" disabled>
+                                </div>
+                            </div>
+                            <div class="campeonato-opcion-card campeonato-opcion-card--importe">
+                                <label class="campeonato-opcion-card__head">
+                                    <input type="checkbox" name="camp_bono_tienda" value="1">
+                                    <span class="campeonato-opcion-card__titulo" data-i18n="camp_bono_tienda">Bono de tienda Club Golf Lerma por valor de</span>
+                                </label>
+                                <p class="campeonato-opcion-card__desc" data-i18n="camp_bono_tienda_desc">Se cobra en el paquete y se canjea en la tienda; la diferencia la abona el club.</p>
+                                <div class="campeonato-opcion-importe-wrap">
+                                    <label class="campeonato-opcion-importe-label" for="camp-bono-eur" data-i18n="camp_importe_eur">Importe (€)</label>
+                                    <input type="number" id="camp-bono-eur" name="camp_bono_tienda_eur" class="campeonato-importe-input" min="0" step="1" inputmode="decimal" placeholder="0" disabled>
+                                </div>
+                            </div>
+                            <div class="campeonato-opcion-card">
+                                <label class="campeonato-opcion-card__head">
+                                    <input type="checkbox" name="camp_pack_canalla" value="1">
+                                    <span class="campeonato-opcion-card__titulo" data-i18n="camp_pack_canalla">Pack canalla</span>
+                                </label>
+                                <p class="campeonato-opcion-card__precio" data-i18n="camp_pack_canalla_detalle">8 € por jugador · selección variada de premios y equipamiento canalla de golf</p>
+                                <div class="campeonato-opcion-card__foto" data-camp-foto="canalla" hidden aria-hidden="true"></div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Cava de puros (solo Campeonato Burgos) -->
                     <div class="configurador-seccion campeonato-extra-section" data-config-optional="true">
                         <h3 class="configurador-titulo" data-i18n="config_cava_puros_campeonato">8. Cava de puros</h3>
-                        <p class="configurador-seccion-desc" data-i18n="config_cava_puros_campeonato_desc">Cava de puros en la entrega de premios o celebración del campeonato.</p>
+                        <p class="configurador-seccion-desc" data-i18n="config_cava_puros_campeonato_desc">Cava de puros en la entrega de premios o celebración del campeonato. Se recogerán en la Casa Club de Lerma.</p>
                         <div class="ancillary-service-grid campeonato-extra-grid" role="group" aria-label="Cava de puros">
                             <label class="ancillary-card ancillary-item">
                                 <input type="checkbox" name="camp_cava_puros" value="1">
@@ -372,6 +395,7 @@
     <script src="js/footer-contact.js"></script>
     <script src="js/configurador-form-nav.js"></script>
     <script src="js/configurador-datos-reserva.js"></script>
+    <script src="js/campeonato-extras.js"></script>
     <script src="js/main.js"></script>
     <script src="js/configurador-flujo-progresivo.js"></script>
     <script src="js/chatbot.js"></script>

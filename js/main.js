@@ -2324,7 +2324,7 @@ function initConfiguradorPaquete() {
                 var lblPurosRes = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_cava_puros') : 'Cava de puros';
                 if (!lblPurosRes || lblPurosRes === 'resumen_cava_puros') lblPurosRes = 'Cava de puros';
                 var tieneEquipoCamp = !!(formData.get('camp_bolas_personalizadas') || formData.get('camp_equipacion_polos'));
-                var tienePremiosCamp = !!(formData.get('camp_gestion_trofeos') || formData.get('camp_bono_tienda') || formData.get('camp_pack_canalla'));
+                var tienePremiosCamp = !!(formData.get('camp_bote_efectivo') || formData.get('camp_bono_tienda') || formData.get('camp_pack_canalla'));
                 var tienePurosCamp = !!formData.get('camp_cava_puros');
                 resumenHTML += '<p><strong>' + lblEquipoRes + ':</strong> ' + (tieneEquipoCamp ? 'Sí' : '—') + '</p>';
                 resumenHTML += '<p><strong>' + lblPremiosRes + ':</strong> ' + (tienePremiosCamp ? 'Sí' : '—') + '</p>';
@@ -2446,15 +2446,14 @@ function initConfiguradorPaquete() {
             var premiosCampeonatoVal = 0;
             var cavaPurosVal = 0;
             if (packCampeonatoBurgos) {
-                if (formData.get('camp_bolas_personalizadas')) equipoCampeonatoVal += (anc.bolasPersonalizadas || 0);
-                if (formData.get('camp_equipacion_polos')) equipoCampeonatoVal += (anc.equipacionEquipos || 0);
-                if (formData.get('camp_gestion_trofeos')) premiosCampeonatoVal += (anc.gestionTrofeos || 0);
-                if (formData.get('camp_bono_tienda')) premiosCampeonatoVal += (anc.bonoTiendaCampeonato || 0);
-                if (formData.get('camp_pack_canalla')) premiosCampeonatoVal += (anc.packCanallaPremio || 0);
-                if (formData.get('camp_cava_puros')) cavaPurosVal += (anc.cavaPuros || 0);
-                equipoCampeonatoVal = roundEuros(equipoCampeonatoVal);
-                premiosCampeonatoVal = roundEuros(premiosCampeonatoVal);
-                cavaPurosVal = roundEuros(cavaPurosVal);
+                var campExtras = (typeof window.calcCampeonatoExtras === 'function')
+                    ? window.calcCampeonatoExtras(formData, form)
+                    : null;
+                if (campExtras) {
+                    equipoCampeonatoVal = campExtras.equipo;
+                    premiosCampeonatoVal = campExtras.premios;
+                    cavaPurosVal = campExtras.cava;
+                }
             }
             var campeonatoExtrasVal = roundEuros(equipoCampeonatoVal + premiosCampeonatoVal + cavaPurosVal);
 
