@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
-<body class="fondo-golf-lerma-estandar">
+<body class="fondo-golf-lerma-estandar pack-campeonato-burgos">
     <!-- Header -->
     <header class="header">
         <div class="header-container">
@@ -159,6 +159,60 @@
                             <p class="comida-sin-fechas" id="comida-sin-fechas" data-i18n="config_hint_falta_ambos">Completa el paso 1 (fechas y número de jugadores) para ver las opciones de esta sección.</p>
                             <div id="comida-por-dia-container" class="comida-por-dia-container" style="display:none;"></div>
                             <p class="comida-postbooking-nota" id="comida-postbooking-nota" data-i18n="config_comida_postbooking">Una vez realizado el pago del paquete, en la página de confirmación facilitaremos la reserva en todos los restaurantes recomendados de Lerma, Saldaña y Burgos no ligados al club.</p>
+                        </div>
+                    </div>
+
+                    <!-- Equipo personalizado (solo Campeonato Burgos) -->
+                    <div class="configurador-seccion campeonato-extra-section" data-config-optional="true">
+                        <h3 class="configurador-titulo" data-i18n="config_equipo_campeonato">6. Equipo personalizado</h3>
+                        <p class="configurador-seccion-desc" data-i18n="config_equipo_campeonato_desc">Personaliza bolas y polos con el logo de tu campeonato.</p>
+                        <div class="ancillary-service-grid campeonato-extra-grid" role="group" aria-label="Equipo personalizado">
+                            <label class="ancillary-card ancillary-item">
+                                <input type="checkbox" name="camp_bolas_personalizadas" value="1">
+                                <span class="ancillary-nombre" data-i18n="camp_bolas_personalizadas">Bolas personalizadas</span>
+                                <span class="ancillary-precio" data-ancillary="bolasPersonalizadas">— €</span>
+                            </label>
+                            <label class="ancillary-card ancillary-item">
+                                <input type="checkbox" name="camp_equipacion_polos" value="1">
+                                <span class="ancillary-nombre" data-i18n="camp_equipacion_polos">Equipación personalizada (polos)</span>
+                                <span class="ancillary-precio" data-ancillary="equipacionEquipos">— €</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Premios (solo Campeonato Burgos) -->
+                    <div class="configurador-seccion campeonato-extra-section" data-config-optional="true">
+                        <h3 class="configurador-titulo" data-i18n="config_premios_campeonato">7. Premios</h3>
+                        <p class="configurador-seccion-desc" data-i18n="config_premios_campeonato_desc">Trofeos, artículos de tienda, bono o pack canalla para los ganadores.</p>
+                        <div class="ancillary-service-grid campeonato-extra-grid" role="group" aria-label="Premios">
+                            <label class="ancillary-card ancillary-item">
+                                <input type="checkbox" name="camp_gestion_trofeos" value="1">
+                                <span class="ancillary-nombre" data-i18n="camp_gestion_trofeos">Gestión de trofeos y entrega de premios</span>
+                                <span class="ancillary-precio" data-ancillary="gestionTrofeos">— €</span>
+                            </label>
+                            <label class="ancillary-card ancillary-item">
+                                <input type="checkbox" name="camp_bono_tienda" value="1">
+                                <span class="ancillary-nombre" data-i18n="camp_bono_tienda">Bono tienda (artículos)</span>
+                                <span class="ancillary-precio" data-ancillary="bonoTiendaCampeonato">— €</span>
+                            </label>
+                            <label class="ancillary-card ancillary-item">
+                                <input type="checkbox" name="camp_pack_canalla" value="1">
+                                <span class="ancillary-nombre" data-i18n="camp_pack_canalla">Pack canalla</span>
+                                <span class="ancillary-precio" data-ancillary="packCanallaPremio">— €</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Cava de puros (solo Campeonato Burgos) -->
+                    <div class="configurador-seccion campeonato-extra-section" data-config-optional="true">
+                        <h3 class="configurador-titulo" data-i18n="config_cava_puros_campeonato">8. Cava de puros</h3>
+                        <p class="configurador-seccion-desc" data-i18n="config_cava_puros_campeonato_desc">Cava de puros en la entrega de premios o celebración del campeonato.</p>
+                        <div class="ancillary-service-grid campeonato-extra-grid" role="group" aria-label="Cava de puros">
+                            <label class="ancillary-card ancillary-item">
+                                <input type="checkbox" name="camp_cava_puros" value="1">
+                                <span class="ancillary-nombre" data-i18n="camp_cava_puros">Cava de puros</span>
+                                <span class="ancillary-precio" data-ancillary="cavaPuros">— €</span>
+                            </label>
                         </div>
                     </div>
 

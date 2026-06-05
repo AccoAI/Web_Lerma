@@ -86,16 +86,7 @@
 
         if (maxW < 260) maxW = 260;
 
-        var header = overlay.querySelector('.torneos-popup-header');
-        var noHoy = overlay.querySelector('.torneos-popup-no-hoy');
-        var cards = overlay.querySelectorAll('.torneos-popup-cards .torneos-popup');
-        var n = cards.length || 1;
-        var headerH = header ? header.offsetHeight : 36;
-        var noHoyH = noHoy ? noHoy.offsetHeight : 28;
-        var cardGap = 8 * Math.max(0, n - 1);
-        var verticalPad = 48;
-        var availH = window.innerHeight - verticalPad - headerH - noHoyH - cardGap - 12;
-        var cardH = Math.min(220, Math.max(100, Math.floor(availH / n)));
+        var cardH = Math.min(106, Math.max(92, Math.round(window.innerHeight * 0.1)));
 
         overlay.style.setProperty('--torneos-popup-max-width', maxW + 'px');
         overlay.style.setProperty('--torneos-popup-card-height', cardH + 'px');

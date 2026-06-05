@@ -2316,6 +2316,20 @@ function initConfiguradorPaquete() {
                 if (!lblTiendaResumen || lblTiendaResumen === 'resumen_tienda_golf') lblTiendaResumen = 'Tienda de golf';
                 resumenHTML += '<p><strong>' + lblTiendaResumen + ':</strong> ' + (tieneTienda ? 'Sí' : '—') + '</p>';
             }
+            if (document.body.classList.contains('pack-campeonato-burgos')) {
+                var lblEquipoRes = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_equipo_campeonato') : 'Equipo personalizado';
+                if (!lblEquipoRes || lblEquipoRes === 'resumen_equipo_campeonato') lblEquipoRes = 'Equipo personalizado';
+                var lblPremiosRes = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_premios_campeonato') : 'Premios';
+                if (!lblPremiosRes || lblPremiosRes === 'resumen_premios_campeonato') lblPremiosRes = 'Premios';
+                var lblPurosRes = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_cava_puros') : 'Cava de puros';
+                if (!lblPurosRes || lblPurosRes === 'resumen_cava_puros') lblPurosRes = 'Cava de puros';
+                var tieneEquipoCamp = !!(formData.get('camp_bolas_personalizadas') || formData.get('camp_equipacion_polos'));
+                var tienePremiosCamp = !!(formData.get('camp_gestion_trofeos') || formData.get('camp_bono_tienda') || formData.get('camp_pack_canalla'));
+                var tienePurosCamp = !!formData.get('camp_cava_puros');
+                resumenHTML += '<p><strong>' + lblEquipoRes + ':</strong> ' + (tieneEquipoCamp ? 'Sí' : '—') + '</p>';
+                resumenHTML += '<p><strong>' + lblPremiosRes + ':</strong> ' + (tienePremiosCamp ? 'Sí' : '—') + '</p>';
+                resumenHTML += '<p><strong>' + lblPurosRes + ':</strong> ' + (tienePurosCamp ? 'Sí' : '—') + '</p>';
+            }
             resumenHTML += '</div>';
 
             var numParticipants = Math.max(1, parseInt((formData.get('tamanio_grupo') || '').trim(), 10) || form.querySelectorAll('.usuario-form').length);
@@ -2427,10 +2441,27 @@ function initConfiguradorPaquete() {
                 );
             }
 
+            var packCampeonatoBurgos = document.body.classList.contains('pack-campeonato-burgos');
+            var equipoCampeonatoVal = 0;
+            var premiosCampeonatoVal = 0;
+            var cavaPurosVal = 0;
+            if (packCampeonatoBurgos) {
+                if (formData.get('camp_bolas_personalizadas')) equipoCampeonatoVal += (anc.bolasPersonalizadas || 0);
+                if (formData.get('camp_equipacion_polos')) equipoCampeonatoVal += (anc.equipacionEquipos || 0);
+                if (formData.get('camp_gestion_trofeos')) premiosCampeonatoVal += (anc.gestionTrofeos || 0);
+                if (formData.get('camp_bono_tienda')) premiosCampeonatoVal += (anc.bonoTiendaCampeonato || 0);
+                if (formData.get('camp_pack_canalla')) premiosCampeonatoVal += (anc.packCanallaPremio || 0);
+                if (formData.get('camp_cava_puros')) cavaPurosVal += (anc.cavaPuros || 0);
+                equipoCampeonatoVal = roundEuros(equipoCampeonatoVal);
+                premiosCampeonatoVal = roundEuros(premiosCampeonatoVal);
+                cavaPurosVal = roundEuros(cavaPurosVal);
+            }
+            var campeonatoExtrasVal = roundEuros(equipoCampeonatoVal + premiosCampeonatoVal + cavaPurosVal);
+
             var packCoreListo = packGolfComidaPackCoreListo(count, formData);
             var gfEnBase = packGolfComidaMenusOpco ? (packCoreListo ? gf : 0) : gf;
             var comidaEnBase = packGolfComidaMenusOpco ? (packCoreListo ? comidaVal : 0) : comidaVal;
-            var base = roundEuros(gfEnBase + aloj + comidaEnBase + ancVal + tiendaVal);
+            var base = roundEuros(gfEnBase + aloj + comidaEnBase + ancVal + tiendaVal + campeonatoExtrasVal);
             var descPct = tieneCorrespondencia ? DESCUENTO_PACK_PORC : 12;
             var desc = roundEuros(base * descPct / 100);
             var subtotal = roundEuros(base - desc);
@@ -2461,6 +2492,17 @@ function initConfiguradorPaquete() {
                 var lblTiendaRow = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_tienda_golf') : 'Tienda de golf';
                 if (!lblTiendaRow || lblTiendaRow === 'resumen_tienda_golf') lblTiendaRow = 'Tienda de golf';
                 resumenHTML += '<tr><td>' + lblTiendaRow + '</td><td>' + (tiendaVal > 0 ? formatEurosResumen(tiendaVal) + ' €' : '—') + '</td></tr>';
+            }
+            if (packCampeonatoBurgos) {
+                var lblEquipoRow = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_equipo_campeonato') : 'Equipo personalizado';
+                if (!lblEquipoRow || lblEquipoRow === 'resumen_equipo_campeonato') lblEquipoRow = 'Equipo personalizado';
+                var lblPremiosRow = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_premios_campeonato') : 'Premios';
+                if (!lblPremiosRow || lblPremiosRow === 'resumen_premios_campeonato') lblPremiosRow = 'Premios';
+                var lblPurosRow = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_cava_puros') : 'Cava de puros';
+                if (!lblPurosRow || lblPurosRow === 'resumen_cava_puros') lblPurosRow = 'Cava de puros';
+                resumenHTML += '<tr><td>' + lblEquipoRow + '</td><td>' + (equipoCampeonatoVal > 0 ? formatEurosResumen(equipoCampeonatoVal) + ' €' : '—') + '</td></tr>';
+                resumenHTML += '<tr><td>' + lblPremiosRow + '</td><td>' + (premiosCampeonatoVal > 0 ? formatEurosResumen(premiosCampeonatoVal) + ' €' : '—') + '</td></tr>';
+                resumenHTML += '<tr><td>' + lblPurosRow + '</td><td>' + (cavaPurosVal > 0 ? formatEurosResumen(cavaPurosVal) + ' €' : '—') + '</td></tr>';
             }
             var pdfBurgosLbl = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_pdf_burgos') : 'PDF recomendaciones de Burgos';
             var gratisLbl = 'GRATIS';

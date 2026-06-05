@@ -46,6 +46,9 @@ window.PRECIOS_DATA = {
     equipacionEquipos: 35,
     gestionTrofeos: 50,
     premioEconomico: 0,
+    bonoTiendaCampeonato: 30,
+    packCanallaPremio: 45,
+    cavaPuros: 40,
     guantesGolf: 13,
     paqueteTees: 4,
     paqueteBolas: 35

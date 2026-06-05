@@ -22,6 +22,7 @@
         if (!step) return true;
         if (step.classList.contains('servicios-adicionales-section')) return true;
         if (step.classList.contains('tienda-golf-section')) return true;
+        if (step.classList.contains('campeonato-extra-section')) return true;
         if (step.getAttribute('data-config-optional') === 'true') return true;
         if (step.querySelector('#comida-por-dia-wrap') && !step.classList.contains('configurador-seccion--menus-opco')) {
             return true;
