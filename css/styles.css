@@ -14566,3 +14566,136 @@ body.page-torneo .torneo-detalle-section {
         bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
     }
 }
+
+/* Promociona tu torneo – formulario de solicitud */
+.promo-torneo-page .hazte-socio-form-intro {
+    max-width: 720px;
+}
+
+.promo-torneo-form {
+    max-width: 820px;
+    margin: 0 auto 2rem;
+}
+
+.promo-torneo-seccion {
+    border: none;
+    margin: 0 0 2rem;
+    padding: 0 0 1.5rem;
+    border-bottom: 1px solid rgba(26, 77, 58, 0.12);
+}
+
+.promo-torneo-seccion:last-of-type {
+    border-bottom: none;
+}
+
+.promo-torneo-seccion .configurador-titulo {
+    margin-bottom: 1rem;
+    padding: 0;
+}
+
+.promo-torneo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 1.25rem;
+}
+
+.promo-torneo-grid--precios {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.promo-torneo-hint {
+    margin: -0.35rem 0 1rem;
+    font-size: 0.88rem;
+    color: var(--color-text-muted, #5a6b63);
+    font-style: italic;
+}
+
+.promo-torneo-foto-block .promo-torneo-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 0.65rem;
+    color: var(--color-primary-dark);
+}
+
+.promo-torneo-foto-opciones {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0.75rem 1rem;
+    align-items: end;
+}
+
+.promo-torneo-o {
+    margin: 0 0 0.75rem;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #6b7280);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.promo-torneo-foto-preview {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    padding: 0.5rem;
+    background: rgba(26, 77, 58, 0.05);
+    border: 1px solid rgba(26, 77, 58, 0.12);
+}
+
+.promo-torneo-foto-preview__img {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.promo-torneo-foto-preview__name {
+    font-size: 0.85rem;
+    color: var(--color-text);
+    word-break: break-all;
+}
+
+.promo-torneo-check-row {
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 0.5rem;
+}
+
+.promo-torneo-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.promo-torneo-check input {
+    width: 1.1rem;
+    height: 1.1rem;
+    accent-color: var(--color-primary);
+}
+
+.promo-torneo-contacto-directo {
+    max-width: 820px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .promo-torneo-grid,
+    .promo-torneo-grid--precios {
+        grid-template-columns: 1fr;
+    }
+
+    .promo-torneo-foto-opciones {
+        grid-template-columns: 1fr;
+    }
+
+    .promo-torneo-o {
+        margin: 0;
+    }
+}
