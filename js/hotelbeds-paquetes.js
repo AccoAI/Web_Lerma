@@ -988,27 +988,6 @@
     }
   }
 
-  function getHbSplitAlojamientoResumenRows(formData) {
-    if (!formData || !formData.get) return '';
-    var raw = String(formData.get('hb_split_bookings') || '').trim();
-    if (!raw) return '';
-    var arr;
-    try {
-      arr = JSON.parse(raw);
-    } catch (e0) {
-      return '';
-    }
-    if (!Array.isArray(arr) || arr.length < 2) return '';
-    var html = '';
-    arr.forEach(function (b) {
-      if (!b || !b.ready) return;
-      var label = (b.name || 'Hotel ' + b.code) + (b.adults ? ' (' + b.adults + ' pers.)' : '');
-      var amt = b.bookNet != null && isFinite(Number(b.bookNet)) ? fmtEuros(Number(b.bookNet)) + '\u00a0€' : '—';
-      html += '<tr class="resumen-split-hotel"><td>' + escapeHtml(label) + '</td><td>' + amt + '</td></tr>';
-    });
-    return html;
-  }
-
   function refreshHotelCardPackagePrices() {
     document.querySelectorAll('.hotelbeds-card[data-hb-hotel-code]').forEach(function (card) {
       var code = card.getAttribute('data-hb-hotel-code');
@@ -2575,13 +2554,11 @@
   }
 
   /**
-   * Habitaciones por defecto en disponibilidad HB.
-   * 1–3 adultos → 1 habitación (triple / cama extra), alineado con búsquedas tipo Booking.
-   * 4+ → 2 adultos por habitación (grupos de golf).
+   * Habitaciones por defecto en disponibilidad HB: cama doble (máx. 2 adultos/hab.).
+   * Grupos de golf y reparto multi-hotel usan varias dobles, no triples ni familiares.
    */
   function defaultRoomsForAdults(adults) {
     var n = Math.max(1, parseInt(adults, 10) || 1);
-    if (n <= 3) return 1;
     return clamp(Math.ceil(n / 2), 1, HB_MAX_ROOMS);
   }
 
@@ -2674,11 +2651,31 @@
       if (datesLine) {
         try {
           var range = getCheckInCheckOut(new FormData(form));
+          var datesTxt = '';
           if (range && range.checkIn && range.checkOut) {
-            datesLine.textContent = 'Fechas: ' + range.checkIn + ' → ' + range.checkOut;
-          } else {
-            datesLine.textContent = '';
+            datesTxt = 'Fechas: ' + range.checkIn + ' → ' + range.checkOut;
           }
+          if (splitMode && hotelCode) {
+            var covSplit = window.__HB_COVERAGE__ || {};
+            var partAdults =
+              covSplit.hotelPartByCode && covSplit.hotelPartByCode[String(hotelCode)] != null
+                ? parseInt(covSplit.hotelPartByCode[String(hotelCode)], 10)
+                : 0;
+            var groupTotal = parseInt(covSplit.totalAdults, 10) || 0;
+            if (partAdults > 0 && groupTotal > partAdults) {
+              var partRooms = defaultRoomsForAdults(partAdults);
+              datesTxt +=
+                (datesTxt ? ' · ' : '') +
+                'Grupo ' +
+                groupTotal +
+                ' pers.: en este hotel, ' +
+                partAdults +
+                ' pers. en ' +
+                partRooms +
+                ' hab. dobles';
+            }
+          }
+          datesLine.textContent = datesTxt;
         } catch (e0) {
           datesLine.textContent = '';
         }
@@ -3275,7 +3272,7 @@
       ' hoteles</strong> porque ninguno tiene disponibilidad para alojar a todo el grupo' +
       (total ? ' (' + total + ' personas)' : '') +
       ' en un solo establecimiento.' +
-      (partsTxt ? ' Reparto sugerido: <strong>' + partsTxt + ' personas</strong> por hotel.' : '') +
+      (partsTxt ? ' Reparto sugerido: <strong>' + partsTxt + ' personas</strong> por hotel (habitaciones de cama doble).' : '') +
       ' <strong>Configura cada hotel de la lista</strong> (habitación y régimen) y confírmalo.' +
       '</p>'
     );
@@ -4301,7 +4298,6 @@
   window.refreshHotelCardPackagePrices = refreshHotelCardPackagePrices;
   window.refreshFunnelRatePackagePrices = refreshFunnelRatePackagePrices;
   window.syncHbResumenFromCurrentOffer = syncHbResumenFromCurrentOffer;
-  window.getHbSplitAlojamientoResumenRows = getHbSplitAlojamientoResumenRows;
   window.toggleHbDebugTariffs = toggleHbDebugTariffs;
   window.hbDebugTariffsEnabled = hbDebugTariffsEnabled;
   window.getHbTariffDebugResumenHtml = function (form) {

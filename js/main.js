@@ -2471,10 +2471,21 @@ function initConfiguradorPaquete() {
             resumenHTML += '<div class="resumen-subtotal">';
             resumenHTML += '<table class="resumen-subtotal-tabla">';
             if (necesitaHotel) {
-                resumenHTML += '<tr><td>Pack golf + alojamiento</td><td>' + formatEurosResumen(gf + aloj) + '\u00a0€</td></tr>';
-                if (typeof window.getHbSplitAlojamientoResumenRows === 'function') {
-                    resumenHTML += window.getHbSplitAlojamientoResumenRows(formData);
-                }
+                var hbSplitReady = 0;
+                try {
+                    var hbSplitRaw = String(formData.get('hb_split_bookings') || '').trim();
+                    if (hbSplitRaw) {
+                        var hbSplitArr = JSON.parse(hbSplitRaw);
+                        if (Array.isArray(hbSplitArr)) {
+                            hbSplitReady = hbSplitArr.filter(function (b) { return b && b.ready; }).length;
+                        }
+                    }
+                } catch (eSplit) { /* ignore */ }
+                var packHotelLbl =
+                    hbSplitReady >= 2
+                        ? hbSplitReady + ' hoteles + green fees'
+                        : 'Pack golf + alojamiento';
+                resumenHTML += '<tr><td>' + packHotelLbl + '</td><td>' + formatEurosResumen(gf + aloj) + '\u00a0€</td></tr>';
             } else if (packGolfComidaMenusOpco) {
                 var lblGfMenus = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_gf_menus_comida') : 'Green fees + Menús Casa Club Lerma';
                 if (!lblGfMenus || lblGfMenus === 'resumen_gf_menus_comida') lblGfMenus = 'Green fees + Menús Casa Club Lerma';
