@@ -13,6 +13,18 @@
     {
       "source": "/api/stripe-checkout-session",
       "destination": "/api/booking-voucher?checkout_json=1"
+    },
+    {
+      "source": "/api/socios-login",
+      "destination": "/api/socios?action=login"
+    },
+    {
+      "source": "/api/socios-list",
+      "destination": "/api/socios?action=list"
+    },
+    {
+      "source": "/api/socios-amigos",
+      "destination": "/api/socios?action=amigos"
     }
   ],
   "functions": {
@@ -25,9 +37,7 @@
     "api/contacto-empresa.js": { "maxDuration": 10 },
     "api/promociona-torneo.js": { "maxDuration": 15 },
     "api/reserva-solicitud.js": { "maxDuration": 10 },
-    "api/socios-login.js": { "maxDuration": 10 },
-    "api/socios-list.js": { "maxDuration": 10 },
-    "api/socios-amigos.js": { "maxDuration": 10 },
+    "api/socios.js": { "maxDuration": 10 },
     "api/booking-voucher.js": { "maxDuration": 15 }
   }
 }
