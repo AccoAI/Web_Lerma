@@ -24,6 +24,7 @@
     "api/webhook-stripe.js": { "maxDuration": 15 },
     "api/contacto-empresa.js": { "maxDuration": 10 },
     "api/promociona-torneo.js": { "maxDuration": 15 },
+    "api/reserva-solicitud.js": { "maxDuration": 10 },
     "api/socios-login.js": { "maxDuration": 10 },
     "api/socios-list.js": { "maxDuration": 10 },
     "api/socios-amigos.js": { "maxDuration": 10 },

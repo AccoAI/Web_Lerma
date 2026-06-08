@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="description" content="Bautismos de golf - Sesiones de iniciación para jóvenes y adultos en el simulador de Burgos">
+    <meta name="description" content="Bautismos de golf - Solicita tu sesión de iniciación en Golf Lerma o Saldaña Golf">
     <title>Bautismos de Golf - Golf Lerma</title>
     <link rel="icon" href="FOTOS/Logo-Golf-Lerma-Footer-1.png" type="image/png">
     <link rel="apple-touch-icon" href="FOTOS/Logo-Golf-Lerma-Footer-1.png">
@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
-<body class="fondo-golf-lerma-estandar">
+<body class="fondo-golf-lerma-estandar" data-reserva-tipo="bautismos">
     <!-- Header -->
     <header class="header">
         <div class="header-container">
@@ -66,136 +66,95 @@
     <!-- Bautismos de Golf -->
     <section class="paquete-detalle" style="margin-top: 0; padding-top: calc(var(--header-height) + 1.5rem);">
         <div class="container">
-            <h2 class="section-title">Bautismos de golf</h2>
-            <p class="paquete-intro">Sesiones de iniciación en el simulador de Burgos (Calle Lain Calvo 12). Para jóvenes y adultos. Descubra el golf en un entorno cómodo y divertido.</p>
-
-            <div class="paquete-info" style="margin-bottom: 2rem;">
-                <div class="info-card">
-                    <h3>Precios</h3>
-                    <ul class="info-lista">
-                        <li><strong>Adultos:</strong> 15 € por persona</li>
-                        <li><strong>Jóvenes:</strong> 10 € por persona</li>
-                    </ul>
-                </div>
-            </div>
+            <h2 class="section-title" data-i18n="paquete_bautismos_title">Bautismos de golf</h2>
+            <p class="paquete-intro" data-i18n="paquete_bautismos_intro">Sesiones de iniciación para jóvenes y adultos en Golf Lerma o Saldaña Golf. Envíe una solicitud con día, hora y número de personas; el club la tramitará y se pondrá en contacto con usted.</p>
 
             <div class="campo-imagenes" style="margin-bottom: 2rem;">
                 <div class="campo-imagen-principal">
-                    <img src="FOTOS/simulator.jpg" alt="Bautismos de golf - Simulador Burgos">
+                    <img src="FOTOS/simulator.jpg" alt="Bautismos de golf">
                 </div>
             </div>
 
-            <!-- Formulario de Reserva -->
-            <div class="configurador-paquete" style="margin-top: 3rem;">
+            <div class="configurador-paquete reserva-solicitud-wrap">
                 <div class="configurador-layout">
-                <form id="formBautismos" class="configurador-form">
-                    <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">1. Fecha y hora</h3>
-                        <div id="calendario-dias-bautismos" class="calendario-dias-container"></div>
-                        <div class="hora-salida-en-fechas-wrap">
-                            <div class="reserva-datos-iniciales">
-                                <div class="form-group-inline">
-                                    <label for="hora-bautismos">Hora preferida *</label>
-                                    <input type="time" id="hora-bautismos" name="hora_salida" title="Hora preferida" required>
+                    <form id="formReservaSolicitud" class="configurador-form reserva-solicitud-form" novalidate>
+                        <p class="reserva-solicitud-lead" data-i18n="reserva_solicitud_lead">Indique fecha, hora, número de personas y campo y envíe su solicitud. El club la tramitará y se pondrá en contacto con usted. El pago, si procede, se gestionará después.</p>
+                        <div class="configurador-seccion">
+                            <h3 class="configurador-titulo" data-i18n="reserva_sec_sesion">1. Fecha y hora</h3>
+                            <div class="reserva-solicitud-grid">
+                                <div class="form-group">
+                                    <label for="reserva-fecha" data-i18n="reserva_fecha">Fecha *</label>
+                                    <input type="date" id="reserva-fecha" name="fecha" required>
+                                </div>
+                                <div class="form-group reserva-solicitud-hora">
+                                    <label for="reserva-hora" data-i18n="reserva_hora">Hora *</label>
+                                    <input type="time" id="reserva-hora" name="hora" required>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">2. Número de participantes</h3>
-                        <div class="form-group-inline" style="gap: 2rem; flex-wrap: wrap;">
-                            <div>
-                                <label for="num-adultos">Adultos</label>
-                                <input type="number" id="num-adultos" name="num_adultos" min="0" max="20" value="0" class="bautismos-counter">
-                            </div>
-                            <div>
-                                <label for="num-jovenes">Jóvenes</label>
-                                <input type="number" id="num-jovenes" name="num_jovenes" min="0" max="20" value="0" class="bautismos-counter">
+                        <div class="configurador-seccion">
+                            <h3 class="configurador-titulo" data-i18n="reserva_sec_personas">2. Número de personas</h3>
+                            <div class="ancillary-counter-wrap reserva-quantity-wrap fechas-grupo-counter fechas-grupo-counter--personas" role="group">
+                                <button type="button" class="ancillary-btn ancillary-btn-minus reserva-personas-minus" aria-label="Quitar una persona">−</button>
+                                <input type="number" id="reserva-num-personas" name="num_personas" min="1" max="54" value="1" class="ancillary-counter reserva-quantity-input fechas-grupo-personas-value" readonly required>
+                                <button type="button" class="ancillary-btn ancillary-btn-plus reserva-personas-plus" aria-label="Añadir una persona">+</button>
                             </div>
                         </div>
-                        <p class="configurador-hint">Indique cuántos adultos (15 €) y jóvenes (10 €) participarán.</p>
-                    </div>
-
-                    <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">3. Datos de contacto</h3>
-                        <p class="configurador-hint">Datos de la persona que realiza la reserva.</p>
-                        <div id="usuarios-container" data-extra-opcionales="false" data-simplificar-extras="true">
-                            <div class="usuario-form usuario-form-reserva" data-usuario="1">
-                                <div class="usuario-form-header"><h4 class="usuario-numero">Datos de la reserva *</h4></div>
-                                <div class="usuario-campos">
-                                    <div class="form-group-usuario">
-                                        <label>Nombre *</label>
-                                        <input type="text" name="usuario[1][nombre]" required>
+                        <div class="configurador-seccion">
+                            <h3 class="configurador-titulo" data-i18n="reserva_sec_campo">3. Campo</h3>
+                            <div class="tipo-torneo-grid reserva-campo-grid">
+                                <label class="tipo-torneo-card">
+                                    <input type="radio" name="campo" value="lerma" required>
+                                    <div class="tipo-torneo-content">
+                                        <img src="FOTOS/Logo-Golf-Lerma-Footer-1.png" alt="" class="reserva-campo-logo" width="48" height="48">
+                                        <span class="tipo-torneo-titulo" data-i18n="campo_lerma">Golf Lerma</span>
                                     </div>
-                                    <div class="form-group-usuario">
-                                        <label>Correo *</label>
-                                        <input type="email" name="usuario[1][correo]" required>
+                                </label>
+                                <label class="tipo-torneo-card">
+                                    <input type="radio" name="campo" value="saldana" required>
+                                    <div class="tipo-torneo-content">
+                                        <img src="FOTOS/Logo-Saldaña-Golf-Footer.png" alt="" class="reserva-campo-logo" width="48" height="48">
+                                        <span class="tipo-torneo-titulo" data-i18n="campo_saldana">Saldaña Golf</span>
                                     </div>
-                                    <div class="form-group-usuario form-group-telefono">
-                                        <label>Móvil *</label>
-                                        <div class="telefono-wrapper">
-                                            <select class="telefono-prefijo" name="usuario[1][movil_prefijo]" aria-label="Prefijo país">
-                                                <option value="+34" selected>+34</option>
-                                                <option value="+33">+33</option>
-                                                <option value="+44">+44</option>
-                                                <option value="+39">+39</option>
-                                                <option value="+351">+351</option>
-                                                <option value="+49">+49</option>
-                                            </select>
-                                            <input type="tel" name="usuario[1][movil]" class="telefono-numero" placeholder="612 345 678" required>
-                                        </div>
-                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="configurador-seccion">
+                            <h3 class="configurador-titulo" data-i18n="reserva_sec_contacto">4. Datos de contacto</h3>
+                            <div class="form-group">
+                                <label for="reserva-nombre" data-i18n="label_nombre_req">Nombre *</label>
+                                <input type="text" id="reserva-nombre" name="contacto_nombre" required autocomplete="name">
+                            </div>
+                            <div class="form-group">
+                                <label for="reserva-email" data-i18n="promo_contacto_email">Email de contacto *</label>
+                                <input type="email" id="reserva-email" name="contacto_email" required autocomplete="email">
+                            </div>
+                            <div class="form-group form-group-telefono">
+                                <label for="reserva-movil" data-i18n="label_movil">Móvil *</label>
+                                <div class="telefono-wrapper">
+                                    <select class="telefono-prefijo" name="contacto_prefijo" aria-label="Prefijo país">
+                                        <option value="+34" selected>+34</option>
+                                        <option value="+33">+33</option>
+                                        <option value="+44">+44</option>
+                                        <option value="+39">+39</option>
+                                        <option value="+351">+351</option>
+                                        <option value="+49">+49</option>
+                                    </select>
+                                    <input type="tel" id="reserva-movil" name="contacto_movil" class="telefono-numero" placeholder="612 345 678" required autocomplete="tel">
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="forma-pago-block">
-                        <p class="forma-pago-label">Forma de pago</p>
-                        <div class="opciones-grid opciones-grid-2">
-                            <label class="opcion-card opcion-card-compact">
-                                <input type="radio" name="forma_pago" value="unico" checked>
-                                <div class="opcion-content">
-                                    <span class="opcion-icon">💳</span>
-                                    <span class="opcion-texto">Pago único</span>
-                                    <span class="opcion-desc">Una sola transacción por el importe total</span>
-                                </div>
-                            </label>
-                            <label class="opcion-card opcion-card-compact">
-                                <input type="radio" name="forma_pago" value="por_persona">
-                                <div class="opcion-content">
-                                    <span class="opcion-icon">🔗</span>
-                                    <span class="opcion-texto">Pago por persona</span>
-                                    <span class="opcion-desc">Cada uno recibe un enlace para pagar su parte</span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                </form>
-                <div class="resumen-mobile-wrapper">
-                    <div class="resumen-mobile-sheet" id="resumen-mobile-tab" aria-expanded="false">
-                        <div class="resumen-mobile-sheet-handle" role="button" tabindex="0" aria-label="Plegar resumen del paquete"></div>
-                <aside class="configurador-resumen">
-                    <div class="resumen-content">
-                        <h3>Resumen de tu reserva</h3>
-                        <div id="resumen-bautismos" class="resumen-detalle">
-                            <p>Completa las opciones para ver el resumen</p>
-                        </div>
-                    </div>
-                    <button type="submit" form="formBautismos" class="btn-reservar-paquete">Reservar Bautismos de golf</button>
-                </aside>
-                    <div class="resumen-mobile-tab">
-                        <div class="resumen-mobile-tab-main" role="button" tabindex="0" aria-label="Desplegar resumen del paquete">
-                            <span class="resumen-mobile-chevron" aria-hidden="true">▲</span>
-                            <div class="resumen-mobile-tab-amounts">
-                                <span class="resumen-mobile-total-line"><span class="resumen-mobile-amount-label">Total</span> <span class="resumen-mobile-total" id="resumen-total-mobile">—</span></span>
-                                <span class="resumen-mobile-por-persona-line" id="resumen-por-persona-mobile-wrap" hidden><span class="resumen-mobile-amount-label">Por persona</span> <span class="resumen-mobile-por-persona" id="resumen-por-persona-mobile"></span></span>
+                        <p id="reservaSolicitudFeedback" class="empresa-form-feedback" aria-live="polite" hidden></p>
+                    </form>
+                    <aside class="configurador-resumen reserva-solicitud-resumen">
+                        <div class="resumen-content">
+                            <h3 data-i18n="resumen_solicitud">Resumen de tu solicitud</h3>
+                            <div id="resumen-solicitud" class="resumen-detalle">
+                                <p data-i18n="resumen_completa">Completa las opciones para ver el resumen</p>
                             </div>
                         </div>
-                        <div class="resumen-mobile-btn-wrap"></div>
-                    </div>
-                </div>
+                        <button type="submit" form="formReservaSolicitud" class="btn-reservar-paquete" id="btnReservaSolicitud" data-i18n="btn_reserva_bautismos">Solicitar bautismo de golf</button>
+                    </aside>
                 </div>
             </div>
         </div>
@@ -249,101 +208,10 @@
     </footer>
 
     <script src="js/i18n.js"></script>
-    <script src="js/precios-data.js"></script>
-    <script src="js/correspondencias-data.js"></script>
-    <script src="js/correspondencias.js"></script>
-    <script src="js/stripe-pago.js"></script>
     <script src="js/hora-salida-picker.js"></script>
     <script src="js/footer-contact.js"></script>
-    <script src="js/configurador-form-nav.js"></script>
     <script src="js/main.js"></script>
-    <script src="js/configurador-flujo-progresivo.js"></script>
+    <script src="js/reserva-solicitud-simple.js"></script>
     <script src="js/chatbot.js"></script>
-    <script src="js/calendario-dias.js"></script>
-    <script src="js/usuarios-form.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var form = document.getElementById('formBautismos');
-            var resumenDiv = document.getElementById('resumen-bautismos');
-            var cal = document.getElementById('calendario-dias-bautismos');
-            var numAdultos = document.getElementById('num-adultos');
-            var numJovenes = document.getElementById('num-jovenes');
-            var totalMobile = document.getElementById('resumen-total-mobile');
-
-            var precios = (window.PRECIOS_DATA && window.PRECIOS_DATA.paquetes && window.PRECIOS_DATA.paquetes.bautismos) || { adultos: 15, jovenes: 10 };
-            var precioAdulto = precios.adultos || 15;
-            var precioJoven = precios.jovenes || 10;
-
-            function actualizarResumen() {
-                if (!form || !resumenDiv) return;
-                var fd = new FormData(form);
-                var fechas = fd.getAll('fechas[]') || [];
-                var hora = (fd.get('hora_salida') || '').trim();
-                var adultos = Math.max(0, parseInt(numAdultos ? numAdultos.value : 0, 10) || 0);
-                var jovenes = Math.max(0, parseInt(numJovenes ? numJovenes.value : 0, 10) || 0);
-                var total = adultos * precioAdulto + jovenes * precioJoven;
-                var fp = (fd.get('forma_pago') || 'unico').trim() || 'unico';
-
-                if (total <= 0) {
-                    resumenDiv.innerHTML = '<p>Indique al menos un adulto o un joven para ver el resumen.</p>';
-                    if (totalMobile) totalMobile.textContent = '';
-                    return;
-                }
-
-                var html = '<div class="resumen-items">';
-                html += '<p><strong>Fecha:</strong> ' + (fechas.length ? fechas[0] : '—') + '</p>';
-                if (hora) html += '<p><strong>Hora preferida:</strong> ' + hora + '</p>';
-                html += '<p><strong>Adultos:</strong> ' + adultos + ' × ' + precioAdulto + ' €</p>';
-                html += '<p><strong>Jóvenes:</strong> ' + jovenes + ' × ' + precioJoven + ' €</p>';
-                html += '<p><strong>Forma de pago:</strong> ' + (fp === 'por_persona' ? 'Por persona' : 'Único') + '</p>';
-                html += '</div>';
-                html += '<div class="resumen-subtotal"><table class="resumen-subtotal-tabla">';
-                if (adultos > 0) html += '<tr><td>Adultos (' + adultos + ')</td><td>' + (adultos * precioAdulto) + ' €</td></tr>';
-                if (jovenes > 0) html += '<tr><td>Jóvenes (' + jovenes + ')</td><td>' + (jovenes * precioJoven) + ' €</td></tr>';
-                html += '<tr class="resumen-total"><td>Total</td><td>' + total + ' €</td></tr>';
-                html += '</table></div>';
-                resumenDiv.innerHTML = html;
-                if (totalMobile) totalMobile.textContent = total + ' €';
-            }
-
-            if (cal && form && typeof CalendarioDias !== 'undefined') {
-                CalendarioDias.init({
-                    container: cal,
-                    form: form,
-                    nameFechas: 'fechas[]',
-                    maxSeleccion: 1,
-                    onChange: function() { actualizarResumen(); }
-                });
-            }
-
-            if (form) {
-                form.addEventListener('change', actualizarResumen);
-                form.addEventListener('input', actualizarResumen);
-                if (numAdultos) numAdultos.addEventListener('input', actualizarResumen);
-                if (numJovenes) numJovenes.addEventListener('input', actualizarResumen);
-                actualizarResumen();
-
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    if (!form.reportValidity()) return;
-                    if (typeof window.validarTelefonosForm === 'function' && !window.validarTelefonosForm(form)) return;
-                    var adultos = Math.max(0, parseInt(numAdultos ? numAdultos.value : 0, 10) || 0);
-                    var jovenes = Math.max(0, parseInt(numJovenes ? numJovenes.value : 0, 10) || 0);
-                    if (adultos + jovenes < 1) {
-                        alert('Indique al menos un participante (adulto o joven).');
-                        return;
-                    }
-                    var totalEuros = (typeof window.getTotalFromResumen === 'function') ? window.getTotalFromResumen() : (adultos * precioAdulto + jovenes * precioJoven);
-                    if (totalEuros <= 0) { alert('Completa las opciones para proceder al pago.'); return; }
-                    var fp = (new FormData(form).get('forma_pago') || 'unico').trim() || 'unico';
-                    var btn = document.querySelector('button[form="formBautismos"]');
-                    if (typeof window.iniciarPagoStripe === 'function') {
-                        window.iniciarPagoStripe({ totalEuros: totalEuros, modo: fp, numParticipantes: adultos + jovenes, paquete: 'bautismos', formId: 'formBautismos', submitButton: btn });
-                    } else { alert('Error: módulo de pago no cargado.'); }
-                });
-            }
-
-        });
-    </script>
 </body>
 </html>

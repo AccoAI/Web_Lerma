@@ -14699,3 +14699,56 @@ body.page-torneo .torneo-detalle-section {
         margin: 0;
     }
 }
+
+/* Reserva sencilla (bautismos / clases) */
+.reserva-solicitud-lead {
+    margin: 0 0 1.5rem;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--color-text);
+}
+
+.reserva-solicitud-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 1.25rem;
+}
+
+.reserva-solicitud-form .form-group {
+    margin-bottom: 1rem;
+}
+
+.reserva-campo-grid {
+    max-width: 520px;
+}
+
+.reserva-campo-logo {
+    display: block;
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    margin-bottom: 0.35rem;
+}
+
+.reserva-campo-grid .tipo-torneo-content {
+    align-items: center;
+    text-align: center;
+    padding: 1rem 0.75rem;
+}
+
+.reserva-solicitud-resumen .reserva-solicitud-resumen-nota {
+    margin-top: 0.75rem;
+    font-size: 0.88rem;
+    color: var(--color-text-muted, #5a6b63);
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .reserva-solicitud-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .reserva-solicitud-wrap .configurador-layout {
+        flex-direction: column;
+    }
+}
