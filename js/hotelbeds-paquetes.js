@@ -2706,6 +2706,28 @@
     if (!host.__hbBound) {
       host.__hbBound = true;
       host.addEventListener('click', function (ev) {
+        var occBtn = ev.target && ev.target.closest
+          ? ev.target.closest('.ancillary-btn-minus, .ancillary-btn-plus')
+          : null;
+        if (occBtn && occBtn.closest('.hb-funnel-counter-wrap')) {
+          var wrap = occBtn.closest('.ancillary-counter-wrap');
+          var input = wrap && wrap.querySelector('.ancillary-counter');
+          if (input) {
+            var min = parseInt(input.getAttribute('min') || '1', 10);
+            var max = parseInt(input.getAttribute('max') || '99', 10);
+            var val = parseInt(input.value || String(min), 10);
+            if (occBtn.classList.contains('ancillary-btn-minus')) {
+              val = Math.max(min, val - 1);
+            } else {
+              val = Math.min(max, val + 1);
+            }
+            input.value = String(val);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+          ev.stopPropagation();
+          return;
+        }
         ev.stopPropagation();
       });
 
