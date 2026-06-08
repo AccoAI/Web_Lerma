@@ -2392,12 +2392,28 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     white-space: nowrap;
 }
 
+.resumen-subtotal-tabla tr.resumen-split-hotel td {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.88);
+    padding-top: 0.15rem;
+    padding-bottom: 0.15rem;
+}
+
+.resumen-subtotal-tabla tr.resumen-split-hotel td:first-child {
+    padding-left: 0.65rem;
+}
+
 .resumen-subtotal-tabla tr.resumen-total td {
     padding-top: 0.85rem;
     border-top: 2px solid rgba(201, 169, 97, 0.45);
     font-weight: 700;
     font-size: 1.1rem;
     color: var(--color-accent);
+}
+
+.resumen-subtotal-tabla tr.resumen-total td:first-child {
+    padding-right: 0.75rem;
+    vertical-align: top;
 }
 
 .resumen-subtotal-tabla tr.resumen-total td:last-child {

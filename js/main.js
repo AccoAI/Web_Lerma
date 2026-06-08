@@ -2471,7 +2471,10 @@ function initConfiguradorPaquete() {
             resumenHTML += '<div class="resumen-subtotal">';
             resumenHTML += '<table class="resumen-subtotal-tabla">';
             if (necesitaHotel) {
-                resumenHTML += '<tr><td>Pack golf + alojamiento</td><td>' + formatEurosResumen(gf + aloj) + ' €</td></tr>';
+                resumenHTML += '<tr><td>Pack golf + alojamiento</td><td>' + formatEurosResumen(gf + aloj) + '\u00a0€</td></tr>';
+                if (typeof window.getHbSplitAlojamientoResumenRows === 'function') {
+                    resumenHTML += window.getHbSplitAlojamientoResumenRows(formData);
+                }
             } else if (packGolfComidaMenusOpco) {
                 var lblGfMenus = (window.i18n && window.i18n.t) ? window.i18n.t('resumen_gf_menus_comida') : 'Green fees + Menús Casa Club Lerma';
                 if (!lblGfMenus || lblGfMenus === 'resumen_gf_menus_comida') lblGfMenus = 'Green fees + Menús Casa Club Lerma';

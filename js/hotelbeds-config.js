@@ -47,9 +47,30 @@ window.HOTELBEDS_CONFIG = {
   },
 };
 
+function sumHbSplitBookingsEuros(formData) {
+  if (!formData || !formData.get) return 0;
+  var raw = String(formData.get('hb_split_bookings') || '').trim();
+  if (!raw) return 0;
+  try {
+    var arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return 0;
+    var sum = 0;
+    arr.forEach(function (b) {
+      if (b && b.ready && b.bookNet != null && isFinite(Number(b.bookNet))) {
+        sum += Number(b.bookNet);
+      }
+    });
+    return sum > 0 ? Math.round(sum * 100) / 100 : 0;
+  } catch (e0) {
+    return 0;
+  }
+}
+
 /** Alojamiento en el resumen: usa hb_hotel_stay_book_net (tarifa HB que se reserva). hb_hotel_stay_ref_net queda solo como referencia interna. */
 window.calcularAlojamientoResumenEuros = function (formData, nNoches, fallbackPerNoche) {
   if (!formData || !formData.get) return 0;
+  var splitSum = sumHbSplitBookingsEuros(formData);
+  if (splitSum > 0) return splitSum;
   var funnelReady = String(formData.get('hb_funnel_ready') || '').trim() === '1';
   var rateValidated = String(formData.get('hb_rate_validated') || '').trim() === '1';
   var hotelCode = String(formData.get('hb_selected_hotel_code') || '').trim();

@@ -968,6 +968,14 @@
   /** Sincroniza precios ocultos del resumen desde la tarifa HB actual (p. ej. antes de calcular el total). */
   function syncHbResumenFromCurrentOffer(form) {
     if (!form) return;
+    ensureHotelFunnelHiddenInputs(form);
+    var splitReady = getSplitBookings(form).filter(function (b) {
+      return b && b.ready;
+    });
+    if (splitReady.length > 0) {
+      applySplitBookingsToResumen(form);
+      return;
+    }
     var code = (form.querySelector('input[name="hb_selected_hotel_code"]') || {}).value || '';
     var rk = (form.querySelector('input[name="hb_selected_rate_key"]') || {}).value || '';
     if (!code || !rk) return;
@@ -978,6 +986,27 @@
         return;
       }
     }
+  }
+
+  function getHbSplitAlojamientoResumenRows(formData) {
+    if (!formData || !formData.get) return '';
+    var raw = String(formData.get('hb_split_bookings') || '').trim();
+    if (!raw) return '';
+    var arr;
+    try {
+      arr = JSON.parse(raw);
+    } catch (e0) {
+      return '';
+    }
+    if (!Array.isArray(arr) || arr.length < 2) return '';
+    var html = '';
+    arr.forEach(function (b) {
+      if (!b || !b.ready) return;
+      var label = (b.name || 'Hotel ' + b.code) + (b.adults ? ' (' + b.adults + ' pers.)' : '');
+      var amt = b.bookNet != null && isFinite(Number(b.bookNet)) ? fmtEuros(Number(b.bookNet)) + '\u00a0€' : '—';
+      html += '<tr class="resumen-split-hotel"><td>' + escapeHtml(label) + '</td><td>' + amt + '</td></tr>';
+    });
+    return html;
   }
 
   function refreshHotelCardPackagePrices() {
@@ -2375,10 +2404,9 @@
 
     if (isSplitCoverageMode()) {
       ensureHotelFunnelHiddenInputs(form);
-      var bookNet =
-        offerConfirm && offerConfirm.netValue != null ? Number(offerConfirm.netValue) : null;
+      var bookNet = hotelStayNetForCustomer(offerConfirm);
       var refNet =
-        offerConfirm && offerConfirm.resumenHotelRefNet != null
+        offerConfirm && offerConfirm.resumenHotelRefNet != null && isFinite(Number(offerConfirm.resumenHotelRefNet))
           ? Number(offerConfirm.resumenHotelRefNet)
           : bookNet;
       saveSplitBooking(form, {
@@ -2392,13 +2420,13 @@
         refNet: refNet,
         ready: true,
       });
+      applySplitBookingsToResumen(form);
       var required = getRequiredSplitHotelCodes();
       var doneCount = getSplitBookings(form).filter(function (b) {
         return b && b.ready;
       }).length;
       var allDone = allSplitHotelsConfigured(form);
       if (allDone) {
-        applySplitBookingsToResumen(form);
         form.querySelector('input[name="hb_funnel_ready"]').value = '1';
         if (resultEl) {
           resultEl.innerHTML =
@@ -4231,6 +4259,7 @@
   window.refreshHotelCardPackagePrices = refreshHotelCardPackagePrices;
   window.refreshFunnelRatePackagePrices = refreshFunnelRatePackagePrices;
   window.syncHbResumenFromCurrentOffer = syncHbResumenFromCurrentOffer;
+  window.getHbSplitAlojamientoResumenRows = getHbSplitAlojamientoResumenRows;
   window.toggleHbDebugTariffs = toggleHbDebugTariffs;
   window.hbDebugTariffsEnabled = hbDebugTariffsEnabled;
   window.getHbTariffDebugResumenHtml = function (form) {
