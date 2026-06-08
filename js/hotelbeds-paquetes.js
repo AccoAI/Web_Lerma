@@ -1407,9 +1407,36 @@
     });
   }
 
-  /** Listado: tamaño de grupo manda; hb_occ solo si el hotel ya está confirmado en el funnel. */
+  function hasActiveSplitBookings(fd) {
+    if (!fd || !fd.get) return false;
+    var raw = String(fd.get('hb_split_bookings') || '').trim();
+    if (!raw) return false;
+    try {
+      var arr = JSON.parse(raw);
+      return Array.isArray(arr) && arr.some(function (b) {
+        return b && b.ready;
+      });
+    } catch (e0) {
+      return false;
+    }
+  }
+
+  /** Listado: tamaño de grupo manda; hb_occ solo si un único hotel ya está confirmado. */
   function getListOccupancyForAvailability(fd) {
     if (!fd || !fd.get) return { adults: 2, rooms: 1, children: 0 };
+    if (hasActiveSplitBookings(fd) || isSplitCoverageMode()) {
+      var fromGroupSplit = getOccupancyFromTamanioGrupo(fd);
+      if (fromGroupSplit) return fromGroupSplit;
+      var cov = window.__HB_COVERAGE__ || {};
+      if (cov.totalAdults) {
+        var total = clamp(getInt(cov.totalAdults, 2), 1, 54);
+        return clampHotelbedsOccupancy({
+          adults: total,
+          rooms: defaultRoomsForAdults(total),
+          children: 0,
+        });
+      }
+    }
     if (String(fd.get('hb_funnel_ready') || '').trim() === '1') {
       return getOccupancyFromFormData(fd);
     }
@@ -1913,6 +1940,17 @@
     if (!form) return;
     var key = JSON.stringify(coverage || {});
     if (window.__HB_COVERAGE_KEY__ === key) return;
+    if (allSplitHotelsConfigured(form) && coverage && coverage.mode === 'single') {
+      var splitTotal = getSplitBookings(form)
+        .filter(function (b) {
+          return b && b.ready;
+        })
+        .reduce(function (sum, b) {
+          return sum + (parseInt(b.adults, 10) || 0);
+        }, 0);
+      var covTotal = parseInt(coverage.totalAdults, 10) || 0;
+      if (splitTotal > covTotal) return;
+    }
     window.__HB_COVERAGE_KEY__ = key;
     setSplitBookings(form, []);
     var ready = form.querySelector('input[name="hb_funnel_ready"]');
@@ -4193,6 +4231,10 @@
     if (!target) return false;
     var name = target.name || '';
     var id = target.id || '';
+    if (target.classList) {
+      if (target.classList.contains('comida-menu-comensales')) return true;
+      if (target.classList.contains('comida-comensales-counter')) return true;
+    }
     if (name === 'hb-funnel-rate-pick') return true;
     if (name.indexOf('hb_') === 0) return true;
     if (/^campo-dia-\d+$/.test(name)) return true;
