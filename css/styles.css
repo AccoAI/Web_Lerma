@@ -2345,6 +2345,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 .resumen-subtotal-tabla td:last-child {
     text-align: right;
     font-weight: 500;
+    white-space: nowrap;
 }
 
 .resumen-subtotal-tabla tr.resumen-incluido td:last-child {
@@ -2401,6 +2402,7 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 
 .resumen-subtotal-tabla tr.resumen-total td:last-child {
     font-size: 1.25rem;
+    white-space: nowrap;
 }
 
 .resumen-subtotal-nota {

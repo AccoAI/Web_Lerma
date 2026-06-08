@@ -2522,9 +2522,9 @@ function initConfiguradorPaquete() {
             if (!lblTotalConDesc || lblTotalConDesc === 'resumen_total_con_descuento') lblTotalConDesc = 'Total con descuento pack';
             resumenHTML += '<tr class="resumen-subtotal-bruto"><td>' + lblSubtotalBruto + '</td><td>' + formatEurosResumen(base) + ' €</td></tr>';
             resumenHTML += '<tr class="resumen-descuento"><td>' + lblDescuentoPack + '</td><td class="resumen-descuento-importe">-' + formatEurosResumen(desc) + ' €</td></tr>';
-            resumenHTML += '<tr class="resumen-total"><td>' + lblTotalConDesc + '</td><td>' + formatEurosResumen(subtotal) + ' €</td></tr>';
+            resumenHTML += '<tr class="resumen-total"><td>' + lblTotalConDesc + '</td><td>' + formatEurosResumen(subtotal) + '\u00a0€</td></tr>';
             if (numParticipants > 1) {
-                resumenHTML += '<tr class="resumen-por-persona"><td>Por persona</td><td>' + formatEurosResumen(subtotal / numParticipants) + ' €</td></tr>';
+                resumenHTML += '<tr class="resumen-por-persona"><td>Por persona</td><td>' + formatEurosResumen(subtotal / numParticipants) + '\u00a0€</td></tr>';
             }
             resumenHTML += '</table>';
             if (typeof window.getHbTariffDebugResumenHtml === 'function') {
