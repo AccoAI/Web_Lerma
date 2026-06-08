@@ -93,7 +93,7 @@
             html += '<p><strong>' + t('label_num_personas', 'Número de personas') + ':</strong> ' + (num > 0 ? num : '—') + '</p>';
             html += '<p><strong>' + t('reserva_campo', 'Campo') + ':</strong> ' + campoLabel(campo) + '</p>';
             html += '</div>';
-            html += '<p class="reserva-solicitud-resumen-nota">' + t('reserva_sin_pago_nota', 'Solicitud sin pago en la web. Tras tramitarla, le indicaremos cómo formalizar el pago si fuera necesario.') + '</p>';
+            html += '<p class="reserva-solicitud-resumen-nota">' + t('reserva_sin_pago_nota', 'Solicitud sin pago en la web. Nos pondremos en contacto con usted.') + '</p>';
             resumenDiv.innerHTML = html;
         }
 
