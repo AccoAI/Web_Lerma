@@ -1652,6 +1652,7 @@
       'hb_funnel_ready',
       'hb_hotel_stay_ref_net',
       'hb_hotel_stay_book_net',
+      'hb_split_bookings',
     ];
     names.forEach(function (n) {
       if (form.querySelector('input[name="' + n + '"]')) return;
@@ -1810,7 +1811,90 @@
     return out;
   }
 
+  function isSplitCoverageMode() {
+    var cov = window.__HB_COVERAGE__;
+    return !!(cov && cov.mode === 'split' && cov.k > 1);
+  }
+
+  function getSplitOccForHotelCode(code) {
+    var cov = window.__HB_COVERAGE__ || {};
+    if (cov.mode !== 'split') return null;
+    var adults =
+      cov.hotelPartByCode && cov.hotelPartByCode[String(code)] != null
+        ? parseInt(cov.hotelPartByCode[String(code)], 10)
+        : 0;
+    if (!adults) return null;
+    return clampHotelbedsOccupancy({
+      adults: adults,
+      rooms: defaultRoomsForAdults(adults),
+      children: 0,
+    });
+  }
+
+  function getSplitBookings(form) {
+    if (!form) return [];
+    var inp = form.querySelector('input[name="hb_split_bookings"]');
+    if (!inp || !String(inp.value || '').trim()) return [];
+    try {
+      var arr = JSON.parse(inp.value);
+      return Array.isArray(arr) ? arr : [];
+    } catch (e0) {
+      return [];
+    }
+  }
+
+  function setSplitBookings(form, list) {
+    ensureHotelFunnelHiddenInputs(form);
+    var inp = form.querySelector('input[name="hb_split_bookings"]');
+    if (inp) inp.value = JSON.stringify(list || []);
+  }
+
+  function saveSplitBooking(form, booking) {
+    var list = getSplitBookings(form).filter(function (b) {
+      return String(b.code) !== String(booking.code);
+    });
+    list.push(booking);
+    setSplitBookings(form, list);
+  }
+
+  function getRequiredSplitHotelCodes() {
+    var cov = window.__HB_COVERAGE__ || {};
+    if (cov.hotelCodes && cov.hotelCodes.length) return cov.hotelCodes.map(String);
+    var hotels =
+      (window.__HB_LAST_AVAIL__ && window.__HB_LAST_AVAIL__.hotels && window.__HB_LAST_AVAIL__.hotels.hotels) || [];
+    return hotels.map(function (h) {
+      return String(h.code);
+    });
+  }
+
+  function allSplitHotelsConfigured(form) {
+    var required = getRequiredSplitHotelCodes();
+    if (!required.length) return false;
+    var done = getSplitBookings(form).filter(function (b) {
+      return b && b.ready;
+    });
+    return required.every(function (code) {
+      return done.some(function (b) {
+        return String(b.code) === String(code);
+      });
+    });
+  }
+
+  function resetSplitBookingsIfCoverageChanged(form, coverage) {
+    if (!form) return;
+    var key = JSON.stringify(coverage || {});
+    if (window.__HB_COVERAGE_KEY__ === key) return;
+    window.__HB_COVERAGE_KEY__ = key;
+    setSplitBookings(form, []);
+    var ready = form.querySelector('input[name="hb_funnel_ready"]');
+    if (ready) ready.value = '';
+  }
+
   function markHotelCardsPicked(form) {
+    if (isSplitCoverageMode()) {
+      markSplitHotelCards(form);
+      return;
+    }
     var code = String(
       (form.querySelector('input[name="hb_selected_hotel_code"]') || {}).value || ''
     ).trim();
@@ -1818,6 +1902,23 @@
       var c = el.getAttribute('data-hb-hotel-code');
       if (code && c === code) el.classList.add('hotelbeds-card--picked');
       else el.classList.remove('hotelbeds-card--picked');
+      el.classList.remove('hotelbeds-card--split-done');
+    });
+  }
+
+  function markSplitHotelCards(form) {
+    var editing = String(
+      (form.querySelector('input[name="hb_selected_hotel_code"]') || {}).value || ''
+    ).trim();
+    var doneCodes = {};
+    getSplitBookings(form).forEach(function (b) {
+      if (b && b.ready && b.code) doneCodes[String(b.code)] = 1;
+    });
+    document.querySelectorAll('.hotelbeds-card--selectable').forEach(function (el) {
+      var c = el.getAttribute('data-hb-hotel-code');
+      el.classList.remove('hotelbeds-card--picked', 'hotelbeds-card--split-done');
+      if (doneCodes[c]) el.classList.add('hotelbeds-card--split-done');
+      else if (editing && c === editing) el.classList.add('hotelbeds-card--picked');
     });
   }
 
@@ -1857,6 +1958,14 @@
     var slot = ensurePickedHotelCardSlot(host);
     markHotelCardsPicked(form);
 
+    if (isSplitCoverageMode()) {
+      block.classList.remove('hotelbeds-results--room-pick');
+      if (code) block.setAttribute('data-hb-picked-hotel', code);
+      else block.removeAttribute('data-hb-picked-hotel');
+      restorePickedCardToList(root, slot);
+      return;
+    }
+
     if (code) {
       block.classList.add('hotelbeds-results--room-pick');
       block.setAttribute('data-hb-picked-hotel', code);
@@ -1876,6 +1985,7 @@
   function clearHotelPickAndShowList(form, host, root) {
     if (!form) return;
     setSelectedHotelInHiddenInputs(form, '', '', '', '', '');
+    form.querySelector('input[name="hb_rate_validated"]').value = '';
     window.__HB_FUNNEL_LAST__ = null;
     if (host) {
       host.__hbRatesHotel = '';
@@ -2219,6 +2329,29 @@
    * Fija hotel + tarifa para resumen y pago (hb_funnel_ready, hotel-noche-*).
    * @returns {boolean}
    */
+  function applySplitBookingsToResumen(form) {
+    var bookings = getSplitBookings(form).filter(function (b) {
+      return b && b.ready;
+    });
+    var totalBook = 0;
+    var totalRef = 0;
+    bookings.forEach(function (b) {
+      if (b.bookNet != null && isFinite(b.bookNet)) totalBook += Number(b.bookNet);
+      if (b.refNet != null && isFinite(b.refNet)) totalRef += Number(b.refNet);
+    });
+    var refInp = form.querySelector('input[name="hb_hotel_stay_ref_net"]');
+    var bookInp = form.querySelector('input[name="hb_hotel_stay_book_net"]');
+    if (refInp) refInp.value = totalRef > 0 ? String(Math.round(totalRef * 100) / 100) : '';
+    if (bookInp) bookInp.value = totalBook > 0 ? String(Math.round(totalBook * 100) / 100) : '';
+    var nochesInput = form.querySelector('input[name="noches"]');
+    var n = Math.max(1, parseInt((nochesInput && nochesInput.value) || '1', 10) || 1);
+    var hotelVal = bookings.length ? 'hb-' + String(bookings[0].code) : '';
+    for (var hi = 1; hi <= n; hi++) {
+      var inp = form.querySelector('input[name="hotel-noche-' + hi + '"]');
+      if (inp && hotelVal) inp.value = hotelVal;
+    }
+  }
+
   function applyHotelConfirm(host, form, resultEl, opts) {
     opts = opts || {};
     var hotelCode = (form.querySelector('input[name="hb_selected_hotel_code"]') || {}).value || '';
@@ -2239,6 +2372,78 @@
       }
       return false;
     }
+
+    if (isSplitCoverageMode()) {
+      ensureHotelFunnelHiddenInputs(form);
+      var bookNet =
+        offerConfirm && offerConfirm.netValue != null ? Number(offerConfirm.netValue) : null;
+      var refNet =
+        offerConfirm && offerConfirm.resumenHotelRefNet != null
+          ? Number(offerConfirm.resumenHotelRefNet)
+          : bookNet;
+      saveSplitBooking(form, {
+        code: String(hotelCode),
+        name: catalogNameForCode(hotelCode),
+        adults: occConfirm.adults,
+        rooms: occConfirm.rooms,
+        rateKey: rkConfirm,
+        rateType: String((offerConfirm && offerConfirm.rateType) || 'BOOKABLE'),
+        bookNet: bookNet,
+        refNet: refNet,
+        ready: true,
+      });
+      var required = getRequiredSplitHotelCodes();
+      var doneCount = getSplitBookings(form).filter(function (b) {
+        return b && b.ready;
+      }).length;
+      var allDone = allSplitHotelsConfigured(form);
+      if (allDone) {
+        applySplitBookingsToResumen(form);
+        form.querySelector('input[name="hb_funnel_ready"]').value = '1';
+        if (resultEl) {
+          resultEl.innerHTML =
+            '<p class="hb-funnel-ok"><strong>Reparto de alojamiento configurado.</strong> ' +
+            required.length +
+            ' hoteles listos para el grupo.</p>';
+        }
+      } else {
+        form.querySelector('input[name="hb_funnel_ready"]').value = '';
+        setSelectedHotelInHiddenInputs(form, '', '', '', '', '');
+        form.querySelector('input[name="hb_rate_validated"]').value = '';
+        if (host) {
+          host.__hbRatesHotel = '';
+          host.__hbAutoRatesPending = false;
+          var ratesBox = host.querySelector('#hb-funnel-inline-rates');
+          if (ratesBox) ratesBox.innerHTML = '';
+        }
+        if (resultEl) {
+          resultEl.innerHTML =
+            '<p class="hb-funnel-ok"><strong>Hotel configurado (' +
+            doneCount +
+            '/' +
+            required.length +
+            ').</strong> Elige el siguiente hotel de la lista y confirma su tarifa.</p>';
+        }
+        opts.scrollToPay = false;
+      }
+      markSplitHotelCards(form);
+      var root = document.getElementById(pageOpts().preciosBlockId || 'hotelbeds-precios-block');
+      if (root) syncHotelCardsListVisibility(root, form);
+      if (typeof window.actualizarResumen === 'function') window.actualizarResumen();
+      else triggerResumenUpdate();
+      if (allDone && opts.scrollToPay !== false) {
+        var reservarAll = document.querySelector('button.btn-reservar-paquete');
+        if (reservarAll && reservarAll.scrollIntoView) {
+          reservarAll.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          reservarAll.focus({ preventScroll: true });
+        }
+      } else if (!allDone && root) {
+        var list = root.querySelector('.hotelbeds-list');
+        if (list && list.scrollIntoView) list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      return true;
+    }
+
     form.querySelector('input[name="hb_occ_adults"]').value = String(occConfirm.adults);
     form.querySelector('input[name="hb_occ_rooms"]').value = String(occConfirm.rooms);
     if (offerConfirm) syncHbResumenPriceHidden(form, offerConfirm);
@@ -2366,14 +2571,29 @@
       var needsCheck =
         picked && String(picked.rateType || '').toUpperCase() === 'RECHECK' && !isRateValidated();
       btnConfirm.disabled = !hotelCode || !isRateValidated();
+      var splitMode = isSplitCoverageMode();
+      var splitDone = splitMode ? getSplitBookings(form).filter(function (b) { return b && b.ready; }).length : 0;
+      var splitTotal = splitMode ? getRequiredSplitHotelCodes().length : 0;
       btnConfirm.title = !hotelCode
         ? 'Elige un hotel.'
         : needsCheck
           ? 'Tarifa RECHECK: pulsa «' + hbFunnelConditionsButtonText() + '» antes de confirmar.'
           : !isRateValidated()
             ? 'Elige una tarifa (habitación y régimen).'
-            : 'Fijar este hotel y tarifa antes del pago.';
-      if (btnChangeHotel) btnChangeHotel.hidden = !hotelCode;
+            : splitMode
+              ? 'Confirmar este hotel (' + (splitDone + 1) + '/' + splitTotal + ').'
+              : 'Fijar este hotel y tarifa antes del pago.';
+      if (btnConfirm && splitMode) {
+        btnConfirm.textContent = isRateValidated()
+          ? 'Confirmar hotel (' + (splitDone + 1) + '/' + splitTotal + ')'
+          : 'Confirmar hotel y tarifa';
+      } else if (btnConfirm) {
+        btnConfirm.textContent = 'Confirmar hotel y tarifa';
+      }
+      if (btnChangeHotel) {
+        btnChangeHotel.hidden = !hotelCode;
+        if (splitMode && hotelCode) btnChangeHotel.textContent = 'Elegir otro hotel del reparto';
+      }
       syncHotelCardsListVisibility(root, form);
       if (!hotelCode) {
         hotelLine.hidden = false;
@@ -2653,8 +2873,25 @@
       if (ev.target && ev.target.tagName === 'A') return;
       var code = card.getAttribute('data-hb-hotel-code');
       if (!code) return;
-      // Select hotel and focus inline funnel
-      setSelectedHotelInHiddenInputs(form, String(code), '', '', '', '');
+      if (isSplitCoverageMode()) {
+        var kept = getSplitBookings(form).filter(function (b) {
+          return String(b.code) !== String(code);
+        });
+        setSplitBookings(form, kept);
+        form.querySelector('input[name="hb_funnel_ready"]').value = '';
+      }
+      var splitOcc = isSplitCoverageMode() ? getSplitOccForHotelCode(code) : null;
+      var sug = splitOcc || adultsRoomsFromGroupSize(form);
+      setSelectedHotelInHiddenInputs(
+        form,
+        String(code),
+        '',
+        String(sug.adults),
+        String(sug.rooms),
+        ''
+      );
+      form.querySelector('input[name="hb_rate_validated"]').value = '';
+      form.querySelector('input[name="hb_funnel_ready"]').value = allSplitHotelsConfigured(form) ? '1' : '';
       window.__HB_FUNNEL_LAST__ = null;
       var root = document.getElementById(o.preciosBlockId || 'hotelbeds-precios-block');
       if (root) {
@@ -2663,17 +2900,29 @@
         if (host) {
           var ai = host.querySelector('#hb-funnel-inline-adults');
           var ri = host.querySelector('#hb-funnel-inline-rooms');
-          syncFunnelAdultsFromGroup(host, form, ai, ri, true);
-          var sug = adultsRoomsFromGroupSize(form);
-          setSelectedHotelInHiddenInputs(form, String(code), '', String(sug.adults), String(sug.rooms), '');
+          if (splitOcc) {
+            if (ai) {
+              ai.value = String(splitOcc.adults);
+              ai.__hbUserEdited = false;
+            }
+            if (ri) {
+              ri.value = String(splitOcc.rooms);
+              ri.__hbUserEdited = false;
+            }
+          } else {
+            syncFunnelAdultsFromGroup(host, form, ai, ri, true);
+            var sug2 = adultsRoomsFromGroupSize(form);
+            setSelectedHotelInHiddenInputs(form, String(code), '', String(sug2.adults), String(sug2.rooms), '');
+          }
           host.__hbRatesHotel = '';
           host.__hbAutoRatesPending = false;
           host.__hbAutoConfirmPending = true;
+          var resultBox = host.querySelector('#hb-funnel-inline-result');
+          if (resultBox) resultBox.innerHTML = '';
           if (typeof host.__hbRefreshUiState === 'function') host.__hbRefreshUiState();
         }
         syncHotelCardsListVisibility(root, form);
-        var pickedSlot = host && host.querySelector('#hb-funnel-inline-picked-card');
-        var scrollTarget = (pickedSlot && !pickedSlot.hidden) ? pickedSlot : host;
+        var scrollTarget = host;
         if (scrollTarget && scrollTarget.scrollIntoView) {
           scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
@@ -2939,6 +3188,7 @@
       (total ? ' (' + total + ' personas)' : '') +
       ' en un solo establecimiento.' +
       (partsTxt ? ' Reparto sugerido: <strong>' + partsTxt + ' personas</strong> por hotel.' : '') +
+      ' <strong>Configura cada hotel de la lista</strong> (habitación y régimen) y confírmalo.' +
       '</p>'
     );
   }
@@ -3085,12 +3335,21 @@
               if (st.resolved) return st;
               var assignment = findSplitAssignment(parts, st.availCache, codes);
               if (!assignment) return st;
+              var hotelPartByCode = {};
+              var hotelCodesOrdered = [];
+              assignment.hotels.forEach(function (h, idx) {
+                var c = String(h.code);
+                hotelPartByCode[c] = parts[idx];
+                hotelCodesOrdered.push(c);
+              });
               window.__HB_COVERAGE__ = {
                 mode: 'split',
                 k: hotelCount,
                 totalAdults: totalAdults,
                 parts: parts,
                 occSplits: assignment.occSplits,
+                hotelPartByCode: hotelPartByCode,
+                hotelCodes: hotelCodesOrdered,
               };
               return {
                 resolved: true,
@@ -3412,6 +3671,8 @@
     var rateBy = window.__HB_RATE_BY_CODE || {};
     var contentBy = window.__HB_CONTENT_BY_CODE || {};
     var coverage = window.__HB_COVERAGE__ || null;
+    var formR = document.getElementById(pageOpts().formId || 'configuradorForm');
+    if (formR) resetSplitBookingsIfCoverageChanged(formR, coverage);
     var coverageNote = buildCoverageNote(coverage);
     var partialNote = '';
     if (!coverageNote && coverage && coverage.mode === 'single' && hotels.length < maxShow) {
@@ -3442,6 +3703,12 @@
       if (ourId && rate != null) live[ourId] = rate;
       var priceStr = cardListPriceCaption(h, noches, null);
       var sel = selectedHotels.indexOf(code) >= 0 ? ' <span class="hotelbeds-selected">(elegido)</span>' : '';
+      if (coverage && coverage.mode === 'split' && coverage.hotelPartByCode && coverage.hotelPartByCode[code]) {
+        sel +=
+          ' <span class="hotelbeds-split-pax">Para ' +
+          escapeHtml(String(coverage.hotelPartByCode[code])) +
+          ' personas</span>';
+      }
       var pick = rateBy[code];
       var meta = contentBy[code];
       html +=
