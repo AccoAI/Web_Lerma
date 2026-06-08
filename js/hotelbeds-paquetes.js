@@ -11,9 +11,8 @@
   /** Hotel API: destination.code solo 1–3 caracteres (p. ej. BRG). «BUR2» no es válido y devuelve 400. */
   var DESTINATIONS_LERMA_BURGOS = ['BRG'];
   /**
-   * Pool de hoteles Burgos (BRG), orden = prioridad (primero más preferido).
-   * Una consulta availability con todos los códigos; se muestran hasta HB_DISPLAY_MAX
-   * con tarifas, respetando este orden. Añade códigos; etiquetas en CURATED_HOTEL_LABELS.
+   * Pool Hotelbeds para paquetes Golf Burgos / Campeonato: orden = ranking de preferencia.
+   * Filtrado previo: solo hoteles con disponibilidad para el grupo (o reparto mínimo en k hoteles).
    */
   var BRG_HOTEL_CODES = [
     '87356', // Silken Gran Teatro
@@ -22,11 +21,39 @@
     '1882', // Abba Burgos
     '1021767', // Apartamentos El Cid
     '4177', // Crisol Meson del Cid
+    '62060', // Parador de Lerma
+    '8116', // Alisa
+    '271694', // Landa
+    '1242', // Hotel Rice Reyes Católicos
+    '3242', // Corona de Castilla Burgos
+    '8112', // Crisol Almirante Bonifaz
+    '27476', // Norte y Londres
+    '35657', // AC Hotel Burgos by Marriott
+    '54825', // Hotel Rice Palacio De Los Blasones
+    '100337', // Hotel Cordon
+    '114225', // Hotel Cardena
+    '116820', // La Puebla
+    '126077', // B&B hotel Burgos
+    '134466', // Los Braseros
+    '135470', // Centro Los Braseros
+    '136659', // Hotel Rice Bulevar
+    '150730', // Via Gotica
+    '194680', // Posada De Eufrasio
+    '431138', // Hotel Boutique Museo
+    '1001544', // Hotel Forum Evolucion
   ];
-  /** Máximo de hoteles mostrados (solo con disponibilidad real). */
-  var HB_DISPLAY_MAX = 3;
+  /** Códigos en Lerma (resto = Burgos). */
+  var LERMA_HOTEL_CODES = {
+    '62060': 1,
+    '8116': 1,
+    '271694': 1,
+  };
+  /** Máximo de hoteles mostrados en modo «un solo hotel cubre al grupo». */
+  var HB_DISPLAY_MAX = 12;
+  /** Máximo de hoteles en reparto (si ninguno cubre al grupo entero). */
+  var HB_SPLIT_MAX = 6;
+  var HB_AVAIL_BATCH_SIZE = 20;
 
-  /** Oferta curada Hotelbeds (códigos Content API BRG). Lerma: vacío hasta añadir códigos. */
   var ALLOWED_HOTEL_CODES = {
     lerma: {},
     burgos: {},
@@ -38,6 +65,26 @@
     '1882': 'Abba Burgos',
     '1021767': 'Apartamentos El Cid',
     '4177': 'Crisol Meson del Cid',
+    '62060': 'Parador de Lerma',
+    '8116': 'Alisa',
+    '271694': 'Landa',
+    '1242': 'Hotel Rice Reyes Católicos',
+    '3242': 'Corona de Castilla Burgos',
+    '8112': 'Crisol Almirante Bonifaz',
+    '27476': 'Norte y Londres',
+    '35657': 'AC Hotel Burgos by Marriott',
+    '54825': 'Hotel Rice Palacio De Los Blasones',
+    '100337': 'Hotel Cordon',
+    '114225': 'Hotel Cardena',
+    '116820': 'La Puebla',
+    '126077': 'B&B hotel Burgos',
+    '134466': 'Los Braseros',
+    '135470': 'Centro Los Braseros',
+    '136659': 'Hotel Rice Bulevar',
+    '150730': 'Via Gotica',
+    '194680': 'Posada De Eufrasio',
+    '431138': 'Hotel Boutique Museo',
+    '1001544': 'Hotel Forum Evolucion',
   };
 
   function pageOpts() {
@@ -84,8 +131,11 @@
 
   function syncAllowedBurgosFromCodes() {
     ALLOWED_HOTEL_CODES.burgos = {};
+    ALLOWED_HOTEL_CODES.lerma = {};
     getBrgHotelCodeList().forEach(function (code) {
-      ALLOWED_HOTEL_CODES.burgos[String(code)] = 1;
+      var c = String(code);
+      if (LERMA_HOTEL_CODES[c]) ALLOWED_HOTEL_CODES.lerma[c] = 1;
+      else ALLOWED_HOTEL_CODES.burgos[c] = 1;
     });
   }
 
@@ -2781,55 +2831,295 @@
       .filter(Boolean);
   }
 
-  /** Una petición availability con todos los códigos BRG; hasta HB_DISPLAY_MAX con tarifas (orden API). */
+  function partitionAdults(total, parts) {
+    total = Math.max(1, parseInt(total, 10) || 1);
+    parts = Math.max(1, parseInt(parts, 10) || 1);
+    var base = Math.floor(total / parts);
+    var rem = total % parts;
+    var out = [];
+    for (var i = 0; i < parts; i++) {
+      out.push(base + (i < rem ? 1 : 0));
+    }
+    return out;
+  }
+
+  function mergeAvailabilityResponses(results) {
+    var byCode = {};
+    var hotels = [];
+    var errors = [];
+    (results || []).forEach(function (hb) {
+      if (!hb) return;
+      if (hb.error) {
+        errors.push(
+          typeof hb.error === 'string'
+            ? hb.error
+            : hb.error && hb.error.message
+              ? String(hb.error.message)
+              : String(hb.error)
+        );
+        return;
+      }
+      var list = (hb.hotels && hb.hotels.hotels) || [];
+      list.forEach(function (h) {
+        var c = String(h.code || '');
+        if (!c || byCode[c]) return;
+        byCode[c] = h;
+        hotels.push(h);
+      });
+    });
+    return { hotels: hotels, byCode: byCode, errors: errors };
+  }
+
+  function pickHotelsWithOffersByPriority(merged, codeList, maxCount) {
+    var found = [];
+    var byCode = merged.byCode || {};
+    for (var i = 0; i < codeList.length; i++) {
+      if (maxCount != null && found.length >= maxCount) break;
+      var h = byCode[String(codeList[i])];
+      if (h && shouldListHotel(h) && hotelHasBookableOffers(h)) {
+        found.push(h);
+      }
+    }
+    return found;
+  }
+
+  function availableCodesForAdults(merged, codeList, adults) {
+    var occ = clampHotelbedsOccupancy({
+      adults: adults,
+      rooms: defaultRoomsForAdults(adults),
+      children: 0,
+    });
+    var out = [];
+    var byCode = merged.byCode || {};
+    for (var i = 0; i < codeList.length; i++) {
+      var h = byCode[String(codeList[i])];
+      if (h && shouldListHotel(h) && hotelHasBookableOffers(h)) {
+        out.push(String(codeList[i]));
+      }
+    }
+    return { codes: out, occ: occ };
+  }
+
+  function findSplitAssignment(parts, availBySize, priorityList) {
+    var used = {};
+    var hotels = [];
+    var occSplits = [];
+    for (var pi = 0; pi < parts.length; pi++) {
+      var size = parts[pi];
+      var bucket = availBySize[size];
+      if (!bucket || !bucket.codes || !bucket.codes.length) return null;
+      var pickedCode = null;
+      for (var j = 0; j < priorityList.length; j++) {
+        var code = String(priorityList[j]);
+        if (used[code]) continue;
+        if (bucket.codes.indexOf(code) >= 0) {
+          pickedCode = code;
+          break;
+        }
+      }
+      if (!pickedCode) return null;
+      used[pickedCode] = 1;
+      hotels.push(bucket.byCode[pickedCode]);
+      occSplits.push(bucket.occ);
+    }
+    return { hotels: hotels, occSplits: occSplits, parts: parts.slice() };
+  }
+
+  function buildCoverageNote(coverage) {
+    if (!coverage || coverage.mode !== 'split') return '';
+    var k = coverage.k || (coverage.hotels && coverage.hotels.length) || 0;
+    var total = coverage.totalAdults || 0;
+    var parts = coverage.parts || [];
+    var partsTxt = parts.length ? parts.join(' + ') : '';
+    return (
+      '<p class="hotelbeds-note hotelbeds-note--split">' +
+      '<strong>Se ofrecen ' +
+      k +
+      ' hoteles</strong> porque ninguno tiene disponibilidad para alojar a todo el grupo' +
+      (total ? ' (' + total + ' personas)' : '') +
+      ' en un solo establecimiento.' +
+      (partsTxt ? ' Reparto sugerido: <strong>' + partsTxt + ' personas</strong> por hotel.' : '') +
+      '</p>'
+    );
+  }
+
+  function fetchHotelbedsBatched(checkIn, checkOut, hotelCodes, occ) {
+    var codes = (hotelCodes || []).map(String).filter(Boolean);
+    if (!codes.length) return Promise.resolve({ hotels: { hotels: [] }, apiCalls: 0 });
+    var chunks = [];
+    for (var i = 0; i < codes.length; i += HB_AVAIL_BATCH_SIZE) {
+      chunks.push(codes.slice(i, i + HB_AVAIL_BATCH_SIZE));
+    }
+    return Promise.all(
+      chunks.map(function (chunk) {
+        return fetchHotelbeds(checkIn, checkOut, chunk, occ);
+      })
+    ).then(function (results) {
+      var merged = mergeAvailabilityResponses(results);
+      return {
+        hotels: { hotels: merged.hotels, total: merged.hotels.length },
+        merged: merged,
+        apiCalls: chunks.length,
+        errors: merged.errors,
+      };
+    });
+  }
+
+  function throwAvailabilityError(hb, fallbackMsg) {
+    var raw =
+      hb && hb.error
+        ? typeof hb.error === 'string'
+          ? hb.error
+          : hb.error && hb.error.message
+            ? String(hb.error.message)
+            : String(hb.error)
+        : fallbackMsg || 'Availability sin respuesta válida';
+    var e = new Error(raw);
+    if (hb && hb.hotelbedsHttpStatus) e.hotelbedsHttpStatus = hb.hotelbedsHttpStatus;
+    if (isHbQuotaLikeMessage(raw, hb)) {
+      e.message =
+        'Cuota de consultas Hotelbeds superada. Espera unos minutos e inténtalo de nuevo (no es falta de credenciales).';
+    }
+    throw e;
+  }
+
+  /**
+   * Disponibilidad primero, preferencia después:
+   * 1) Hoteles que cubren al grupo entero (orden preferencia).
+   * 2) Si ninguno: mínimo k hoteles (2, 3…) con reparto equilibrado del grupo.
+   */
   function fetchBrgHotelsForDisplay(checkIn, checkOut, occ, abortSignal) {
     var codes = getBrgHotelCodeList();
-    var maxShow = getDisplayMaxHotels();
+    var maxSingle = getDisplayMaxHotels();
     if (!codes.length) {
-      return Promise.resolve({ hotels: [], poolSize: 0, apiCalls: 0 });
+      return Promise.resolve({ hotels: [], poolSize: 0, apiCalls: 0, coverage: null });
     }
 
-    function pickHotelsWithOffers(hb, codeList) {
-      var found = [];
-      for (var i = 0; i < codeList.length && found.length < maxShow; i++) {
-        var h = findHotelInAvailability(hb, codeList[i]);
-        if (h && shouldListHotel(h) && hotelHasBookableOffers(h)) {
-          found.push(h);
-        }
-      }
-      return found;
-    }
+    var totalAdults = Math.max(1, parseInt(occ && occ.adults, 10) || 2);
+    var fullOcc = clampHotelbedsOccupancy({
+      adults: totalAdults,
+      rooms: defaultRoomsForAdults(totalAdults),
+      children: (occ && occ.children) || 0,
+    });
 
-    return fetchHotelbeds(checkIn, checkOut, codes, occ).then(function (hb) {
+    return fetchHotelbedsBatched(checkIn, checkOut, codes, fullOcc).then(function (fullBatch) {
       if (abortSignal && abortSignal.aborted) {
-        return { hotels: [], poolSize: codes.length, apiCalls: 1, aborted: true };
+        return { hotels: [], poolSize: codes.length, apiCalls: fullBatch.apiCalls, aborted: true };
       }
-      if (!hb || hb.error) {
-        var raw =
-          hb && hb.error
-            ? typeof hb.error === 'string'
-              ? hb.error
-              : hb.error && hb.error.message
-                ? String(hb.error.message)
-                : String(hb.error)
-            : 'Availability sin respuesta válida';
-        var e = new Error(raw);
-        if (hb && hb.hotelbedsHttpStatus) e.hotelbedsHttpStatus = hb.hotelbedsHttpStatus;
-        if (isHbQuotaLikeMessage(raw, hb)) {
-          e.message =
-            'Cuota de consultas Hotelbeds superada. Espera unos minutos e inténtalo de nuevo (no es falta de credenciales).';
-        }
-        throw e;
+      if (fullBatch.errors && fullBatch.errors.length && !(fullBatch.merged && fullBatch.merged.hotels.length)) {
+        throwAvailabilityError({ error: fullBatch.errors[0] });
       }
-      var rawList = (hb.hotels && hb.hotels.hotels) || [];
-      return {
-        hotels: pickHotelsWithOffers(hb, codes),
-        poolSize: codes.length,
-        apiCalls: 1,
-        aborted: false,
-        rawApiCount: rawList.length,
-        occ: clampHotelbedsOccupancy(occ),
-      };
+
+      var singleHotels = pickHotelsWithOffersByPriority(fullBatch.merged, codes, maxSingle);
+      if (singleHotels.length) {
+        window.__HB_COVERAGE__ = {
+          mode: 'single',
+          k: 1,
+          totalAdults: totalAdults,
+          parts: [totalAdults],
+          occ: fullOcc,
+        };
+        return {
+          hotels: singleHotels,
+          poolSize: codes.length,
+          apiCalls: fullBatch.apiCalls,
+          aborted: false,
+          rawApiCount: fullBatch.merged.hotels.length,
+          occ: fullOcc,
+          coverage: window.__HB_COVERAGE__,
+        };
+      }
+
+      var maxK = Math.min(HB_SPLIT_MAX, totalAdults);
+      var splitChain = Promise.resolve({ apiCalls: fullBatch.apiCalls, availCache: {} });
+      for (var k = 2; k <= maxK; k++) {
+        (function (hotelCount) {
+          splitChain = splitChain.then(function (state) {
+            if (state.resolved) return state;
+            var parts = partitionAdults(totalAdults, hotelCount);
+            var uniqueSizes = [];
+            parts.forEach(function (n) {
+              if (uniqueSizes.indexOf(n) < 0) uniqueSizes.push(n);
+            });
+            var pending = uniqueSizes.filter(function (size) {
+              return !state.availCache[size];
+            });
+            var fetchSizes = Promise.resolve(state);
+            if (pending.length) {
+              fetchSizes = Promise.all(
+                pending.map(function (size) {
+                  var sizeOcc = clampHotelbedsOccupancy({
+                    adults: size,
+                    rooms: defaultRoomsForAdults(size),
+                    children: 0,
+                  });
+                  return fetchHotelbedsBatched(checkIn, checkOut, codes, sizeOcc).then(function (batch) {
+                    var avail = availableCodesForAdults(batch.merged, codes, size);
+                    return {
+                      size: size,
+                      batch: batch,
+                      codes: avail.codes,
+                      occ: avail.occ,
+                      byCode: batch.merged.byCode,
+                    };
+                  });
+                })
+              ).then(function (sizeResults) {
+                var next = {
+                  apiCalls: state.apiCalls,
+                  availCache: Object.assign({}, state.availCache),
+                  resolved: false,
+                };
+                sizeResults.forEach(function (sr) {
+                  next.apiCalls += sr.batch.apiCalls;
+                  next.availCache[sr.size] = {
+                    codes: sr.codes,
+                    occ: sr.occ,
+                    byCode: sr.byCode,
+                  };
+                });
+                return next;
+              });
+            }
+            return fetchSizes.then(function (st) {
+              if (st.resolved) return st;
+              var assignment = findSplitAssignment(parts, st.availCache, codes);
+              if (!assignment) return st;
+              window.__HB_COVERAGE__ = {
+                mode: 'split',
+                k: hotelCount,
+                totalAdults: totalAdults,
+                parts: parts,
+                occSplits: assignment.occSplits,
+              };
+              return {
+                resolved: true,
+                hotels: assignment.hotels,
+                poolSize: codes.length,
+                apiCalls: st.apiCalls,
+                aborted: false,
+                rawApiCount: assignment.hotels.length,
+                occ: fullOcc,
+                coverage: window.__HB_COVERAGE__,
+              };
+            });
+          });
+        })(k);
+      }
+
+      return splitChain.then(function (finalState) {
+        if (finalState.resolved && finalState.hotels) return finalState;
+        window.__HB_COVERAGE__ = { mode: 'none', totalAdults: totalAdults };
+        return {
+          hotels: [],
+          poolSize: codes.length,
+          apiCalls: finalState.apiCalls || fullBatch.apiCalls,
+          aborted: false,
+          rawApiCount: 0,
+          occ: fullOcc,
+          coverage: window.__HB_COVERAGE__,
+        };
+      });
     });
   }
 
@@ -3121,18 +3411,24 @@
     var live = {};
     var rateBy = window.__HB_RATE_BY_CODE || {};
     var contentBy = window.__HB_CONTENT_BY_CODE || {};
-    var partialNote =
-      hotels.length < maxShow
-        ? '<p class="hotelbeds-note">Solo ' +
-          hotels.length +
-          ' de ' +
-          maxShow +
-          ' hoteles con disponibilidad en Burgos para estas fechas.</p>'
-        : '';
+    var coverage = window.__HB_COVERAGE__ || null;
+    var coverageNote = buildCoverageNote(coverage);
+    var partialNote = '';
+    if (!coverageNote && coverage && coverage.mode === 'single' && hotels.length < maxShow) {
+      partialNote =
+        '<p class="hotelbeds-note">' +
+        hotels.length +
+        ' hotel(es) con disponibilidad para todo el grupo (ordenados por preferencia).</p>';
+    }
+    var title =
+      coverage && coverage.mode === 'split'
+        ? 'Hoteles con disponibilidad (reparto de grupo)'
+        : 'Hoteles con disponibilidad para tu grupo (Hotelbeds)';
     var html =
       '<div class="hotelbeds-block hotelbeds-results"><h4 class="hotelbeds-title">' +
-      'Hoteles con disponibilidad en Burgos (Hotelbeds)' +
+      title +
       '</h4>' +
+      coverageNote +
       partialNote +
       '<ul class="hotelbeds-list hotelbeds-list--cards">';
     // Hotelbeds Availability suele devolver minRate como total de la estancia.

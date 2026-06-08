@@ -85,20 +85,18 @@ Push URL: `https://<tu-dominio>/api/hotelbeds-reconfirmation`. Hotelbeds las act
 
 ## Frontend: `hotelbeds-paquetes.js`
 
-### Lista de hoteles Burgos (BRG)
+### Lista de hoteles paquetes (BRG + Lerma)
 
-En `js/hotelbeds-paquetes.js`, array **`BRG_HOTEL_CODES`**: pool de hoteles Burgos admitidos, **ordenados por prioridad** (arriba = más preferido). Una petición availability con todos los códigos; se muestran hasta **`HB_DISPLAY_MAX`** (3) **con tarifas**, respetando ese orden. Sin stock → no se muestran. Solo entran hoteles listados en el array.
+En `js/hotelbeds-paquetes.js`, array **`BRG_HOTEL_CODES`**: pool admitido, **orden = ranking de preferencia** (arriba = más preferido).
 
-Orden por defecto:
+**Filtrado previo (disponibilidad):**
 
-| Prioridad | Código | Nombre |
-|-----------|--------|--------|
-| 1 | `87356` | Silken Gran Teatro |
-| 2 | `23103` | NH Collection Palacio de Burgos |
-| 3 | `934` | Hotel Maria Luisa |
-| 4 | `1882` | Abba Burgos |
-| 5 | `1021767` | Apartamentos El Cid |
-| 6 | `4177` | Crisol Meson del Cid |
+1. Se consulta availability para **todo el grupo** (tamaño del paquete).
+2. Solo se muestran hoteles con **tarifas reservables** que cubren al grupo entero, ordenados por preferencia (hasta `displayMaxHotels`, por defecto 12).
+3. Si **ningún hotel** cubre al grupo (habitual con 5+ personas), se prueba reparto en **2, 3…** hoteles (máx. 6) y se muestran con aviso al cliente.
+4. Dentro de cada escenario, el **ranking de preferencia** solo ordena entre hoteles que pasan el filtro de disponibilidad.
+
+Lerma en el pool: `62060` Parador, `8116` Alisa, `271694` Landa (`LERMA_HOTEL_CODES`).
 
 Opcional por página:
 
