@@ -199,11 +199,7 @@
     var occ = clampHotelbedsOccupancy(getListOccupancyForAvailability(formData));
     var prev = window.__HB_LAST_AVAIL_OCC__;
     if (!prev) return false;
-    return (
-      prev.rooms === occ.rooms &&
-      prev.adults === occ.adults &&
-      (prev.children || 0) === (occ.children || 0)
-    );
+    return occCacheSignature(prev) === occCacheSignature(occ);
   }
 
   function tryRenderFromCache() {
@@ -919,16 +915,53 @@
     return 'desde ' + fmtEuros(total) + ' € (estancia)';
   }
 
-  /** Precio mínimo del paquete (green fees + alojamiento ref.) para un hotel de availability. */
-  function getHotelLowestPackageTotal(h) {
+  /** Precio mínimo solo alojamiento (sin green fees del grupo). */
+  function getHotelLowestStayNet(h) {
     if (!h) return null;
     var offers = collectRateOffersFromHotel(h);
     var min = null;
     for (var i = 0; i < offers.length; i++) {
-      var t = calcTotalPaquete(offers[i]);
-      if (t != null && (min == null || t < min)) min = t;
+      var n = hotelStayNetForCustomer(offers[i]);
+      if (n != null && (min == null || n < min)) min = n;
+    }
+    if (min == null) {
+      var rate = getHotelLowestRate(h);
+      if (rate != null && isFinite(rate)) min = Math.round(rate * 100) / 100;
     }
     return min;
+  }
+
+  /** Precio mínimo del paquete (green fees del grupo + alojamiento) para un hotel. */
+  function getHotelLowestPackageTotal(h) {
+    if (!h) return null;
+    var gf =
+      typeof window.__HB_GF_TOTAL__ === 'number' && isFinite(window.__HB_GF_TOTAL__)
+        ? window.__HB_GF_TOTAL__
+        : null;
+    var stay = getHotelLowestStayNet(h);
+    if (gf == null || stay == null) return null;
+    return Math.round((gf + stay) * 100) / 100;
+  }
+
+  /** GF una vez + suma alojamiento de cada hotel (reparto multi-hotel). */
+  function calcSplitComboPackageTotal(segments) {
+    if (!segments || !segments.length) return null;
+    var gf =
+      typeof window.__HB_GF_TOTAL__ === 'number' && isFinite(window.__HB_GF_TOTAL__)
+        ? window.__HB_GF_TOTAL__
+        : null;
+    if (gf == null) return null;
+    var hotelSum = 0;
+    var anyStay = false;
+    segments.forEach(function (s) {
+      var n = s.pkgStay != null ? s.pkgStay : getHotelLowestStayNet(s.hotel);
+      if (n != null && isFinite(n)) {
+        hotelSum += n;
+        anyStay = true;
+      }
+    });
+    if (!anyStay) return null;
+    return Math.round((gf + hotelSum) * 100) / 100;
   }
 
   /** Leyenda en tarjeta de hotel: solo precio de paquete, nunca solo estancia. */
@@ -1029,6 +1062,18 @@
       } else {
         var oldDbg = card.querySelector('.hotelbeds-price-debug');
         if (oldDbg) oldDbg.remove();
+      }
+    });
+    getSplitCombos().forEach(function (combo) {
+      combo.totalPkg = calcSplitComboPackageTotal(combo.segments);
+    });
+    document.querySelectorAll('.hotelbeds-card--split-combo').forEach(function (card) {
+      var cid = card.getAttribute('data-hb-split-combo-id');
+      var combo = getSplitComboById(cid);
+      var span = card.querySelector('.hotelbeds-price');
+      if (!combo || !span) return;
+      if (combo.totalPkg != null && isFinite(combo.totalPkg)) {
+        span.textContent = fmtEuros(combo.totalPkg) + ' € (paquete · green fees incluidos)';
       }
     });
   }
@@ -1187,26 +1232,22 @@
   }
 
   function getFunnelOccupancyForAvailability(form, adultsInp, roomsInp, adultsDefault, roomsDefault) {
-    var adults = clamp(getInt(adultsInp && adultsInp.value, adultsDefault), 1, 54);
+    var totalAdults = clamp(getInt(adultsInp && adultsInp.value, adultsDefault), 1, 54);
     var rooms = clamp(getInt(roomsInp && roomsInp.value, roomsDefault), 1, 20);
-    var occ = { adults: adults, rooms: rooms, children: 0 };
+    var occ = normalizeHbOccupancy({ totalAdults: totalAdults, rooms: rooms, children: 0 });
     if (!form) return occ;
     var listOcc = window.__HB_LAST_AVAIL_OCC__;
     if (!listOcc) return occ;
     var groupOcc = getListOccupancyForAvailability(new FormData(form));
-    if (groupOcc.adults === occ.adults && groupOcc.rooms === occ.rooms) {
-      return {
-        adults: listOcc.adults,
-        rooms: listOcc.rooms,
-        children: listOcc.children || 0,
-      };
+    if (
+      groupOcc.totalAdults === occ.totalAdults &&
+      groupOcc.rooms === occ.rooms &&
+      occCacheSignature(groupOcc) === occCacheSignature(occ)
+    ) {
+      return listOcc;
     }
-    if (occ.adults === adultsDefault && occ.rooms === roomsDefault) {
-      return {
-        adults: listOcc.adults,
-        rooms: listOcc.rooms,
-        children: listOcc.children || 0,
-      };
+    if (totalAdults === adultsDefault && rooms === roomsDefault) {
+      return listOcc;
     }
     return occ;
   }
@@ -1216,14 +1257,15 @@
     var cacheKey = buildAvailCacheKey(checkInOut.checkIn, checkInOut.checkOut, occ, hotelCode);
 
     function requestAvailability() {
-      return fetchJson(base + '/api/hotelbeds-availability', {
-        checkIn: checkInOut.checkIn,
-        checkOut: checkInOut.checkOut,
-        rooms: occ.rooms,
-        adults: occ.adults,
-        children: occ.children || 0,
-        hotelCodes: [String(hotelCode)],
-      }).then(function (av) {
+      var occPayload = occToAvailabilityPayload(occ);
+      return fetchJson(base + '/api/hotelbeds-availability', Object.assign(
+        {
+          checkIn: checkInOut.checkIn,
+          checkOut: checkInOut.checkOut,
+          hotelCodes: [String(hotelCode)],
+        },
+        occPayload
+      )).then(function (av) {
         if (!av || av.error) {
           var rawErr =
             av && av.error
@@ -1262,7 +1304,7 @@
       var r = window.__HB_LAST_AVAIL_RANGE__;
       if (!r || r.checkIn !== checkInOut.checkIn || r.checkOut !== checkInOut.checkOut) return false;
       var o = window.__HB_LAST_AVAIL_OCC__;
-      if (!o || o.adults !== occ.adults || o.rooms !== occ.rooms || (o.children || 0) !== (occ.children || 0)) return false;
+      if (!o || occCacheSignature(o) !== occCacheSignature(occ)) return false;
       return true;
     }
 
@@ -1278,14 +1320,14 @@
     function tryWidenAvailabilityForHotel() {
       var want = String(hotelCode || '');
       if (!want) return Promise.resolve(null);
-      var widenKey = [checkInOut.checkIn, checkInOut.checkOut, occ.rooms, occ.adults, occ.children || 0].join('|');
+      var widenKey = [checkInOut.checkIn, checkInOut.checkOut, occCacheSignature(occ)].join('|');
 
       var lr = window.__HB_LAST_AVAIL_RANGE__;
       var lo = window.__HB_LAST_AVAIL_OCC__;
       var lastAvailIsWidenEquivalent =
         window.__HB_LAST_AVAIL__ &&
         lr && lr.checkIn === checkInOut.checkIn && lr.checkOut === checkInOut.checkOut &&
-        lo && lo.adults === occ.adults && lo.rooms === occ.rooms && (lo.children || 0) === (occ.children || 0);
+        lo && occCacheSignature(lo) === occCacheSignature(occ);
       if (lastAvailIsWidenEquivalent) {
         return Promise.resolve(findHotelInAvailability(window.__HB_LAST_AVAIL__, want) || null);
       }
@@ -1339,20 +1381,14 @@
             return offersW;
           }
           var listOcc = window.__HB_LAST_AVAIL_OCC__;
-          var occMismatch =
-            listOcc &&
-            (listOcc.adults !== occ.adults || listOcc.rooms !== occ.rooms);
+          var occMismatch = listOcc && occCacheSignature(listOcc) !== occCacheSignature(occ);
           if (occMismatch) {
             throw new Error(
               'Sin disponibilidad para ' +
-                occ.adults +
-                ' adulto(s) en ' +
-                occ.rooms +
-                ' habitación(es). Las tarifas del listado eran para ' +
-                listOcc.adults +
-                ' adulto(s) en ' +
-                listOcc.rooms +
-                ' habitación(es); ajusta la ocupación o cambia fechas.'
+                formatHbSearchOccHint(occ) +
+                '. Las tarifas del listado eran para ' +
+                formatHbSearchOccHint(listOcc) +
+                '; ajusta la ocupación o cambia fechas.'
             );
           }
           throw new Error(
@@ -1370,22 +1406,21 @@
   }
 
   function getOccupancyFromFormData(fd) {
-    if (!fd || !fd.get) return { adults: 2, rooms: 1, children: 0 };
-    var adults = clamp(getInt(fd.get('hb_occ_adults') || fd.get('tamanio_grupo'), 2), 1, 54);
-    var rooms = clamp(getInt(fd.get('hb_occ_rooms') || defaultRoomsForAdults(adults), 1), 1, HB_MAX_ROOMS);
-    return clampHotelbedsOccupancy({ adults: adults, rooms: rooms, children: 0 });
+    if (!fd || !fd.get) return normalizeHbOccupancy({ totalAdults: 2 });
+    var totalAdults = clamp(getInt(fd.get('hb_occ_adults') || fd.get('tamanio_grupo'), 2), 1, 54);
+    var roomsRaw = String(fd.get('hb_occ_rooms') || '').trim();
+    return normalizeHbOccupancy({
+      totalAdults: totalAdults,
+      rooms: roomsRaw ? clamp(getInt(roomsRaw, 1), 1, HB_MAX_ROOMS) : null,
+      children: clamp(getInt(fd.get('hb_occ_children'), 0), 0, 20),
+    });
   }
 
   function getOccupancyFromTamanioGrupo(fd) {
     if (!fd || !fd.get) return null;
     var raw = String(fd.get('tamanio_grupo') || '').trim();
     if (!raw) return null;
-    var adults = clamp(getInt(raw, 2), 1, 54);
-    return clampHotelbedsOccupancy({
-      adults: adults,
-      rooms: defaultRoomsForAdults(adults),
-      children: 0,
-    });
+    return normalizeHbOccupancy({ totalAdults: clamp(getInt(raw, 2), 1, 54) });
   }
 
   function hasActiveSplitBookings(fd) {
@@ -1411,11 +1446,7 @@
       var cov = window.__HB_COVERAGE__ || {};
       if (cov.totalAdults) {
         var total = clamp(getInt(cov.totalAdults, 2), 1, 54);
-        return clampHotelbedsOccupancy({
-          adults: total,
-          rooms: defaultRoomsForAdults(total),
-          children: 0,
-        });
+        return normalizeHbOccupancy({ totalAdults: total });
       }
     }
     if (String(fd.get('hb_funnel_ready') || '').trim() === '1') {
@@ -1438,7 +1469,7 @@
   }
 
   function buildAvailCacheKey(checkIn, checkOut, occ, hotelCode) {
-    return [checkIn, checkOut, occ.rooms, occ.adults, occ.children || 0, String(hotelCode || '')].join('|');
+    return [checkIn, checkOut, occCacheSignature(occ), String(hotelCode || '')].join('|');
   }
 
   function indexRatesByHotelCode(data) {
@@ -1713,13 +1744,89 @@
   /** Hotelbeds Availability: máx. 10 habitaciones por petición. */
   var HB_MAX_ROOMS = 10;
 
-  function clampHotelbedsOccupancy(occ) {
-    if (!occ) return { adults: 2, rooms: 1, children: 0 };
+  /**
+   * Ocupación HB para varias habitaciones del mismo tipo: rooms=N, adults=2 ⇒ N dobles (2 adultos/hab.).
+   * @see Hotelbeds Booking API — «two rooms for two adults each».
+   */
+  function buildHbOccupanciesArray(totalAdults, preferredRooms) {
+    var n = Math.max(1, parseInt(totalAdults, 10) || 1);
+    if (n === 1) return [{ rooms: 1, adults: 1, children: 0 }];
+    if (n === 2) {
+      var pr2 = preferredRooms != null ? parseInt(preferredRooms, 10) : 0;
+      if (pr2 >= 2) return [{ rooms: 2, adults: 1, children: 0 }];
+      return [{ rooms: 1, adults: 2, children: 0 }];
+    }
+    var doubles = preferredRooms != null && !isNaN(preferredRooms)
+      ? clamp(Math.max(parseInt(preferredRooms, 10), Math.ceil(n / 2)), 1, HB_MAX_ROOMS)
+      : clamp(Math.ceil(n / 2), 1, HB_MAX_ROOMS);
+    return [{ rooms: doubles, adults: 2, children: 0 }];
+  }
+
+  /** totalAdults = personas del grupo; occupancies = petición real a Hotelbeds. */
+  function normalizeHbOccupancy(occ) {
+    if (occ && occ.occupancies && occ.totalAdults != null) {
+      return {
+        totalAdults: clamp(getInt(occ.totalAdults, 2), 1, 54),
+        adults: clamp(getInt(occ.totalAdults, 2), 1, 54),
+        rooms: clamp(getInt(occ.rooms, 1), 1, HB_MAX_ROOMS),
+        children: clamp(getInt(occ.children, 0), 0, 20),
+        occupancies: occ.occupancies,
+      };
+    }
+    var totalAdults = clamp(
+      getInt(occ && (occ.totalAdults != null ? occ.totalAdults : occ.adults), 2),
+      1,
+      54
+    );
+    var preferredRooms =
+      occ && occ.rooms != null && String(occ.rooms).trim() !== ''
+        ? clamp(getInt(occ.rooms, 1), 1, HB_MAX_ROOMS)
+        : defaultRoomsForAdults(totalAdults);
+    var occupancies = buildHbOccupanciesArray(totalAdults, preferredRooms);
+    var apiRooms = occupancies.reduce(function (sum, o) {
+      return sum + o.rooms;
+    }, 0);
     return {
-      adults: clamp(getInt(occ.adults, 2), 1, 54),
-      rooms: clamp(getInt(occ.rooms, 1), 1, HB_MAX_ROOMS),
-      children: clamp(getInt(occ.children, 0), 0, 20),
+      totalAdults: totalAdults,
+      adults: totalAdults,
+      rooms: Math.max(preferredRooms, apiRooms),
+      children: clamp(getInt(occ && occ.children, 0), 0, 20),
+      occupancies: occupancies,
     };
+  }
+
+  function occToAvailabilityPayload(occ) {
+    var norm = normalizeHbOccupancy(occ);
+    return {
+      rooms: norm.rooms,
+      adults: norm.totalAdults,
+      children: norm.children || 0,
+      occupancies: norm.occupancies,
+    };
+  }
+
+  function occCacheSignature(occ) {
+    var norm = normalizeHbOccupancy(occ);
+    return JSON.stringify(norm.occupancies) + '|' + String(norm.totalAdults) + '|' + String(norm.children || 0);
+  }
+
+  function formatHbSearchOccHint(occ) {
+    var norm = normalizeHbOccupancy(occ);
+    if (!norm.occupancies || !norm.occupancies.length) return '';
+    var parts = norm.occupancies.map(function (o) {
+      return o.rooms + ' hab. × ' + o.adults + ' adultos';
+    });
+    return (
+      'Búsqueda Hotelbeds: ' +
+      parts.join(' + ') +
+      ' (' +
+      norm.totalAdults +
+      ' personas en total · habitaciones de cama doble)'
+    );
+  }
+
+  function clampHotelbedsOccupancy(occ) {
+    return normalizeHbOccupancy(occ || { totalAdults: 2 });
   }
 
   /** Fragmento típico en rateKey: …|1~2~0|…@ (habitaciones~adultos~niños). */
@@ -1861,11 +1968,7 @@
         ? parseInt(cov.hotelPartByCode[String(code)], 10)
         : 0;
     if (!adults) return null;
-    return clampHotelbedsOccupancy({
-      adults: adults,
-      rooms: defaultRoomsForAdults(adults),
-      children: 0,
-    });
+    return clampHotelbedsOccupancy({ totalAdults: adults });
   }
 
   function getSplitBookings(form) {
@@ -1941,14 +2044,53 @@
   }
 
   function markSplitComboCards(form) {
-    var activeId = window.__HB_ACTIVE_SPLIT_COMBO_ID__ || '';
+    var activeCombo = getActiveSplitCombo();
+    var activeKey = activeCombo ? comboMultisetKey(activeCombo) : '';
     document.querySelectorAll('.hotelbeds-card--split-combo').forEach(function (el) {
       var cid = el.getAttribute('data-hb-split-combo-id');
       var combo = getSplitComboById(cid);
       el.classList.remove('hotelbeds-card--picked', 'hotelbeds-card--split-done');
       if (combo && comboFullyConfigured(form, combo)) el.classList.add('hotelbeds-card--split-done');
-      else if (cid && cid === activeId) el.classList.add('hotelbeds-card--picked');
+      else if (combo && activeKey && comboMultisetKey(combo) === activeKey) el.classList.add('hotelbeds-card--picked');
     });
+  }
+
+  function renderSplitFunnelSteps(host, form, combo, currentHotelCode) {
+    if (!host || !combo || !combo.segments || combo.segments.length < 2) return;
+    var stepsEl = host.querySelector('#hb-funnel-inline-split-steps');
+    if (!stepsEl) return;
+    var doneByCode = {};
+    getSplitBookings(form).forEach(function (b) {
+      if (b && b.ready && b.code) doneByCode[String(b.code)] = b;
+    });
+    var html = '<ol class="hb-funnel-split-steps__list">';
+    combo.segments.forEach(function (seg, idx) {
+      var code = String(seg.code);
+      var name = hotelDisplayName(seg.hotel, code);
+      var isDone = !!doneByCode[code];
+      var isCurrent = code === String(currentHotelCode || '');
+      var state = isDone ? 'done' : isCurrent ? 'current' : 'pending';
+      var statusLbl = isDone ? 'Configurado' : isCurrent ? 'Elige habitación' : 'Pendiente';
+      html +=
+        '<li class="hb-funnel-split-steps__item hb-funnel-split-steps__item--' +
+        state +
+        '">' +
+        '<span class="hb-funnel-split-steps__n">' +
+        (idx + 1) +
+        '</span>' +
+        '<span class="hb-funnel-split-steps__body">' +
+        '<strong>' +
+        escapeHtml(name) +
+        '</strong> (' +
+        seg.adults +
+        ' pers.)' +
+        '<span class="hb-funnel-split-steps__status">' +
+        escapeHtml(statusLbl) +
+        '</span></span></li>';
+    });
+    html += '</ol>';
+    stepsEl.innerHTML = html;
+    stepsEl.hidden = false;
   }
 
   function markHotelCardsPicked(form) {
@@ -2115,6 +2257,8 @@
       hbFunnelCounterFieldHtml('hb-funnel-inline-adults', 1, 54, 'Personas') +
       hbFunnelCounterFieldHtml('hb-funnel-inline-rooms', 1, 20, 'Habit.') +
       '  </div>' +
+      '  <p class="hb-funnel-occ-hint" id="hb-funnel-inline-occ-hint" hidden></p>' +
+      '  <div class="hb-funnel-split-steps" id="hb-funnel-inline-split-steps" hidden></div>' +
       '  <div class="hb-hotel-funnel-inline__actions">' +
       '    <button type="button" class="hb-hotel-funnel-btn hb-hotel-funnel-btn--secondary" id="hb-funnel-inline-check" disabled>' +
       escapeHtml(hbFunnelConditionsButtonText()) +
@@ -2666,10 +2810,20 @@
         if (splitMode && hotelCode) btnChangeHotel.textContent = 'Elegir otro hotel del reparto';
       }
       syncHotelCardsListVisibility(root, form);
+      var occHint = host.querySelector('#hb-funnel-inline-occ-hint');
+      var splitStepsEl = host.querySelector('#hb-funnel-inline-split-steps');
       if (!hotelCode) {
         hotelLine.hidden = false;
         hotelLine.textContent = 'Elige un hotel para continuar.';
         if (datesLine) datesLine.textContent = '';
+        if (occHint) {
+          occHint.hidden = true;
+          occHint.textContent = '';
+        }
+        if (splitStepsEl) {
+          splitStepsEl.hidden = true;
+          splitStepsEl.innerHTML = '';
+        }
         host.__hbRatesHotel = '';
         host.__hbAutoRatesHotel = '';
         return;
@@ -2707,6 +2861,36 @@
         } catch (e0) {
           datesLine.textContent = '';
         }
+      }
+      if (occHint) {
+        var occForHint = getFunnelOccupancyForAvailability(form, adultsInp, roomsInp, adultsDefault, roomsDefault);
+        var hintTxt = formatHbSearchOccHint(occForHint);
+        occHint.textContent = hintTxt;
+        occHint.hidden = !hintTxt;
+      }
+      var activeComboUi = getActiveSplitCombo();
+      if (splitMode && activeComboUi && activeComboUi.segments.length >= 2) {
+        renderSplitFunnelSteps(host, form, activeComboUi, hotelCode);
+        var stepIdx = 0;
+        for (var si = 0; si < activeComboUi.segments.length; si++) {
+          if (String(activeComboUi.segments[si].code) === String(hotelCode)) {
+            stepIdx = si + 1;
+            break;
+          }
+        }
+        if (stepIdx) {
+          hotelLine.hidden = false;
+          hotelLine.textContent =
+            'Paso ' +
+            stepIdx +
+            '/' +
+            activeComboUi.segments.length +
+            ': ' +
+            catalogNameForCode(hotelCode);
+        }
+      } else if (splitStepsEl) {
+        splitStepsEl.hidden = true;
+        splitStepsEl.innerHTML = '';
       }
       hydrateRateOffersFromLastAvailability(hotelCode);
       var ratesBox = host.querySelector('#hb-funnel-inline-rates');
@@ -2763,7 +2947,7 @@
       var offers = (window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || [];
       if (!offers.length) return;
       var occ = getFunnelOccupancyForAvailability(form, adultsInp, roomsInp, adultsDefault, roomsDefault);
-      adultsInp.value = String(occ.adults);
+      adultsInp.value = String(occ.totalAdults);
       roomsInp.value = String(occ.rooms);
       var def = pickDefaultBookableOffer(offers, occ);
       if (!def) {
@@ -2887,10 +3071,10 @@
           return;
         }
         var occ = getFunnelOccupancyForAvailability(form, adultsInp, roomsInp, adultsDefault, roomsDefault);
-        adultsInp.value = String(occ.adults);
+        adultsInp.value = String(occ.totalAdults);
         roomsInp.value = String(occ.rooms);
         var previousRateKey = getSelectedRateKeyFromFunnel(host, form);
-        setSelectedHotelInHiddenInputs(form, hotelCode, '', occ.adults, occ.rooms, '');
+        setSelectedHotelInHiddenInputs(form, hotelCode, '', occ.totalAdults, occ.rooms, '');
         refreshUiState();
 
         var offersReady =
@@ -2929,7 +3113,7 @@
           })
           .then(function (offer) {
             markRateValidated(form, offer.rateKey, offer.rateType, offer);
-            form.querySelector('input[name="hb_occ_adults"]').value = String(occ.adults);
+            form.querySelector('input[name="hb_occ_adults"]').value = String(occ.totalAdults);
             form.querySelector('input[name="hb_occ_rooms"]').value = String(occ.rooms);
             refreshUiState();
             result.innerHTML = renderFunnelConditionsHtml(offer);
@@ -3026,18 +3210,18 @@
 
   function fetchHotelbeds(checkIn, checkOut, hotelCodes, occ) {
     var base = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
-    var safeOcc = clampHotelbedsOccupancy(occ);
+    var occPayload = occToAvailabilityPayload(occ);
     return fetch(base + '/api/hotelbeds-availability', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        checkIn: checkIn,
-        checkOut: checkOut,
-        rooms: safeOcc.rooms,
-        adults: safeOcc.adults,
-        children: safeOcc.children || 0,
-        hotelCodes: hotelCodes,
-      }),
+      body: JSON.stringify(Object.assign(
+        {
+          checkIn: checkIn,
+          checkOut: checkOut,
+          hotelCodes: hotelCodes,
+        },
+        occPayload
+      )),
     }).then(function (r) { return parseHotelbedsResponse(r); });
   }
 
@@ -3062,17 +3246,18 @@
     var lastError = null;
     var seq = DESTINATIONS_LERMA_BURGOS.reduce(function (promise, dest) {
       return promise.then(function () {
+        var occPayload = occToAvailabilityPayload(occ || { totalAdults: 2 });
         return fetch(base + '/api/hotelbeds-availability', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            checkIn: checkIn,
-            checkOut: checkOut,
-            rooms: (occ && occ.rooms) || 1,
-            adults: (occ && occ.adults) || 2,
-            children: (occ && occ.children) || 0,
-            destinationCode: dest,
-          }),
+          body: JSON.stringify(Object.assign(
+            {
+              checkIn: checkIn,
+              checkOut: checkOut,
+              destinationCode: dest,
+            },
+            occPayload
+          )),
         }).then(function (r) { return parseHotelbedsResponse(r); }).then(function (data) {
           if (data && data.error) {
             lastError = new Error(typeof data.error === 'string' ? data.error : (data.error && data.error.message) || 'Hotelbeds error');
@@ -3198,11 +3383,7 @@
   }
 
   function availableCodesForAdults(merged, codeList, adults) {
-    var occ = clampHotelbedsOccupancy({
-      adults: adults,
-      rooms: defaultRoomsForAdults(adults),
-      children: 0,
-    });
+    var occ = clampHotelbedsOccupancy({ totalAdults: adults });
     var out = [];
     var byCode = merged.byCode || {};
     for (var i = 0; i < codeList.length; i++) {
@@ -3262,43 +3443,83 @@
     return catalogNameForCode(code);
   }
 
+  function comboMultisetKey(combo) {
+    if (!combo || !combo.segments || !combo.segments.length) return combo && combo.id ? String(combo.id) : '';
+    return combo.segments
+      .map(function (s) {
+        return String(s.code) + '@' + s.adults;
+      })
+      .sort()
+      .join('|');
+  }
+
+  function sortComboSegmentsForDisplay(segments) {
+    var priority = getBrgHotelCodeList();
+    return segments.slice().sort(function (a, b) {
+      var ia = priority.indexOf(String(a.code));
+      var ib = priority.indexOf(String(b.code));
+      ia = ia < 0 ? 9999 : ia;
+      ib = ib < 0 ? 9999 : ib;
+      if (ia !== ib) return ia - ib;
+      return String(a.code).localeCompare(String(b.code));
+    });
+  }
+
   function buildSplitCombo(assignment, parts) {
     var hotelPartByCode = {};
     var hotelCodesOrdered = [];
     var segments = [];
-    var totalPkg = 0;
     assignment.hotels.forEach(function (h, idx) {
       var c = String(h.code);
       var adults = parts[idx];
       hotelPartByCode[c] = adults;
       hotelCodesOrdered.push(c);
-      var pkg = getHotelLowestPackageTotal(h);
-      if (pkg != null && isFinite(pkg)) totalPkg += pkg;
-      segments.push({ code: c, adults: adults, hotel: h, pkgMin: pkg });
+      var stay = getHotelLowestStayNet(h);
+      segments.push({ code: c, adults: adults, hotel: h, pkgStay: stay });
     });
-    return {
-      id: hotelCodesOrdered.join('+'),
+    segments = sortComboSegmentsForDisplay(segments);
+    hotelCodesOrdered = segments.map(function (s) {
+      return s.code;
+    });
+    var combo = {
+      id: '',
       hotels: assignment.hotels,
       parts: parts.slice(),
       occSplits: assignment.occSplits,
       hotelPartByCode: hotelPartByCode,
       hotelCodes: hotelCodesOrdered,
       segments: segments,
-      totalPkg: totalPkg > 0 ? Math.round(totalPkg * 100) / 100 : null,
+      totalPkg: calcSplitComboPackageTotal(segments),
     };
+    combo.id = comboMultisetKey(combo);
+    return combo;
+  }
+
+  function dedupeSplitCombos(combos) {
+    var seen = {};
+    var out = [];
+    combos.forEach(function (c) {
+      var key = comboMultisetKey(c);
+      if (!key || seen[key]) return;
+      seen[key] = true;
+      c.id = key;
+      out.push(c);
+    });
+    return out;
   }
 
   function buildSplitCombosFromCache(parts, availCache, priorityList) {
-    var assignments = findAllSplitAssignments(parts, availCache, priorityList, HB_SPLIT_MAX_COMBOS);
+    var assignments = findAllSplitAssignments(parts, availCache, priorityList, HB_SPLIT_MAX_COMBOS * 3);
     var combos = assignments.map(function (asn) {
       return buildSplitCombo(asn, parts);
     });
+    combos = dedupeSplitCombos(combos);
     combos.sort(function (a, b) {
       var pa = a.totalPkg != null ? a.totalPkg : Infinity;
       var pb = b.totalPkg != null ? b.totalPkg : Infinity;
       return pa - pb;
     });
-    return combos;
+    return combos.slice(0, HB_SPLIT_MAX_COMBOS);
   }
 
   function getSplitCombos() {
@@ -3311,7 +3532,24 @@
     for (var i = 0; i < combos.length; i++) {
       if (combos[i].id === id) return combos[i];
     }
+    for (var j = 0; j < combos.length; j++) {
+      if (comboMultisetKey(combos[j]) === id) return combos[j];
+    }
     return null;
+  }
+
+  function getConfiguredComboMultisetKey(form) {
+    if (!form) return '';
+    var bookings = getSplitBookings(form).filter(function (b) {
+      return b && b.ready && b.code;
+    });
+    if (!bookings.length) return '';
+    return bookings
+      .map(function (b) {
+        return String(b.code) + '@' + (parseInt(b.adults, 10) || 0);
+      })
+      .sort()
+      .join('|');
   }
 
   function getActiveSplitCombo() {
@@ -3341,6 +3579,8 @@
 
   function comboFullyConfigured(form, combo) {
     if (!form || !combo || !combo.hotelCodes || !combo.hotelCodes.length) return false;
+    var cfgKey = getConfiguredComboMultisetKey(form);
+    if (!cfgKey || comboMultisetKey(combo) !== cfgKey) return false;
     var done = getSplitBookings(form).filter(function (b) {
       return b && b.ready;
     });
@@ -3365,19 +3605,11 @@
   }
 
   function detectActiveComboFromBookings(form) {
-    var bookings = getSplitBookings(form).filter(function (b) {
-      return b && b.ready;
-    });
-    if (!bookings.length) return null;
+    var cfgKey = getConfiguredComboMultisetKey(form);
+    if (!cfgKey) return null;
     var combos = getSplitCombos();
     for (var i = 0; i < combos.length; i++) {
-      var combo = combos[i];
-      var allMatch = combo.hotelCodes.every(function (code) {
-        return bookings.some(function (b) {
-          return String(b.code) === String(code);
-        });
-      });
-      if (allMatch) return combo;
+      if (comboMultisetKey(combos[i]) === cfgKey) return combos[i];
     }
     return null;
   }
@@ -3397,11 +3629,13 @@
       combo.totalPkg != null && isFinite(combo.totalPkg)
         ? fmtEuros(combo.totalPkg) + ' € (paquete · green fees incluidos)'
         : 'Elige habitación para ver el precio del paquete (green fees incluidos)';
-    var activeId = window.__HB_ACTIVE_SPLIT_COMBO_ID__ || '';
+    var activeCombo = getActiveSplitCombo();
+    var activeKey = activeCombo ? comboMultisetKey(activeCombo) : '';
+    var comboKey = comboMultisetKey(combo);
     var klass =
       'hotelbeds-card hotelbeds-card--selectable hotelbeds-card--split-combo hotelbeds-card--compact';
     if (comboFullyConfigured(form, combo)) klass += ' hotelbeds-card--split-done';
-    else if (activeId === combo.id) klass += ' hotelbeds-card--picked';
+    else if (activeKey && comboKey === activeKey) klass += ' hotelbeds-card--picked';
     return (
       '<article class="' +
       klass +
@@ -3443,20 +3677,20 @@
     if (host) {
       var ai = host.querySelector('#hb-funnel-inline-adults');
       var ri = host.querySelector('#hb-funnel-inline-rooms');
-      if (splitOcc) {
-        if (ai) {
-          ai.value = String(splitOcc.adults);
-          ai.__hbUserEdited = false;
-        }
-        if (ri) {
-          ri.value = String(splitOcc.rooms);
-          ri.__hbUserEdited = false;
-        }
-      } else {
-        syncFunnelAdultsFromGroup(host, form, ai, ri, true);
-        var sug2 = adultsRoomsFromGroupSize(form);
-        setSelectedHotelInHiddenInputs(form, String(code), '', String(sug2.adults), String(sug2.rooms), '');
-      }
+          if (splitOcc) {
+            if (ai) {
+              ai.value = String(splitOcc.totalAdults);
+              ai.__hbUserEdited = false;
+            }
+            if (ri) {
+              ri.value = String(splitOcc.rooms);
+              ri.__hbUserEdited = false;
+            }
+          } else {
+            syncFunnelAdultsFromGroup(host, form, ai, ri, true);
+            var sug2 = adultsRoomsFromGroupSize(form);
+            setSelectedHotelInHiddenInputs(form, String(code), '', String(sug2.adults), String(sug2.rooms), '');
+          }
       host.__hbRatesHotel = '';
       host.__hbAutoRatesPending = false;
       host.__hbAutoConfirmPending = true;
@@ -3472,12 +3706,14 @@
   function activateSplitCombo(comboId, form, root) {
     var combo = getSplitComboById(comboId);
     if (!combo || !form) return;
-    var prevId = window.__HB_ACTIVE_SPLIT_COMBO_ID__ || '';
-    if (prevId !== comboId) {
+    var prevCombo = getActiveSplitCombo();
+    var prevKey = prevCombo ? comboMultisetKey(prevCombo) : '';
+    var nextKey = comboMultisetKey(combo);
+    if (prevKey !== nextKey) {
       setSplitBookings(form, []);
       form.querySelector('input[name="hb_funnel_ready"]').value = '';
-      applySplitComboToCoverage(combo);
     }
+    applySplitComboToCoverage(combo);
     var nextCode = nextUnconfiguredHotelInCombo(form, combo);
     if (!nextCode) {
       if (comboFullyConfigured(form, combo)) return;
@@ -3557,7 +3793,10 @@
       return Promise.resolve({ hotels: [], poolSize: 0, apiCalls: 0, coverage: null });
     }
 
-    var totalAdults = Math.max(1, parseInt(occ && occ.adults, 10) || 2);
+    var totalAdults = Math.max(
+      1,
+      parseInt(occ && (occ.totalAdults != null ? occ.totalAdults : occ.adults), 10) || 2
+    );
     var fullOcc = clampHotelbedsOccupancy({
       adults: totalAdults,
       rooms: defaultRoomsForAdults(totalAdults),
@@ -3912,14 +4151,7 @@
       scannedCount != null && scannedCount > 0
         ? ' Se consultaron ' + scannedCount + ' hotel(es) de la lista en Burgos.'
         : '';
-    var occLine =
-      occ && occ.adults
-        ? ' Búsqueda: <strong>' +
-          occ.adults +
-          ' adulto(s)</strong>, <strong>' +
-          (occ.rooms || 1) +
-          ' habitación(es)</strong>.'
-        : '';
+    var occLine = occ ? ' ' + escapeHtml(formatHbSearchOccHint(occ)) + '.' : '';
     var tip = '';
     if (occ && occ.rooms >= HB_MAX_ROOMS) {
       tip =
@@ -4223,7 +4455,7 @@
         window.__HB_LAST_AVAIL__ = hb;
         window.__HB_LAST_AVAIL_OCC__ = occ;
         window.__HB_LAST_AVAIL_RANGE__ = { checkIn: range.checkIn, checkOut: range.checkOut };
-        var widenSeedKey = [range.checkIn, range.checkOut, occ.rooms, occ.adults, occ.children || 0].join('|');
+        var widenSeedKey = [range.checkIn, range.checkOut, occCacheSignature(occ)].join('|');
         window.__HB_WIDEN_AVAIL_CACHE__ = { key: widenSeedKey, av: hb };
         window.__HB_RATE_BY_CODE = indexRatesByHotelCode(hb);
         console.info(

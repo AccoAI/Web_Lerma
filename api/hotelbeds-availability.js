@@ -155,17 +155,28 @@ async function handleBooking(apiKey, secret, body) {
 /**
  * @returns {{ ok: true, data: object } | { ok: false, error: string, status?: number, raw?: string, data?: object }}
  */
+function normalizeOccupancies(body) {
+  if (Array.isArray(body.occupancies) && body.occupancies.length > 0) {
+    return body.occupancies.slice(0, 10).map((o) => ({
+      rooms: Math.max(1, parseInt(o.rooms, 10) || 1),
+      adults: Math.max(1, parseInt(o.adults, 10) || 1),
+      children: Math.max(0, parseInt(o.children, 10) || 0),
+    }));
+  }
+  return [{
+    rooms: Math.max(1, parseInt(body.rooms, 10) || 1),
+    adults: Math.max(1, parseInt(body.adults, 10) || 2),
+    children: Math.max(0, parseInt(body.children, 10) || 0),
+  }];
+}
+
 async function fetchAvailability(apiKey, secret, body) {
   const payload = {
     stay: {
       checkIn: body.checkIn,
       checkOut: body.checkOut,
     },
-    occupancies: [{
-      rooms: Math.max(1, parseInt(body.rooms, 10) || 1),
-      adults: Math.max(1, parseInt(body.adults, 10) || 2),
-      children: Math.max(0, parseInt(body.children, 10) || 0),
-    }],
+    occupancies: normalizeOccupancies(body),
   };
 
   if (body.hotelCodes && Array.isArray(body.hotelCodes) && body.hotelCodes.length > 0) {
@@ -404,6 +415,7 @@ export async function POST(request) {
       rooms: body.rooms || 1,
       adults: body.adults || 2,
       children: body.children || 0,
+      occupancies: body.occupancies,
       hotelCodes: body.hotelCodes,
       destinationCode: body.destinationCode,
     });

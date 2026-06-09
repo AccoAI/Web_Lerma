@@ -3954,6 +3954,82 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     margin: 0 0.15rem;
 }
 
+.hb-funnel-occ-hint {
+    margin: 0.35rem 0 0.5rem;
+    font-size: 0.78rem;
+    line-height: 1.35;
+    color: var(--color-text-light);
+}
+
+.hb-funnel-split-steps {
+    margin: 0.5rem 0 0.75rem;
+    padding: 0.55rem 0.65rem;
+    background: rgba(45, 90, 61, 0.06);
+    border-radius: 6px;
+    border: 1px solid rgba(45, 90, 61, 0.12);
+}
+
+.hb-funnel-split-steps__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.hb-funnel-split-steps__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
+.hb-funnel-split-steps__n {
+    flex: 0 0 1.35rem;
+    height: 1.35rem;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: rgba(0, 0, 0, 0.08);
+    color: var(--color-text);
+}
+
+.hb-funnel-split-steps__item--current .hb-funnel-split-steps__n {
+    background: var(--color-primary);
+    color: #fff;
+}
+
+.hb-funnel-split-steps__item--done .hb-funnel-split-steps__n {
+    background: #2e7d4e;
+    color: #fff;
+}
+
+.hb-funnel-split-steps__body {
+    flex: 1;
+}
+
+.hb-funnel-split-steps__status {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--color-text-light);
+    margin-top: 0.1rem;
+}
+
+.hb-funnel-split-steps__item--current .hb-funnel-split-steps__status {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.hb-funnel-split-steps__item--done .hb-funnel-split-steps__status {
+    color: #2e7d4e;
+    font-weight: 600;
+}
+
 .hotelbeds-note--split {
     background: rgba(45, 90, 61, 0.08);
     border-left: 3px solid var(--color-primary);
