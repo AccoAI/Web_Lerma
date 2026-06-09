@@ -128,6 +128,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function actualizarPasosTorneos(countDias) {
+        var dias = typeof countDias === 'number' ? countDias : (form ? (new FormData(form).getAll('fechas[]') || []).length : 0);
+        var mostrarAlojamiento = dias >= 2;
+
+        if (configuradorHotelWrapTorneos) {
+            configuradorHotelWrapTorneos.hidden = !mostrarAlojamiento;
+            if (!mostrarAlojamiento) {
+                configuradorHotelWrapTorneos.style.display = 'none';
+                if (hotelPorNocheBlockTorneos) hotelPorNocheBlockTorneos.style.display = 'none';
+            } else {
+                configuradorHotelWrapTorneos.style.display = '';
+            }
+        }
+
+        var paso = 1;
+        form.querySelectorAll('[data-torneo-titulo]').forEach(function (titulo) {
+            var seccion = titulo.closest('.configurador-seccion');
+            if (!seccion || seccion.hidden) return;
+            titulo.textContent = paso + '. ' + titulo.getAttribute('data-torneo-titulo');
+            paso++;
+        });
+    }
+
     function formatearFechaComidaTorneos(iso) {
         if (!iso) return '';
         try {
@@ -138,7 +161,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function actualizarBloqueComidaTorneos(count, fechas) {
         fechas = fechas || [];
-        if (comidaSinFechasTorneos) comidaSinFechasTorneos.style.display = count >= 1 ? 'none' : 'block';
+        if (comidaSinFechasTorneos) {
+            comidaSinFechasTorneos.hidden = count >= 1;
+            comidaSinFechasTorneos.style.display = count >= 1 ? 'none' : 'block';
+        }
         if (!comidaPorDiaContainerTorneos) return;
         if (count < 1) {
             comidaPorDiaContainerTorneos.style.display = 'none';
@@ -198,16 +224,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         camposDiasTorneos.style.display = 'none';
                     }
                 }
-                if (configuradorHotelWrapTorneos) {
-                    if (count >= 2) {
-                        configuradorHotelWrapTorneos.style.display = 'block';
-                        actualizarBloqueHotelTorneos();
-                        if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
-                    } else {
-                        configuradorHotelWrapTorneos.style.display = 'none';
-                        if (hotelPorNocheBlockTorneos) hotelPorNocheBlockTorneos.style.display = 'none';
-                    }
+                if (count >= 2) {
+                    actualizarBloqueHotelTorneos();
+                    if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
                 }
+                actualizarPasosTorneos(count);
                 actualizarBloqueComidaTorneos(count, fechas || []);
                 generarHoraSalidaPorDiaTorneos(count);
                 actualizarResumenTorneo();
@@ -255,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('input', function(e) {
         var t = e.target;
         if (t && t.id === 'tamanio-grupo-torneos') recalcNumeroGruposTorneos();
-        if (t && t.matches && t.matches('#tamanio-grupo-torneos, #hora-salida-torneos, #handicap-grupo-torneos, #nombre-torneo, #descripcion-torneo, .ancillary-counter')) actualizarResumenTorneo();
+        if (t && t.matches && t.matches('#tamanio-grupo-torneos, #hora-salida-torneos, #nombre-torneo, #descripcion-torneo, .ancillary-counter')) actualizarResumenTorneo();
     });
     recalcNumeroGruposTorneos();
 
@@ -269,6 +290,8 @@ document.addEventListener('DOMContentLoaded', function() {
             generarHotelesPorNocheTorneos(n);
         }
     });
+
+    actualizarPasosTorneos(0);
 
     // Actualizar resumen inicial
     actualizarResumenTorneo();
@@ -376,31 +399,6 @@ function actualizarResumenTorneo() {
         if (hs) partsInit.push('Hora de salida: ' + hs);
         if (ng) partsInit.push('Nº de grupos: ' + ng);
         resumenHTML += '<p><strong>Reserva:</strong> ' + partsInit.join(' · ') + '</p>';
-    }
-
-    var usuarios = form.querySelectorAll('.usuario-form');
-    if (usuarios.length > 0) resumenHTML += '<p><strong>Número de participantes:</strong> ' + usuarios.length + '</p>';
-    
-    var grupos = (typeof getCorrespondenciaGrupos === 'function') ? getCorrespondenciaGrupos(form) : [];
-    if (grupos.length > 0) resumenHTML += '<p><strong>Correspondencias (grupos):</strong> ' + grupos.map(function (g) { return g.cantidad + ' × ' + g.label; }).join(', ') + '</p>';
-    
-    var hg = (formData.get('handicap_grupo') || '').trim();
-    if (hg) resumenHTML += '<p><strong>Handicap del grupo (orientativo):</strong> ' + hg + '</p>';
-
-    // Servicios adicionales
-    var ancillaries = [];
-    var qB = parseInt(formData.get('ancillary_buggy') || '0', 10);
-    var qC = parseInt(formData.get('ancillary_carrito_mano') || '0', 10);
-    var qE = parseInt(formData.get('ancillary_carrito_electrico') || '0', 10);
-    if (qB > 0) ancillaries.push('Buggies (' + qB + ')');
-    if (qC > 0) ancillaries.push('Carrito de mano (' + qC + ')');
-    if (qE > 0) ancillaries.push('Carrito eléctrico (' + qE + ')');
-    var cuboVal = (formData.get('ancillary_cubo_premium_boogie') || '').trim();
-    if (cuboVal === 'champagne') ancillaries.push('Cubo premium: Champagne');
-    else if (cuboVal === 'cervezas') ancillaries.push('Cubo premium: Cubo de cervezas');
-    else if (cuboVal === 'vino_blanco') ancillaries.push('Cubo premium: Vino blanco');
-    if (ancillaries.length > 0) {
-        resumenHTML += '<p><strong>Servicios adicionales:</strong> ' + ancillaries.join(', ') + '</p>';
     }
 
     resumenHTML += '</div>';

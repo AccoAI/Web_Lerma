@@ -56,7 +56,6 @@
     if (hs) lines.push('Hora salida: ' + hs);
     if (fd.get('tamanio_grupo')) lines.push('Tamaño grupo: ' + fd.get('tamanio_grupo'));
     if (fd.get('numero_grupos')) lines.push('Nº grupos: ' + fd.get('numero_grupos'));
-    if (fd.get('handicap_grupo')) lines.push('Handicap grupo: ' + fd.get('handicap_grupo'));
     var mod = fd.get('modalidad');
     if (mod) {
       var modLbl = MODALIDAD_LABELS[mod] || mod;
@@ -86,13 +85,6 @@
       }
     }
     if (comidas.length) lines.push('Comidas/cenas: ' + comidas.join(' · '));
-    var anc = [];
-    if (parseInt(fd.get('ancillary_buggy') || '0', 10) > 0) anc.push('Buggies: ' + fd.get('ancillary_buggy'));
-    if (parseInt(fd.get('ancillary_carrito_mano') || '0', 10) > 0) anc.push('Carrito mano: ' + fd.get('ancillary_carrito_mano'));
-    if (parseInt(fd.get('ancillary_carrito_electrico') || '0', 10) > 0) anc.push('Carrito eléctrico: ' + fd.get('ancillary_carrito_electrico'));
-    var cubo = fd.get('ancillary_cubo_premium_boogie');
-    if (cubo) anc.push('Cubo premium: ' + cubo);
-    if (anc.length) lines.push('Servicios extra: ' + anc.join(', '));
     if (typeof getCorrespondenciaGrupos === 'function' && form) {
       var grupos = getCorrespondenciaGrupos(form);
       if (grupos.length) {

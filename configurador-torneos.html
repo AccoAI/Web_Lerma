@@ -72,7 +72,7 @@
             <!-- Configurador de Torneo -->
             <div class="configurador-paquete">
                 <div class="configurador-layout">
-                <form id="configuradorTorneosForm" class="configurador-form promo-torneo-form" novalidate>
+                <form id="configuradorTorneosForm" class="configurador-form promo-torneo-form" data-config-flow-off="true" novalidate>
                     <!-- Tipo de torneo: público o privado -->
                     <div class="configurador-seccion">
                         <h3 class="configurador-titulo">Tipo de torneo</h3>
@@ -128,7 +128,7 @@
 
                     <!-- Fechas / noches (calendario) -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">1. Selecciona tus fechas</h3>
+                        <h3 class="configurador-titulo" data-torneo-titulo="Selecciona tus fechas">1. Selecciona tus fechas</h3>
                         <div id="calendario-dias-torneos" class="calendario-dias-container"></div>
                         <div id="campos-dias-torneos" class="campos-dias-selector campos-dias-selector-mini" style="display: none; margin-top: 1rem;">
                             <span class="campos-dias-label">Campo para cada día *</span>
@@ -147,7 +147,7 @@
 
                     <!-- Datos de Usuarios (siempre segundo) -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">2. Datos de los participantes</h3>
+                        <h3 class="configurador-titulo" data-torneo-titulo="Datos de los participantes">2. Datos de los participantes</h3>
                         <div class="reserva-datos-iniciales">
                             <div class="form-group-inline form-group-quantity">
                                 <label for="tamanio-grupo-torneos">Tamaño del grupo *</label>
@@ -163,8 +163,8 @@
                                 <input type="hidden" name="numero_grupos" id="numero-grupos-torneos">
                             </div>
                         </div>
-                        <p class="configurador-hint">Solo los datos de la reserva son obligatorios. Puedes añadir más participantes si lo deseas.</p>
-                        <div id="usuarios-container" data-extra-opcionales="true" data-simplificar-extras="true" data-grupos-correspondencia="true">
+                        <p class="configurador-hint">Datos de contacto de quien realiza la reserva del torneo.</p>
+                        <div id="usuarios-container">
                             <div class="usuario-form usuario-form-reserva" data-usuario="1">
                                 <div class="usuario-form-header"><h4 class="usuario-numero">Datos de la reserva *</h4></div>
                                 <div class="usuario-campos">
@@ -193,24 +193,11 @@
                                 </div>
                             </div>
                         </div>
-                        <div id="correspondencia-grupos-wrap" class="correspondencia-grupos-wrap" style="display:none;" aria-hidden="true">
-                            <!-- Correspondencias por grupos: se rellena por usuarios-form.js -->
-                        </div>
-                        <div class="handicap-grupo-block">
-                            <label for="handicap-grupo-torneos">Handicap del grupo (orientativo)</label>
-                            <input type="text" id="handicap-grupo-torneos" name="handicap_grupo" placeholder="Ej. 18 o 15-25" title="Handicap aproximado del grupo">
-                        </div>
-                        <div class="agregar-usuario-line">
-                            <button type="button" class="btn-agregar-usuario" id="agregar-usuario">
-                                <span>+</span> <span data-i18n="btn_anadir_participante">Añadir participante (opcional)</span>
-                            </button>
-                            <span id="participantes-contador" class="participantes-contador" aria-live="polite"></span>
-                        </div>
                     </div>
 
                     <!-- Selección de Hotel (solo si 2+ días) -->
-                    <div class="configurador-seccion" id="configurador-hotel-wrap-torneos" style="display: none;">
-                        <h3 class="configurador-titulo">3. Alojamiento</h3>
+                    <div class="configurador-seccion torneo-paso-alojamiento" id="configurador-hotel-wrap-torneos" data-torneo-paso-condicional="alojamiento" hidden>
+                        <h3 class="configurador-titulo" data-torneo-titulo="Alojamiento">3. Alojamiento</h3>
                         <p class="hotel-ciudad-label">Elige el hotel para cada noche. Puedes combinar Lerma y Burgos (ej.: una noche en Lerma y otra en Burgos).</p>
                         <div id="hotel-por-noche-block-torneos" class="hotel-por-noche-block">
                             <span class="campos-dias-label">Hotel para cada noche:</span>
@@ -228,17 +215,17 @@
 
                     <!-- Opciones de Comida -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">4. Opciones para comer</h3>
+                        <h3 class="configurador-titulo" data-torneo-titulo="Opciones para comer">4. Opciones para comer</h3>
                         <p class="comida-intro">Indica para cada día si reservas <strong>comida</strong> (almuerzo) y/o <strong>cena</strong>, y dónde.</p>
                         <div id="comida-por-dia-wrap-torneos">
-                            <p class="comida-sin-fechas" id="comida-sin-fechas-torneos">Selecciona las fechas en el calendario para indicar comidas y cenas por día.</p>
+                            <p class="torneo-comida-espera" id="comida-sin-fechas-torneos">Selecciona las fechas en el calendario (paso 1) para indicar comidas y cenas por día.</p>
                             <div id="comida-por-dia-container-torneos" class="comida-por-dia-container" style="display:none;"></div>
                         </div>
                     </div>
 
                     <!-- Modalidad -->
                     <div class="configurador-seccion">
-                        <h3 class="configurador-titulo">5. Modalidad</h3>
+                        <h3 class="configurador-titulo" data-torneo-titulo="Modalidad">5. Modalidad</h3>
                         <div class="modalidad-grid">
                             <label class="modalidad-card">
                                 <input type="radio" name="modalidad" value="golf" required>
@@ -276,198 +263,159 @@
                     </div>
 
                     <!-- Competición, hospitality y publicación -->
-                    <div class="configurador-seccion promo-torneo-seccion" id="torneo-detalle-extra">
-                        <h3 class="configurador-titulo">6. Competición y evento</h3>
-                        <p class="configurador-hint">Opcional para torneos privados; recomendado si el torneo será <strong>público</strong> en la web.</p>
+                    <div class="configurador-seccion torneo-competicion-seccion" id="torneo-detalle-extra">
+                        <h3 class="configurador-titulo" data-torneo-titulo="Competición y evento">6. Competición y evento</h3>
+                        <p class="configurador-hint torneo-competicion-lead">Opcional para torneos privados; recomendado si el torneo será <strong>público</strong> en la web.</p>
 
-                        <fieldset class="promo-torneo-seccion promo-torneo-seccion--nested">
-                            <legend class="configurador-titulo configurador-titulo--sub">Formato y competición</legend>
-                            <div class="promo-torneo-grid">
-                                <div class="form-group-usuario">
-                                    <label for="torneo-tipo-evento">Tipo de evento</label>
-                                    <select id="torneo-tipo-evento" name="tipo_evento">
-                                        <option value="">— Elegir —</option>
-                                        <option value="torneo">Torneo puntual</option>
-                                        <option value="liga">Liga</option>
-                                        <option value="finde">Fin de semana</option>
-                                        <option value="corporate">Corporate / Empresa</option>
-                                        <option value="social">Social / Amistoso</option>
-                                        <option value="otro">Otro</option>
-                                    </select>
+                        <div class="torneo-competicion-panels">
+                            <section class="torneo-competicion-panel">
+                                <h4 class="torneo-competicion-panel__title">Formato y competición</h4>
+                                <div class="torneo-competicion-grid">
+                                    <div class="form-group-usuario">
+                                        <label for="torneo-tipo-evento">Tipo de evento</label>
+                                        <select id="torneo-tipo-evento" name="tipo_evento" class="torneo-field">
+                                            <option value="">— Elegir —</option>
+                                            <option value="torneo">Torneo puntual</option>
+                                            <option value="liga">Liga</option>
+                                            <option value="finde">Fin de semana</option>
+                                            <option value="corporate">Corporate / Empresa</option>
+                                            <option value="social">Social / Amistoso</option>
+                                            <option value="otro">Otro</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label for="torneo-formato-competicion">Formato de juego</label>
+                                        <input type="text" id="torneo-formato-competicion" name="formato_competicion" class="torneo-field" placeholder="Stableford, Medal Play, Scramble...">
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label for="torneo-premios">Premios</label>
+                                        <input type="text" id="torneo-premios" name="premios" class="torneo-field" placeholder="Trofeos, metálico, bono tienda...">
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label for="torneo-jornadas">Jornadas (liga/finde)</label>
+                                        <input type="text" id="torneo-jornadas" name="jornadas" class="torneo-field" placeholder="Ej. 3 jornadas">
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label for="torneo-vueltas">Nº vueltas</label>
+                                        <input type="number" id="torneo-vueltas" name="num_vueltas" class="torneo-field" min="1" max="4" step="1" placeholder="1">
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label for="torneo-tipo-salida">Tipo de salida</label>
+                                        <select id="torneo-tipo-salida" name="tipo_salida" class="torneo-field">
+                                            <option value="">— Elegir —</option>
+                                            <option value="hoyos">Salida por hoyos</option>
+                                            <option value="shotgun">Shotgun</option>
+                                            <option value="dos_tees">Dos tees</option>
+                                            <option value="cruzada">Cruzada Lerma / Saldaña</option>
+                                            <option value="otro">Otro</option>
+                                        </select>
+                                    </div>
+                                    <div class="torneo-competicion-handicap torneo-field--full">
+                                        <label class="torneo-competicion-check">
+                                            <input type="checkbox" id="torneo-handicap-limitado" name="handicap_limitado" value="1">
+                                            <span>Hándicap limitado</span>
+                                        </label>
+                                        <div class="form-group-usuario torneo-competicion-handicap__limit" id="torneo-limite-handicap-wrap" hidden>
+                                            <label for="torneo-limite-handicap">Límite</label>
+                                            <input type="text" id="torneo-limite-handicap" name="limite_handicap" class="torneo-field" placeholder="26,4" disabled inputmode="decimal">
+                                        </div>
+                                    </div>
+                                    <div class="form-group-usuario torneo-field--full">
+                                        <label for="torneo-categorias">Categorías de juego</label>
+                                        <input type="text" id="torneo-categorias" name="categorias" class="torneo-field" placeholder="Scratch, 1ª Cat., Damas, Senior...">
+                                    </div>
+                                    <div class="form-group-usuario torneo-field--full">
+                                        <label for="torneo-comite">Comité de competición</label>
+                                        <textarea id="torneo-comite" name="comite" class="torneo-field" rows="2" placeholder="Árbitros o responsables"></textarea>
+                                    </div>
                                 </div>
-                                <div class="form-group-usuario">
-                                    <label for="torneo-formato-competicion">Formato de juego</label>
-                                    <input type="text" id="torneo-formato-competicion" name="formato_competicion" placeholder="Stableford, Medal Play, Scramble...">
-                                </div>
-                                <div class="form-group-usuario">
-                                    <label for="torneo-premios">Premios</label>
-                                    <input type="text" id="torneo-premios" name="premios" placeholder="Trofeos, metálico, bono tienda...">
-                                </div>
-                                <div class="form-group-usuario">
-                                    <label for="torneo-jornadas">Jornadas (liga/finde)</label>
-                                    <input type="text" id="torneo-jornadas" name="jornadas" placeholder="Ej. 3 jornadas">
-                                </div>
-                                <div class="form-group-usuario">
-                                    <label for="torneo-vueltas">Nº vueltas</label>
-                                    <input type="number" id="torneo-vueltas" name="num_vueltas" min="1" max="4" step="1" placeholder="1">
-                                </div>
-                                <div class="form-group-usuario">
-                                    <label for="torneo-tipo-salida">Tipo de salida</label>
-                                    <select id="torneo-tipo-salida" name="tipo_salida">
-                                        <option value="">— Elegir —</option>
-                                        <option value="hoyos">Salida por hoyos</option>
-                                        <option value="shotgun">Shotgun</option>
-                                        <option value="dos_tees">Dos tees</option>
-                                        <option value="cruzada">Cruzada Lerma / Saldaña</option>
-                                        <option value="otro">Otro</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="promo-torneo-grid">
-                                <div class="form-group-usuario promo-torneo-check-row">
-                                    <label class="promo-torneo-check">
-                                        <input type="checkbox" id="torneo-handicap-limitado" name="handicap_limitado" value="1">
-                                        <span>Hándicap limitado</span>
-                                    </label>
-                                </div>
-                                <div class="form-group-usuario" id="torneo-limite-handicap-wrap" hidden>
-                                    <label for="torneo-limite-handicap">Límite hándicap</label>
-                                    <input type="text" id="torneo-limite-handicap" name="limite_handicap" placeholder="26,4" disabled inputmode="decimal">
-                                </div>
-                            </div>
-                            <div class="form-group-usuario">
-                                <label for="torneo-categorias">Categorías de juego</label>
-                                <input type="text" id="torneo-categorias" name="categorias" placeholder="Scratch, 1ª Cat., Damas, Senior...">
-                            </div>
-                            <div class="form-group-usuario">
-                                <label for="torneo-comite">Comité de competición</label>
-                                <textarea id="torneo-comite" name="comite" rows="2" placeholder="Árbitros o responsables"></textarea>
-                            </div>
-                        </fieldset>
+                            </section>
 
-                        <fieldset class="promo-torneo-seccion promo-torneo-seccion--nested">
-                            <legend class="configurador-titulo configurador-titulo--sub">Hospitality e inscripciones</legend>
-                            <div class="form-group-usuario">
-                                <label for="torneo-welcome">Welcome Pack</label>
-                                <textarea id="torneo-welcome" name="welcome_pack" rows="2" placeholder="Bolas, polo, avituallamiento..."></textarea>
-                            </div>
-                            <div class="promo-torneo-grid">
-                                <div class="form-group-usuario">
-                                    <label for="torneo-picnic">Picnic / Carpa hoyo 9</label>
-                                    <input type="text" id="torneo-picnic" name="picnic_hoyo9" placeholder="Comida a mitad de recorrido">
+                            <section class="torneo-competicion-panel">
+                                <h4 class="torneo-competicion-panel__title">Hospitality e inscripciones</h4>
+                                <div class="torneo-competicion-grid">
+                                    <div class="form-group-usuario torneo-field--full">
+                                        <label for="torneo-welcome">Welcome Pack</label>
+                                        <textarea id="torneo-welcome" name="welcome_pack" class="torneo-field" rows="2" placeholder="Bolas, polo, avituallamiento..."></textarea>
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label for="torneo-picnic">Picnic / Carpa hoyo 9</label>
+                                        <input type="text" id="torneo-picnic" name="picnic_hoyo9" class="torneo-field" placeholder="Comida a mitad de recorrido">
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label for="torneo-coctel">Cóctel / Entrega de premios</label>
+                                        <input type="text" id="torneo-coctel" name="coctel_premios" class="torneo-field" placeholder="Hora y lugar">
+                                    </div>
                                 </div>
-                                <div class="form-group-usuario">
-                                    <label for="torneo-coctel">Cóctel / Entrega de premios</label>
-                                    <input type="text" id="torneo-coctel" name="coctel_premios" placeholder="Hora y lugar">
+                                <p class="torneo-competicion-sublabel">Precios de inscripción</p>
+                                <div class="torneo-competicion-grid torneo-competicion-grid--precios">
+                                    <div class="form-group-usuario">
+                                        <label for="torneo-precio-socio">Socio (€)</label>
+                                        <input type="number" id="torneo-precio-socio" name="precio_socio" class="torneo-field" min="0" step="0.01" placeholder="0">
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label for="torneo-precio-no-socio">No socio (€)</label>
+                                        <input type="number" id="torneo-precio-no-socio" name="precio_no_socio" class="torneo-field" min="0" step="0.01" placeholder="0">
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label for="torneo-precio-corresp">Correspondencia (€)</label>
+                                        <input type="number" id="torneo-precio-corresp" name="precio_correspondencia" class="torneo-field" min="0" step="0.01" placeholder="0">
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="promo-torneo-grid promo-torneo-grid--precios">
-                                <div class="form-group-usuario">
-                                    <label for="torneo-precio-socio">Precio socio (€)</label>
-                                    <input type="number" id="torneo-precio-socio" name="precio_socio" min="0" step="0.01" placeholder="0">
+                                <div class="torneo-competicion-grid">
+                                    <div class="form-group-usuario">
+                                        <label for="torneo-limite-inscripcion">Fecha límite inscripción</label>
+                                        <input type="datetime-local" id="torneo-limite-inscripcion" name="fecha_limite_inscripcion" class="torneo-field">
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label for="torneo-cupo">Cupo máximo jugadores</label>
+                                        <input type="number" id="torneo-cupo" name="cupo_max" class="torneo-field" min="1" step="1" placeholder="Ej. 120">
+                                    </div>
+                                    <div class="form-group-usuario torneo-field--full">
+                                        <label for="torneo-link-pago">Link de pago / pasarela</label>
+                                        <input type="url" id="torneo-link-pago" name="link_pago" class="torneo-field" placeholder="https://...">
+                                    </div>
+                                    <div class="form-group-usuario torneo-field--full">
+                                        <label for="torneo-cancelacion">Política de cancelación</label>
+                                        <textarea id="torneo-cancelacion" name="politica_cancelacion" class="torneo-field" rows="2" placeholder="Devoluciones, mal tiempo..."></textarea>
+                                    </div>
                                 </div>
-                                <div class="form-group-usuario">
-                                    <label for="torneo-precio-no-socio">Precio no socio (€)</label>
-                                    <input type="number" id="torneo-precio-no-socio" name="precio_no_socio" min="0" step="0.01" placeholder="0">
-                                </div>
-                                <div class="form-group-usuario">
-                                    <label for="torneo-precio-corresp">Precio correspondencia (€)</label>
-                                    <input type="number" id="torneo-precio-corresp" name="precio_correspondencia" min="0" step="0.01" placeholder="0">
-                                </div>
-                            </div>
-                            <div class="promo-torneo-grid">
-                                <div class="form-group-usuario">
-                                    <label for="torneo-limite-inscripcion">Fecha límite inscripción</label>
-                                    <input type="datetime-local" id="torneo-limite-inscripcion" name="fecha_limite_inscripcion">
-                                </div>
-                                <div class="form-group-usuario">
-                                    <label for="torneo-cupo">Cupo máximo jugadores</label>
-                                    <input type="number" id="torneo-cupo" name="cupo_max" min="1" step="1" placeholder="Ej. 120">
-                                </div>
-                            </div>
-                            <div class="form-group-usuario">
-                                <label for="torneo-link-pago">Link de pago / pasarela</label>
-                                <input type="url" id="torneo-link-pago" name="link_pago" placeholder="https://...">
-                            </div>
-                            <div class="form-group-usuario">
-                                <label for="torneo-cancelacion">Política de cancelación</label>
-                                <textarea id="torneo-cancelacion" name="politica_cancelacion" rows="2" placeholder="Devoluciones, mal tiempo..."></textarea>
-                            </div>
-                        </fieldset>
+                            </section>
 
-                        <fieldset class="promo-torneo-seccion promo-torneo-seccion--nested">
-                            <legend class="configurador-titulo configurador-titulo--sub">Patrocinio y otros</legend>
-                            <div class="promo-torneo-grid">
-                                <div class="form-group-usuario">
-                                    <label for="torneo-patrocinador">Patrocinador principal</label>
-                                    <input type="text" id="torneo-patrocinador" name="patrocinador" placeholder="Nombre">
+                            <section class="torneo-competicion-panel">
+                                <h4 class="torneo-competicion-panel__title">Patrocinio y otros</h4>
+                                <div class="torneo-competicion-grid">
+                                    <div class="form-group-usuario">
+                                        <label for="torneo-patrocinador">Patrocinador principal</label>
+                                        <input type="text" id="torneo-patrocinador" name="patrocinador" class="torneo-field" placeholder="Nombre">
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label for="torneo-logo-url">Logo patrocinador (URL)</label>
+                                        <input type="url" id="torneo-logo-url" name="logo_patrocinador_url" class="torneo-field" placeholder="https://...">
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label for="torneo-sede">Sede</label>
+                                        <select id="torneo-sede" name="sede" class="torneo-field">
+                                            <option value="">— Elegir —</option>
+                                            <option value="lerma">Golf Lerma</option>
+                                            <option value="saldana">Saldaña Golf</option>
+                                            <option value="ambos">Ambos campos</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group-usuario">
+                                        <label for="torneo-reglamento">URL reglamento (PDF)</label>
+                                        <input type="url" id="torneo-reglamento" name="url_reglamento" class="torneo-field" placeholder="https://...">
+                                    </div>
+                                    <div class="form-group-usuario torneo-field--full">
+                                        <label for="torneo-colaboradores">Colaboradores</label>
+                                        <input type="text" id="torneo-colaboradores" name="colaboradores" class="torneo-field" placeholder="Bodegas, concesionarios...">
+                                    </div>
+                                    <div class="form-group-usuario torneo-field--full">
+                                        <label for="torneo-galeria">Galería imágenes (URLs, una por línea)</label>
+                                        <textarea id="torneo-galeria" name="galeria_urls" class="torneo-field" rows="3" placeholder="https://..."></textarea>
+                                    </div>
                                 </div>
-                                <div class="form-group-usuario">
-                                    <label for="torneo-logo-url">Logo patrocinador (URL)</label>
-                                    <input type="url" id="torneo-logo-url" name="logo_patrocinador_url" placeholder="https://...">
-                                </div>
-                                <div class="form-group-usuario">
-                                    <label for="torneo-sede">Sede</label>
-                                    <select id="torneo-sede" name="sede">
-                                        <option value="">— Elegir —</option>
-                                        <option value="lerma">Golf Lerma</option>
-                                        <option value="saldana">Saldaña Golf</option>
-                                        <option value="ambos">Ambos campos</option>
-                                    </select>
-                                </div>
-                                <div class="form-group-usuario">
-                                    <label for="torneo-reglamento">URL reglamento (PDF)</label>
-                                    <input type="url" id="torneo-reglamento" name="url_reglamento" placeholder="https://...">
-                                </div>
-                            </div>
-                            <div class="form-group-usuario">
-                                <label for="torneo-colaboradores">Colaboradores</label>
-                                <input type="text" id="torneo-colaboradores" name="colaboradores" placeholder="Bodegas, concesionarios...">
-                            </div>
-                            <div class="form-group-usuario">
-                                <label for="torneo-galeria">Galería imágenes (URLs, una por línea)</label>
-                                <textarea id="torneo-galeria" name="galeria_urls" rows="3" placeholder="https://..."></textarea>
-                            </div>
-                        </fieldset>
-                    </div>
-
-                    <!-- Servicios Adicionales -->
-                    <div class="configurador-seccion servicios-adicionales-section">
-                        <h3 class="configurador-titulo">7. Servicios adicionales</h3>
-                        <div class="ancillaries-grid ancillaries-with-counter">
-                            <div class="ancillary-item">
-                                <label for="ancillary_buggy">🛺 Buggies <span class="ancillary-precio" data-ancillary="buggy"></span></label>
-                                <div class="ancillary-counter-wrap">
-                                    <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>
-                                    <input type="number" id="ancillary_buggy" name="ancillary_buggy" min="0" max="20" value="0" class="ancillary-counter" readonly>
-                                    <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar">+</button>
-                                </div>
-                            </div>
-                            <div class="ancillary-item">
-                                <label for="ancillary_carrito_mano">🛒 Carrito de mano <span class="ancillary-precio" data-ancillary="carritoMano"></span></label>
-                                <div class="ancillary-counter-wrap">
-                                    <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>
-                                    <input type="number" id="ancillary_carrito_mano" name="ancillary_carrito_mano" min="0" max="20" value="0" class="ancillary-counter" readonly>
-                                    <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar">+</button>
-                                </div>
-                            </div>
-                            <div class="ancillary-item">
-                                <label for="ancillary_carrito_electrico">⚡ Carrito eléctrico <span class="ancillary-precio" data-ancillary="carritoElectrico"></span></label>
-                                <div class="ancillary-counter-wrap">
-                                    <button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir">−</button>
-                                    <input type="number" id="ancillary_carrito_electrico" name="ancillary_carrito_electrico" min="0" max="20" value="0" class="ancillary-counter" readonly>
-                                    <button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar">+</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="cubo-premium-block" style="margin-top: 1.25rem;">
-                            <label for="cubo-premium-torneos">🫙 Cubo premium para boogies</label>
-                            <select id="cubo-premium-torneos" name="ancillary_cubo_premium_boogie" class="cubo-premium-select">
-                                <option value="">Sin</option>
-                                <option value="champagne">Champagne</option>
-                                <option value="cervezas">Cubo de cervezas</option>
-                                <option value="vino_blanco">Vino blanco</option>
-                            </select>
+                            </section>
                         </div>
                     </div>
                 </form>
@@ -545,7 +493,6 @@
     <script src="js/footer-contact.js"></script>
     <script src="js/configurador-form-nav.js"></script>
     <script src="js/main.js"></script>
-    <script src="js/configurador-flujo-progresivo.js"></script>
     <script src="js/hora-salida-picker.js"></script>
     <script src="js/campo-dia-picker.js"></script>
     <script src="js/chatbot.js"></script>

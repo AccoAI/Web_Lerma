@@ -14853,15 +14853,211 @@ body.page-torneo .torneo-detalle-section {
     overflow: hidden;
 }
 
-.page-torneo-unificado .configurador-form.promo-torneo-form .promo-torneo-seccion--nested {
-    border: none;
-    padding: 0;
-    margin: 1.25rem 0 0;
+.page-torneo-unificado .configurador-layout .promo-torneo-form {
+    max-width: none;
+    margin: 0;
 }
 
-.page-torneo-unificado .configurador-titulo--sub {
-    font-size: 1rem;
-    margin-bottom: 0.75rem;
+.page-torneo-unificado .torneo-comida-espera {
+    margin: 0 0 1rem;
+    padding: 0.65rem 0.85rem;
+    background: rgba(26, 77, 58, 0.06);
+    border-left: 3px solid var(--color-primary);
+    font-size: 0.92rem;
+    line-height: 1.45;
+    color: var(--color-text-light, #5a5a5a);
+}
+
+.page-torneo-unificado .torneo-paso-alojamiento[hidden] {
+    display: none !important;
+}
+
+.page-torneo-unificado .comida-dia-campos select {
+    width: 100%;
+    min-width: 0;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid #d4ddd8;
+    background: #fff;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+.page-torneo-unificado .comida-dia-campos select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(26, 77, 58, 0.1);
+}
+
+/* Sección 6 — Competición y evento */
+.torneo-competicion-seccion .configurador-titulo {
+    margin-bottom: 0.5rem;
+}
+
+.torneo-competicion-lead {
+    margin: 0 0 1.5rem;
+    padding: 0.65rem 0.85rem;
+    background: rgba(26, 77, 58, 0.06);
+    border-left: 3px solid var(--color-primary);
+    font-size: 0.92rem;
+    line-height: 1.45;
+    opacity: 1;
+}
+
+.torneo-competicion-panels {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.torneo-competicion-panel {
+    background: #fff;
+    border: 1px solid rgba(26, 77, 58, 0.14);
+    border-radius: 4px;
+    padding: 1.25rem 1.35rem 1.35rem;
+    box-shadow: 0 1px 3px rgba(26, 77, 58, 0.06);
+}
+
+.torneo-competicion-panel__title {
+    margin: 0 0 1.1rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid rgba(26, 77, 58, 0.12);
+    font-family: var(--font-primary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--color-primary);
+}
+
+.torneo-competicion-sublabel {
+    margin: 0.25rem 0 0.85rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--color-text-light, #5a5a5a);
+}
+
+.torneo-competicion-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.1rem 1rem;
+}
+
+.torneo-competicion-grid--precios {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 1.1rem;
+}
+
+.torneo-competicion-grid .torneo-field--full {
+    grid-column: 1 / -1;
+}
+
+.torneo-competicion-seccion .form-group-usuario label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    margin-bottom: 0.4rem;
+    color: var(--color-text);
+}
+
+.torneo-competicion-seccion .torneo-field,
+.torneo-competicion-seccion .form-group-usuario input,
+.torneo-competicion-seccion .form-group-usuario select,
+.torneo-competicion-seccion .form-group-usuario textarea {
+    width: 100%;
+    max-width: 100%;
+    padding: 0.7rem 0.75rem;
+    border: 1px solid #d4ddd8;
+    border-radius: 3px;
+    font-size: 0.95rem;
+    font-family: var(--font-secondary);
+    background: #fafcfb;
+    color: var(--color-text);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.torneo-competicion-seccion .form-group-usuario select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%231a4d3a' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 2rem;
+    cursor: pointer;
+}
+
+.torneo-competicion-seccion .form-group-usuario textarea {
+    resize: vertical;
+    min-height: 4.5rem;
+    line-height: 1.45;
+}
+
+.torneo-competicion-seccion .torneo-field:focus,
+.torneo-competicion-seccion .form-group-usuario input:focus,
+.torneo-competicion-seccion .form-group-usuario select:focus,
+.torneo-competicion-seccion .form-group-usuario textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(26, 77, 58, 0.1);
+}
+
+.torneo-competicion-handicap {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.25rem;
+    padding: 0.85rem 1rem;
+    background: rgba(26, 77, 58, 0.04);
+    border: 1px dashed rgba(26, 77, 58, 0.2);
+    border-radius: 3px;
+}
+
+.torneo-competicion-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--color-text);
+    cursor: pointer;
+    user-select: none;
+}
+
+.torneo-competicion-check input {
+    width: 1.05rem;
+    height: 1.05rem;
+    margin: 0;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+}
+
+.torneo-competicion-handicap__limit {
+    flex: 1 1 140px;
+    max-width: 180px;
+    margin: 0;
+}
+
+.torneo-competicion-handicap__limit label {
+    font-size: 0.8rem;
+    margin-bottom: 0.3rem;
+}
+
+@media (max-width: 768px) {
+    .torneo-competicion-grid,
+    .torneo-competicion-grid--precios {
+        grid-template-columns: 1fr;
+    }
+
+    .torneo-competicion-panel {
+        padding: 1rem 1rem 1.15rem;
+    }
+
+    .torneo-competicion-handicap__limit {
+        max-width: none;
+        flex-basis: 100%;
+    }
 }
 
 .promo-torneo-contacto-directo--sidebar {
