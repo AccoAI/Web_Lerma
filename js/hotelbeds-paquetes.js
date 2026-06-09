@@ -11,42 +11,48 @@
   /** Hotel API: destination.code solo 1–3 caracteres (p. ej. BRG). «BUR2» no es válido y devuelve 400. */
   var DESTINATIONS_LERMA_BURGOS = ['BRG'];
   /**
-   * Pool Hotelbeds para paquetes Golf Burgos / Campeonato: orden = ranking de preferencia.
-   * Filtrado previo: solo hoteles con disponibilidad para el grupo (o reparto mínimo en k hoteles).
+   * Pool Hotelbeds para paquetes Golf Burgos / Campeonato.
+   * Flujo: 1) filtro por disponibilidad (API) → 2) orden por este ranking de preferencia.
+   * Posición en el array = prioridad (arriba = más preferido). Ranks 9+ comparten el mismo escalón.
    */
   var BRG_HOTEL_CODES = [
-    '87356', // Silken Gran Teatro
-    '23103', // NH Collection Palacio de Burgos
-    '934', // Hotel Maria Luisa
-    '1882', // Abba Burgos
-    '1021767', // Apartamentos El Cid
-    '4177', // Crisol Meson del Cid
+    // — Ranking 1–9 (Burgos) —
+    '23103', // 1 · NH Collection Palacio de Burgos · 4★
+    '35657', // 2 · AC Hotel Burgos by Marriott · 4★
+    '271694', // 3 · Landa · 5★
+    '87356', // 4 · Silken Gran Teatro · 4★
+    '1242', // 5 · Hotel Rice Reyes Católicos · 4★
+    '1882', // 6 · Abba Burgos · 4★
+    '54825', // 7 · Hotel Rice Palacio De Los Blasones · 4★
+    '431138', // 8 · Hotel Boutique Museo · 3★
+    '934', // 9 · Hotel Maria Luisa · 3★
+    // — Ranking 9+ (misma prioridad, orden relativo dentro del grupo) —
+    '3242', // Corona de Castilla Burgos · 4★
+    '136659', // Hotel Rice Bulevar · 3★
+    '4177', // Crisol Meson del Cid · 3★
+    '100337', // Hotel Cordon · 3★
+    '114225', // Hotel Cardena · 3★
+    '116820', // La Puebla · 3★
+    '126077', // B&B hotel Burgos · 4★
+    '134466', // Los Braseros · 3★
+    '135470', // Centro Los Braseros · 3★
+    '150730', // Via Gotica · 3★
+    '1001544', // Hotel Forum Evolucion · SPC
+    '1021767', // Apartamentos El Cid · SPC
+    '8112', // Crisol Almirante Bonifaz · 4★
+    '27476', // Norte y Londres · 2★
+    // — Lerma (pestaña Lerma; al final del pool para consulta API) —
     '62060', // Parador de Lerma
     '8116', // Alisa
-    '271694', // Landa
-    '1242', // Hotel Rice Reyes Católicos
-    '3242', // Corona de Castilla Burgos
-    '8112', // Crisol Almirante Bonifaz
-    '27476', // Norte y Londres
-    '35657', // AC Hotel Burgos by Marriott
-    '54825', // Hotel Rice Palacio De Los Blasones
-    '100337', // Hotel Cordon
-    '114225', // Hotel Cardena
-    '116820', // La Puebla
-    '126077', // B&B hotel Burgos
-    '134466', // Los Braseros
-    '135470', // Centro Los Braseros
-    '136659', // Hotel Rice Bulevar
-    '150730', // Via Gotica
     '194680', // Posada De Eufrasio
-    '431138', // Hotel Boutique Museo
-    '1001544', // Hotel Forum Evolucion
   ];
+  /** Orden Lerma (pestaña Lerma): Parador → Alisa → Posada De Eufrasio. */
+  var LERMA_HOTEL_CODES_ORDER = ['62060', '8116', '194680'];
   /** Códigos en Lerma (resto = Burgos). */
   var LERMA_HOTEL_CODES = {
     '62060': 1,
     '8116': 1,
-    '271694': 1,
+    '194680': 1,
   };
   /** Máximo de hoteles mostrados en modo «un solo hotel cubre al grupo». */
   var HB_DISPLAY_MAX = 12;
@@ -61,32 +67,32 @@
     burgos: {},
   };
   var CURATED_HOTEL_LABELS = {
-    '87356': 'Silken Gran Teatro',
     '23103': 'NH Collection Palacio de Burgos',
-    '934': 'Hotel Maria Luisa',
-    '1882': 'Abba Burgos',
-    '1021767': 'Apartamentos El Cid',
-    '4177': 'Crisol Meson del Cid',
-    '62060': 'Parador de Lerma',
-    '8116': 'Alisa',
-    '271694': 'Landa',
-    '1242': 'Hotel Rice Reyes Católicos',
-    '3242': 'Corona de Castilla Burgos',
-    '8112': 'Crisol Almirante Bonifaz',
-    '27476': 'Norte y Londres',
     '35657': 'AC Hotel Burgos by Marriott',
+    '271694': 'Landa',
+    '87356': 'Silken Gran Teatro',
+    '1242': 'Hotel Rice Reyes Católicos',
+    '1882': 'Abba Burgos',
     '54825': 'Hotel Rice Palacio De Los Blasones',
+    '431138': 'Hotel Boutique Museo',
+    '934': 'Hotel Maria Luisa',
+    '3242': 'Corona de Castilla Burgos',
+    '136659': 'Hotel Rice Bulevar',
+    '4177': 'Crisol Meson del Cid',
     '100337': 'Hotel Cordon',
     '114225': 'Hotel Cardena',
     '116820': 'La Puebla',
     '126077': 'B&B hotel Burgos',
     '134466': 'Los Braseros',
     '135470': 'Centro Los Braseros',
-    '136659': 'Hotel Rice Bulevar',
     '150730': 'Via Gotica',
-    '194680': 'Posada De Eufrasio',
-    '431138': 'Hotel Boutique Museo',
     '1001544': 'Hotel Forum Evolucion',
+    '1021767': 'Apartamentos El Cid',
+    '8112': 'Crisol Almirante Bonifaz',
+    '27476': 'Norte y Londres',
+    '62060': 'Parador de Lerma',
+    '8116': 'Alisa',
+    '194680': 'Posada De Eufrasio',
   };
 
   function pageOpts() {
@@ -129,6 +135,112 @@
 
   function getBrgHotelPriorityList() {
     return getBrgHotelCodeList();
+  }
+
+  function getLermaHotelCodeList() {
+    return LERMA_HOTEL_CODES_ORDER.slice();
+  }
+
+  function getBurgosHotelCodeList() {
+    return getBrgHotelCodeList().filter(function (code) {
+      return !LERMA_HOTEL_CODES[String(code)];
+    });
+  }
+
+  function getActiveHotelCityZone() {
+    return window.__HB_CITY_ZONE__ === 'lerma' ? 'lerma' : 'burgos';
+  }
+
+  function setActiveHotelCityZone(zone) {
+    window.__HB_CITY_ZONE__ = zone === 'lerma' ? 'lerma' : 'burgos';
+  }
+
+  function hotelCityZoneForCode(code) {
+    return LERMA_HOTEL_CODES[String(code || '')] ? 'lerma' : 'burgos';
+  }
+
+  function mergeHotelPicksByCity(merged, maxPerCity) {
+    var burgosHotels = pickHotelsWithOffersByPriority(merged, getBurgosHotelCodeList(), maxPerCity);
+    var lermaHotels = pickHotelsWithOffersByPriority(merged, getLermaHotelCodeList(), maxPerCity);
+    var seen = {};
+    var out = [];
+    burgosHotels.concat(lermaHotels).forEach(function (h) {
+      var c = String(h.code);
+      if (!seen[c]) {
+        seen[c] = 1;
+        out.push(h);
+      }
+    });
+    return out;
+  }
+
+  function sortHotelsForCityDisplay(hotels) {
+    var burgosCodes = getBurgosHotelCodeList();
+    var lermaCodes = getLermaHotelCodeList();
+    var byCode = {};
+    (hotels || []).forEach(function (h) {
+      if (h && h.code != null) byCode[String(h.code)] = h;
+    });
+    var sorted = [];
+    burgosCodes.forEach(function (code) {
+      if (byCode[code]) sorted.push(byCode[code]);
+    });
+    lermaCodes.forEach(function (code) {
+      if (byCode[code]) sorted.push(byCode[code]);
+    });
+    return sorted;
+  }
+
+  function hotelbedsCityToggleHtml() {
+    var active = getActiveHotelCityZone();
+    return (
+      '<div class="hotelbeds-city-toggle" role="group" aria-label="Zona de alojamiento">' +
+      '<button type="button" class="hotelbeds-city-toggle__btn' +
+      (active === 'burgos' ? ' is-active' : '') +
+      '" data-hb-city-zone="burgos">Burgos</button>' +
+      '<button type="button" class="hotelbeds-city-toggle__btn' +
+      (active === 'lerma' ? ' is-active' : '') +
+      '" data-hb-city-zone="lerma">Lerma</button>' +
+      '</div>' +
+      '<p class="hotelbeds-city-empty" hidden>No hay hoteles con disponibilidad en esta zona para las fechas seleccionadas.</p>'
+    );
+  }
+
+  function applyHotelCityZoneFilter(root) {
+    if (!root) return;
+    var zone = getActiveHotelCityZone();
+    var wraps = root.querySelectorAll('.hotelbeds-item-wrap[data-hb-city-zone]');
+    var visible = 0;
+    for (var i = 0; i < wraps.length; i++) {
+      var wrap = wraps[i];
+      var show = wrap.getAttribute('data-hb-city-zone') === zone;
+      wrap.hidden = !show;
+      if (show) visible++;
+    }
+    var empty = root.querySelector('.hotelbeds-city-empty');
+    if (empty) empty.hidden = visible > 0;
+  }
+
+  function bindHotelCityToggle(root) {
+    if (!root) return;
+    var btns = root.querySelectorAll('.hotelbeds-city-toggle__btn');
+    for (var i = 0; i < btns.length; i++) {
+      (function (btn) {
+        if (btn.getAttribute('data-hb-city-bound') === '1') return;
+        btn.setAttribute('data-hb-city-bound', '1');
+        btn.addEventListener('click', function () {
+          var zone = btn.getAttribute('data-hb-city-zone') || 'burgos';
+          setActiveHotelCityZone(zone);
+          var all = root.querySelectorAll('.hotelbeds-city-toggle__btn');
+          for (var j = 0; j < all.length; j++) {
+            var b = all[j];
+            b.classList.toggle('is-active', b.getAttribute('data-hb-city-zone') === zone);
+          }
+          applyHotelCityZoneFilter(root);
+        });
+      })(btns[i]);
+    }
+    applyHotelCityZoneFilter(root);
   }
 
   function syncAllowedBurgosFromCodes() {
@@ -3811,7 +3923,7 @@
         throwAvailabilityError({ error: fullBatch.errors[0] });
       }
 
-      var singleHotels = pickHotelsWithOffersByPriority(fullBatch.merged, codes, maxSingle);
+      var singleHotels = mergeHotelPicksByCity(fullBatch.merged, maxSingle);
       if (singleHotels.length) {
         window.__HB_SPLIT_COMBOS__ = [];
         window.__HB_ACTIVE_SPLIT_COMBO_ID__ = '';
@@ -4116,20 +4228,25 @@
           '<div class="hotelbeds-block hotelbeds-results">' +
           '<h4 class="hotelbeds-title">Hoteles en Lerma y Burgos (Hotelbeds)</h4>' +
           catalogResultsNoteHtml(totalHotels) +
+          hotelbedsCityToggleHtml() +
           '<ul class="hotelbeds-list hotelbeds-list--cards">';
-        hotelList.forEach(function (h) {
+        sortHotelsForCityDisplay(hotelList).forEach(function (h) {
           var code = String(h.code);
+          var zone = hotelCityZoneForCode(code);
           var meta = contentBy[code] || null;
           var stub = { code: code, name: meta && meta.name ? meta.name : h.name };
           var priceStr = cardListPriceCaption(h, noches, '');
           html +=
-            '<li class="hotelbeds-item-wrap">' +
+            '<li class="hotelbeds-item-wrap" data-hb-city-zone="' +
+            zone +
+            '">' +
             hotelRichCardHtml(stub, meta, null, priceStr, '') +
             '</li>';
         });
         html += '</ul></div>';
         renderBlock(html);
         bindSelectableHotelCards();
+        bindHotelCityToggle(document.getElementById(pageOpts().preciosBlockId || 'hotelbeds-precios-block'));
         document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
         triggerResumenUpdate();
       })
@@ -4232,6 +4349,7 @@
     var noches = getNochesFromForm();
     syncGfTotalBeforeHotelListRender();
     var splitCombos = getSplitCombos();
+    var showCityToggle = !(coverage && coverage.mode === 'split' && splitCombos.length);
     if (coverage && coverage.mode === 'split' && splitCombos.length) {
       var matchedCombo = formR ? detectActiveComboFromBookings(formR) : null;
       if (matchedCombo) {
@@ -4249,8 +4367,10 @@
         html += '<li class="hotelbeds-item-wrap">' + splitComboCardHtml(combo, formR) + '</li>';
       });
     } else {
-      hotels.forEach(function (h) {
+      if (showCityToggle) html += hotelbedsCityToggleHtml();
+      sortHotelsForCityDisplay(hotels).forEach(function (h) {
         var code = String(h.code);
+        var zone = hotelCityZoneForCode(code);
         var ourId = codeToId[code];
         var rate = getHotelLowestRate(h);
         if (ourId && rate != null) live[ourId] = rate;
@@ -4265,7 +4385,9 @@
         var pick = rateBy[code];
         var meta = contentBy[code];
         html +=
-          '<li class="hotelbeds-item-wrap">' +
+          '<li class="hotelbeds-item-wrap" data-hb-city-zone="' +
+          zone +
+          '">' +
           hotelRichCardHtml(h, meta, pick, priceStr, sel) +
           '</li>';
       });
@@ -4280,6 +4402,7 @@
     bindSelectableHotelCards();
     var formAfter = document.getElementById(pageOpts().formId || 'configuradorForm');
     var rootAfter = document.getElementById(pageOpts().preciosBlockId || 'hotelbeds-precios-block');
+    if (showCityToggle) bindHotelCityToggle(rootAfter);
     if (formAfter && rootAfter) syncHotelCardsListVisibility(rootAfter, formAfter);
     refreshHotelCardPackagePrices();
     document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
@@ -4326,15 +4449,20 @@
       (hbHideHotelEuroUi()
         ? 'Hoteles con disponibilidad (Hotelbeds) · Lerma y Burgos'
         : 'Precios en tiempo real (Hotelbeds) · Lerma y Burgos') +
-      '</h4><ul class="hotelbeds-list hotelbeds-list--cards">';
-    hotels.forEach(function (h) {
+      '</h4>' +
+      hotelbedsCityToggleHtml() +
+      '<ul class="hotelbeds-list hotelbeds-list--cards">';
+    sortHotelsForCityDisplay(hotels).forEach(function (h) {
       var code = String(h.code);
+      var zone = hotelCityZoneForCode(code);
       var key = 'hb-' + code;
       var priceStr = cardListPriceCaption(h, noches, null);
       var pick = rateBy[code];
       var meta = contentBy[code];
       html +=
-        '<li class="hotelbeds-item-wrap">' +
+        '<li class="hotelbeds-item-wrap" data-hb-city-zone="' +
+        zone +
+        '">' +
         hotelRichCardHtml(h, meta, pick, priceStr, '') +
         '</li>';
     });
@@ -4347,6 +4475,7 @@
     bindSelectableHotelCards();
     var formAfterDest = document.getElementById(pageOpts().formId || 'configuradorForm');
     var rootAfterDest = document.getElementById(pageOpts().preciosBlockId || 'hotelbeds-precios-block');
+    bindHotelCityToggle(rootAfterDest);
     if (formAfterDest && rootAfterDest) syncHotelCardsListVisibility(rootAfterDest, formAfterDest);
     document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
     refreshHotelCardPackagePrices();
