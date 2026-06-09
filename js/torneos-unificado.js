@@ -42,7 +42,11 @@
     }
     for (var i = 1; i <= count; i++) {
       var c = fd.get('campo-dia-' + i);
-      if (c) lines.push('Día ' + i + ' campo: ' + (c === 'lerma' ? 'Golf Lerma' : 'Saldaña Golf'));
+      var jug = fd.get('jugadores_dia_' + i);
+      var line = '';
+      if (c) line += 'Día ' + i + ' campo: ' + (c === 'lerma' ? 'Golf Lerma' : 'Saldaña Golf');
+      if (jug) line += (line ? ', ' : 'Día ' + i + ': ') + jug + ' jugadores';
+      if (line) lines.push(line);
     }
     var hs = fd.get('hora_salida') || '';
     if (!hs && count > 1) {
@@ -54,44 +58,14 @@
       if (horas.length) hs = horas.join(' · ');
     }
     if (hs) lines.push('Hora salida: ' + hs);
-    if (fd.get('tamanio_grupo')) lines.push('Tamaño grupo: ' + fd.get('tamanio_grupo'));
-    if (fd.get('numero_grupos')) lines.push('Nº grupos: ' + fd.get('numero_grupos'));
+    if (fd.get('tamanio_grupo')) lines.push('Personas: ' + fd.get('tamanio_grupo'));
+    if (fd.get('numero_grupos')) lines.push('Nº partidas: ' + fd.get('numero_grupos'));
     var mod = fd.get('modalidad');
     if (mod) {
       var modLbl = MODALIDAD_LABELS[mod] || mod;
       lines.push('Modalidad deporte: ' + modLbl);
     }
-    var nNoches = parseInt(fd.get('noches') || '0', 10) || 0;
-    if (nNoches >= 1) {
-      var hotels = [];
-      for (var n = 1; n <= nNoches; n++) {
-        var hv2 = fd.get('hotel-noche-' + n);
-        if (hv2) {
-          var lbl = typeof window.etiquetaHotelSelect === 'function' ? window.etiquetaHotelSelect(hv2) : hv2;
-          hotels.push('Noche ' + n + ': ' + lbl);
-        }
-      }
-      if (hotels.length) lines.push('Alojamiento: ' + hotels.join(' · '));
-    }
-    var comidas = [];
-    for (var ic = 1; ic <= count; ic++) {
-      var com = (fd.get('comida_dia_' + ic) || '').trim();
-      var cen = (fd.get('cena_dia_' + ic) || '').trim();
-      if (com || cen) {
-        var p = 'Día ' + ic + ':';
-        if (com) p += ' comida ' + com;
-        if (cen) p += (com ? ', ' : '') + 'cena ' + cen;
-        comidas.push(p);
-      }
-    }
-    if (comidas.length) lines.push('Comidas/cenas: ' + comidas.join(' · '));
-    if (typeof getCorrespondenciaGrupos === 'function' && form) {
-      var grupos = getCorrespondenciaGrupos(form);
-      if (grupos.length) {
-        lines.push('Correspondencias: ' + grupos.map(function (g) { return g.cantidad + ' × ' + g.label; }).join(', '));
-      }
-    }
-  return lines.join('\n');
+    return lines.join('\n');
   }
 
   function buildPayload(form) {
@@ -190,6 +164,13 @@
       var fechas = fd.getAll('fechas[]');
       if (!fechas || !fechas.length) {
         alert('Selecciona al menos una fecha en el calendario.');
+        return;
+      }
+      var tg = parseInt(fd.get('tamanio_grupo') || '0', 10);
+      if (!tg || tg < 1) {
+        alert('Indica el número de personas con el botón + (paso 1).');
+        var tgInp = document.getElementById('tamanio-grupo');
+        if (tgInp) tgInp.focus();
         return;
       }
       var tipoTorneo = fd.get('tipo_torneo') || 'privado';

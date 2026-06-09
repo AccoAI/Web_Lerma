@@ -1,147 +1,266 @@
-// Configurador de Torneos
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('configuradorTorneosForm');
+// Configurador de Torneos — pasos 1–2 alineados con paquetes (personas + selección de golf)
+document.addEventListener('DOMContentLoaded', function () {
+    var form = document.getElementById('configuradorTorneosForm');
     if (!form) return;
 
-    var calendarioContainer = document.getElementById('calendario-dias-torneos');
-    var camposDiasTorneos = document.getElementById('campos-dias-torneos');
-    var diasCamposContainerTorneos = document.getElementById('dias-campos-container-torneos');
-    var configuradorHotelWrapTorneos = document.getElementById('configurador-hotel-wrap-torneos');
-    var hotelPorNocheBlockTorneos = document.getElementById('hotel-por-noche-block-torneos');
-    var hotelesPorNocheContainerTorneos = document.getElementById('hoteles-por-noche-container-torneos');
-    var comidaSinFechasTorneos = document.getElementById('comida-sin-fechas-torneos');
-    var comidaPorDiaContainerTorneos = document.getElementById('comida-por-dia-container-torneos');
-    var horaPorDiaWrapTorneos = document.getElementById('hora-salida-por-dia-torneos');
-    var horaUnicaWrapTorneos = document.getElementById('hora-salida-unica-torneos');
+    var calendarioContainer = document.getElementById('calendario-dias-finsemana');
+    var diasCamposContainer = document.getElementById('dias-campos-container-finsemana');
+    var fechasDiaPlanHint = document.getElementById('fechas-dia-plan-hint');
+    var fechasGolfEspera = document.getElementById('fechas-golf-espera-personas');
+    var fechasGolfBody = document.getElementById('fechas-golf-body');
 
-    function generarHoraSalidaPorDiaTorneos(numDias) {
-        if (!horaPorDiaWrapTorneos || !horaUnicaWrapTorneos) return;
-        var singleInput = form && form.querySelector('input[name="hora_salida"]');
-        if (numDias > 1) {
-            var prev = {};
-            for (var i = 1; i <= numDias; i++) {
-                var inp = form && form.querySelector('input[name="hora_salida_dia_' + i + '"]');
-                if (inp && inp.value) prev[i] = inp.value;
+    function formatearEtiquetaDia(iso) {
+        if (!iso) return '';
+        try {
+            var d = new Date(iso + 'T12:00:00');
+            var s = d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' });
+            return s.length ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+        } catch (e) { return ''; }
+    }
+
+    function isTamanioGrupoCompleto() {
+        var tg = document.getElementById('tamanio-grupo');
+        if (!tg) return false;
+        var n = parseInt(tg.value, 10);
+        return !isNaN(n) && n >= 1;
+    }
+
+    function syncFechasGolfBodyVisibility() {
+        if (!fechasGolfBody) return;
+        var ready = isTamanioGrupoCompleto();
+        fechasGolfBody.hidden = !ready;
+        if (fechasGolfEspera) fechasGolfEspera.hidden = ready;
+        if (ready) recalcNumeroGrupos();
+    }
+
+    function recalcNumeroGrupos() {
+        var tg = document.getElementById('tamanio-grupo-sync') || document.getElementById('tamanio-grupo');
+        var out = document.getElementById('numero-grupos-output');
+        var hid = document.getElementById('numero-grupos');
+        if (!tg) return;
+        var n = parseInt(tg.value, 10);
+        var hidVal = (n >= 1) ? String(Math.ceil(n / 4)) : '';
+        if (out) out.textContent = hidVal || '—';
+        if (hid) hid.value = hidVal;
+        actualizarResumenTorneo();
+    }
+
+    function getTamanioGrupoDefault() {
+        var barTg = document.getElementById('tamanio-grupo');
+        if (!barTg) return 4;
+        var n = parseInt(barTg.value, 10);
+        return (!isNaN(n) && n >= 1) ? n : 4;
+    }
+
+    function leerHoraSalidaPrev(numDias) {
+        var prev = {};
+        if (!form || !numDias) return prev;
+        for (var i = 1; i <= numDias; i++) {
+            var name = numDias === 1 ? 'hora_salida' : 'hora_salida_dia_' + i;
+            var inp = form.querySelector('input[name="' + name + '"]');
+            if (inp && inp.value) prev[i] = inp.value;
+        }
+        return prev;
+    }
+
+    function leerJugadoresDiaPrev(numDias) {
+        var prev = {};
+        if (!form || !numDias) return prev;
+        var fallback = getTamanioGrupoDefault();
+        for (var i = 1; i <= numDias; i++) {
+            var inp = form.querySelector('input[name="jugadores_dia_' + i + '"]');
+            if (inp && inp.value) {
+                var v = parseInt(inp.value, 10);
+                if (!isNaN(v) && v >= 1) prev[i] = v;
             }
-            horaPorDiaWrapTorneos.innerHTML = '';
-            horaPorDiaWrapTorneos.style.display = 'block';
-            horaUnicaWrapTorneos.style.display = 'none';
-            if (singleInput) singleInput.removeAttribute('required');
-            for (var i = 1; i <= numDias; i++) {
-                var item = document.createElement('div');
-                item.className = 'campos-dias-item';
-                item.innerHTML = '<label for="hora-salida-dia-' + i + '-torneos">Hora de salida día ' + i + ' *</label><input type="time" id="hora-salida-dia-' + i + '-torneos" name="hora_salida_dia_' + i + '" title="Hora día ' + i + '" required value="' + (prev[i] || '') + '">';
-                horaPorDiaWrapTorneos.appendChild(item);
+        }
+        for (var j = 1; j <= numDias; j++) {
+            if (!prev[j]) prev[j] = fallback;
+        }
+        return prev;
+    }
+
+    function campoDiaTieneReserva(idx) {
+        if (!form || idx < 1) return false;
+        if (typeof window.campoDiaTieneReservaEnDom === 'function') {
+            return window.campoDiaTieneReservaEnDom(diasCamposContainer, form, idx);
+        }
+        return false;
+    }
+
+    function syncPlanHoraRow(row, dayIndex, numDias) {
+        if (!row) return;
+        var conCampo = campoDiaTieneReserva(dayIndex);
+        var horaWrap = row.querySelector('.fechas-dia-plan-row__hora');
+        if (horaWrap) {
+            horaWrap.classList.toggle('is-disabled', !conCampo);
+            var name = numDias === 1 ? 'hora_salida' : 'hora_salida_dia_' + dayIndex;
+            horaWrap.querySelectorAll('input[name="' + name + '"], .hora-salida-picker__h, .hora-salida-picker__m').forEach(function (el) {
+                if (conCampo) {
+                    el.removeAttribute('disabled');
+                    if (el.tagName === 'INPUT') el.setAttribute('required', 'required');
+                } else {
+                    el.setAttribute('disabled', 'disabled');
+                    el.removeAttribute('required');
+                }
+            });
+        }
+        var jugWrap = row.querySelector('.fechas-dia-plan-row__jugadores');
+        if (jugWrap) {
+            jugWrap.classList.toggle('is-disabled', !conCampo);
+            var jugInp = jugWrap.querySelector('.fechas-jugadores-dia');
+            var jugBtns = jugWrap.querySelectorAll('.ancillary-btn');
+            if (conCampo) {
+                if (jugInp) {
+                    jugInp.removeAttribute('disabled');
+                    jugInp.setAttribute('required', 'required');
+                }
+                jugBtns.forEach(function (b) { b.removeAttribute('disabled'); });
+            } else {
+                if (jugInp) {
+                    jugInp.setAttribute('disabled', 'disabled');
+                    jugInp.removeAttribute('required');
+                }
+                jugBtns.forEach(function (b) { b.setAttribute('disabled', 'disabled'); });
             }
+        }
+    }
+
+    function syncPlanHoraRows(numDias) {
+        if (!diasCamposContainer || !numDias) return;
+        diasCamposContainer.querySelectorAll('.fechas-dia-plan-row').forEach(function (row) {
+            var idx = parseInt(row.getAttribute('data-dia') || '0', 10);
+            if (idx >= 1) syncPlanHoraRow(row, idx, numDias);
+        });
+    }
+
+    function syncTamanioGrupoDesdeDias(numDias) {
+        if (!form) return getTamanioGrupoDefault();
+        var max = 0;
+        for (var i = 1; i <= (numDias || 0); i++) {
+            var inp = form.querySelector('input[name="jugadores_dia_' + i + '"]');
+            if (inp) max = Math.max(max, parseInt(inp.value, 10) || 0);
+        }
+        var barInput = document.getElementById('tamanio-grupo');
+        if (numDias >= 1) {
+            if (max < 1) max = getTamanioGrupoDefault();
+            if (barInput) barInput.removeAttribute('name');
+            var sync = document.getElementById('tamanio-grupo-sync');
+            if (!sync) {
+                sync = document.createElement('input');
+                sync.type = 'hidden';
+                sync.id = 'tamanio-grupo-sync';
+                sync.name = 'tamanio_grupo';
+                form.appendChild(sync);
+            }
+            sync.value = String(max);
         } else {
-            horaPorDiaWrapTorneos.style.display = 'none';
-            horaPorDiaWrapTorneos.innerHTML = '';
-            horaUnicaWrapTorneos.style.display = 'block';
-            if (singleInput) singleInput.setAttribute('required', 'required');
+            var oldSync = document.getElementById('tamanio-grupo-sync');
+            if (oldSync) oldSync.remove();
+            if (barInput) barInput.setAttribute('name', 'tamanio_grupo');
+        }
+        return max || getTamanioGrupoDefault();
+    }
+
+    function syncFechasGrupoBarLayout(numDias) {
+        syncTamanioGrupoDesdeDias(numDias);
+        recalcNumeroGrupos();
+    }
+
+    function syncFechasDiaPlanPanel(numDias) {
+        if (diasCamposContainer) diasCamposContainer.hidden = !(numDias >= 1);
+    }
+
+    function onCampoDiaPlanChange() {
+        var fd = new FormData(form);
+        var nFechas = (fd.getAll('fechas[]') || []).length;
+        syncPlanHoraRows(nFechas);
+        actualizarResumenTorneo();
+    }
+
+    function onJugadoresDiaChange() {
+        var fd = new FormData(form);
+        var nFechas = (fd.getAll('fechas[]') || []).length;
+        syncTamanioGrupoDesdeDias(nFechas);
+        recalcNumeroGrupos();
+        actualizarResumenTorneo();
+    }
+
+    function generarPlanPorDia(numDias, fechas) {
+        if (!diasCamposContainer || typeof window.buildCampoDiaToggleItem !== 'function') return;
+        fechas = fechas || [];
+        if (!numDias || numDias < 1) {
+            diasCamposContainer.innerHTML = '';
+            syncFechasDiaPlanPanel(0);
+            syncFechasGrupoBarLayout(0);
+            return;
+        }
+        syncFechasDiaPlanPanel(numDias);
+        var prevCampo = {};
+        for (var c = 1; c <= numDias; c++) {
+            if (typeof window.getCampoDiaValueFromDom === 'function') {
+                var v = window.getCampoDiaValueFromDom(diasCamposContainer, form, c);
+                if (v) prevCampo[c] = v;
+            }
+        }
+        var prevHora = leerHoraSalidaPrev(numDias);
+        var prevJug = leerJugadoresDiaPrev(numDias);
+        diasCamposContainer.innerHTML = '';
+        for (var i = 1; i <= numDias; i++) {
+            var row = document.createElement('div');
+            row.className = 'fechas-dia-plan-row';
+            row.setAttribute('data-dia', String(i));
+
+            var campoWrap = document.createElement('div');
+            campoWrap.className = 'fechas-dia-plan-row__campo';
+            var campoItem = window.buildCampoDiaToggleItem(i, prevCampo[i] || '', {
+                required: true,
+                shortLabels: true,
+                onChange: onCampoDiaPlanChange
+            });
+            var diaLbl = campoItem.querySelector('.campos-dias-item__dia-label');
+            if (diaLbl && fechas[i - 1]) {
+                var etiqueta = formatearEtiquetaDia(fechas[i - 1]);
+                if (etiqueta) diaLbl.textContent = etiqueta;
+            }
+            campoWrap.appendChild(campoItem);
+
+            var horaWrap = document.createElement('div');
+            horaWrap.className = 'fechas-dia-plan-row__hora';
+            var horaName = numDias === 1 ? 'hora_salida' : 'hora_salida_dia_' + i;
+            var horaId = numDias === 1 ? 'hora-salida' : 'hora-salida-dia-' + i + '-torneo';
+            horaWrap.innerHTML =
+                '<label for="' + horaId + '" title="Hora de salida">Hora *</label>' +
+                '<input type="time" id="' + horaId + '" name="' + horaName + '" title="Hora día ' + i + '" disabled value="' + (prevHora[i] || '') + '">';
+
+            var jugWrap = document.createElement('div');
+            jugWrap.className = 'fechas-dia-plan-row__jugadores fechas-dia-plan-row__grupo-item';
+            var jugId = 'jugadores-dia-' + i + '-torneo';
+            var jugVal = prevJug[i] || 1;
+            jugWrap.innerHTML =
+                '<label for="' + jugId + '">Jugadores *</label>' +
+                '<div class="ancillary-counter-wrap reserva-quantity-wrap">' +
+                '<button type="button" class="ancillary-btn ancillary-btn-minus" aria-label="Reducir jugadores">−</button>' +
+                '<input type="number" id="' + jugId + '" name="jugadores_dia_' + i + '" min="1" max="54" value="' + jugVal + '" class="ancillary-counter fechas-jugadores-dia reserva-quantity-input" readonly disabled title="Jugadores día ' + i + '">' +
+                '<button type="button" class="ancillary-btn ancillary-btn-plus" aria-label="Aumentar jugadores">+</button>' +
+                '</div>';
+
+            row.appendChild(campoWrap);
+            row.appendChild(horaWrap);
+            row.appendChild(jugWrap);
+            diasCamposContainer.appendChild(row);
         }
         if (typeof window.initHoraSalidaPickers === 'function') {
-            window.initHoraSalidaPickers(horaPorDiaWrapTorneos);
-            window.initHoraSalidaPickers(horaUnicaWrapTorneos);
+            window.initHoraSalidaPickers(diasCamposContainer);
         }
+        for (var j = 1; j <= numDias; j++) {
+            var planRow = diasCamposContainer.querySelector('.fechas-dia-plan-row[data-dia="' + j + '"]');
+            syncPlanHoraRow(planRow, j, numDias);
+        }
+        syncFechasGrupoBarLayout(numDias);
     }
 
-    function getHotelLabelFromValueTorneos(val) {
-        return (typeof window.etiquetaHotelSelect === 'function') ? window.etiquetaHotelSelect(val) : (val || 'Sin reserva');
-    }
-
-    function generarCamposPorDiaTorneos(numDias) {
-        if (!diasCamposContainerTorneos || typeof window.fillCampoDiaContainer !== 'function') return;
-        window.fillCampoDiaContainer(diasCamposContainerTorneos, numDias, form, { required: true });
-    }
-
-    function refillHotelSelectTorneos(i, ciudad) {
-        var sel = form && form.querySelector('select[name="hotel-noche-' + i + '"]');
-        if (!sel) return;
-        var kept = sel.value;
-        var opts = [{ v: '', l: 'Sin reserva' }];
-        if (ciudad === 'lerma' || ciudad === 'burgos') {
-            var arr = (typeof HOTELES_OPTS !== 'undefined' && HOTELES_OPTS[ciudad]) ? HOTELES_OPTS[ciudad] : [];
-            for (var j = 0; j < arr.length; j++) {
-                opts.push({ v: ciudad + '-' + arr[j].v, l: arr[j].l, p: arr[j].p });
-            }
-        }
-        sel.innerHTML = opts.map(function (o) {
-            var txt = (o.p != null && o.p !== '') ? o.l + ' · ' + o.p + ' €' : o.l;
-            return '<option value="' + o.v + '"' + (o.v === kept ? ' selected' : '') + '>' + txt + '</option>';
-        }).join('');
-        var found = opts.some(function (o) { return o.v === kept; });
-        if (!found) sel.value = '';
-        if (typeof actualizarResumenTorneo === 'function') actualizarResumenTorneo();
-    }
-
-    function generarHotelesPorNocheTorneos(n) {
-        if (!hotelesPorNocheContainerTorneos) return;
-        var prev = {};
-        for (var i = 1; i <= n; i++) {
-            var hSel = form && form.querySelector('select[name="hotel-noche-' + i + '"]');
-            var lSel = form && form.querySelector('select[name="lugar-noche-' + i + '"]');
-            var h = (hSel && hSel.value) ? hSel.value : '';
-            var l = (lSel && lSel.value) ? lSel.value : '';
-            if (!l && h && h.indexOf('-') >= 0) l = h.split('-')[0];
-            prev[i] = { hotel: h || '', lugar: l || '' };
-        }
-        hotelesPorNocheContainerTorneos.innerHTML = '';
-        for (var i = 1; i <= n; i++) {
-            var savedL = prev[i].lugar;
-            var savedH = prev[i].hotel;
-            var lugarOpts = '<option value="">Sin reserva</option><option value="lerma"' + (savedL === 'lerma' ? ' selected' : '') + '>Lerma</option><option value="burgos"' + (savedL === 'burgos' ? ' selected' : '') + '>Burgos</option>';
-            var hotelOpts = [{ v: '', l: 'Sin reserva' }];
-            if (savedL === 'lerma' || savedL === 'burgos') {
-                var arr = (typeof HOTELES_OPTS !== 'undefined' && HOTELES_OPTS[savedL]) ? HOTELES_OPTS[savedL] : [];
-                for (var j = 0; j < arr.length; j++) {
-                    hotelOpts.push({ v: savedL + '-' + arr[j].v, l: arr[j].l, p: arr[j].p });
-                }
-            }
-            var hotelOptHtml = hotelOpts.map(function (o) {
-                var txt = (o.p != null && o.p !== '') ? o.l + ' · ' + o.p + ' €' : o.l;
-                return '<option value="' + o.v + '"' + (o.v === savedH ? ' selected' : '') + '>' + txt + '</option>';
-            }).join('');
-            var item = document.createElement('div');
-            item.className = 'hoteles-por-noche-item hotel-noche-fila';
-            item.innerHTML = [
-                '<span class="hotel-noche-num">Noche ' + i + '</span>',
-                '<div class="hotel-noche-par">',
-                '<label for="lugar-noche-' + i + '-torneos">Lugar</label>',
-                '<select id="lugar-noche-' + i + '-torneos" name="lugar-noche-' + i + '" aria-label="Lugar noche ' + i + '">' + lugarOpts + '</select>',
-                '</div>',
-                '<div class="hotel-noche-par">',
-                '<label for="hotel-noche-' + i + '-torneos">Hotel</label>',
-                '<select id="hotel-noche-' + i + '-torneos" name="hotel-noche-' + i + '" aria-label="Hotel noche ' + i + '">' + hotelOptHtml + '</select>',
-                '</div>'
-            ].join('');
-            hotelesPorNocheContainerTorneos.appendChild(item);
-        }
-    }
-
-    function actualizarBloqueHotelTorneos() {
-        var noches = parseInt(((form && form.querySelector('input[name="noches"]')) || {}).value || '0', 10);
-        if (noches >= 1) {
-            if (hotelPorNocheBlockTorneos) hotelPorNocheBlockTorneos.style.display = 'block';
-            generarHotelesPorNocheTorneos(noches);
-        } else {
-            if (hotelPorNocheBlockTorneos) hotelPorNocheBlockTorneos.style.display = 'none';
-        }
-    }
-
-    function actualizarPasosTorneos(countDias) {
-        var dias = typeof countDias === 'number' ? countDias : (form ? (new FormData(form).getAll('fechas[]') || []).length : 0);
-        var mostrarAlojamiento = dias >= 2;
-
-        if (configuradorHotelWrapTorneos) {
-            configuradorHotelWrapTorneos.hidden = !mostrarAlojamiento;
-            if (!mostrarAlojamiento) {
-                configuradorHotelWrapTorneos.style.display = 'none';
-                if (hotelPorNocheBlockTorneos) hotelPorNocheBlockTorneos.style.display = 'none';
-            } else {
-                configuradorHotelWrapTorneos.style.display = '';
-            }
-        }
-
+    function actualizarPasosTorneos() {
         var paso = 1;
         form.querySelectorAll('[data-torneo-titulo]').forEach(function (titulo) {
             var seccion = titulo.closest('.configurador-seccion');
@@ -151,92 +270,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function formatearFechaComidaTorneos(iso) {
-        if (!iso) return '';
-        try {
-            var d = new Date(iso + 'T12:00:00');
-            return d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
-        } catch (e) { return ''; }
-    }
-
-    function actualizarBloqueComidaTorneos(count, fechas) {
-        fechas = fechas || [];
-        if (comidaSinFechasTorneos) {
-            comidaSinFechasTorneos.hidden = count >= 1;
-            comidaSinFechasTorneos.style.display = count >= 1 ? 'none' : 'block';
-        }
-        if (!comidaPorDiaContainerTorneos) return;
-        if (count < 1) {
-            comidaPorDiaContainerTorneos.style.display = 'none';
-            comidaPorDiaContainerTorneos.innerHTML = '';
-            return;
-        }
-        var prevComida = {}, prevCena = {};
-        for (var i = 1; i <= count; i++) {
-            var sc = form && form.querySelector('select[name="comida_dia_' + i + '"]');
-            var sv = form && form.querySelector('select[name="cena_dia_' + i + '"]');
-            if (sc && sc.value) prevComida[i] = sc.value;
-            if (sv && sv.value) prevCena[i] = sv.value;
-        }
-        comidaPorDiaContainerTorneos.style.display = 'block';
-        comidaPorDiaContainerTorneos.innerHTML = '';
-        var precioComida = (typeof PRECIO_COMIDA !== 'undefined') ? PRECIO_COMIDA : 22;
-        var precioBurgos = (typeof PRECIO_SERVICIO_BURGOS !== 'undefined') ? PRECIO_SERVICIO_BURGOS : 25;
-        for (var i = 1; i <= count; i++) {
-            var fechaStr = formatearFechaComidaTorneos(fechas[i - 1]);
-            var titulo = 'Día ' + i + (fechaStr ? ' <span class="comida-dia-fecha">(' + fechaStr + ')</span>' : '');
-            var optComida = '<option value="">Sin reserva</option><option value="lerma"' + (prevComida[i] === 'lerma' ? ' selected' : '') + '>Lerma · Club Social Golf Lerma · ' + precioComida + ' €</option><option value="burgos"' + (prevComida[i] === 'burgos' ? ' selected' : '') + '>Burgos · Restaurantes · ' + precioBurgos + ' €</option>';
-            var optCena = '<option value="">Sin reserva</option><option value="lerma"' + (prevCena[i] === 'lerma' ? ' selected' : '') + '>Lerma · Club Social Golf Lerma · ' + precioComida + ' €</option><option value="burgos"' + (prevCena[i] === 'burgos' ? ' selected' : '') + '>Burgos · Restaurantes · ' + precioBurgos + ' €</option>';
-            var block = document.createElement('div');
-            block.className = 'comida-dia-block';
-            block.innerHTML = '<div class="comida-dia-titulo">' + titulo + '</div><div class="comida-dia-campos"><div class="form-group-inline"><label>Comida</label><select name="comida_dia_' + i + '">' + optComida + '</select></div><div class="form-group-inline"><label>Cena</label><select name="cena_dia_' + i + '">' + optCena + '</select></div></div>';
-            comidaPorDiaContainerTorneos.appendChild(block);
-        }
-    }
-
-    function recalcNumeroGruposTorneos() {
-        var tg = document.getElementById('tamanio-grupo-torneos');
-        var out = document.getElementById('numero-grupos-output-torneos');
-        var hid = document.getElementById('numero-grupos-torneos');
-        if (!tg) return;
-        var n = parseInt(tg.value, 10);
-        var hidVal = (n >= 1) ? String(Math.ceil(n / 4)) : '';
-        if (out) out.textContent = hidVal || '—';
-        if (hid) hid.value = hidVal;
-        if (typeof actualizarResumenTorneo === 'function') actualizarResumenTorneo();
-    }
-
     if (calendarioContainer && typeof CalendarioDias !== 'undefined') {
         CalendarioDias.init({
             container: calendarioContainer,
             form: form,
-            nameDias: 'dias-torneo',
             nameFechas: 'fechas[]',
             nameFechaPrimera: 'fecha',
             nameNoches: 'noches',
             maxSeleccion: 14,
+            hintContainer: fechasDiaPlanHint || null,
             onChange: function (count, fechas) {
-                if (camposDiasTorneos) {
-                    if (count >= 1) {
-                        camposDiasTorneos.style.display = 'block';
-                        generarCamposPorDiaTorneos(count);
-                    } else {
-                        camposDiasTorneos.style.display = 'none';
-                    }
-                }
-                if (count >= 2) {
-                    actualizarBloqueHotelTorneos();
-                    if (typeof window.actualizarPreciosHotelbeds === 'function') window.actualizarPreciosHotelbeds();
-                }
-                actualizarPasosTorneos(count);
-                actualizarBloqueComidaTorneos(count, fechas || []);
-                generarHoraSalidaPorDiaTorneos(count);
+                generarPlanPorDia(count, fechas || []);
                 actualizarResumenTorneo();
             }
         });
     }
 
-    // Tipo de torneo: mostrar/ocultar campos públicos y required
     var tipoTorneoRadios = form.querySelectorAll('input[name="tipo_torneo"]');
     var torneoPublicoCampos = document.getElementById('torneo-publico-campos');
     var nombreTorneoInput = document.getElementById('nombre-torneo');
@@ -247,77 +296,59 @@ document.addEventListener('DOMContentLoaded', function() {
         actualizarResumenTorneo();
     }
     if (tipoTorneoRadios.length) {
-        tipoTorneoRadios.forEach(function(r) {
+        tipoTorneoRadios.forEach(function (r) {
             r.addEventListener('change', actualizarTipoTorneoUI);
         });
         actualizarTipoTorneoUI();
     }
 
-    // Inicializar formulario de usuarios
-    if (typeof initUsuariosForm === 'function') {
-        initUsuariosForm();
-    }
-
-    // Actualizar resumen cuando cambien los campos
-    form.addEventListener('change', function(e) {
+    form.addEventListener('change', function (e) {
         var t = e.target;
         if (t && t.name === 'tipo_torneo') {
             actualizarTipoTorneoUI();
             return;
         }
-        if (t && t.name && t.name.indexOf('lugar-noche-') === 0) {
-            var i = parseInt(t.name.replace('lugar-noche-', ''), 10);
-            if (i >= 1) refillHotelSelectTorneos(i, t.value || '');
-            return;
+        if (t && t.id === 'tamanio-grupo') {
+            syncFechasGolfBodyVisibility();
+            recalcNumeroGrupos();
         }
-        if (t && t.id === 'tamanio-grupo-torneos') recalcNumeroGruposTorneos();
+        if (t && t.classList && t.classList.contains('fechas-jugadores-dia')) {
+            onJugadoresDiaChange();
+        }
         actualizarResumenTorneo();
     });
-    form.addEventListener('input', function(e) {
+
+    form.addEventListener('input', function (e) {
         var t = e.target;
-        if (t && t.id === 'tamanio-grupo-torneos') recalcNumeroGruposTorneos();
-        if (t && t.matches && t.matches('#tamanio-grupo-torneos, #hora-salida-torneos, #nombre-torneo, #descripcion-torneo, .ancillary-counter')) actualizarResumenTorneo();
-    });
-    recalcNumeroGruposTorneos();
-
-    // Hacer función disponible globalmente para actualizarResumenTorneo
-    window.getHotelLabelFromValueTorneos = getHotelLabelFromValueTorneos;
-
-    document.addEventListener('hotelbeds-dynamic-ready', function () {
-        var fd = new FormData(form);
-        var n = parseInt((fd.get('noches') || '0'), 10);
-        if (n >= 1 && configuradorHotelWrapTorneos && configuradorHotelWrapTorneos.style.display !== 'none') {
-            generarHotelesPorNocheTorneos(n);
+        if (t && t.id === 'tamanio-grupo') {
+            syncFechasGolfBodyVisibility();
+            recalcNumeroGrupos();
+        }
+        if (t && t.classList && t.classList.contains('fechas-jugadores-dia')) {
+            onJugadoresDiaChange();
+        }
+        if (t && t.matches && t.matches('#tamanio-grupo, #nombre-torneo, #descripcion-torneo, .fechas-jugadores-dia, input[name^="hora_salida"]')) {
+            actualizarResumenTorneo();
         }
     });
 
-    actualizarPasosTorneos(0);
-
-    // Actualizar resumen inicial
+    syncFechasGolfBodyVisibility();
+    actualizarPasosTorneos();
     actualizarResumenTorneo();
 });
 
 function actualizarResumenTorneo() {
-    const form = document.getElementById('configuradorTorneosForm');
+    var form = document.getElementById('configuradorTorneosForm');
     if (!form) return;
 
-    const resumenDetalle = document.getElementById('resumen-detalle');
+    var resumenDetalle = document.getElementById('resumen-detalle');
     if (!resumenDetalle) return;
 
-    const formData = new FormData(form);
-    const tipoTorneo = (formData.get('tipo_torneo') || 'privado');
-    const modalidad = formData.get('modalidad');
+    var formData = new FormData(form);
+    var tipoTorneo = (formData.get('tipo_torneo') || 'privado');
+    var modalidad = formData.get('modalidad');
     var fechas = formData.getAll('fechas[]');
     var count = fechas ? fechas.length : 0;
-
-    var necesitaHotel = count >= 2;
-    var hotelOk = !necesitaHotel || (function () {
-        var n = parseInt((formData.get('noches') || '0'), 10);
-        for (var i = 1; i <= n; i++) { if ((formData.get('hotel-noche-' + i) || '').trim()) return true; }
-        return false;
-    })();
-
-    var nNoches = parseInt((formData.get('noches') || '0'), 10);
 
     if (count < 1) {
         resumenDetalle.innerHTML = '<p>Completa las opciones para ver el resumen</p>';
@@ -337,71 +368,39 @@ function actualizarResumenTorneo() {
     var premios = (formData.get('premios') || '').trim();
     if (premios) resumenHTML += '<p><strong>Premios:</strong> ' + premios + '</p>';
     resumenHTML += '<p><strong>Fechas:</strong> ' + (fechas.length ? fechas.join(', ') : '—') + '</p>';
-    
+
     for (var i = 1; i <= count; i++) {
         var c = formData.get('campo-dia-' + i);
-        if (c) resumenHTML += '<p><strong>Día ' + i + ':</strong> ' + (c === 'lerma' ? 'Golf Lerma' : 'Saldaña Golf') + '</p>';
+        var jug = formData.get('jugadores_dia_' + i);
+        var line = '';
+        if (c) line += (c === 'lerma' ? 'Golf Lerma' : 'Saldaña Golf');
+        if (jug) line += (line ? ' · ' : '') + jug + ' jug.';
+        var hs = count === 1
+            ? (formData.get('hora_salida') || '').trim()
+            : (formData.get('hora_salida_dia_' + i) || '').trim();
+        if (hs) line += (line ? ' · ' : '') + 'Salida ' + hs;
+        if (line) resumenHTML += '<p><strong>Día ' + i + ':</strong> ' + line + '</p>';
     }
-
-    if (necesitaHotel && hotelOk) {
-        var n = parseInt((formData.get('noches') || '0'), 10);
-        var parts = [];
-        for (var i = 1; i <= n; i++) {
-            var v = formData.get('hotel-noche-' + i);
-            if (v) {
-                var lbl = (typeof window.getHotelLabelFromValueTorneos === 'function') ? window.getHotelLabelFromValueTorneos(v) : v;
-                parts.push('Noche ' + i + ': ' + lbl);
-            }
-        }
-        if (parts.length) resumenHTML += '<p><strong>Alojamiento:</strong> ' + parts.join('. ') + '</p>';
-    }
-
-    var partesComida = [];
-    var numServicios = 0;
-    for (var ic = 1; ic <= count; ic++) {
-        var com = (formData.get('comida_dia_' + ic) || '').trim();
-        var cen = (formData.get('cena_dia_' + ic) || '').trim();
-        var labCom = (com === 'lerma' ? 'Lerma' : com === 'burgos' ? 'Burgos' : '');
-        var labCen = (cen === 'lerma' ? 'Lerma' : cen === 'burgos' ? 'Burgos' : '');
-        if (labCom || labCen) {
-            var p = 'Día ' + ic + ':';
-            if (labCom) { p += ' Comida ' + labCom; numServicios++; }
-            if (labCen) { p += (labCom ? ', ' : '') + 'Cena ' + labCen; numServicios++; }
-            partesComida.push(p);
-        }
-    }
-    if (partesComida.length) resumenHTML += '<p><strong>Comidas / cenas:</strong> ' + partesComida.join('. ') + '</p>';
 
     if (modalidad) {
-        const modalidades = {
-            'golf': 'Golf',
+        var modalidades = {
+            golf: 'Golf',
             'foot-golf': 'Foot Golf',
             'disc-golf': 'Disc Golf',
             'pitch-putt': 'Pitch and Putt'
         };
-        resumenHTML += `<p><strong>Modalidad:</strong> ${modalidades[modalidad] || modalidad}</p>`;
+        resumenHTML += '<p><strong>Modalidad:</strong> ' + (modalidades[modalidad] || modalidad) + '</p>';
     }
 
     var tg = (formData.get('tamanio_grupo') || '').trim();
-    var hs = (formData.get('hora_salida') || '').trim();
-    if (!hs && count >= 1) {
-        var horasDia = [];
-        for (var hd = 1; hd <= count; hd++) {
-            var v = (formData.get('hora_salida_dia_' + hd) || '').trim();
-            if (v) horasDia.push('Día ' + hd + ': ' + v);
-        }
-        if (horasDia.length) hs = horasDia.join(' · ');
-    }
     var ng = (formData.get('numero_grupos') || '').trim();
-    if (tg || hs || ng) {
+    if (tg || ng) {
         var partsInit = [];
-        if (tg) partsInit.push('Tamaño del grupo: ' + tg);
-        if (hs) partsInit.push('Hora de salida: ' + hs);
-        if (ng) partsInit.push('Nº de grupos: ' + ng);
-        resumenHTML += '<p><strong>Reserva:</strong> ' + partsInit.join(' · ') + '</p>';
+        if (tg) partsInit.push('Personas: ' + tg);
+        if (ng) partsInit.push('Partidas: ' + ng);
+        resumenHTML += '<p><strong>Grupo:</strong> ' + partsInit.join(' · ') + '</p>';
     }
 
     resumenHTML += '</div>';
-
     resumenDetalle.innerHTML = resumenHTML;
 }
