@@ -50,6 +50,9 @@ const FIELD_LABELS = {
   sede: 'Sede',
   oferta_alojamiento: 'Oferta de alojamiento',
   url_reglamento: 'URL Reglamento (PDF)',
+  formato_competicion: 'Formato de juego (competición)',
+  tipo_torneo: 'Tipo de torneo',
+  configurador_resumen: 'Reserva y logística (configurador)',
 };
 
 const SECTIONS = [
@@ -59,7 +62,7 @@ const SECTIONS = [
   },
   {
     title: 'Información general',
-    keys: ['titulo', 'nombre_torneo', 'foto_url', 'descripcion', 'modalidad', 'premios'],
+    keys: ['tipo_torneo', 'titulo', 'nombre_torneo', 'foto_url', 'descripcion', 'modalidad', 'formato_competicion', 'premios'],
   },
   {
     title: 'Formato y duración',
@@ -97,6 +100,10 @@ const SECTIONS = [
     title: 'Otros',
     keys: ['sede', 'oferta_alojamiento', 'url_reglamento'],
   },
+  {
+    title: 'Reserva y logística',
+    keys: ['configurador_resumen'],
+  },
 ];
 
 function jsonResponse(obj, status = 200) {
@@ -123,12 +130,16 @@ function formatValue(key, value) {
   if (!s) return '—';
   if (key === 'fecha_inicio' && !s) return 'Próximamente';
   if (key === 'handicap_limitado') return value ? 'Sí' : 'No';
-  if (key === 'galeria_urls') {
+  if (key === 'galeria_urls' || key === 'configurador_resumen') {
     return s
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter(Boolean)
       .join('\n');
+  }
+  if (key === 'tipo_torneo') {
+    if (s === 'publico') return 'Público (revisión del club para web)';
+    if (s === 'privado') return 'Privado (solo su grupo)';
   }
   return s;
 }

@@ -14848,6 +14848,36 @@ body.page-torneo .torneo-detalle-section {
     }
 }
 
+.page-torneo-unificado .pagina-hero-foto--compact {
+    max-height: 220px;
+    overflow: hidden;
+}
+
+.page-torneo-unificado .configurador-form.promo-torneo-form .promo-torneo-seccion--nested {
+    border: none;
+    padding: 0;
+    margin: 1.25rem 0 0;
+}
+
+.page-torneo-unificado .configurador-titulo--sub {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.promo-torneo-contacto-directo--sidebar {
+    max-width: none;
+    margin: 1rem 0 0;
+    text-align: left;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    opacity: 0.92;
+}
+
+.configurador-resumen .empresa-form-feedback {
+    margin: 0.75rem 0 0;
+    font-size: 0.82rem;
+}
+
 /* Reserva sencilla (bautismos / clases) */
 .reserva-solicitud-lead {
     margin: 0 0 1.5rem;

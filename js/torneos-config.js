@@ -218,11 +218,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Tipo de torneo: mostrar/ocultar campos públicos y required
     var tipoTorneoRadios = form.querySelectorAll('input[name="tipo_torneo"]');
     var torneoPublicoCampos = document.getElementById('torneo-publico-campos');
-    var nombreTorneoPublico = document.getElementById('nombre-torneo-publico');
+    var nombreTorneoInput = document.getElementById('nombre-torneo');
     function actualizarTipoTorneoUI() {
         var tipo = (form.querySelector('input[name="tipo_torneo"]:checked') || {}).value;
         if (torneoPublicoCampos) torneoPublicoCampos.style.display = tipo === 'publico' ? 'block' : 'none';
-        if (nombreTorneoPublico) nombreTorneoPublico.required = (tipo === 'publico');
+        if (nombreTorneoInput) nombreTorneoInput.required = (tipo === 'publico');
         actualizarResumenTorneo();
     }
     if (tipoTorneoRadios.length) {
@@ -255,40 +255,9 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('input', function(e) {
         var t = e.target;
         if (t && t.id === 'tamanio-grupo-torneos') recalcNumeroGruposTorneos();
-        if (t && t.matches && t.matches('#tamanio-grupo-torneos, #hora-salida-torneos, #handicap-grupo-torneos, #nombre-torneo-publico, #descripcion-torneo-publico, .ancillary-counter')) actualizarResumenTorneo();
+        if (t && t.matches && t.matches('#tamanio-grupo-torneos, #hora-salida-torneos, #handicap-grupo-torneos, #nombre-torneo, #descripcion-torneo, .ancillary-counter')) actualizarResumenTorneo();
     });
     recalcNumeroGruposTorneos();
-
-    // Manejar envío del formulario
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        if (!form.reportValidity()) return;
-        if (typeof window.validarTelefonosForm === 'function' && !window.validarTelefonosForm(form)) return;
-        const formData = new FormData(form);
-        var fechas = formData.getAll('fechas[]');
-        var fechaPrimera = formData.get('fecha');
-        if ((!fechas || fechas.length === 0) && !fechaPrimera) {
-            alert('Selecciona al menos una fecha en el calendario.');
-            return;
-        }
-        var tipoTorneo = formData.get('tipo_torneo') || 'privado';
-        if (tipoTorneo === 'publico') {
-            var nombrePub = (formData.get('nombre_torneo_publico') || '').trim();
-            if (!nombrePub) {
-                alert('Para un torneo público debe indicar el nombre del torneo (para la web).');
-                if (nombreTorneoPublico) nombreTorneoPublico.focus();
-                return;
-            }
-        }
-
-        // Aquí puedes agregar la lógica para enviar los datos (incluye tipo_torneo, nombre_torneo_publico, descripcion_torneo_publico)
-        if (tipoTorneo === 'publico') {
-            alert('Solicitud de torneo público enviada. El club revisará la propuesta y, si es aprobada, el torneo se publicará en la web del club para que otros puedan inscribirse. Nos pondremos en contacto contigo.');
-        } else {
-            alert('¡Solicitud de torneo privado enviada! Usted será el organizador para su grupo. Nos pondremos en contacto contigo para confirmar.');
-        }
-        actualizarResumenTorneo();
-    });
 
     // Hacer función disponible globalmente para actualizarResumenTorneo
     window.getHotelLabelFromValueTorneos = getHotelLabelFromValueTorneos;
@@ -335,11 +304,15 @@ function actualizarResumenTorneo() {
     var resumenHTML = '<div class="resumen-items">';
     resumenHTML += '<p><strong>Tipo:</strong> ' + (tipoTorneo === 'publico' ? 'Público (se publicará en la web tras aprobación)' : 'Privado (solo su grupo)') + '</p>';
     if (tipoTorneo === 'publico') {
-        var nombrePub = (formData.get('nombre_torneo_publico') || '').trim();
-        var descPub = (formData.get('descripcion_torneo_publico') || '').trim();
+        var nombrePub = (formData.get('nombre_torneo') || '').trim();
+        var descPub = (formData.get('descripcion') || '').trim();
         if (nombrePub) resumenHTML += '<p><strong>Nombre del torneo:</strong> ' + nombrePub + '</p>';
         if (descPub) resumenHTML += '<p><strong>Descripción:</strong> ' + descPub + '</p>';
     }
+    var formatoComp = (formData.get('formato_competicion') || '').trim();
+    if (formatoComp) resumenHTML += '<p><strong>Formato competición:</strong> ' + formatoComp + '</p>';
+    var premios = (formData.get('premios') || '').trim();
+    if (premios) resumenHTML += '<p><strong>Premios:</strong> ' + premios + '</p>';
     resumenHTML += '<p><strong>Fechas:</strong> ' + (fechas.length ? fechas.join(', ') : '—') + '</p>';
     
     for (var i = 1; i <= count; i++) {
