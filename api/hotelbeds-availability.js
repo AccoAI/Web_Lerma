@@ -1,4 +1,9 @@
 import { createHash } from 'crypto';
+import {
+  fetchHotelbedsLogs,
+  isLogsReadAuthorized,
+  logHotelbedsApiCall,
+} from '../lib/hotelbeds-audit-log.js';
 import { mapHotelbedsBookingToVoucherData, voucherMapFailureReason } from '../lib/hotelbeds-booking-map.js';
 import { hotelbedsBaseUrl, hotelbedsFetch, getMtlsCreds } from '../lib/hotelbeds-mtls.js';
 import { sendEmail } from '../lib/resend.js';
@@ -28,7 +33,7 @@ function getSignature(apiKey, secret) {
 
 const BOOKING_TIMEOUT_MS = 65000;
 
-async function hotelbedsPostJson(apiKey, secret, pathSuffix, jsonBody, timeoutMs) {
+async function hotelbedsPostJson(apiKey, secret, pathSuffix, jsonBody, timeoutMs, auditOpts = {}) {
   const baseUrl = hotelbedsBaseUrl();
   const signature = getSignature(apiKey, secret);
   const headers = {
@@ -39,16 +44,51 @@ async function hotelbedsPostJson(apiKey, secret, pathSuffix, jsonBody, timeoutMs
   };
   const body = JSON.stringify(jsonBody);
   const url = `${baseUrl}${pathSuffix}`;
+  const t0 = Date.now();
 
-  const res = await hotelbedsFetch(url, { method: 'POST', headers, body, timeoutMs });
-
-  const text = await res.text();
+  let res;
   let data;
   try {
-    data = JSON.parse(text);
-  } catch {
-    data = { raw: text.slice(0, 1500) };
+    res = await hotelbedsFetch(url, { method: 'POST', headers, body, timeoutMs });
+
+    const text = await res.text();
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { raw: text.slice(0, 1500) };
+    }
+  } catch (e) {
+    const msg = e.name === 'AbortError' ? `Timeout ${pathSuffix}` : e.message || String(e);
+    void logHotelbedsApiCall({
+      step: auditOpts.step,
+      pathSuffix,
+      requestBody: jsonBody,
+      responseData: null,
+      httpStatus: null,
+      ok: false,
+      errorMessage: msg,
+      durationMs: Date.now() - t0,
+      clientReference: auditOpts.clientReference,
+    });
+    throw e;
   }
+
+  const hbErr =
+    data &&
+    data.error &&
+    (typeof data.error === 'string' ? data.error : data.error.message || JSON.stringify(data.error));
+  void logHotelbedsApiCall({
+    step: auditOpts.step,
+    pathSuffix,
+    requestBody: jsonBody,
+    responseData: data,
+    httpStatus: res.status,
+    ok: res.ok && !hbErr,
+    errorMessage: hbErr || null,
+    durationMs: Date.now() - t0,
+    clientReference: auditOpts.clientReference,
+  });
+
   return { res, data };
 }
 
@@ -68,7 +108,8 @@ async function handleCheckrates(apiKey, secret, body) {
       secret,
       '/hotel-api/1.0/checkrates',
       { rooms },
-      45000
+      45000,
+      { step: 'checkrate' }
     );
     const hbErr =
       data &&
@@ -110,6 +151,7 @@ async function handleBooking(apiKey, secret, body) {
     );
   }
   bookingBody.clientReference = normalizeClientReference(bookingBody.clientReference);
+  const clientRef = bookingBody.clientReference;
 
   try {
     const { res, data } = await hotelbedsPostJson(
@@ -117,7 +159,8 @@ async function handleBooking(apiKey, secret, body) {
       secret,
       '/hotel-api/1.0/bookings',
       bookingBody,
-      BOOKING_TIMEOUT_MS
+      BOOKING_TIMEOUT_MS,
+      { step: 'booking', clientReference: clientRef }
     );
     const hbErr =
       data &&
@@ -195,7 +238,9 @@ async function fetchAvailability(apiKey, secret, body) {
 
   let res, data;
   try {
-    ({ res, data } = await hotelbedsPostJson(apiKey, secret, '/hotel-api/1.0/hotels', payload, 30000));
+    ({ res, data } = await hotelbedsPostJson(apiKey, secret, '/hotel-api/1.0/hotels', payload, 30000, {
+      step: 'availability',
+    }));
   } catch (e) {
     return { ok: false, error: e.message || 'Error de red al contactar con Hotelbeds' };
   }
@@ -294,6 +339,24 @@ async function handleReconfirmation(request) {
 
 export async function GET(request) {
   const url = request?.url ? new URL(request.url) : null;
+  if (url && url.searchParams.get('logs') === '1') {
+    if (!isLogsReadAuthorized(request)) {
+      return jsonResponse(
+        {
+          error:
+            'No autorizado. Define HOTELBEDS_LOGS_SECRET en Vercel y pásalo como ?secret=... o cabecera X-HB-Logs-Secret.',
+        },
+        401
+      );
+    }
+    const result = await fetchHotelbedsLogs({
+      clientReference: url.searchParams.get('clientReference') || url.searchParams.get('agencyReference'),
+      bookingReference: url.searchParams.get('bookingReference') || url.searchParams.get('reference'),
+      limit: url.searchParams.get('limit') || 50,
+    });
+    if (result.error) return jsonResponse({ error: result.error }, 400);
+    return jsonResponse({ count: result.logs.length, logs: result.logs });
+  }
   if (url && url.searchParams.get('__hb_reconfirm') === '1') {
     // Hotelbeds verifica el endpoint con GET antes de activar el push service
     return new Response(
