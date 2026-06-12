@@ -28,3 +28,9 @@ create index if not exists hotelbeds_api_logs_created_at_idx
 
 comment on table public.hotelbeds_api_logs is
   'Trazas request/response Hotelbeds para incidencias y certificación. Solo escribe el servidor (service role).';
+
+-- RLS desactivado: el servidor usa service_role (bypass). Sin políticas para anon.
+alter table public.hotelbeds_api_logs disable row level security;
+
+grant all on table public.hotelbeds_api_logs to service_role;
+grant all on table public.hotelbeds_api_logs to postgres;

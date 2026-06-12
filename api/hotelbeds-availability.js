@@ -3,6 +3,7 @@ import {
   fetchHotelbedsLogs,
   isLogsReadAuthorized,
   logHotelbedsApiCall,
+  probeHotelbedsAuditStorage,
 } from '../lib/hotelbeds-audit-log.js';
 import { mapHotelbedsBookingToVoucherData, voucherMapFailureReason } from '../lib/hotelbeds-booking-map.js';
 import { hotelbedsBaseUrl, hotelbedsFetch, getMtlsCreds } from '../lib/hotelbeds-mtls.js';
@@ -59,7 +60,7 @@ async function hotelbedsPostJson(apiKey, secret, pathSuffix, jsonBody, timeoutMs
     }
   } catch (e) {
     const msg = e.name === 'AbortError' ? `Timeout ${pathSuffix}` : e.message || String(e);
-    void logHotelbedsApiCall({
+    await logHotelbedsApiCall({
       step: auditOpts.step,
       pathSuffix,
       requestBody: jsonBody,
@@ -77,7 +78,7 @@ async function hotelbedsPostJson(apiKey, secret, pathSuffix, jsonBody, timeoutMs
     data &&
     data.error &&
     (typeof data.error === 'string' ? data.error : data.error.message || JSON.stringify(data.error));
-  void logHotelbedsApiCall({
+  await logHotelbedsApiCall({
     step: auditOpts.step,
     pathSuffix,
     requestBody: jsonBody,
@@ -339,6 +340,19 @@ async function handleReconfirmation(request) {
 
 export async function GET(request) {
   const url = request?.url ? new URL(request.url) : null;
+  if (url && url.searchParams.get('audit_probe') === '1') {
+    if (!isLogsReadAuthorized(request)) {
+      return jsonResponse(
+        {
+          error:
+            'No autorizado. Define HOTELBEDS_LOGS_SECRET en Vercel y usa ?audit_probe=1&secret=...',
+        },
+        401
+      );
+    }
+    const probe = await probeHotelbedsAuditStorage();
+    return jsonResponse(probe, probe.ok ? 200 : 503);
+  }
   if (url && url.searchParams.get('logs') === '1') {
     if (!isLogsReadAuthorized(request)) {
       return jsonResponse(
