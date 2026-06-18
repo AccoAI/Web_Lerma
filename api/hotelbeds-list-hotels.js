@@ -78,7 +78,7 @@ async function fetchFromContent(apiKey, secret, dest, country, from, to, lang, b
     fields: 'all',
     language: lang,
   });
-  const res = await fetch(`${baseUrl}/hotel-content-api/1.0/hotels?${params}`, {
+  const res = await hotelbedsFetch(`${baseUrl}/hotel-content-api/1.0/hotels?${params}`, {
     method: 'GET',
     headers: {
       'Accept': 'application/json',

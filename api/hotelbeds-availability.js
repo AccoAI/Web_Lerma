@@ -5,7 +5,8 @@ import {
   logHotelbedsApiCall,
   probeHotelbedsAuditStorage,
 } from '../lib/hotelbeds-audit-log.js';
-import { mapHotelbedsBookingToVoucherData, voucherMapFailureReason } from '../lib/hotelbeds-booking-map.js';
+import { mapHotelbedsBookingToVoucherData, voucherMapFailureReason, enrichVoucherFromCheckrate, enrichVoucherFromContent, extractHotelCodeFromBookingRaw } from '../lib/hotelbeds-booking-map.js';
+import { fetchHotelContentContact } from '../lib/hotelbeds-content-contact.js';
 import { hotelbedsBaseUrl, hotelbedsFetch, getMtlsCreds } from '../lib/hotelbeds-mtls.js';
 import { sendEmail } from '../lib/resend.js';
 
@@ -172,6 +173,23 @@ async function handleBooking(apiKey, secret, body) {
     let voucherMapError = null;
     if (logicalOk && data) {
       voucher = mapHotelbedsBookingToVoucherData(data);
+      if (voucher && body.checkrateSnapshot) {
+        enrichVoucherFromCheckrate(voucher, body.checkrateSnapshot);
+      }
+      if (voucher && body.contentSnapshot) {
+        enrichVoucherFromContent(voucher, body.contentSnapshot);
+      }
+      if (voucher && (!voucher.hotelPhone || !voucher.hotelAddress || voucher.hotelAddress.length < 12)) {
+        const hotelCode = extractHotelCodeFromBookingRaw(data);
+        if (hotelCode) {
+          try {
+            const contact = await fetchHotelContentContact(apiKey, secret, hotelCode);
+            if (contact) enrichVoucherFromContent(voucher, contact);
+          } catch {
+            /* no bloquear booking */
+          }
+        }
+      }
       if (!voucher) {
         voucherMapError = voucherMapFailureReason(data) || 'No se pudo mapear la respuesta de booking a bono';
       }
@@ -201,11 +219,22 @@ async function handleBooking(apiKey, secret, body) {
  */
 function normalizeOccupancies(body) {
   if (Array.isArray(body.occupancies) && body.occupancies.length > 0) {
-    return body.occupancies.slice(0, 10).map((o) => ({
-      rooms: Math.max(1, parseInt(o.rooms, 10) || 1),
-      adults: Math.max(1, parseInt(o.adults, 10) || 1),
-      children: Math.max(0, parseInt(o.children, 10) || 0),
-    }));
+    return body.occupancies.slice(0, 10).map((o) => {
+      const out = {
+        rooms: Math.max(1, parseInt(o.rooms, 10) || 1),
+        adults: Math.max(1, parseInt(o.adults, 10) || 1),
+        children: Math.max(0, parseInt(o.children, 10) || 0),
+      };
+      if (Array.isArray(o.paxes) && o.paxes.length) {
+        out.paxes = o.paxes
+          .map((p) => ({
+            type: String(p.type || 'CH').toUpperCase(),
+            age: Math.max(0, parseInt(p.age, 10) || 0),
+          }))
+          .filter((p) => p.type === 'CH');
+      }
+      return out;
+    });
   }
   return [{
     rooms: Math.max(1, parseInt(body.rooms, 10) || 1),

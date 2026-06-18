@@ -26,8 +26,8 @@ Use this table internally and with Hotelbeds **only with honest wording**. Last 
 | **3.1** | Precio, habitación, régimen, hotel, paginación… | **Parcial** | Se muestran nombre + precio (minRate / primer rate); no hay selector granular de **cada** rateKey / room / board desde HB en el HTML de paquetes. |
 | **3.2–3.4** | Pax / niños / multi-room | **Parcial** | `fetchAvailability` usa ocupación simple (rooms/adults/children) en `api/hotelbeds-availability.js`; el **booking** desde paquetes envía **1 habitación / 1 adulto** (titular `usuario[1]`). Sin mapeo completo multi-occupancy HB. |
 | **3.6 sourceMarket** | Si se pide, solo para ese mercado | **No** en request | El POST de disponibilidad no añade `sourceMarket` hoy. |
-| **3.8 Cancellation policies** | Mostrar o declarar que no | **No** en UI | Declarar por escrito a Hotelbeds si no se muestran. |
-| **3.9 Rate comments** | Antes de confirmar; Content o CheckRate | **No** | No implementado en el flujo de paquetes. |
+| **3.8 Cancellation policies** | Mostrar o declarar que no | **Sí (funnel + voucher)** | `renderFunnelLegalBlocksHtml`, `cancellationSummaryFromBooking`, CheckRate |
+| **3.9 Rate comments** | Antes de confirmar; Content o CheckRate | **Sí** | Funnel, tarjetas y voucher; CheckRate pre-booking |
 | **3.11 Booking timeout ≥ 60 s** | Cliente booking | **Sí (servidor)** | `api/hotelbeds-availability.js`: timeout **65 s** en POST `/bookings`. |
 | **4 Voucher** | Documento completo al cliente | **Parcial** | `js/stripe-pago.js` envía **`hotelbedsVoucher`** a `POST /api/crear-pago` cuando `tryHotelbedsBookForStripe` devuelve datos (páginas con `hotelbeds-paquetes.js`). `api/webhook-stripe.js` + `lib/hotelbeds-voucher-html.js` generan el HTML si hay `hb_*`. Páginas **sin** bloque Hotelbeds no rellenan voucher. |
 | **5 Content** | Uso correcto de Content API | **Parcial** | `api/hotelbeds-list-hotels.js` + listados para desplegables; no es catálogo completo al estilo guía. |
@@ -59,7 +59,7 @@ Use this block when a form asks for URL + environment in one section. **List all
 
 **Environment:** **[test / production — as agreed with Hotelbeds]**. (`HOTELBEDS_ENV` on Vercel.)
 
-**Infrastructure:** Hosted on **Vercel** (serverless). We are aware of **mTLS** requirements and will follow your guidance for the production environment.
+**Infrastructure:** Hosted on **Vercel** (serverless). **mTLS** implemented via `hotelbedsFetch` (Hotel API + Content API). Configure `HOTELBEDS_MTLS_CERT` and `HOTELBEDS_MTLS_KEY` in production.
 
 **Login:** **[No login required for these public configurators / or provide test credentials if applicable.]**
 
@@ -106,9 +106,17 @@ Our offer is a **specialised regional golf/stay product** (Lerma and Burgos area
 
 ### Cancellation policies, rate comments, promotions
 
-**Cancellation policies (§3.8):** Today we **do not** surface HB cancellation policies in the package UI. Please treat this as **not displayed** during review unless we add it before certification.
+**Cancellation policies (§3.8):** Shown in the Hotelbeds funnel (after CheckRate when RECHECK) and on the voucher, sourced from CheckRate / Booking responses.
 
-**Rate comments (§3.9):** **Not implemented** in the package path yet (no Content RateComments / CheckRate consumption before confirmation).
+**Rate comments (§3.9):** Shown in the funnel, hotel cards, and voucher. CheckRate runs before every booking.
+
+**RSP (recommended selling price):** Displayed to the customer as `sellingRate` (RSP line on voucher).
+
+**Excluded taxes / resort fees:** Listed in funnel and voucher by subtype and amount.
+
+**Filters applied:** Destination **BRG**; curated hotel whitelist (~30 properties for golf packages); commercial preference ranking. No star/price/accommodation-type filters in UI.
+
+**Children:** Funnel captures child count and ages; ages appear on voucher when children are booked.
 
 **Promotions (§2.7):** **Not displayed** in the current price list UI.
 
