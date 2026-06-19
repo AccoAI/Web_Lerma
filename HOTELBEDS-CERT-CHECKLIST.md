@@ -20,7 +20,7 @@
 | 8 | Edades de niños en voucher | **Hecho (parcial)** | Contador niños + edades en funnel → booking paxes |
 | 9 | Impuestos excluidos por subtipo en voucher | **Hecho** | `excludedTaxesFromRate`, sección voucher, `hb_excluded_taxes` |
 | 10 | Precio/cancel/comments desde CheckRate | **Hecho (parcial)** | CheckRate obligatorio pre-booking; snapshot → `enrichVoucherFromCheckrate` |
-| 11 | Mapeo ≥90% producto distribuible | **Pendiente** | Ampliar `BRG_HOTEL_CODES` / `precios-data.js`; medir cobertura vs Content API |
+| 11 | Mapeo ≥90% producto distribuible | **Hecho (dinámico)** | Content API BRG paginado → `__HB_COVERAGE_CODES__` al final; UI solo preferentes (`displayMaxHotels: 3`) |
 | 12 | mTLS en todo el flujo | **Hecho (parcial)** | Hotel API + Content API vía `hotelbedsFetch`; **configurar cert en Vercel** |
 
 ---
@@ -40,9 +40,9 @@
 | Filtro | Valor |
 |--------|-------|
 | Destino API | `BRG` (Burgos) |
-| Whitelist hoteles | `BRG_HOTEL_CODES` (~30 propiedades curadas para golf) |
-| Ranking | Preferencia comercial (hoteles asociados al circuito) |
-| Máx. tarjetas listadas | `HB_DISPLAY_MAX` |
+| Whitelist preferente (UI) | `BRG_HOTEL_CODES` (~26 hoteles; orden de venta) |
+| Mapeo técnico certificación | Todos los hoteles BRG de Content API; los no preferentes van al final (`__HB_COVERAGE_CODES__`) |
+| Máx. tarjetas visibles | `displayMaxHotels: 3` (solo los primeros preferentes con disponibilidad) |
 | Categoría / precio / tipo alojamiento | No filtrado en UI (pendiente si lo exigen) |
 | `sourceMarket` | No enviado |
 

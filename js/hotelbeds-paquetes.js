@@ -12,8 +12,12 @@
   var DESTINATIONS_LERMA_BURGOS = ['BRG'];
   /**
    * Pool Hotelbeds para paquetes Golf Burgos / Campeonato.
-   * Flujo: 1) filtro por disponibilidad (API) → 2) orden por este ranking de preferencia.
-   * Posición en el array = prioridad (arriba = más preferido). Ranks 9+ comparten el mismo escalón.
+ * Flujo: 1) filtro por disponibilidad (API) → 2) orden por este ranking de preferencia.
+ * Certificación: el resto del catálogo BRG (Content API) se mapea al final sin mostrarse en UI salvo fallback de disponibilidad.
+   */
+  /**
+   * Pool preferente (UI + orden de venta). Los códigos de cobertura certificación se añaden al final
+   * tras cargar Content API BRG (ver syncCoverageCodesFromContent).
    */
   var BRG_HOTEL_CODES = [
     // — Ranking 1–9 (Burgos) —
@@ -54,8 +58,8 @@
     '8116': 1,
     '194680': 1,
   };
-  /** Máximo de hoteles mostrados en modo «un solo hotel cubre al grupo». */
-  var HB_DISPLAY_MAX = 12;
+  /** Máximo de hoteles mostrados en modo «un solo hotel cubre al grupo» (solo lista preferente). */
+  var HB_DISPLAY_MAX = 3;
   /** Máximo de hoteles en reparto (si ninguno cubre al grupo entero). */
   var HB_SPLIT_MAX = 6;
   /** Máximo de combinaciones de reparto mostradas como tarjeta única. */
@@ -124,7 +128,7 @@
     return HB_DISPLAY_MAX;
   }
 
-  function getBrgHotelCodeList() {
+  function getBrgHotelPriorityCodes() {
     var po = pageOpts();
     var custom = po.brgHotelCodes || po.brgHotelPriority;
     if (Array.isArray(custom) && custom.length) {
@@ -133,8 +137,34 @@
     return BRG_HOTEL_CODES.slice();
   }
 
+  /** Lista completa para availability / mapeo técnico (preferente + cobertura al final). */
+  function getBrgHotelMappingCodeList() {
+    var priority = getBrgHotelPriorityCodes();
+    var seen = {};
+    var out = [];
+    priority.forEach(function (c) {
+      c = String(c);
+      if (!seen[c]) {
+        seen[c] = 1;
+        out.push(c);
+      }
+    });
+    (window.__HB_COVERAGE_CODES__ || []).forEach(function (c) {
+      c = String(c);
+      if (!seen[c]) {
+        seen[c] = 1;
+        out.push(c);
+      }
+    });
+    return out;
+  }
+
+  function getBrgHotelCodeList() {
+    return getBrgHotelMappingCodeList();
+  }
+
   function getBrgHotelPriorityList() {
-    return getBrgHotelCodeList();
+    return getBrgHotelPriorityCodes();
   }
 
   function getLermaHotelCodeList() {
@@ -142,7 +172,7 @@
   }
 
   function getBurgosHotelCodeList() {
-    return getBrgHotelCodeList().filter(function (code) {
+    return getBrgHotelPriorityCodes().filter(function (code) {
       return !LERMA_HOTEL_CODES[String(code)];
     });
   }
@@ -246,11 +276,47 @@
   function syncAllowedBurgosFromCodes() {
     ALLOWED_HOTEL_CODES.burgos = {};
     ALLOWED_HOTEL_CODES.lerma = {};
-    getBrgHotelCodeList().forEach(function (code) {
+    getBrgHotelMappingCodeList().forEach(function (code) {
       var c = String(code);
       if (LERMA_HOTEL_CODES[c]) ALLOWED_HOTEL_CODES.lerma[c] = 1;
       else ALLOWED_HOTEL_CODES.burgos[c] = 1;
     });
+  }
+
+  function isPriorityHotelCode(code) {
+    var c = String(code || '');
+    if (LERMA_HOTEL_CODES[c]) return true;
+    return getBrgHotelPriorityCodes().indexOf(c) >= 0;
+  }
+
+  /** Tras Content API BRG: códigos no preferentes al final (mapeo certificación, no UI salvo fallback). */
+  function syncCoverageCodesFromContent() {
+    var priority = getBrgHotelPriorityCodes();
+    var prioritySet = {};
+    priority.forEach(function (c) {
+      prioritySet[String(c)] = 1;
+    });
+    Object.keys(LERMA_HOTEL_CODES).forEach(function (c) {
+      prioritySet[c] = 1;
+    });
+    var coverage = [];
+    var byCode = window.__HB_CONTENT_BY_CODE || {};
+    Object.keys(byCode).forEach(function (code) {
+      if (!prioritySet[code]) coverage.push(code);
+    });
+    coverage.sort();
+    window.__HB_COVERAGE_CODES__ = coverage;
+    var total = priority.length + coverage.length;
+    var contentTotal = Object.keys(byCode).length;
+    window.__HB_MAPPING_STATS__ = {
+      priorityCount: priority.length,
+      coverageCount: coverage.length,
+      mappingTotal: total,
+      contentHotelsInCache: contentTotal,
+      coveragePercentOfContent:
+        contentTotal > 0 ? Math.round((total / contentTotal) * 1000) / 10 : null,
+    };
+    syncAllowedBurgosFromCodes();
   }
 
   function syncAllowedBurgosFromPriority() {
@@ -1640,6 +1706,42 @@
     return map;
   }
 
+  function fetchContentHotelsPaginated(base, dest, lang) {
+    var pageSize = 200;
+    var maxPages = 10;
+    var all = [];
+    function page(from) {
+      if (from > maxPages * pageSize) return Promise.resolve(all);
+      var to = from + pageSize - 1;
+      return fetch(
+        base +
+          '/api/hotelbeds-list-hotels?destination=' +
+          encodeURIComponent(dest) +
+          '&source=content&enrich=1&filter=none&from=' +
+          from +
+          '&to=' +
+          to +
+          '&language=' +
+          encodeURIComponent(lang || 'ENG')
+      )
+        .then(function (r) {
+          return parseHotelbedsResponse(r);
+        })
+        .then(function (data) {
+          var batch = data.hotels || [];
+          batch.forEach(function (h) {
+            if (h && h.code) all.push(h);
+          });
+          if (batch.length < pageSize) return all;
+          return page(from + pageSize);
+        })
+        .catch(function () {
+          return all;
+        });
+    }
+    return page(1);
+  }
+
   function loadHotelContentEnrichment() {
     var base =
       typeof window !== 'undefined' && window.location && window.location.origin
@@ -1654,21 +1756,7 @@
     if (window.__HB_CONTENT_LOADING__) return window.__HB_CONTENT_LOADING__;
     window.__HB_CONTENT_LOADING__ = Promise.all(
       DESTINATIONS_LERMA_BURGOS.map(function (dest) {
-        return fetch(
-          base +
-            '/api/hotelbeds-list-hotels?destination=' +
-            encodeURIComponent(dest) +
-            '&source=content&enrich=1&filter=none&from=1&to=200&language=ENG'
-        )
-          .then(function (r) {
-            return parseHotelbedsResponse(r);
-          })
-          .then(function (data) {
-            return data.hotels || [];
-          })
-          .catch(function () {
-            return [];
-          });
+        return fetchContentHotelsPaginated(base, dest, 'ENG');
       })
     )
       .then(function (lists) {
@@ -1679,6 +1767,7 @@
           });
         });
         window.__HB_CONTENT_BY_CODE = byCode;
+        syncCoverageCodesFromContent();
         window.__HB_CONTENT_LOADING__ = null;
       })
       .catch(function () {
@@ -3659,23 +3748,12 @@
 
   function shouldListHotel(h) {
     if (!h || h.code == null) return false;
-    return isAllowedHotel(h.code);
+    return isPriorityHotelCode(h.code);
   }
 
   function getAllowedHotelCodeList() {
     syncAllowedBurgosFromPriority();
-    var out = getBrgHotelPriorityList().slice();
-    var seen = {};
-    out.forEach(function (c) {
-      seen[c] = 1;
-    });
-    Object.keys(ALLOWED_HOTEL_CODES.lerma || {}).forEach(function (code) {
-      if (!seen[code]) {
-        seen[code] = 1;
-        out.push(code);
-      }
-    });
-    return out;
+    return getBrgHotelMappingCodeList().slice();
   }
 
   function getDisplayedHotelCodesFromLastAvail() {
@@ -4146,7 +4224,9 @@
    * 2) Si ninguno: mínimo k hoteles (2, 3…) con reparto equilibrado del grupo.
    */
   function fetchBrgHotelsForDisplay(checkIn, checkOut, occ, abortSignal) {
-    var codes = getBrgHotelCodeList();
+    var mappingCodes = getBrgHotelMappingCodeList();
+    var displayPriorityCodes = getBrgHotelPriorityCodes();
+    var codes = mappingCodes;
     var maxSingle = getDisplayMaxHotels();
     if (!codes.length) {
       return Promise.resolve({ hotels: [], poolSize: 0, apiCalls: 0, coverage: null });
@@ -4216,7 +4296,7 @@
                     children: 0,
                   });
                   return fetchHotelbedsBatched(checkIn, checkOut, codes, sizeOcc).then(function (batch) {
-                    var avail = availableCodesForAdults(batch.merged, codes, size);
+                    var avail = availableCodesForAdults(batch.merged, displayPriorityCodes, size);
                     return {
                       size: size,
                       batch: batch,
@@ -4245,7 +4325,7 @@
             }
             return fetchSizes.then(function (st) {
               if (st.resolved) return st;
-              var combos = buildSplitCombosFromCache(parts, st.availCache, codes);
+              var combos = buildSplitCombosFromCache(parts, st.availCache, displayPriorityCodes);
               if (!combos.length) return st;
               window.__HB_SPLIT_COMBOS__ = combos;
               var leadCombo = combos[0];
@@ -4793,25 +4873,43 @@
     syncAllowedBurgosFromPriority();
 
     var occ = clampHotelbedsOccupancy(getListOccupancyForAvailability(formData));
-    var codePool = getBrgHotelCodeList();
-    if (!codePool.length) {
-      window.__HB_PREFETCH_IN_FLIGHT__ = false;
-      if (!silentPrefetch) {
-        renderBlock(
-          '<div class="hotelbeds-block hotelbeds-info">No hay códigos de hotel configurados (BRG_HOTEL_CODES).</div>'
+    loadHotelContentEnrichment()
+      .then(function () {
+        if (thisAbort && thisAbort.signal && thisAbort.signal.aborted) return null;
+        var codePool = getBrgHotelMappingCodeList();
+        if (!codePool.length) {
+          window.__HB_PREFETCH_IN_FLIGHT__ = false;
+          if (!silentPrefetch) {
+            renderBlock(
+              '<div class="hotelbeds-block hotelbeds-info">No hay códigos de hotel configurados (BRG_HOTEL_CODES).</div>'
+            );
+            document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
+          }
+          return null;
+        }
+        var stats = window.__HB_MAPPING_STATS__;
+        if (stats && stats.coveragePercentOfContent != null) {
+          console.info(
+            '[Hotelbeds] Mapeo BRG:',
+            stats.mappingTotal,
+            'códigos (',
+            stats.priorityCount,
+            'preferentes +',
+            stats.coverageCount,
+            'cobertura;',
+            stats.coveragePercentOfContent,
+            '% del catálogo Content en caché)'
+          );
+        }
+        return fetchBrgHotelsForDisplay(
+          range.checkIn,
+          range.checkOut,
+          occ,
+          thisAbort && thisAbort.signal ? thisAbort.signal : null
         );
-        document.dispatchEvent(new CustomEvent('hotelbeds-dynamic-ready'));
-      }
-      return;
-    }
-
-    fetchBrgHotelsForDisplay(
-      range.checkIn,
-      range.checkOut,
-      occ,
-      thisAbort && thisAbort.signal ? thisAbort.signal : null
-    )
+      })
       .then(function (result) {
+        if (!result) return;
         if (thisAbort && thisAbort.signal && thisAbort.signal.aborted) return;
         var hotels = (result && result.hotels) || [];
         if (!hotels.length) {
@@ -5175,6 +5273,16 @@
     }
     html += '</ul></div>';
     return html;
+  };
+
+  window.getHotelbedsMappingCoverage = function () {
+    return {
+      priorityCodes: getBrgHotelPriorityCodes(),
+      coverageCodes: (window.__HB_COVERAGE_CODES__ || []).slice(),
+      mappingCodes: getBrgHotelMappingCodeList(),
+      displayMaxHotels: getDisplayMaxHotels(),
+      stats: window.__HB_MAPPING_STATS__ || null,
+    };
   };
 
   function init() {

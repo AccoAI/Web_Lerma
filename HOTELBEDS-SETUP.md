@@ -87,12 +87,16 @@ Push URL: `https://<tu-dominio>/api/hotelbeds-reconfirmation`. Hotelbeds las act
 
 ### Lista de hoteles paquetes (BRG + Lerma)
 
-En `js/hotelbeds-paquetes.js`, array **`BRG_HOTEL_CODES`**: pool admitido, **orden = ranking de preferencia** (arriba = más preferido).
+En `js/hotelbeds-paquetes.js`, array **`BRG_HOTEL_CODES`**: hoteles **preferentes** (orden = ranking de venta).
 
-**Filtrado previo (disponibilidad):**
+**Mapeo certificación (≥90%):** al cargar Content API destino BRG, el resto de códigos se añaden a `__HB_COVERAGE_CODES__` **al final** del pool de availability. La UI solo lista preferentes (`shouldListHotel`) y muestra como máximo **`displayMaxHotels`** (por defecto **3**) con disponibilidad, en orden de preferencia.
 
-1. Se consulta availability para **todo el grupo** (tamaño del paquete).
-2. Solo se muestran hoteles con **tarifas reservables** que cubren al grupo entero, ordenados por preferencia (hasta `displayMaxHotels`, por defecto 12).
+Comprobar cobertura en consola del navegador: `getHotelbedsMappingCoverage()` tras cargar un paquete.
+
+**Filtrado en pantalla (disponibilidad):**
+
+1. Se consulta availability para el grupo sobre el **pool completo** (preferentes + cobertura).
+2. Solo se **muestran** hoteles preferentes con tarifas reservables (hasta `displayMaxHotels`, por defecto 3).
 3. Si **ningún hotel** cubre al grupo (habitual con 5+ personas), se prueba reparto en **2, 3…** hoteles (máx. 6) y se muestran con aviso al cliente.
 4. Dentro de cada escenario, el **ranking de preferencia** solo ordena entre hoteles que pasan el filtro de disponibilidad.
 
