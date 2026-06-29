@@ -349,6 +349,41 @@ img {
     background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
 }
 
+.hero-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    z-index: 1;
+    opacity: 1;
+    transition: opacity 1s ease-in-out;
+}
+
+.hero-video.hero-video--hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.hero-slides {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.hero-slides[hidden] {
+    display: none !important;
+}
+
+.hero-background.hero-slides-visible .hero-video {
+    display: none;
+}
+
 .hero-slide {
     position: absolute;
     top: 0;
@@ -371,7 +406,9 @@ img {
     left: 0;
     width: 100%;
     height: 100%;
+    z-index: 2;
     background: linear-gradient(to bottom, rgba(26, 77, 58, 0.4), rgba(15, 51, 36, 0.6));
+    pointer-events: none;
 }
 
 .hero-centro {
@@ -1014,6 +1051,12 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
 .paquetes-grid--secundaria {
     grid-template-columns: repeat(2, 1fr);
     margin-top: 3rem;
+}
+
+.paquetes-grid--secundaria .paquetes-section-title {
+    font-size: clamp(1.05rem, 1.85vw, 1.65rem);
+    letter-spacing: clamp(0.05em, 0.1vw, 0.12em);
+    white-space: nowrap;
 }
 
 .paquete-wrapper--full {

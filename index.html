@@ -60,10 +60,23 @@
 
     <!-- Hero Section -->
     <section id="inicio" class="hero">
-        <div class="hero-background">
-            <div class="hero-slide active" style="background-image: url('FOTOS/Portada_1.png');"></div>
-            <div class="hero-slide" style="background-image: url('FOTOS/Portada_2.png');"></div>
-            <div class="hero-slide" style="background-image: url('FOTOS/Portada_3.png');"></div>
+        <div class="hero-background" id="heroBackground">
+            <video
+                id="heroVideo"
+                class="hero-video"
+                autoplay
+                muted
+                playsinline
+                preload="auto"
+                aria-hidden="true"
+            >
+                <source src="FOTOS/Portada.mp4" type="video/mp4">
+            </video>
+            <div class="hero-slides" id="heroSlides" hidden>
+                <div class="hero-slide active" style="background-image: url('FOTOS/Portada_1.png');"></div>
+                <div class="hero-slide" style="background-image: url('FOTOS/Portada_2.png');"></div>
+                <div class="hero-slide" style="background-image: url('FOTOS/Portada_3.png');"></div>
+            </div>
             <div class="hero-overlay"></div>
         </div>
         <div class="hero-centro">

@@ -254,26 +254,81 @@ function highlightNavigation() {
 
 window.addEventListener('scroll', highlightNavigation);
 
-// Hero Image Slider
+// Hero: vídeo de portada y, al terminar, carrusel de fotos
 function initHeroSlider() {
-    const slides = document.querySelectorAll('.hero-slide');
-    let currentSlide = 0;
-    
+    const video = document.getElementById('heroVideo');
+    const slidesWrap = document.getElementById('heroSlides');
+    const background = document.getElementById('heroBackground');
+    const slides = slidesWrap ? slidesWrap.querySelectorAll('.hero-slide') : [];
+
     if (slides.length === 0) return;
-    
+
+    let currentSlide = 0;
+    let sliderTimer = null;
+
     function showNextSlide() {
-        // Remove active class from current slide
         slides[currentSlide].classList.remove('active');
-        
-        // Move to next slide
         currentSlide = (currentSlide + 1) % slides.length;
-        
-        // Add active class to new slide
         slides[currentSlide].classList.add('active');
     }
-    
-    // Rotate images every 3 seconds
-    setInterval(showNextSlide, 3000);
+
+    function startPhotoSlider() {
+        if (sliderTimer) return;
+        sliderTimer = setInterval(showNextSlide, 3000);
+    }
+
+    function revealPhotos() {
+        if (!slidesWrap || !background) return;
+        slidesWrap.hidden = false;
+        background.classList.add('hero-slides-visible');
+        if (video) {
+            video.classList.add('hero-video--hidden');
+            video.pause();
+            setTimeout(() => {
+                video.removeAttribute('src');
+                video.load();
+            }, 1000);
+        }
+        startPhotoSlider();
+    }
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!video || prefersReducedMotion) {
+        revealPhotos();
+        return;
+    }
+
+    function onVideoDone() {
+        video.removeEventListener('ended', onVideoDone);
+        video.removeEventListener('error', onVideoError);
+        revealPhotos();
+    }
+
+    function onVideoError() {
+        if (!video.error && video.readyState >= 2) return;
+        video.removeEventListener('ended', onVideoDone);
+        video.removeEventListener('error', onVideoError);
+        revealPhotos();
+    }
+
+    video.addEventListener('ended', onVideoDone);
+    video.addEventListener('error', onVideoError);
+
+    function tryPlay() {
+        const playPromise = video.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+            playPromise.catch(() => {
+                if (video.error) onVideoError();
+            });
+        }
+    }
+
+    if (video.readyState >= 3) {
+        tryPlay();
+    } else {
+        video.addEventListener('canplay', tryPlay, { once: true });
+    }
 }
 
 // Cámara del Tiempo - Temperatura, viento e icono desde Open-Meteo (Quintanilla de la Mata o Lerma)
