@@ -254,73 +254,18 @@ function highlightNavigation() {
 
 window.addEventListener('scroll', highlightNavigation);
 
-// Hero: vídeo de portada y, al terminar, carrusel de fotos
-function initHeroSlider() {
+// Hero: vídeo de portada en bucle
+function initHeroVideo() {
     const video = document.getElementById('heroVideo');
-    const slidesWrap = document.getElementById('heroSlides');
-    const background = document.getElementById('heroBackground');
-    const slides = slidesWrap ? slidesWrap.querySelectorAll('.hero-slide') : [];
-
-    if (slides.length === 0) return;
-
-    let currentSlide = 0;
-    let sliderTimer = null;
-
-    function showNextSlide() {
-        slides[currentSlide].classList.remove('active');
-        currentSlide = (currentSlide + 1) % slides.length;
-        slides[currentSlide].classList.add('active');
-    }
-
-    function startPhotoSlider() {
-        if (sliderTimer) return;
-        sliderTimer = setInterval(showNextSlide, 3000);
-    }
-
-    function revealPhotos() {
-        if (!slidesWrap || !background) return;
-        slidesWrap.hidden = false;
-        background.classList.add('hero-slides-visible');
-        if (video) {
-            video.classList.add('hero-video--hidden');
-            video.pause();
-            setTimeout(() => {
-                video.removeAttribute('src');
-                video.load();
-            }, 1000);
-        }
-        startPhotoSlider();
-    }
+    if (!video) return;
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    if (!video || prefersReducedMotion) {
-        revealPhotos();
-        return;
-    }
-
-    function onVideoDone() {
-        video.removeEventListener('ended', onVideoDone);
-        video.removeEventListener('error', onVideoError);
-        revealPhotos();
-    }
-
-    function onVideoError() {
-        if (!video.error && video.readyState >= 2) return;
-        video.removeEventListener('ended', onVideoDone);
-        video.removeEventListener('error', onVideoError);
-        revealPhotos();
-    }
-
-    video.addEventListener('ended', onVideoDone);
-    video.addEventListener('error', onVideoError);
+    if (prefersReducedMotion) return;
 
     function tryPlay() {
         const playPromise = video.play();
         if (playPromise && typeof playPromise.catch === 'function') {
-            playPromise.catch(() => {
-                if (video.error) onVideoError();
-            });
+            playPromise.catch(() => {});
         }
     }
 
@@ -2986,7 +2931,7 @@ function fillAncillaryPrices() {
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     highlightNavigation();
-    initHeroSlider();
+    initHeroVideo();
     updateTiempoData();
     loadCamaraLive();
     initConfiguradorPaquete();
