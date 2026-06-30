@@ -58,8 +58,20 @@
         </div>
     </header>
 
-    <div class="pagina-hero-foto">
-        <img src="FOTOS/GolfLermaEstandar.jpg" alt="" class="pagina-hero-foto-img">
+    <div class="pagina-hero-foto" id="campoHero">
+        <video
+            id="campoHeroVideo"
+            class="pagina-hero-foto-video"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="auto"
+            aria-hidden="true"
+        >
+            <source src="FOTOS/CasaClub.mp4" type="video/mp4">
+        </video>
+        <img src="FOTOS/GolfLermaEstandar.jpg" alt="" class="pagina-hero-foto-img" id="campoHeroImg">
         <div class="pagina-hero-foto-overlay"></div>
     </div>
 
@@ -288,7 +300,7 @@
                             <figcaption><strong>Hoyo 12</strong> Par 3 · Hcp 9</figcaption>
                             <p class="recorrido-hoyo-desc">Largo par tres en el que, desde el tee situado en alto, divisamos fácilmente la bandera en línea recta. Con el primer golpe debemos alcanzar su enorme green, que se encuentra defendido por bunkers a izquierda y derecha.</p>
                         </figure>
-                        <figure class="recorrido-hoyo-card">
+                        <figure class="recorrido-hoyo-card" data-hoyo="13" tabindex="0" role="button" aria-label="Ver vídeo del hoyo 13">
                             <img src="FOTOS/hoyo13.jpg" alt="Hoyo 13 - Par 4, Hcp 17" loading="lazy">
                             <figcaption><strong>Hoyo 13</strong> Par 4 · Hcp 17</figcaption>
                             <p class="recorrido-hoyo-desc">Este par cuatro presenta un ajustado fuera de límites a la izquierda de la calle y un gran bunker ubicado a la derecha de la misma que los buenos pegadores pueden sobrepasar sin complicaciones en su golpe de salida. El green, amplio y protegido por un bunker a la izquierda, no ofrece complicaciones.</p>
@@ -386,6 +398,77 @@
     (function () {
         var tabs = document.querySelectorAll('.campo-tab-btn');
         var panels = document.querySelectorAll('.campo-tab-panel');
+        var HERO_VIDEOS = {
+            instalaciones: 'FOTOS/CasaClub.mp4',
+            hoyo13: 'FOTOS/Hoyo13.mp4'
+        };
+        var recorridoHeroVideo = null;
+
+        function showCampoHeroImage() {
+            var video = document.getElementById('campoHeroVideo');
+            var img = document.getElementById('campoHeroImg');
+            if (!video || !img) return;
+            video.pause();
+            video.classList.add('pagina-hero-foto-video--hidden');
+            img.classList.remove('pagina-hero-foto-img--hidden');
+        }
+
+        function playCampoHeroVideo(src, loop) {
+            var video = document.getElementById('campoHeroVideo');
+            var img = document.getElementById('campoHeroImg');
+            var source = video && video.querySelector('source');
+            if (!video || !img || !source) return;
+            if (source.getAttribute('src') !== src) {
+                source.setAttribute('src', src);
+                video.load();
+            }
+            video.loop = loop !== false;
+            img.classList.add('pagina-hero-foto-img--hidden');
+            video.classList.remove('pagina-hero-foto-video--hidden');
+            var playPromise = video.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+                playPromise.catch(function () {});
+            }
+        }
+
+        function syncCampoHeroMedia(panelId) {
+            if (panelId === 'panel-instalaciones') {
+                recorridoHeroVideo = null;
+                document.querySelectorAll('.recorrido-hoyo-card--activo').forEach(function (c) {
+                    c.classList.remove('recorrido-hoyo-card--activo');
+                });
+                playCampoHeroVideo(HERO_VIDEOS.instalaciones, true);
+                return;
+            }
+            if (panelId === 'panel-recorrido' && recorridoHeroVideo === 'hoyo13') {
+                playCampoHeroVideo(HERO_VIDEOS.hoyo13, true);
+                return;
+            }
+            if (panelId !== 'panel-recorrido') {
+                recorridoHeroVideo = null;
+                document.querySelectorAll('.recorrido-hoyo-card--activo').forEach(function (c) {
+                    c.classList.remove('recorrido-hoyo-card--activo');
+                });
+            }
+            showCampoHeroImage();
+        }
+
+        function activarHoyo13Hero() {
+            recorridoHeroVideo = 'hoyo13';
+            document.querySelectorAll('.recorrido-hoyo-card--activo').forEach(function (c) {
+                c.classList.remove('recorrido-hoyo-card--activo');
+            });
+            var card = document.querySelector('.recorrido-hoyo-card[data-hoyo="13"]');
+            if (card) card.classList.add('recorrido-hoyo-card--activo');
+            var recorridoTab = document.getElementById('tab-recorrido');
+            if (recorridoTab && recorridoTab.getAttribute('aria-selected') !== 'true') {
+                activarTabCampo(recorridoTab);
+            } else {
+                playCampoHeroVideo(HERO_VIDEOS.hoyo13, true);
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         function activarTabCampo(btn) {
             if (!btn) return;
             var targetId = btn.getAttribute('aria-controls');
@@ -398,6 +481,7 @@
                 panel.classList.add('activo');
                 panel.removeAttribute('hidden');
             }
+            syncCampoHeroMedia(targetId);
         }
         tabs.forEach(function (btn) {
             btn.addEventListener('click', function () { activarTabCampo(btn); });
@@ -407,15 +491,18 @@
             if (h === 'restaurante' || h === 'panel-restaurante' || h === 'tab-restaurante') {
                 var b = document.getElementById('tab-restaurante');
                 activarTabCampo(b);
+                return;
             }
+            syncCampoHeroMedia('panel-instalaciones');
         })();
 
-        // Lightbox: clic en foto del hoyo para ampliar (PC y móvil)
+        // Lightbox: clic en foto del hoyo para ampliar (PC y móvil); hoyo 13 abre vídeo en hero
         (function () {
             var lightbox = document.getElementById('recorrido-lightbox');
             var lightboxImg = lightbox && lightbox.querySelector('.recorrido-lightbox-img');
             var btnCerrar = lightbox && lightbox.querySelector('.recorrido-lightbox-cerrar');
             var holeImgs = document.querySelectorAll('.recorrido-hoyo-card img');
+            var hoyo13Card = document.querySelector('.recorrido-hoyo-card[data-hoyo="13"]');
 
             function abrirLightbox(src, alt) {
                 if (!lightbox || !lightboxImg) return;
@@ -433,9 +520,25 @@
                 document.body.style.overflow = '';
             }
 
+            if (hoyo13Card) {
+                hoyo13Card.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    activarHoyo13Hero();
+                });
+                hoyo13Card.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        activarHoyo13Hero();
+                    }
+                });
+            }
+
             holeImgs.forEach(function (img) {
+                var card = img.closest('.recorrido-hoyo-card');
+                if (card && card.getAttribute('data-hoyo') === '13') return;
                 img.addEventListener('click', function (e) {
                     e.preventDefault();
+                    e.stopPropagation();
                     abrirLightbox(img.src, img.alt);
                 });
             });
