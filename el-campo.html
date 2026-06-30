@@ -61,16 +61,13 @@
     <div class="pagina-hero-foto" id="campoHero">
         <video
             id="campoHeroVideo"
-            class="pagina-hero-foto-video"
-            autoplay
+            class="pagina-hero-foto-video pagina-hero-foto-video--hidden"
             muted
             loop
             playsinline
-            preload="auto"
+            preload="metadata"
             aria-hidden="true"
-        >
-            <source src="FOTOS/CasaClub.mp4" type="video/mp4">
-        </video>
+        ></video>
         <img src="FOTOS/GolfLermaEstandar.jpg" alt="" class="pagina-hero-foto-img" id="campoHeroImg">
         <div class="pagina-hero-foto-overlay"></div>
     </div>
@@ -416,19 +413,53 @@
         function playCampoHeroVideo(src, loop) {
             var video = document.getElementById('campoHeroVideo');
             var img = document.getElementById('campoHeroImg');
-            var source = video && video.querySelector('source');
-            if (!video || !img || !source) return;
-            if (source.getAttribute('src') !== src) {
-                source.setAttribute('src', src);
-                video.load();
-            }
+            if (!video || !img || !src) return;
+
+            video.muted = true;
+            video.defaultMuted = true;
+            video.playsInline = true;
+            video.setAttribute('playsinline', '');
             video.loop = loop !== false;
-            img.classList.add('pagina-hero-foto-img--hidden');
-            video.classList.remove('pagina-hero-foto-video--hidden');
-            var playPromise = video.play();
-            if (playPromise && typeof playPromise.catch === 'function') {
-                playPromise.catch(function () {});
+
+            var currentPath = (video.currentSrc || video.src || '').split('/').pop();
+            var nextPath = src.split('/').pop();
+            var needsLoad = currentPath !== nextPath;
+
+            function revealVideo() {
+                img.classList.add('pagina-hero-foto-img--hidden');
+                video.classList.remove('pagina-hero-foto-video--hidden');
             }
+
+            function attemptPlay() {
+                var playPromise = video.play();
+                if (playPromise && typeof playPromise.then === 'function') {
+                    playPromise.then(revealVideo).catch(function () {
+                        showCampoHeroImage();
+                    });
+                } else {
+                    revealVideo();
+                }
+            }
+
+            if (needsLoad) {
+                video.src = src;
+                video.load();
+                if (video.readyState >= 2) {
+                    attemptPlay();
+                    return;
+                }
+                video.addEventListener('canplay', function onCanPlay() {
+                    video.removeEventListener('canplay', onCanPlay);
+                    attemptPlay();
+                }, { once: true });
+                video.addEventListener('error', function onVideoError() {
+                    video.removeEventListener('error', onVideoError);
+                    showCampoHeroImage();
+                }, { once: true });
+                return;
+            }
+
+            attemptPlay();
         }
 
         function syncCampoHeroMedia(panelId) {
@@ -466,7 +497,12 @@
             } else {
                 playCampoHeroVideo(HERO_VIDEOS.hoyo13, true);
             }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            var hero = document.getElementById('campoHero');
+            if (hero && hero.scrollIntoView) {
+                hero.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
 
         function activarTabCampo(btn) {
