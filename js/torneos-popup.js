@@ -110,6 +110,7 @@
                 overlay.style.removeProperty('--torneos-popup-max-width');
                 overlay.style.removeProperty('--torneos-popup-card-height');
                 overlay.style.removeProperty('--torneos-popup-thumb-width');
+                overlay.style.removeProperty('--torneos-popup-card-gap');
                 overlay.classList.remove('torneos-popup--compact');
             }
             return;
@@ -118,13 +119,14 @@
         var heroBoundary = getHeroPopupBoundary();
         if (heroBoundary == null) return;
 
-        var gap = 16;
+        var gap = 22;
+        var letterBuffer = 14;
         var overlayStyle = window.getComputedStyle(overlay);
         var padLeft = parseFloat(overlayStyle.paddingLeft) || 24;
         var padTop = parseFloat(overlayStyle.paddingTop) || 24;
         var padBottom = parseFloat(overlayStyle.paddingBottom) || 24;
-        var availableW = Math.floor(heroBoundary - gap - padLeft);
-        if (availableW < 130) {
+        var availableW = Math.floor(heroBoundary - gap - padLeft - letterBuffer);
+        if (availableW < 220) {
             overlay.style.removeProperty('--torneos-popup-max-width');
             overlay.style.removeProperty('--torneos-popup-card-height');
             overlay.style.removeProperty('--torneos-popup-thumb-width');
@@ -132,34 +134,34 @@
             return;
         }
 
-        var preferredW = Math.round(Math.min(246, Math.max(218, window.innerWidth * 0.155)));
-        var minTextW = 94;
-
         var cards = overlay.querySelectorAll('.torneos-popup-cards .torneos-popup');
         var cardCount = cards.length || 3;
         var usableH = window.innerHeight - padTop - padBottom;
-        var headerReserve = 48;
-        var noHoyReserve = 34;
-        var cardGap = 7;
+        var headerReserve = 52;
+        var noHoyReserve = 36;
+        var cardGap = 10;
         var cardsArea = usableH - headerReserve - noHoyReserve - (cardCount - 1) * cardGap;
         var cardH = Math.floor(cardsArea / cardCount);
-        cardH = Math.min(158, Math.max(112, cardH));
-
-        var popupW = Math.min(availableW, Math.max(preferredW, cardH + minTextW));
-        if (popupW < cardH + minTextW) {
-            cardH = Math.max(104, popupW - minTextW);
-        }
+        cardH = Math.min(104, Math.max(92, cardH));
 
         var thumbW = cardH;
+        var textMin = 148;
+        var popupW = availableW;
 
-        var compact = popupW < 238 || window.innerWidth < 1280;
+        if (popupW < thumbW + textMin + 24) {
+            cardH = Math.max(84, popupW - textMin - 24);
+            thumbW = cardH;
+        }
+
+        var compact = popupW < 290;
         overlay.classList.toggle('torneos-popup--compact', compact);
 
         overlay.style.setProperty('--torneos-popup-max-width', popupW + 'px');
         overlay.style.setProperty('--torneos-popup-card-height', cardH + 'px');
         overlay.style.setProperty('--torneos-popup-thumb-width', thumbW + 'px');
+        overlay.style.setProperty('--torneos-popup-card-gap', cardGap + 'px');
 
-        var btnLabel = masInfoLabel(compact);
+        var btnLabel = masInfoLabel(compact && popupW < 275);
         var btns = overlay.querySelectorAll('.torneos-popup-item-btn');
         for (var b = 0; b < btns.length; b++) {
             btns[b].textContent = btnLabel;
