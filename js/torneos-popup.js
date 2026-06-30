@@ -132,8 +132,8 @@
             return;
         }
 
-        var preferredW = Math.round(Math.min(288, Math.max(228, window.innerWidth * 0.17)));
-        var popupW = Math.min(availableW, preferredW);
+        var preferredW = Math.round(Math.min(246, Math.max(218, window.innerWidth * 0.155)));
+        var minTextW = 94;
 
         var cards = overlay.querySelectorAll('.torneos-popup-cards .torneos-popup');
         var cardCount = cards.length || 3;
@@ -143,12 +143,16 @@
         var cardGap = 7;
         var cardsArea = usableH - headerReserve - noHoyReserve - (cardCount - 1) * cardGap;
         var cardH = Math.floor(cardsArea / cardCount);
-        cardH = Math.min(136, Math.max(100, cardH));
+        cardH = Math.min(158, Math.max(112, cardH));
 
-        var thumbW = Math.round(popupW * 0.30);
-        thumbW = Math.max(68, Math.min(thumbW, cardH - 8));
+        var popupW = Math.min(availableW, Math.max(preferredW, cardH + minTextW));
+        if (popupW < cardH + minTextW) {
+            cardH = Math.max(104, popupW - minTextW);
+        }
 
-        var compact = popupW < 250 || window.innerWidth < 1280;
+        var thumbW = cardH;
+
+        var compact = popupW < 238 || window.innerWidth < 1280;
         overlay.classList.toggle('torneos-popup--compact', compact);
 
         overlay.style.setProperty('--torneos-popup-max-width', popupW + 'px');
