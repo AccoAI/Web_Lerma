@@ -12007,6 +12007,7 @@ a[href^="tel:"]:hover {
     flex-shrink: 0;
     width: 100px;
     height: 100px;
+    aspect-ratio: 1 / 1;
     overflow: hidden;
     background: #f0f0f0;
 }
@@ -12215,6 +12216,12 @@ a[href^="tel:"]:hover {
     background: rgba(0, 0, 0, 0.2);
     border-left: 1px solid rgba(255, 255, 255, 0.1);
     overflow: hidden;
+    flex-shrink: 0;
+    width: var(--torneos-popup-card-height, 116px);
+    height: var(--torneos-popup-card-height, 116px);
+    min-width: var(--torneos-popup-card-height, 116px);
+    max-width: var(--torneos-popup-card-height, 116px);
+    aspect-ratio: 1 / 1;
 }
 
 .torneos-popup-overlay .torneos-popup-imagen {
@@ -12301,12 +12308,12 @@ a[href^="tel:"]:hover {
     }
 
     .torneos-popup-overlay .torneos-popup-imagen-wrap {
-        width: var(--torneos-popup-thumb-width, var(--torneos-popup-card-height, 116px));
-        height: 100%;
-        min-height: 0;
-        max-width: var(--torneos-popup-thumb-width, var(--torneos-popup-card-height, 116px));
+        width: var(--torneos-popup-card-height, 116px);
+        height: var(--torneos-popup-card-height, 116px);
+        min-width: var(--torneos-popup-card-height, 116px);
+        max-width: var(--torneos-popup-card-height, 116px);
+        aspect-ratio: 1 / 1;
         flex-shrink: 0;
-        align-self: stretch;
     }
 
     .torneos-popup-overlay .torneos-popup-no-hoy {
@@ -12740,10 +12747,12 @@ body.page-torneo .torneo-detalle-section {
     }
 
     .torneos-popup-overlay.torneos-popup-expanded .torneos-popup-imagen-wrap {
-        width: 78px;
-        max-width: 78px;
-        height: 100%;
-        align-self: stretch;
+        width: var(--torneos-card-h, 86px);
+        min-width: var(--torneos-card-h, 86px);
+        max-width: var(--torneos-card-h, 86px);
+        height: var(--torneos-card-h, 86px);
+        aspect-ratio: 1 / 1;
+        align-self: center;
         flex-shrink: 0;
         background: rgba(0, 0, 0, 0.2);
         border-left: 1px solid rgba(255, 255, 255, 0.1);

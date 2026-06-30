@@ -81,21 +81,23 @@
     }
 
     function getHeroPopupBoundary() {
-        var hero = document.querySelector('.hero-centro');
-        if (!hero) return null;
-        var refs = [
-            document.querySelector('.hero-title'),
-            document.querySelector('.hero-content'),
-            document.querySelector('.hero-buttons'),
-            hero
+        var selectors = [
+            '.hero-title',
+            '.hero-subtitle',
+            '.hero-buttons',
+            '.hero-content',
+            '.hero-centro'
         ];
-        var boundary = 0;
-        for (var i = 0; i < refs.length; i++) {
-            if (!refs[i]) continue;
-            var r = refs[i].getBoundingClientRect();
-            if (r.width > 0 && r.left > boundary) boundary = r.left;
+        var minLeft = Infinity;
+        for (var i = 0; i < selectors.length; i++) {
+            var el = document.querySelector(selectors[i]);
+            if (!el) continue;
+            var r = el.getBoundingClientRect();
+            if (r.width > 0 && r.height > 0) {
+                minLeft = Math.min(minLeft, r.left);
+            }
         }
-        return boundary || hero.getBoundingClientRect().left;
+        return minLeft === Infinity ? null : minLeft;
     }
 
     function setTorneosMobileSheetOpen(open) {
@@ -116,13 +118,20 @@
         var heroBoundary = getHeroPopupBoundary();
         if (heroBoundary == null) return;
 
-        var gap = 10;
+        var gap = 28;
         var overlayStyle = window.getComputedStyle(overlay);
         var padLeft = parseFloat(overlayStyle.paddingLeft) || 24;
         var padTop = parseFloat(overlayStyle.paddingTop) || 24;
         var padBottom = parseFloat(overlayStyle.paddingBottom) || 24;
-        var popupW = Math.floor(heroBoundary - gap - padLeft);
-        popupW = Math.max(200, popupW);
+        var availableW = Math.floor(heroBoundary - gap - padLeft);
+        if (availableW < 130) {
+            overlay.style.removeProperty('--torneos-popup-max-width');
+            overlay.style.removeProperty('--torneos-popup-card-height');
+            overlay.style.removeProperty('--torneos-popup-thumb-width');
+            overlay.classList.remove('torneos-popup--compact');
+            return;
+        }
+        var popupW = Math.min(400, Math.max(130, availableW));
 
         var cards = overlay.querySelectorAll('.torneos-popup-cards .torneos-popup');
         var cardCount = cards.length || 3;
@@ -134,10 +143,7 @@
         var cardH = Math.floor(cardsArea / cardCount);
         cardH = Math.min(148, Math.max(90, cardH));
 
-        var thumbRatio = popupW < 400 ? 0.32 : 0.28;
-        var thumbW = Math.round(popupW * thumbRatio);
-        var thumbMax = Math.round(cardH * 1.45);
-        thumbW = Math.max(72, Math.min(thumbW, thumbMax));
+        var thumbW = cardH;
 
         var compact = popupW < 440 || window.innerWidth < 1400;
         overlay.classList.toggle('torneos-popup--compact', compact);
@@ -162,11 +168,25 @@
 
         refresh();
         requestAnimationFrame(refresh);
+        setTimeout(refresh, 120);
+        setTimeout(refresh, 400);
+
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(refresh);
+        }
 
         if (!desktopLayoutBound) {
             desktopLayoutBound = true;
             window.addEventListener('resize', refresh, { passive: true });
             window.addEventListener('orientationchange', refresh, { passive: true });
+
+            var heroTitle = document.querySelector('.hero-title');
+            if (heroTitle && typeof ResizeObserver !== 'undefined') {
+                var ro = new ResizeObserver(refresh);
+                ro.observe(heroTitle);
+                var heroCentro = document.querySelector('.hero-centro');
+                if (heroCentro) ro.observe(heroCentro);
+            }
         }
     }
 
