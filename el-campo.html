@@ -58,17 +58,20 @@
         </div>
     </header>
 
-    <div class="pagina-hero-foto" id="campoHero">
+    <div class="pagina-hero-foto pagina-hero-foto--video" id="campoHero">
         <video
             id="campoHeroVideo"
-            class="pagina-hero-foto-video pagina-hero-foto-video--hidden"
+            class="pagina-hero-foto-video"
+            src="/FOTOS/CasaClub.mp4"
+            autoplay
             muted
             loop
             playsinline
-            preload="metadata"
+            webkit-playsinline
+            preload="auto"
             aria-hidden="true"
         ></video>
-        <img src="FOTOS/GolfLermaEstandar.jpg" alt="" class="pagina-hero-foto-img" id="campoHeroImg">
+        <img src="FOTOS/GolfLermaEstandar.jpg" alt="" class="pagina-hero-foto-img pagina-hero-foto-img--hidden" id="campoHeroImg">
         <div class="pagina-hero-foto-overlay"></div>
     </div>
 
@@ -396,71 +399,96 @@
         var tabs = document.querySelectorAll('.campo-tab-btn');
         var panels = document.querySelectorAll('.campo-tab-panel');
         var HERO_VIDEOS = {
-            instalaciones: 'FOTOS/CasaClub.mp4',
-            hoyo13: 'FOTOS/Hoyo13.mp4'
+            instalaciones: '/FOTOS/CasaClub.mp4',
+            hoyo13: '/FOTOS/Hoyo13.mp4'
         };
         var recorridoHeroVideo = null;
+        var campoHeroVideoUnlocked = false;
 
-        function showCampoHeroImage() {
-            var video = document.getElementById('campoHeroVideo');
-            var img = document.getElementById('campoHeroImg');
-            if (!video || !img) return;
-            video.pause();
-            video.classList.add('pagina-hero-foto-video--hidden');
-            img.classList.remove('pagina-hero-foto-img--hidden');
+        function getCampoHeroEls() {
+            return {
+                hero: document.getElementById('campoHero'),
+                video: document.getElementById('campoHeroVideo'),
+                img: document.getElementById('campoHeroImg')
+            };
         }
 
-        function playCampoHeroVideo(src, loop) {
-            var video = document.getElementById('campoHeroVideo');
-            var img = document.getElementById('campoHeroImg');
-            if (!video || !img || !src) return;
+        function revealCampoHeroVideo() {
+            var els = getCampoHeroEls();
+            if (!els.video || !els.img || !els.hero) return;
+            els.img.classList.add('pagina-hero-foto-img--hidden');
+            els.video.classList.remove('pagina-hero-foto-video--hidden');
+            els.hero.classList.add('pagina-hero-foto--video');
+        }
 
+        function showCampoHeroImage() {
+            var els = getCampoHeroEls();
+            if (!els.video || !els.img || !els.hero) return;
+            els.video.pause();
+            els.video.classList.add('pagina-hero-foto-video--hidden');
+            els.img.classList.remove('pagina-hero-foto-img--hidden');
+            els.hero.classList.remove('pagina-hero-foto--video');
+        }
+
+        function tryPlayCampoHeroVideo(video) {
+            if (!video) return;
             video.muted = true;
             video.defaultMuted = true;
+            video.setAttribute('muted', '');
+            var playPromise = video.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+                playPromise.catch(function () {});
+            }
+        }
+
+        function playCampoHeroVideo(src, loop, fromUserGesture) {
+            var els = getCampoHeroEls();
+            var video = els.video;
+            var img = els.img;
+            if (!video || !img || !src) return;
+
+            video.loop = loop !== false;
             video.playsInline = true;
             video.setAttribute('playsinline', '');
-            video.loop = loop !== false;
+            video.setAttribute('webkit-playsinline', '');
 
-            var currentPath = (video.currentSrc || video.src || '').split('/').pop();
-            var nextPath = src.split('/').pop();
-            var needsLoad = currentPath !== nextPath;
+            revealCampoHeroVideo();
 
-            function revealVideo() {
-                img.classList.add('pagina-hero-foto-img--hidden');
-                video.classList.remove('pagina-hero-foto-video--hidden');
-            }
+            var currentSrc = video.currentSrc || video.getAttribute('src') || video.src || '';
+            var needsLoad = currentSrc.indexOf(src) === -1;
 
-            function attemptPlay() {
-                var playPromise = video.play();
-                if (playPromise && typeof playPromise.then === 'function') {
-                    playPromise.then(revealVideo).catch(function () {
-                        showCampoHeroImage();
-                    });
-                } else {
-                    revealVideo();
-                }
+            if (fromUserGesture) {
+                campoHeroVideoUnlocked = true;
             }
 
             if (needsLoad) {
                 video.src = src;
                 video.load();
-                if (video.readyState >= 2) {
-                    attemptPlay();
-                    return;
-                }
-                video.addEventListener('canplay', function onCanPlay() {
-                    video.removeEventListener('canplay', onCanPlay);
-                    attemptPlay();
-                }, { once: true });
-                video.addEventListener('error', function onVideoError() {
-                    video.removeEventListener('error', onVideoError);
-                    showCampoHeroImage();
-                }, { once: true });
-                return;
             }
 
-            attemptPlay();
+            tryPlayCampoHeroVideo(video);
+
+            if (needsLoad) {
+                video.addEventListener('loadeddata', function onLoadedData() {
+                    video.removeEventListener('loadeddata', onLoadedData);
+                    tryPlayCampoHeroVideo(video);
+                }, { once: true });
+            }
         }
+
+        function unlockCampoHeroVideo() {
+            if (campoHeroVideoUnlocked) return;
+            campoHeroVideoUnlocked = true;
+            var instalacionesTab = document.getElementById('tab-instalaciones');
+            var recorridoTab = document.getElementById('tab-recorrido');
+            if (instalacionesTab && instalacionesTab.getAttribute('aria-selected') === 'true') {
+                playCampoHeroVideo(HERO_VIDEOS.instalaciones, true, true);
+            } else if (recorridoTab && recorridoTab.getAttribute('aria-selected') === 'true' && recorridoHeroVideo === 'hoyo13') {
+                playCampoHeroVideo(HERO_VIDEOS.hoyo13, true, true);
+            }
+        }
+
+        document.addEventListener('pointerdown', unlockCampoHeroVideo, { once: true, passive: true });
 
         function syncCampoHeroMedia(panelId) {
             if (panelId === 'panel-instalaciones') {
@@ -468,11 +496,11 @@
                 document.querySelectorAll('.recorrido-hoyo-card--activo').forEach(function (c) {
                     c.classList.remove('recorrido-hoyo-card--activo');
                 });
-                playCampoHeroVideo(HERO_VIDEOS.instalaciones, true);
+                playCampoHeroVideo(HERO_VIDEOS.instalaciones, true, false);
                 return;
             }
             if (panelId === 'panel-recorrido' && recorridoHeroVideo === 'hoyo13') {
-                playCampoHeroVideo(HERO_VIDEOS.hoyo13, true);
+                playCampoHeroVideo(HERO_VIDEOS.hoyo13, true, false);
                 return;
             }
             if (panelId !== 'panel-recorrido') {
@@ -493,9 +521,11 @@
             if (card) card.classList.add('recorrido-hoyo-card--activo');
             var recorridoTab = document.getElementById('tab-recorrido');
             if (recorridoTab && recorridoTab.getAttribute('aria-selected') !== 'true') {
-                activarTabCampo(recorridoTab);
+                campoHeroVideoUnlocked = true;
+                activarTabCampo(recorridoTab, true);
+                playCampoHeroVideo(HERO_VIDEOS.hoyo13, true, true);
             } else {
-                playCampoHeroVideo(HERO_VIDEOS.hoyo13, true);
+                playCampoHeroVideo(HERO_VIDEOS.hoyo13, true, true);
             }
             var hero = document.getElementById('campoHero');
             if (hero && hero.scrollIntoView) {
@@ -505,7 +535,7 @@
             }
         }
 
-        function activarTabCampo(btn) {
+        function activarTabCampo(btn, fromUserGesture) {
             if (!btn) return;
             var targetId = btn.getAttribute('aria-controls');
             tabs.forEach(function (b) { b.classList.remove('activo'); b.setAttribute('aria-selected', 'false'); });
@@ -517,10 +547,16 @@
                 panel.classList.add('activo');
                 panel.removeAttribute('hidden');
             }
+            if (fromUserGesture) {
+                campoHeroVideoUnlocked = true;
+            }
             syncCampoHeroMedia(targetId);
+            if (fromUserGesture && targetId === 'panel-instalaciones') {
+                playCampoHeroVideo(HERO_VIDEOS.instalaciones, true, true);
+            }
         }
         tabs.forEach(function (btn) {
-            btn.addEventListener('click', function () { activarTabCampo(btn); });
+            btn.addEventListener('click', function () { activarTabCampo(btn, true); });
         });
         (function abrirTabSegunHash() {
             var h = (location.hash || '').replace(/^#/, '');
@@ -530,6 +566,7 @@
                 return;
             }
             syncCampoHeroMedia('panel-instalaciones');
+            tryPlayCampoHeroVideo(document.getElementById('campoHeroVideo'));
         })();
 
         // Lightbox: clic en foto del hoyo para ampliar (PC y móvil); hoyo 13 abre vídeo en hero
