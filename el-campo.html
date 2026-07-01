@@ -381,11 +381,19 @@
         </div>
     </footer>
 
-    <!-- Lightbox foto del hoyo -->
+    <!-- Lightbox foto / vídeo del hoyo -->
     <div id="recorrido-lightbox" class="recorrido-lightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Foto del hoyo ampliada">
         <button type="button" class="recorrido-lightbox-cerrar" aria-label="Cerrar">&times;</button>
         <div class="recorrido-lightbox-inner">
             <img src="" alt="" class="recorrido-lightbox-img">
+            <video
+                class="recorrido-lightbox-video"
+                playsinline
+                webkit-playsinline
+                controls
+                loop
+                preload="metadata"
+            ></video>
         </div>
     </div>
 
@@ -399,10 +407,8 @@
         var tabs = document.querySelectorAll('.campo-tab-btn');
         var panels = document.querySelectorAll('.campo-tab-panel');
         var HERO_VIDEOS = {
-            instalaciones: '/FOTOS/CasaClub.mp4',
-            hoyo13: '/FOTOS/Hoyo13.mp4'
+            instalaciones: '/FOTOS/CasaClub.mp4'
         };
-        var recorridoHeroVideo = null;
         var campoHeroVideoUnlocked = false;
 
         function getCampoHeroEls() {
@@ -480,11 +486,8 @@
             if (campoHeroVideoUnlocked) return;
             campoHeroVideoUnlocked = true;
             var instalacionesTab = document.getElementById('tab-instalaciones');
-            var recorridoTab = document.getElementById('tab-recorrido');
             if (instalacionesTab && instalacionesTab.getAttribute('aria-selected') === 'true') {
                 playCampoHeroVideo(HERO_VIDEOS.instalaciones, true, true);
-            } else if (recorridoTab && recorridoTab.getAttribute('aria-selected') === 'true' && recorridoHeroVideo === 'hoyo13') {
-                playCampoHeroVideo(HERO_VIDEOS.hoyo13, true, true);
             }
         }
 
@@ -492,47 +495,10 @@
 
         function syncCampoHeroMedia(panelId) {
             if (panelId === 'panel-instalaciones') {
-                recorridoHeroVideo = null;
-                document.querySelectorAll('.recorrido-hoyo-card--activo').forEach(function (c) {
-                    c.classList.remove('recorrido-hoyo-card--activo');
-                });
                 playCampoHeroVideo(HERO_VIDEOS.instalaciones, true, false);
                 return;
             }
-            if (panelId === 'panel-recorrido' && recorridoHeroVideo === 'hoyo13') {
-                playCampoHeroVideo(HERO_VIDEOS.hoyo13, true, false);
-                return;
-            }
-            if (panelId !== 'panel-recorrido') {
-                recorridoHeroVideo = null;
-                document.querySelectorAll('.recorrido-hoyo-card--activo').forEach(function (c) {
-                    c.classList.remove('recorrido-hoyo-card--activo');
-                });
-            }
             showCampoHeroImage();
-        }
-
-        function activarHoyo13Hero() {
-            recorridoHeroVideo = 'hoyo13';
-            document.querySelectorAll('.recorrido-hoyo-card--activo').forEach(function (c) {
-                c.classList.remove('recorrido-hoyo-card--activo');
-            });
-            var card = document.querySelector('.recorrido-hoyo-card[data-hoyo="13"]');
-            if (card) card.classList.add('recorrido-hoyo-card--activo');
-            var recorridoTab = document.getElementById('tab-recorrido');
-            if (recorridoTab && recorridoTab.getAttribute('aria-selected') !== 'true') {
-                campoHeroVideoUnlocked = true;
-                activarTabCampo(recorridoTab, true);
-                playCampoHeroVideo(HERO_VIDEOS.hoyo13, true, true);
-            } else {
-                playCampoHeroVideo(HERO_VIDEOS.hoyo13, true, true);
-            }
-            var hero = document.getElementById('campoHero');
-            if (hero && hero.scrollIntoView) {
-                hero.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } else {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
         }
 
         function activarTabCampo(btn, fromUserGesture) {
@@ -569,39 +535,75 @@
             tryPlayCampoHeroVideo(document.getElementById('campoHeroVideo'));
         })();
 
-        // Lightbox: clic en foto del hoyo para ampliar (PC y móvil); hoyo 13 abre vídeo en hero
+        // Lightbox: clic en foto del hoyo para ampliar; hoyo 13 abre vídeo en popup
         (function () {
             var lightbox = document.getElementById('recorrido-lightbox');
             var lightboxImg = lightbox && lightbox.querySelector('.recorrido-lightbox-img');
+            var lightboxVideo = lightbox && lightbox.querySelector('.recorrido-lightbox-video');
             var btnCerrar = lightbox && lightbox.querySelector('.recorrido-lightbox-cerrar');
             var holeImgs = document.querySelectorAll('.recorrido-hoyo-card img');
             var hoyo13Card = document.querySelector('.recorrido-hoyo-card[data-hoyo="13"]');
+            var HOYO13_VIDEO = '/FOTOS/Hoyo13.mp4';
 
             function abrirLightbox(src, alt) {
-                if (!lightbox || !lightboxImg) return;
+                if (!lightbox || !lightboxImg || !lightboxVideo) return;
+                lightboxVideo.pause();
+                lightboxVideo.removeAttribute('src');
+                lightboxVideo.classList.remove('recorrido-lightbox-video--visible');
                 lightboxImg.src = src;
                 lightboxImg.alt = alt || 'Foto del hoyo';
+                lightboxImg.classList.add('recorrido-lightbox-img--visible');
+                lightbox.classList.remove('recorrido-lightbox--video');
+                lightbox.setAttribute('aria-label', 'Foto del hoyo ampliada');
                 lightbox.classList.add('activo');
                 lightbox.setAttribute('aria-hidden', 'false');
                 document.body.style.overflow = 'hidden';
             }
 
+            function abrirLightboxVideo(src, alt) {
+                if (!lightbox || !lightboxImg || !lightboxVideo) return;
+                lightboxImg.classList.remove('recorrido-lightbox-img--visible');
+                lightboxImg.removeAttribute('src');
+                lightboxVideo.src = src;
+                lightboxVideo.classList.add('recorrido-lightbox-video--visible');
+                lightbox.classList.add('recorrido-lightbox--video');
+                lightbox.setAttribute('aria-label', alt || 'Vídeo del hoyo');
+                lightbox.classList.add('activo');
+                lightbox.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+                lightboxVideo.load();
+                var playPromise = lightboxVideo.play();
+                if (playPromise && typeof playPromise.catch === 'function') {
+                    playPromise.catch(function () {});
+                }
+            }
+
             function cerrarLightbox() {
                 if (!lightbox) return;
-                lightbox.classList.remove('activo');
+                if (lightboxVideo) {
+                    lightboxVideo.pause();
+                    lightboxVideo.removeAttribute('src');
+                    lightboxVideo.classList.remove('recorrido-lightbox-video--visible');
+                }
+                if (lightboxImg) {
+                    lightboxImg.classList.remove('recorrido-lightbox-img--visible');
+                    lightboxImg.removeAttribute('src');
+                }
+                lightbox.classList.remove('activo', 'recorrido-lightbox--video');
                 lightbox.setAttribute('aria-hidden', 'true');
+                lightbox.setAttribute('aria-label', 'Foto del hoyo ampliada');
                 document.body.style.overflow = '';
             }
 
             if (hoyo13Card) {
                 hoyo13Card.addEventListener('click', function (e) {
                     e.preventDefault();
-                    activarHoyo13Hero();
+                    abrirLightboxVideo(HOYO13_VIDEO, 'Vídeo del hoyo 13');
                 });
                 hoyo13Card.addEventListener('keydown', function (e) {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        activarHoyo13Hero();
+                        abrirLightboxVideo(HOYO13_VIDEO, 'Vídeo del hoyo 13');
                     }
                 });
             }

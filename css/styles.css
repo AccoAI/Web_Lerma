@@ -899,10 +899,11 @@ body.fondo-golf-lerma-estandar {
 
 .pagina-hero-foto--video .pagina-hero-foto-video {
     opacity: 1;
+    object-position: center 72%;
 }
 
 .pagina-hero-foto--video .pagina-hero-foto-overlay {
-    opacity: 0.55;
+    background: linear-gradient(to bottom, rgba(15, 51, 36, 0.1), rgba(26, 77, 58, 0.22));
 }
 
 .pagina-hero-foto-video--hidden {
@@ -930,7 +931,8 @@ body.fondo-golf-lerma-estandar .el-campo {
 }
 
 body.fondo-golf-lerma-estandar .pagina-hero-foto--video + .el-campo {
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.55) 110px, rgba(255, 255, 255, 0.92) 220px);
+    margin-top: -260px !important;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.22) 100px, rgba(255, 255, 255, 0.72) 210px, var(--color-white) 300px);
 }
 
 body.fondo-golf-lerma-estandar .paquete-detalle .section-title,
@@ -962,6 +964,9 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     body.fondo-golf-lerma-estandar .paquete-detalle,
     body.fondo-golf-lerma-estandar .el-campo {
         margin-top: -320px !important;
+    }
+    body.fondo-golf-lerma-estandar .pagina-hero-foto--video + .el-campo {
+        margin-top: -200px !important;
     }
     body.fondo-golf-lerma-estandar .area-socio-login.area-socio-con-hero,
     body.fondo-golf-lerma-estandar .area-socio-dashboard.area-socio-con-hero {
@@ -8399,12 +8404,37 @@ a.btn-restaurante-paquete-reservar--secondary:hover {
 }
 
 .recorrido-lightbox-img {
+    display: none;
     max-width: 100%;
     max-height: calc(100vh - 4rem);
     width: auto;
     height: auto;
     object-fit: contain;
     pointer-events: auto;
+}
+
+.recorrido-lightbox-img--visible {
+    display: block;
+}
+
+.recorrido-lightbox-video {
+    display: none;
+    max-width: min(100%, 1100px);
+    max-height: calc(100vh - 4rem);
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    background: #000;
+    border-radius: 4px;
+    pointer-events: auto;
+}
+
+.recorrido-lightbox-video--visible {
+    display: block;
+}
+
+.recorrido-lightbox--video .recorrido-lightbox-inner {
+    width: min(100%, 1100px);
 }
 
 .recorrido-lightbox-cerrar {
