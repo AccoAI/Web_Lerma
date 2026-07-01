@@ -76,7 +76,7 @@
     </div>
 
     <!-- El Campo -->
-    <section id="campo" class="el-campo" style="margin-top: 0; padding-top: calc(var(--header-height) + 1.5rem);">
+    <section id="campo" class="el-campo el-campo--hero-video" style="margin-top: 0; padding-top: calc(var(--header-height) + 1.5rem);">
         <div class="container">
             <h2 class="section-title" data-i18n="el_campo_title">El Campo</h2>
             
@@ -421,19 +421,23 @@
 
         function revealCampoHeroVideo() {
             var els = getCampoHeroEls();
+            var campo = document.getElementById('campo');
             if (!els.video || !els.img || !els.hero) return;
             els.img.classList.add('pagina-hero-foto-img--hidden');
             els.video.classList.remove('pagina-hero-foto-video--hidden');
             els.hero.classList.add('pagina-hero-foto--video');
+            if (campo) campo.classList.add('el-campo--hero-video');
         }
 
         function showCampoHeroImage() {
             var els = getCampoHeroEls();
+            var campo = document.getElementById('campo');
             if (!els.video || !els.img || !els.hero) return;
             els.video.pause();
             els.video.classList.add('pagina-hero-foto-video--hidden');
             els.img.classList.remove('pagina-hero-foto-img--hidden');
             els.hero.classList.remove('pagina-hero-foto--video');
+            if (campo) campo.classList.remove('el-campo--hero-video');
         }
 
         function tryPlayCampoHeroVideo(video) {

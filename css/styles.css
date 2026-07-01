@@ -865,7 +865,7 @@ body.fondo-golf-lerma-estandar {
     width: 100%;
     height: 420px;
     overflow: hidden;
-    z-index: 1;
+    z-index: 0;
 }
 
 .pagina-hero-foto-img {
@@ -930,9 +930,68 @@ body.fondo-golf-lerma-estandar .el-campo {
     background: linear-gradient(to bottom, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.78) 90px, var(--color-white) 200px);
 }
 
-body.fondo-golf-lerma-estandar .pagina-hero-foto--video + .el-campo {
-    margin-top: -260px !important;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.22) 100px, rgba(255, 255, 255, 0.72) 210px, var(--color-white) 300px);
+body.fondo-golf-lerma-estandar .pagina-hero-foto--video + .el-campo,
+body.fondo-golf-lerma-estandar .el-campo.el-campo--hero-video {
+    margin-top: -420px !important;
+    background: transparent !important;
+    z-index: 1;
+}
+
+body.fondo-golf-lerma-estandar .el-campo.el-campo--hero-video .section-title {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 1.75rem;
+    text-shadow: 0 2px 12px rgba(255, 255, 255, 0.95), 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+body.fondo-golf-lerma-estandar .el-campo.el-campo--hero-video .campo-tabs {
+    position: relative;
+    z-index: 2;
+    margin-top: 0.5rem;
+    margin-bottom: 2.5rem;
+    padding-top: 0.75rem;
+    border-bottom-color: var(--color-bg-light);
+    isolation: isolate;
+}
+
+body.fondo-golf-lerma-estandar .el-campo.el-campo--hero-video .campo-tabs::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 100vw;
+    transform: translateX(-50%);
+    background: var(--color-white);
+    z-index: -1;
+    box-shadow: 0 -8px 24px rgba(255, 255, 255, 0.85);
+}
+
+body.fondo-golf-lerma-estandar .el-campo.el-campo--hero-video .campo-tab-panel {
+    position: relative;
+    z-index: 2;
+    background: var(--color-white);
+    isolation: isolate;
+}
+
+body.fondo-golf-lerma-estandar .el-campo.el-campo--hero-video .campo-tab-panel::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 100vw;
+    transform: translateX(-50%);
+    background: var(--color-white);
+    z-index: -1;
+}
+
+body.fondo-golf-lerma-estandar .el-campo.el-campo--hero-video .campo-tab-btn {
+    background: var(--color-white);
+}
+
+body.fondo-golf-lerma-estandar .el-campo.el-campo--hero-video .campo-tab-btn.activo {
+    background: var(--color-white);
 }
 
 body.fondo-golf-lerma-estandar .paquete-detalle .section-title,
@@ -965,8 +1024,9 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     body.fondo-golf-lerma-estandar .el-campo {
         margin-top: -320px !important;
     }
-    body.fondo-golf-lerma-estandar .pagina-hero-foto--video + .el-campo {
-        margin-top: -200px !important;
+    body.fondo-golf-lerma-estandar .pagina-hero-foto--video + .el-campo,
+    body.fondo-golf-lerma-estandar .el-campo.el-campo--hero-video {
+        margin-top: -320px !important;
     }
     body.fondo-golf-lerma-estandar .area-socio-login.area-socio-con-hero,
     body.fondo-golf-lerma-estandar .area-socio-dashboard.area-socio-con-hero {
