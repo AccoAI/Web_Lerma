@@ -45,6 +45,7 @@ export async function POST(request) {
       hotelbedsVoucher,
       tripDates,
       embedContext,
+      fiscalBreakdown,
     } = body;
 
     if (!amountCents || amountCents < 50) {
@@ -101,6 +102,31 @@ export async function POST(request) {
     }
 
     const baseUrl = resolvePublicBaseUrl(request);
+
+    const fiscalMeta = {};
+    if (fiscalBreakdown && typeof fiscalBreakdown === 'object') {
+      let g = Math.max(0, parseInt(fiscalBreakdown.golfCents, 10) || 0);
+      let c = Math.max(0, parseInt(fiscalBreakdown.comidaCents, 10) || 0);
+      let h = Math.max(0, parseInt(fiscalBreakdown.hotelCents, 10) || 0);
+      // Pago por persona: cada enlace factura solo su parte proporcional
+      if (modoPago === 'por_persona' && numPart > 1) {
+        g = Math.round(g / numPart);
+        c = Math.round(c / numPart);
+        h = Math.round(h / numPart);
+        const sum = g + c + h;
+        const drift = unitAmountCents - sum;
+        if (drift !== 0) {
+          if (g > 0) g += drift;
+          else if (c > 0) c += drift;
+          else h += drift;
+        }
+      }
+      if (g + c + h > 0) {
+        fiscalMeta.inv_golf_cents = String(Math.max(0, g));
+        fiscalMeta.inv_comida_cents = String(Math.max(0, c));
+        fiscalMeta.inv_hotel_cents = String(Math.max(0, h));
+      }
+    }
 
     /** Tras el pago → confirmación con extras (coche, restaurantes, bono HB). */
     const afterCompletion = baseUrl
@@ -161,7 +187,8 @@ export async function POST(request) {
                 ? { pkg_holder_email: String(embedContext.holderEmail).slice(0, 120) }
                 : {}),
             }
-          : {}),
+            : {}),
+        ...fiscalMeta,
         ...hbMeta,
       },
     });

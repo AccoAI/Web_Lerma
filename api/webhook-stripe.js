@@ -32,6 +32,7 @@ import {
   buildTravelLogisticsPlainText,
 } from '../lib/travel-affiliates-html.js';
 import { confirmacionReservaUrl } from '../lib/site-base-url.js';
+import { buildAllInvoicesFromMeta } from '../lib/invoice-html.js';
 
 function loadLocalWebhookSecret() {
   if (process.env.STRIPE_WEBHOOK_SECRET_LOCAL) return process.env.STRIPE_WEBHOOK_SECRET_LOCAL;
@@ -211,6 +212,30 @@ export async function POST(request) {
     textConfirmacion += `\n\nPágina de confirmación (coche, restaurantes, bono):\n${confirmUrl}\n`;
   }
 
+  const invoices = buildAllInvoicesFromMeta({
+    golfCents: metadata.inv_golf_cents,
+    comidaCents: metadata.inv_comida_cents,
+    hotelCents: metadata.inv_hotel_cents,
+    sessionId: session.id,
+    customerName:
+      (session.customer_details && session.customer_details.name) ||
+      metadata.pkg_holder_name ||
+      '',
+    customerEmail,
+    packageName: nombreProducto,
+    paidAtIso: session.created
+      ? new Date(session.created * 1000).toISOString()
+      : new Date().toISOString(),
+  });
+  if (invoices.html) {
+    htmlConfirmacion +=
+      `<hr style="margin: 28px 0; border: none; border-top: 1px solid #ccc;" />` +
+      `<h2 style="font-family:system-ui,sans-serif;font-size:18px;">Facturas del paquete</h2>` +
+      `<p style="font-family:system-ui,sans-serif;font-size:13px;color:#444;">Un solo cobro realizado por Club de Golf Lerma SA. A continuación, el desglose en facturas por emisor e IVA.</p>` +
+      invoices.html;
+    textConfirmacion += `\n\n--- FACTURAS ---\n` + invoices.text;
+  }
+
   // 1) Correo al cliente (destinatario dinámico: quien pagó)
   if (customerEmail) {
     await sendEmail({
@@ -243,6 +268,12 @@ export async function POST(request) {
         `<hr style="margin: 28px 0; border: none; border-top: 1px solid #ccc;" />` +
         buildHotelbedsVoucherHtml(voucherData);
       textClub += `\n\n---\n\n` + buildHotelbedsVoucherPlainText(voucherData);
+    }
+    if (invoices.html) {
+      htmlClub +=
+        `<hr style="margin: 28px 0; border: none; border-top: 1px solid #ccc;" />` +
+        invoices.html;
+      textClub += `\n\n--- FACTURAS ---\n` + invoices.text;
     }
     await sendEmail({
       to: emailCopiaClub,

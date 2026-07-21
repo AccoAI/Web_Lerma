@@ -2540,14 +2540,55 @@ function initConfiguradorPaquete() {
             if (numParticipants > 1) {
                 resumenHTML += '<tr class="resumen-por-persona"><td>Por persona</td><td>' + formatEurosResumen(subtotal / numParticipants) + '\u00a0€</td></tr>';
             }
+
+            // Desglose fiscal (un cobro → 3 facturas): golf/resto 0%, comida 21%, hotel 10%
+            var golfGrossBefore = roundEuros(gfEnBase + ancVal + tiendaVal + campeonatoExtrasVal);
+            var comidaGrossBefore = roundEuros(comidaEnBase);
+            var hotelGrossBefore = roundEuros(aloj);
+            var sumBuckets = golfGrossBefore + comidaGrossBefore + hotelGrossBefore;
+            var fiscalGolf = 0;
+            var fiscalComida = 0;
+            var fiscalHotel = 0;
+            if (sumBuckets > 0 && subtotal > 0) {
+                fiscalGolf = roundEuros((golfGrossBefore / sumBuckets) * subtotal);
+                fiscalComida = roundEuros((comidaGrossBefore / sumBuckets) * subtotal);
+                fiscalHotel = roundEuros(subtotal - fiscalGolf - fiscalComida);
+                if (fiscalHotel < 0) {
+                    fiscalGolf = roundEuros(fiscalGolf + fiscalHotel);
+                    fiscalHotel = 0;
+                }
+            }
+            window.__PACKAGE_FISCAL__ = {
+                golfEuros: fiscalGolf,
+                comidaEuros: fiscalComida,
+                hotelEuros: fiscalHotel,
+                totalEuros: subtotal,
+                ivaGolfPct: 0,
+                ivaComidaPct: 21,
+                ivaHotelPct: 10,
+            };
+            if (fiscalGolf > 0 || fiscalComida > 0 || fiscalHotel > 0) {
+                resumenHTML += '<tr class="resumen-fiscal-head"><td colspan="2" style="padding-top:10px;"><strong>Desglose para facturación</strong></td></tr>';
+                if (fiscalGolf > 0) {
+                    resumenHTML += '<tr class="resumen-fiscal"><td>Club Golf Lerma (IVA 0%)</td><td>' + formatEurosResumen(fiscalGolf) + '\u00a0€</td></tr>';
+                }
+                if (fiscalComida > 0) {
+                    resumenHTML += '<tr class="resumen-fiscal"><td>LALIATM · comida (IVA 21%)</td><td>' + formatEurosResumen(fiscalComida) + '\u00a0€</td></tr>';
+                }
+                if (fiscalHotel > 0) {
+                    resumenHTML += '<tr class="resumen-fiscal"><td>Hotel (IVA 10%)</td><td>' + formatEurosResumen(fiscalHotel) + '\u00a0€</td></tr>';
+                }
+            }
+
             resumenHTML += '</table>';
             if (typeof window.getHbTariffDebugResumenHtml === 'function') {
                 resumenHTML += window.getHbTariffDebugResumenHtml(form);
             }
-            resumenHTML += '<p class="resumen-subtotal-nota">Descuento por pack aplicado.' + (clubId ? ' Tarifa correspondencia aplicada según día de la semana.' : '') + ' Forma de pago: ' + (formaPago === 'por_persona' ? 'por persona (enlaces individuales).' : 'único.') + '</p></div>';
+            resumenHTML += '<p class="resumen-subtotal-nota">Descuento por pack aplicado.' + (clubId ? ' Tarifa correspondencia aplicada según día de la semana.' : '') + ' Forma de pago: ' + (formaPago === 'por_persona' ? 'por persona (enlaces individuales).' : 'único.') + ' Un solo cobro; tras el pago se emiten facturas por emisor/IVA.</p></div>';
 
             resumenDiv.innerHTML = resumenHTML;
         } else {
+            window.__PACKAGE_FISCAL__ = null;
             resumenDiv.innerHTML = '<p>' + (window.i18n && window.i18n.t ? window.i18n.t('resumen_completa') : 'Completa las opciones para ver el resumen') + '</p>';
         }
     }

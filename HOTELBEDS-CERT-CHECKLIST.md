@@ -1,8 +1,10 @@
 # Hotelbeds — Checklist de certificación (re-certificación)
 
-Última actualización: **2026-06-18**. Referencia oficial: [Certification process](https://developer.hotelbeds.com/documentation/hotels/knowledge-base/certification-process/) · [mTLS](https://developer.hotelbeds.com/documentation/hotels/knowledge-base/mutual-authentication/).
+Última actualización: **2026-07-20**. Referencia oficial: [Certification process](https://developer.hotelbeds.com/documentation/hotels/knowledge-base/certification-process/) · [mTLS](https://developer.hotelbeds.com/documentation/hotels/knowledge-base/mutual-authentication/).
 
 **URL base certificación:** `https://web-lerma.vercel.app`
+
+**mTLS (verificado 2026-07-20):** `GET /api/hotelbeds-availability?diagnostic=1` → `mtlsConfigured: true`, host `api-mtls.test.hotelbeds.com`. Status connectivity OK.
 
 ---
 
@@ -10,18 +12,18 @@
 
 | # | Requisito | Estado | Notas / archivos |
 |---|-----------|--------|------------------|
-| 1 | Cancelación desde CheckRate / confirmación | **Hecho (parcial)** | `cancellationFromRate`, `renderFunnelLegalBlocksHtml`, `enrichVoucherFromCheckrate`, `cancellationSummaryFromBooking` |
-| 2 | Rate comments en todo el flujo | **Hecho (parcial)** | Siempre en funnel y tarjetas; voucher + metadata Stripe |
-| 3 | Facilidades con coste adicional | **Hecho (parcial)** | `facilitiesWithCharge` en tarjetas y funnel (Content API) |
-| 4 | Teléfono del hotel en voucher | **Hecho (parcial)** | Booking + CheckRate + Content API (`enrichVoucherFromContent`) |
-| 5 | Especificar filtros implementados | **Hecho (doc)** | Sección «Filtros actuales» en este archivo |
-| 6 | Uso obligatorio de RSP | **Hecho** | `rateRspAmount` / `sellingRate` en UI y voucher (`sellingPrice`) |
-| 7 | Dirección completa en voucher | **Hecho (parcial)** | Booking + CheckRate + Content API; validar en test real |
-| 8 | Edades de niños en voucher | **Hecho (parcial)** | Contador niños + edades en funnel → booking paxes |
-| 9 | Impuestos excluidos por subtipo en voucher | **Hecho** | `excludedTaxesFromRate`, sección voucher, `hb_excluded_taxes` |
-| 10 | Precio/cancel/comments desde CheckRate | **Hecho (parcial)** | CheckRate obligatorio pre-booking; snapshot → `enrichVoucherFromCheckrate` |
-| 11 | Mapeo ≥90% producto distribuible | **Hecho (dinámico)** | Content API BRG paginado → `__HB_COVERAGE_CODES__` al final; UI solo preferentes (`displayMaxHotels: 3`) |
-| 12 | mTLS en todo el flujo | **Hecho (parcial)** | Hotel API + Content API vía `hotelbedsFetch`; **configurar cert en Vercel** |
+| 1 | Cancelación desde CheckRate / confirmación | **Hecho** | Funnel + voucher desde CheckRate / Booking |
+| 2 | Rate comments en todo el flujo | **Hecho** | Tarjetas, funnel y voucher |
+| 3 | Facilidades con coste adicional | **Hecho** | `facilitiesWithCharge` (Content API) en UI |
+| 4 | Teléfono del hotel en voucher | **Hecho** | Booking / CheckRate / Content API |
+| 5 | Especificar filtros implementados | **Hecho (doc)** | Sección «Filtros actuales» + borrador email |
+| 6 | Uso obligatorio de RSP | **Hecho** | `sellingRate` en UI y voucher |
+| 7 | Dirección completa en voucher | **Hecho** | Booking / CheckRate / Content API |
+| 8 | Edades de niños en voucher | **Hecho** | Funnel → paxes → voucher |
+| 9 | Impuestos excluidos por subtipo en voucher | **Hecho** | Sección voucher + metadata Stripe |
+| 10 | Precio/cancel/comments desde CheckRate | **Hecho** | CheckRate obligatorio pre-booking |
+| 11 | Mapeo ≥90% producto distribuible | **Hecho (dinámico)** | Content API BRG completo; UI preferentes (`displayMaxHotels: 3`) |
+| 12 | mTLS en todo el flujo | **Hecho** | Hotel API + Content API; cert en portal + Vercel |
 
 ---
 
@@ -29,8 +31,8 @@
 
 - [x] **UI niños:** contador + edades en funnel → `hb_children_ages` / booking paxes
 - [x] **Content fallback:** teléfono/dirección (`lib/hotelbeds-content-contact.js`)
-- [ ] **Vercel:** `HOTELBEDS_MTLS_CERT` + `HOTELBEDS_MTLS_KEY` (PEM con `\n`)
-- [ ] **Prueba E2E:** availability → CheckRate → booking → voucher email con todos los campos
+- [x] **Vercel:** `HOTELBEDS_MTLS_CERT` + `HOTELBEDS_MTLS_KEY` (verificado diagnostic 2026-07-20)
+- [ ] **Prueba E2E:** availability → CheckRate → booking → voucher email con todos los campos (recomendado antes/durante revisión HB)
 - [ ] **Actualizar** `HOTELBEDS-CERTIFICATION.md` (borradores email desactualizados)
 
 ---

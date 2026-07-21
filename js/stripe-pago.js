@@ -338,6 +338,27 @@
           numParticipantes: numParticipantes,
           paquete: paquete,
         };
+        var fiscal = window.__PACKAGE_FISCAL__;
+        if (fiscal && typeof fiscal === 'object') {
+          var gC = Math.round(Number(fiscal.golfEuros || 0) * 100);
+          var cC = Math.round(Number(fiscal.comidaEuros || 0) * 100);
+          var hC = Math.round(Number(fiscal.hotelEuros || 0) * 100);
+          var sumF = gC + cC + hC;
+          if (sumF > 0) {
+            // Ajuste a céntimo para cuadrar con el cobro Stripe
+            var drift = amountCents - sumF;
+            if (drift !== 0) {
+              if (gC > 0) gC += drift;
+              else if (cC > 0) cC += drift;
+              else hC += drift;
+            }
+            body.fiscalBreakdown = {
+              golfCents: Math.max(0, gC),
+              comidaCents: Math.max(0, cC),
+              hotelCents: Math.max(0, hC),
+            };
+          }
+        }
         if (options.tituloTorneo) body.tituloTorneo = options.tituloTorneo;
         if (options.nombrePaquete) body.nombrePaquete = options.nombrePaquete;
         if (hotelbedsVoucher && typeof hotelbedsVoucher === 'object') {
