@@ -86,7 +86,11 @@ async function fetchFromContent(apiKey, secret, dest, country, from, to, lang, b
       'X-Signature': getSignature(apiKey, secret),
     },
   });
-  const data = await res.json().catch(() => ({}));
+  const data = await res.json().catch((err) => {
+    throw new Error(
+      'Content API JSON inválido: ' + (err && err.message ? err.message : String(err))
+    );
+  });
   if (!res.ok) throw new Error(data.error?.message || JSON.stringify(data));
   const hotels = Array.isArray(data.hotels) ? data.hotels : [];
   const getStr = (v) => (typeof v === 'string' ? v : (v && v.content) ? v.content : '');
