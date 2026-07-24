@@ -11,7 +11,7 @@
 import { createHash } from 'crypto';
 import { mapContentHotelForUi } from '../lib/hotelbeds-enriched-content.js';
 import { loadFacilityTypeDescriptionMap } from '../lib/hotelbeds-facility-types.js';
-import { hotelbedsBaseUrl, hotelbedsFetch } from '../lib/hotelbeds-mtls.js';
+import { hotelbedsBaseUrl, hotelbedsContentBaseUrl, hotelbedsFetch } from '../lib/hotelbeds-mtls.js';
 
 function getSignature(apiKey, secret) {
   const ts = Math.floor(Date.now() / 1000);
@@ -78,7 +78,7 @@ async function fetchFromContent(apiKey, secret, dest, country, from, to, lang, b
     fields: 'all',
     language: lang,
   });
-  const res = await hotelbedsFetch(`${baseUrl}/hotel-content-api/1.0/hotels?${params}`, {
+  const res = await hotelbedsFetch(`${hotelbedsContentBaseUrl()}/hotel-content-api/1.0/hotels?${params}`, {
     method: 'GET',
     headers: {
       'Accept': 'application/json',
@@ -97,7 +97,12 @@ async function fetchFromContent(apiKey, secret, dest, country, from, to, lang, b
   if (enrich) {
     let facilityMap = null;
     try {
-      facilityMap = await loadFacilityTypeDescriptionMap(apiKey, secret, baseUrl, lang);
+      facilityMap = await loadFacilityTypeDescriptionMap(
+        apiKey,
+        secret,
+        hotelbedsContentBaseUrl(),
+        lang
+      );
     } catch {
       facilityMap = null;
     }
