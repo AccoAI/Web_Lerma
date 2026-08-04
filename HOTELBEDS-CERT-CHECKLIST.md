@@ -20,10 +20,20 @@
 | 6 | Uso obligatorio de RSP | **Hecho** | `sellingRate` en UI y voucher |
 | 7 | Dirección completa en voucher | **Hecho** | Booking / CheckRate / Content API |
 | 8 | Edades de niños en voucher | **Hecho** | Funnel → paxes → voucher |
-| 9 | Impuestos excluidos por subtipo en voucher | **Hecho** | Sección voucher + metadata Stripe |
+| 9 | Impuestos excluidos por subtipo en voucher | **Hecho (UI)** | Funnel + voucher; falta activar Tax Breakdown en Api Key |
 | 10 | Precio/cancel/comments desde CheckRate | **Hecho** | CheckRate obligatorio pre-booking |
 | 11 | Mapeo ≥90% producto distribuible | **Hecho (dinámico)** | Content API BRG completo; UI preferentes (`displayMaxHotels: 3`) |
 | 12 | mTLS en todo el flujo | **Hecho** | Hotel API + Content API; cert en portal + Vercel |
+
+### Recomendados (2026-08-04)
+
+| Ítem | Estado |
+|------|--------|
+| Imágenes Content | Hecho (Giata + fallback medium) |
+| Descripción hotel | Hecho (1–2 líneas en tarjeta compacta) |
+| Instalaciones | Hecho (resumen Content + coste adicional) |
+| Offers / promotions | Hecho (bloque junto a cada tarifa) |
+| Cancelación Apitude | Hecho (DELETE proxy + `/hotelbeds-cancel.html`) |
 
 ---
 

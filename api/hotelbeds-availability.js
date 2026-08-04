@@ -18,6 +18,8 @@ import { sendEmail } from '../lib/resend.js';
  * También (mismo endpoint, sin función extra en Vercel):
  * - { "action": "checkrates", "rooms": [ { "rateKey": "..." }, ... ] } (máx. 10)
  * - { "action": "booking", "booking": { ... }, "packageLabel": "opcional" } → POST /bookings (timeout 65s)
+ * - { "action": "cancel", "reference": "102-…", "cancellationFlag": "SIMULATION"|"CANCELLATION", "secret": "…" }
+ *   → DELETE /bookings/{ref}?cancellationFlag=… (protegido con HOTELBEDS_LOGS_SECRET)
  *
  * Reconfirmation push (mismo archivo): POST /api/hotelbeds-reconfirmation
  * → rewrite en vercel.json a ?__hb_reconfirm=1
@@ -92,6 +94,122 @@ async function hotelbedsPostJson(apiKey, secret, pathSuffix, jsonBody, timeoutMs
   });
 
   return { res, data };
+}
+
+/**
+ * DELETE /hotel-api/1.0/bookings/{ref}?cancellationFlag=SIMULATION|CANCELLATION
+ * @see https://developer.hotelbeds.com/documentation/hotels/booking-api/
+ */
+async function hotelbedsDeleteBooking(apiKey, secret, reference, cancellationFlag, timeoutMs) {
+  const flag = String(cancellationFlag || 'SIMULATION').toUpperCase() === 'CANCELLATION'
+    ? 'CANCELLATION'
+    : 'SIMULATION';
+  const ref = encodeURIComponent(String(reference).trim());
+  const pathSuffix = `/hotel-api/1.0/bookings/${ref}?cancellationFlag=${flag}`;
+  const baseUrl = hotelbedsBaseUrl();
+  const signature = getSignature(apiKey, secret);
+  const headers = {
+    Accept: 'application/json',
+    'Api-key': apiKey,
+    'X-Signature': signature,
+  };
+  const url = `${baseUrl}${pathSuffix}`;
+  const t0 = Date.now();
+  const requestBody = { reference: String(reference).trim(), cancellationFlag: flag };
+
+  let res;
+  let data;
+  try {
+    res = await hotelbedsFetch(url, { method: 'DELETE', headers, timeoutMs });
+    const text = await res.text();
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { raw: text.slice(0, 1500) };
+    }
+  } catch (e) {
+    const msg = e.name === 'AbortError' ? `Timeout cancel ${reference}` : e.message || String(e);
+    await logHotelbedsApiCall({
+      step: 'cancel',
+      pathSuffix,
+      requestBody,
+      responseData: null,
+      httpStatus: null,
+      ok: false,
+      errorMessage: msg,
+      durationMs: Date.now() - t0,
+      bookingReference: String(reference).trim(),
+    });
+    throw e;
+  }
+
+  const hbErr =
+    data &&
+    data.error &&
+    (typeof data.error === 'string' ? data.error : data.error.message || JSON.stringify(data.error));
+  await logHotelbedsApiCall({
+    step: 'cancel',
+    pathSuffix,
+    requestBody,
+    responseData: data,
+    httpStatus: res.status,
+    ok: res.ok && !hbErr,
+    errorMessage: hbErr || null,
+    durationMs: Date.now() - t0,
+    bookingReference: String(reference).trim(),
+  });
+
+  return { res, data, flag };
+}
+
+async function handleCancel(apiKey, secret, body, request) {
+  const logsSecret = (process.env.HOTELBEDS_LOGS_SECRET || '').trim();
+  const bodySecret = body && body.secret != null ? String(body.secret).trim() : '';
+  const authorized =
+    (logsSecret && bodySecret && bodySecret === logsSecret) || isLogsReadAuthorized(request);
+  if (!authorized) {
+    return jsonResponse(
+      {
+        error:
+          'No autorizado. Para cancelar, define HOTELBEDS_LOGS_SECRET y pásalo en body.secret o cabecera X-HB-Logs-Secret.',
+      },
+      401
+    );
+  }
+
+  const reference = body && body.reference != null ? String(body.reference).trim() : '';
+  if (!reference || reference.length < 5) {
+    return jsonResponse({ error: 'Indica reference (ej. 102-20934799)' }, 400);
+  }
+
+  try {
+    const { res, data, flag } = await hotelbedsDeleteBooking(
+      apiKey,
+      secret,
+      reference,
+      body.cancellationFlag || 'SIMULATION',
+      45000
+    );
+    const hbErr =
+      data &&
+      data.error &&
+      (typeof data.error === 'string' ? data.error : data.error.message || JSON.stringify(data.error));
+    const logicalOk = res.ok && !hbErr;
+    return jsonResponse(
+      {
+        ok: logicalOk,
+        httpStatus: res.status,
+        cancellationFlag: flag,
+        reference,
+        data,
+        ...(hbErr && { hotelbedsError: hbErr }),
+      },
+      200
+    );
+  } catch (e) {
+    const msg = e.name === 'AbortError' ? 'Timeout cancelación' : e.message || String(e);
+    return jsonResponse({ ok: false, error: msg }, 200);
+  }
 }
 
 async function handleCheckrates(apiKey, secret, body) {
@@ -503,6 +621,9 @@ export async function POST(request) {
     }
     if (body.action === 'booking') {
       return handleBooking(apiKey, secret, body);
+    }
+    if (body.action === 'cancel') {
+      return handleCancel(apiKey, secret, body, request);
     }
 
     const checkIn = (body.checkIn || '').trim();

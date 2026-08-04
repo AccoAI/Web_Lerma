@@ -83,6 +83,26 @@ PowerShell para copiar a Vercel (sustituir nombres de archivo por los de la CA):
 
 Push URL: `https://<tu-dominio>/api/hotelbeds-reconfirmation`. Hotelbeds las activa al pasar a **live** (en test pueden estar configuradas pero inactivas).
 
+### Cancelación Apitude (recomendado certificación)
+
+Página interna: `/hotelbeds-cancel.html`
+
+```http
+POST /api/hotelbeds-availability
+Content-Type: application/json
+
+{
+  "action": "cancel",
+  "reference": "102-20934799",
+  "cancellationFlag": "SIMULATION",
+  "secret": "<HOTELBEDS_LOGS_SECRET>"
+}
+```
+
+- `SIMULATION` — consulta gastos sin cancelar.
+- `CANCELLATION` — cancela de verdad.
+- Requiere `HOTELBEDS_LOGS_SECRET` en Vercel (mismo que logs).
+
 ## Frontend: `hotelbeds-paquetes.js`
 
 ### Lista de hoteles paquetes (BRG + Lerma)

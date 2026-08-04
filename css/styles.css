@@ -3965,6 +3965,39 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     margin: 0.35rem 0 0.5rem;
     line-height: 1.45;
 }
+.hotelbeds-card--compact .hotelbeds-desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0.2rem 0 0.35rem;
+    font-size: 0.78rem;
+    color: var(--color-text-light);
+}
+.hotelbeds-facilities-summary {
+    margin: 0.35rem 0 0;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: var(--color-text-light);
+}
+.hotelbeds-card--compact .hotelbeds-facilities-summary {
+    font-size: 0.74rem;
+    -webkit-line-clamp: 2;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.hb-funnel-rate-offers {
+    display: block;
+    margin: 0.3rem 0 0.1rem;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.78rem;
+    line-height: 1.35;
+    background: #eef6ef;
+    border-left: 3px solid #2d6a4f;
+    border-radius: 0 4px 4px 0;
+    color: #1b4332;
+}
 
 .hotelbeds-card--compact .hotelbeds-card-main {
     padding: 0.5rem 0.65rem 0.55rem;

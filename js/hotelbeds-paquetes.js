@@ -116,7 +116,7 @@
       brgHotelPriority: null,
       /** Opcional: sustituye HB_DISPLAY_MAX (por defecto 3). */
       displayMaxHotels: null,
-      /** Tarjetas de lista sin texto largo Content API (certificación no exige descripción). */
+      /** Tarjetas compactas: sí muestran descripción corta (1–2 líneas) e instalaciones resumidas. */
       compactHotelCards: true,
     };
     return Object.assign({}, d, window.HOTELBEDS_PAGE || {});
@@ -563,6 +563,43 @@
     );
   }
 
+  /** Ofertas / promotions Hotelbeds junto a cada tarifa. */
+  function promotionsBesideRateHtml(offer) {
+    var promos = (offer && offer.promotions) || [];
+    if (!promos.length) return '';
+    return (
+      '<div class="hb-funnel-rate-offers" aria-label="Ofertas Hotelbeds">' +
+      '<strong>Oferta:</strong> ' +
+      escapeHtml(promos.join(' · ')) +
+      '</div>'
+    );
+  }
+
+  /** Resumen corto de instalaciones Content (hotel + habitación), sin listar todo el catálogo. */
+  function facilitiesSummaryHtml(meta, compact) {
+    if (!meta) return '';
+    var hotelF = Array.isArray(meta.hotelFacilities) ? meta.hotelFacilities : [];
+    var roomF = Array.isArray(meta.roomFacilities) ? meta.roomFacilities : [];
+    var max = compact ? 4 : 8;
+    var bits = [];
+    var i;
+    for (i = 0; i < hotelF.length && bits.length < max; i++) {
+      if (hotelF[i]) bits.push(String(hotelF[i]));
+    }
+    for (i = 0; i < roomF.length && bits.length < max; i++) {
+      if (roomF[i] && bits.indexOf(String(roomF[i])) < 0) bits.push(String(roomF[i]));
+    }
+    if (!bits.length) return '';
+    var more = hotelF.length + roomF.length > bits.length;
+    return (
+      '<p class="hotelbeds-facilities-summary" title="Instalaciones (Content API)">' +
+      '<strong>Instalaciones:</strong> ' +
+      escapeHtml(bits.join(' · ')) +
+      (more ? '…' : '') +
+      '</p>'
+    );
+  }
+
   function rateCommentsFromRate(rate) {
     var out = [];
     if (!rate) return out;
@@ -663,8 +700,15 @@
     var list = Array.isArray(rate.promotions) ? rate.promotions : [rate.promotions];
     list.forEach(function (p) {
       if (!p) return;
-      if (typeof p === 'string') out.push(p);
-      else if (p.name) out.push(String(p.name));
+      if (typeof p === 'string') {
+        out.push(p);
+        return;
+      }
+      var name = p.name ? String(p.name).trim() : '';
+      var remark = p.remark ? String(p.remark).trim() : '';
+      if (name && remark && name !== remark) out.push(name + ' — ' + remark);
+      else if (name) out.push(name);
+      else if (remark) out.push(remark);
       else if (p.code) out.push(String(p.code));
     });
     return out;
@@ -986,6 +1030,9 @@
     }
     if (offer.packaging) parts.push('Tarifa paquete Hotelbeds (packaging=true)');
     else parts.push('Tarifa estándar API (packaging=false)');
+    if (offer.promotions && offer.promotions.length) {
+      parts.push('Oferta: ' + offer.promotions.join(', '));
+    }
     var total = calcTotalPaquete(offer);
     if (total != null) {
       parts.push('Total paquete mostrado (GF + empaquetada): ' + fmtEuros(total) + ' €');
@@ -1847,7 +1894,8 @@
     var catLabel = meta && (meta.categoryName || meta.categoryCode) ? meta.categoryName || meta.categoryCode : '';
     var catStars = meta && typeof meta.categoryStars === 'number' ? meta.categoryStars : null;
     var city = meta && meta.city ? String(meta.city).trim() : '';
-    var desc = !compact && meta && meta.descriptionShort ? meta.descriptionShort : '';
+    // Certificación: descripción Content visible también en tarjetas compactas (1–2 líneas vía CSS).
+    var desc = meta && meta.descriptionShort ? String(meta.descriptionShort).trim() : '';
     var boardLine = pick && pick.boardName ? pick.boardName : pick && pick.boardCode ? String(pick.boardCode) : '';
     var roomLine = pick && pick.roomName ? pick.roomName : '';
     var ratePaid = (pick && pick.rateExtrasPaid) || [];
@@ -1855,9 +1903,20 @@
     var facilityPaid = (meta && meta.facilitiesWithCharge) || [];
     var hideEur = hbHideHotelEuroUi();
 
-    var imgHtml = img
-      ? '<div class="hotelbeds-card-media"><img src="' + escapeHtml(img) + '" alt="" loading="lazy" width="120" height="90"></div>'
-      : '<div class="hotelbeds-card-media hotelbeds-card-media--empty" aria-hidden="true"></div>';
+    var imgHtml;
+    if (img) {
+      var imgMedium = img.replace(/\/giata\/bigger\//i, '/giata/medium/');
+      imgHtml =
+        '<div class="hotelbeds-card-media"><img src="' +
+        escapeHtml(img) +
+        '" alt="' +
+        escapeHtml(displayName) +
+        '" loading="lazy" width="120" height="90" data-fallback="' +
+        escapeHtml(imgMedium !== img ? imgMedium : '') +
+        '" onerror="var f=this.getAttribute(\'data-fallback\');if(f&&this.src!==f){this.src=f;this.removeAttribute(\'data-fallback\');}else{this.parentNode.className=\'hotelbeds-card-media hotelbeds-card-media--empty\';this.remove();}"></div>';
+    } else {
+      imgHtml = '<div class="hotelbeds-card-media hotelbeds-card-media--empty" aria-hidden="true"></div>';
+    }
 
     var boardBlock = '';
     if (boardLine || roomLine) {
@@ -1899,6 +1958,7 @@
           .join('') +
         '</ul></div>';
     }
+    rateExtraBlock += facilitiesSummaryHtml(meta, compact);
     if (rateComm.length) {
       rateExtraBlock +=
         '<div class="hotelbeds-rate-comments"><strong>Observaciones tarifa:</strong> ' +
@@ -1939,7 +1999,9 @@
       priceHtml +
       '</header>' +
       cityHtml +
-      (desc ? '<p class="hotelbeds-desc">' + escapeHtml(truncateText(desc, 380)) + '</p>' : '') +
+      (desc
+        ? '<p class="hotelbeds-desc">' + escapeHtml(truncateText(desc, compact ? 160 : 380)) + '</p>'
+        : '') +
       boardBlock +
       rateExtraBlock +
       '</div></article>'
@@ -2772,6 +2834,12 @@
       });
       html += '</ul></div>';
     }
+    if (offer.hotelFacilitiesSummary) {
+      html +=
+        '<div class="hb-funnel-legal"><strong>Instalaciones del hotel</strong><p>' +
+        escapeHtml(offer.hotelFacilitiesSummary) +
+        '</p></div>';
+    }
     if (offer.rateComments && offer.rateComments.length) {
       html += '<div class="hb-funnel-legal"><strong>Observaciones de tarifa</strong><ul>';
       offer.rateComments.forEach(function (line) {
@@ -2915,6 +2983,7 @@
         '<span class="hb-funnel-rate-pick__label">' + escapeHtml(label) + '</span>' +
         '<span class="hb-funnel-rate-pick__price-col">' + priceBadge + pkgNote + '</span>' +
         '</span>' +
+        promotionsBesideRateHtml(o) +
         excludedTaxesBesideRateHtml(o) +
         (hint
           ? '<span class="hb-funnel-rate-pick__sub">' + escapeHtml(hint) + '</span>'
@@ -2944,6 +3013,12 @@
       var meta = window.__HB_CONTENT_BY_CODE && window.__HB_CONTENT_BY_CODE[String(hotelCode)];
       if (meta && Array.isArray(meta.facilitiesWithCharge) && meta.facilitiesWithCharge.length) {
         offer.facilitiesWithCharge = meta.facilitiesWithCharge.slice();
+      }
+      if (meta) {
+        var hotelF = Array.isArray(meta.hotelFacilities) ? meta.hotelFacilities : [];
+        var roomF = Array.isArray(meta.roomFacilities) ? meta.roomFacilities : [];
+        var bits = hotelF.concat(roomF).filter(Boolean).slice(0, 10);
+        if (bits.length) offer.hotelFacilitiesSummary = bits.join(' · ');
       }
     } catch (e0) {}
     return offer;
