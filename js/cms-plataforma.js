@@ -47,8 +47,19 @@
     setText(document.querySelector('.hero-subtitle'), portada.heroTexto || portada.tagline);
 
     var video = document.getElementById('heroVideo');
-    if (video && portada.heroImagen) {
-      video.setAttribute('poster', portada.heroImagen);
+    if (video) {
+      if (portada.heroImagen) {
+        video.setAttribute('poster', portada.heroImagen);
+      }
+      if (portada.heroVideo) {
+        var source = video.querySelector('source');
+        if (source) {
+          source.setAttribute('src', portada.heroVideo);
+        } else {
+          video.setAttribute('src', portada.heroVideo);
+        }
+        try { video.load(); } catch (e) {}
+      }
     }
 
     var ctaCal = document.querySelector('.hero-buttons a[href*="calendario"]');

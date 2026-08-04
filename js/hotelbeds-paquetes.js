@@ -516,6 +516,10 @@
     return String(rate.boardCode || '').trim();
   }
 
+  /**
+   * Impuestos/cargos NO incluidos (taxes.included === false) con subtipo + importe.
+   * Requiere Tax Breakdown activado en la Api Key (Hotelbeds Concept Breakdown).
+   */
   function paidExtrasFromRate(rate) {
     var lines = [];
     if (!rate || typeof rate !== 'object') return lines;
@@ -529,14 +533,34 @@
       var subtype = (tx.subType || tx.subtype || '').toString().trim();
       var type = (tx.type || '').toString().trim();
       var desc = (tx.description && String(tx.description).trim()) || '';
+      var cur = (tx.clientCurrency || tx.currency || 'EUR').toString().trim();
       var label = subtype || desc || type || 'Cargo adicional';
-      if (subtype && desc && subtype !== desc) {
-        lines.push(subtype + ': ' + desc + ' — ' + amt + ' ' + (tx.currency || 'EUR'));
+      if (subtype && type && subtype !== type) {
+        lines.push(subtype + ' (' + type + ') — ' + amt + ' ' + cur);
+      } else if (subtype && desc && subtype !== desc) {
+        lines.push(subtype + ': ' + desc + ' — ' + amt + ' ' + cur);
       } else {
-        lines.push(label + ' — ' + amt + ' ' + (tx.currency || 'EUR'));
+        lines.push(label + ' — ' + amt + ' ' + cur);
       }
     });
     return lines;
+  }
+
+  /** Bloque HTML de impuestos excluidos junto a una tarifa (certificación HB). */
+  function excludedTaxesBesideRateHtml(offer) {
+    var paid = (offer && offer.rateExtrasPaid) || [];
+    if (!paid.length) return '';
+    return (
+      '<div class="hb-funnel-rate-taxes" aria-label="Impuestos y cargos no incluidos">' +
+      '<strong>Impuestos / cargos no incluidos:</strong>' +
+      '<ul class="hotelbeds-mini-list">' +
+      paid
+        .map(function (x) {
+          return '<li>' + escapeHtml(x) + '</li>';
+        })
+        .join('') +
+      '</ul></div>'
+    );
   }
 
   function rateCommentsFromRate(rate) {
@@ -2891,6 +2915,7 @@
         '<span class="hb-funnel-rate-pick__label">' + escapeHtml(label) + '</span>' +
         '<span class="hb-funnel-rate-pick__price-col">' + priceBadge + pkgNote + '</span>' +
         '</span>' +
+        excludedTaxesBesideRateHtml(o) +
         (hint
           ? '<span class="hb-funnel-rate-pick__sub">' + escapeHtml(hint) + '</span>'
           : '') +

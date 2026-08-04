@@ -124,6 +124,7 @@
   }
 
   var COLUMNAS = ['ZONA', 'CAMPO DE GOLF', 'CCAA', 'LABORABLES', 'SÁB./FEST.', 'DÍAS', 'TEL. RESERVAS', 'OBSERVACIONES'];
+  var COL_KEYS = ['zona', 'campo', 'ccaa', 'laborables', 'sabFest', 'dias', 'tel', 'observaciones'];
 
   function filaDesdeArray(r) {
     return {
@@ -148,6 +149,7 @@
   }
 
   function textoFila(f) {
+    if (f && f._cells && f._cells.length) return f._cells.join(' ').toLowerCase();
     return [f.zona, f.campo, f.ccaa, f.laborables, f.sabFest, f.dias, f.tel, f.observaciones].join(' ').toLowerCase();
   }
 
@@ -168,7 +170,11 @@
     return zonas.map(function (z) { return { zona: z, filas: g[z] }; });
   }
 
-  function renderGrupos(grupos, cont) {
+  function renderGrupos(grupos, cont, columnas) {
+    var headers = (columnas && columnas.length) ? columnas : COLUMNAS;
+    var keys = (columnas && columnas.length && cont._colKeys && cont._colKeys.length)
+      ? cont._colKeys
+      : COL_KEYS;
     cont.innerHTML = '';
     grupos.forEach(function (gr, idx) {
       var div = document.createElement('div');
@@ -181,13 +187,14 @@
       html += '</button>';
       html += '<div class="correspondencias-grupo-body" id="' + idBody + '">';
       html += '<div class="tabla-correspondencias-wrapper"><table class="tabla-correspondencias tabla-correspondencias-completa"><thead><tr>';
-      COLUMNAS.forEach(function (col) { html += '<th>' + escap(col) + '</th>'; });
+      headers.forEach(function (col) { html += '<th>' + escap(col) + '</th>'; });
       html += '</tr></thead><tbody>';
       gr.filas.forEach(function (f) {
         html += '<tr>';
-        html += '<td>' + escap(f.zona) + '</td><td>' + escap(f.campo) + '</td><td>' + escap(f.ccaa) + '</td>';
-        html += '<td>' + escap(f.laborables) + '</td><td>' + escap(f.sabFest) + '</td><td>' + escap(f.dias) + '</td>';
-        html += '<td>' + escap(f.tel) + '</td><td>' + escap(f.observaciones) + '</td>';
+        keys.forEach(function (k) {
+          var val = (f._cells && f._map && f._map[k] != null) ? f._map[k] : f[k];
+          html += '<td>' + escap(val) + '</td>';
+        });
         html += '</tr>';
       });
       html += '</tbody></table></div></div>';
@@ -215,25 +222,44 @@
       return { zona: '—', campo: c.nombre || '', ccaa: '', laborables: lab, sabFest: sab, dias: '', tel: '', observaciones: '' };
     });
     cont._filas = filas;
+    cont._columnas = COLUMNAS;
+    cont._colKeys = COL_KEYS;
     var q = inputBuscar ? inputBuscar.value || '' : '';
     var filtradas = filas.filter(function (f) { return cumpleBusqueda(f, q); });
     var grupos = agruparPorZona(filtradas);
     var sinRes = document.getElementById('correspondencias-sin-resultados');
     if (sinRes) sinRes.style.display = grupos.length ? 'none' : 'block';
-    renderGrupos(grupos, cont);
+    renderGrupos(grupos, cont, cont._columnas);
   }
 
-  function filasDesdeCms(rows) {
+  function filasDesdeCms(rows, columnasDefs) {
+    var defs = (columnasDefs && columnasDefs.length) ? columnasDefs : null;
+    var keys = defs
+      ? defs.map(function (c) { return c.key; })
+      : COL_KEYS.slice();
+    // En filas CMS el campo se llama "club"; en CSV/render "campo"
     return (rows || []).map(function (r) {
+      var map = {};
+      keys.forEach(function (k) {
+        if (k === 'campo' || k === 'club') map[k] = (r.club || r.campo || '').trim();
+        else map[k] = (r[k] != null ? String(r[k]) : '').trim();
+      });
+      var campo = (r.club || r.campo || map.club || map.campo || '').trim();
+      var cells = keys.map(function (k) {
+        if (k === 'campo' || k === 'club') return campo;
+        return map[k] || '';
+      });
       return {
-        zona: (r.zona || '').trim() || '—',
-        campo: (r.club || r.campo || '').trim(),
-        ccaa: (r.ccaa || '').trim(),
-        laborables: (r.laborables || (r.greenFeeLerma != null ? r.greenFeeLerma + ' €' : '')).trim(),
-        sabFest: (r.sabFest || (r.greenFeeSaldana != null ? r.greenFeeSaldana + ' €' : '')).trim(),
-        dias: (r.dias || '').trim(),
-        tel: (r.tel || '').trim(),
-        observaciones: (r.observaciones || '').trim()
+        zona: (r.zona || map.zona || '').trim() || '—',
+        campo: campo,
+        ccaa: map.ccaa || '',
+        laborables: map.laborables || '',
+        sabFest: map.sabFest || '',
+        dias: map.dias || '',
+        tel: map.tel || '',
+        observaciones: map.observaciones || '',
+        _map: map,
+        _cells: cells
       };
     }).filter(function (f) { return f.campo; });
   }
@@ -275,7 +301,7 @@
         var grupos = agruparPorZona(filtradas);
         if (cargando) cargando.style.display = 'none';
         if (sinResultados) sinResultados.style.display = grupos.length ? 'none' : 'block';
-        renderGrupos(grupos, cont);
+        renderGrupos(grupos, cont, cont._columnas);
       }
     }
 
@@ -284,8 +310,10 @@
       inputBuscar.addEventListener('search', function () { aplicarBusqueda(inputBuscar.value); });
     }
 
-    function usarFilas(filas) {
+    function usarFilas(filas, columnas, colKeys) {
       cont._filas = filas;
+      cont._columnas = columnas && columnas.length ? columnas : COLUMNAS;
+      cont._colKeys = colKeys && colKeys.length ? colKeys : COL_KEYS;
       if (cargando) cargando.style.display = 'none';
       aplicarBusqueda('');
     }
@@ -303,7 +331,7 @@
           var campo = (r[1] || '').trim();
           if (campo) filas.push(filaDesdeArray(r));
         });
-        usarFilas(filas);
+        usarFilas(filas, COLUMNAS, COL_KEYS);
       }).catch(function () {
         if (cargando) cargando.style.display = 'none';
         cont._filas = null;
@@ -317,9 +345,14 @@
     function tryCms(data) {
       var cmsRows = (data && data.correspondencias) || (window.CmsPlataforma && window.CmsPlataforma.getCorrespondencias()) || [];
       if (cmsRows.length) {
+        var colDefs = (data && data.correspondenciasColumnas) || [];
+        var labels = colDefs.length ? colDefs.map(function (c) { return c.label; }) : COLUMNAS;
+        var keys = colDefs.length
+          ? colDefs.map(function (c) { return c.key === 'club' ? 'club' : c.key; })
+          : COL_KEYS;
         applyCmsClubsToGlobal(cmsRows);
         initSelects();
-        usarFilas(filasDesdeCms(cmsRows));
+        usarFilas(filasDesdeCms(cmsRows, colDefs), labels, keys);
         return true;
       }
       return false;

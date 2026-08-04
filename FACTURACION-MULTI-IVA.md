@@ -15,10 +15,11 @@
 
 ## Flujo técnico
 
-- Resumen (`js/main.js`) → `window.__PACKAGE_FISCAL__`
+- Resumen (`js/main.js`) calcula `window.__PACKAGE_FISCAL__` **solo en interno** (no se muestra al cliente en el resumen; así no se revela el tramo hotel en tarifas packaging).
 - `js/stripe-pago.js` → `fiscalBreakdown` en `POST /api/crear-pago`
 - Metadata Stripe: `inv_golf_cents`, `inv_comida_cents`, `inv_hotel_cents`
 - `api/webhook-stripe.js` → `lib/invoice-html.js` adjunta facturas al correo
+- **Tax breakdown Hotelbeds** (Resort Fee, City Tax, etc.): va en funnel/voucher junto a la tarifa HB, no en este desglose fiscal.
 
 ## Aviso legal / contable (importante)
 

@@ -2541,7 +2541,8 @@ function initConfiguradorPaquete() {
                 resumenHTML += '<tr class="resumen-por-persona"><td>Por persona</td><td>' + formatEurosResumen(subtotal / numParticipants) + '\u00a0€</td></tr>';
             }
 
-            // Desglose fiscal (un cobro → 3 facturas): golf/resto 0%, comida 21%, hotel 10%
+            // Desglose fiscal interno (un cobro → hasta 3 facturas). No se muestra al cliente
+            // (evita revelar precio hotel en tarifas packaging; tax breakdown HB va en funnel/voucher).
             var golfGrossBefore = roundEuros(gfEnBase + ancVal + tiendaVal + campeonatoExtrasVal);
             var comidaGrossBefore = roundEuros(comidaEnBase);
             var hotelGrossBefore = roundEuros(aloj);
@@ -2567,24 +2568,12 @@ function initConfiguradorPaquete() {
                 ivaComidaPct: 21,
                 ivaHotelPct: 10,
             };
-            if (fiscalGolf > 0 || fiscalComida > 0 || fiscalHotel > 0) {
-                resumenHTML += '<tr class="resumen-fiscal-head"><td colspan="2" style="padding-top:10px;"><strong>Desglose para facturación</strong></td></tr>';
-                if (fiscalGolf > 0) {
-                    resumenHTML += '<tr class="resumen-fiscal"><td>Club Golf Lerma (IVA 0%)</td><td>' + formatEurosResumen(fiscalGolf) + '\u00a0€</td></tr>';
-                }
-                if (fiscalComida > 0) {
-                    resumenHTML += '<tr class="resumen-fiscal"><td>LALIATM · comida (IVA 21%)</td><td>' + formatEurosResumen(fiscalComida) + '\u00a0€</td></tr>';
-                }
-                if (fiscalHotel > 0) {
-                    resumenHTML += '<tr class="resumen-fiscal"><td>Hotel (IVA 10%)</td><td>' + formatEurosResumen(fiscalHotel) + '\u00a0€</td></tr>';
-                }
-            }
 
             resumenHTML += '</table>';
             if (typeof window.getHbTariffDebugResumenHtml === 'function') {
                 resumenHTML += window.getHbTariffDebugResumenHtml(form);
             }
-            resumenHTML += '<p class="resumen-subtotal-nota">Descuento por pack aplicado.' + (clubId ? ' Tarifa correspondencia aplicada según día de la semana.' : '') + ' Forma de pago: ' + (formaPago === 'por_persona' ? 'por persona (enlaces individuales).' : 'único.') + ' Un solo cobro; tras el pago se emiten facturas por emisor/IVA.</p></div>';
+            resumenHTML += '<p class="resumen-subtotal-nota">Descuento por pack aplicado.' + (clubId ? ' Tarifa correspondencia aplicada según día de la semana.' : '') + ' Forma de pago: ' + (formaPago === 'por_persona' ? 'por persona (enlaces individuales).' : 'único.') + '</p></div>';
 
             resumenDiv.innerHTML = resumenHTML;
         } else {

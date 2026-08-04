@@ -4542,6 +4542,26 @@ body.fondo-golf-lerma-estandar .area-socio-login .section-title {
     font-size: 0.8rem;
     color: var(--color-text-light);
 }
+.hb-funnel-rate-taxes {
+    display: block;
+    margin: 0.35rem 0 0.15rem;
+    padding: 0.4rem 0.55rem;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    background: #f7f4ef;
+    border-left: 3px solid #8a6d3b;
+    border-radius: 0 4px 4px 0;
+    color: #3d3428;
+}
+.hb-funnel-rate-taxes strong {
+    display: block;
+    margin-bottom: 0.2rem;
+    font-weight: 600;
+}
+.hb-funnel-rate-taxes .hotelbeds-mini-list {
+    margin: 0;
+    padding-left: 1.1rem;
+}
 .hb-funnel-rate-pick input {
     margin-top: 0.2rem;
 }
