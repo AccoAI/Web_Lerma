@@ -1,6 +1,7 @@
 /**
  * Puente CMS → web real.
- * Solo actualiza nodos que YA existen en el HTML. No inyecta bloques nuevos ni cambia el diseño.
+ * Solo actualiza nodos que YA existen. No cambia el diseño.
+ * Si portada.aplicarEnWeb !== true, no toca la home (queda el HTML/i18n original).
  */
 (function () {
   'use strict';
@@ -38,13 +39,9 @@
     }
   }
 
-  /**
-   * Portada → elementos ya presentes en index.html:
-   * .hero-title, .hero-subtitle, #heroVideo[poster], botón calendario, logo alt, <title>
-   */
   function applyPortada(portada) {
     lastPortada = portada;
-    if (!portada) return;
+    if (!portada || portada.aplicarEnWeb !== true) return;
 
     setText(document.querySelector('.hero-title'), portada.heroTitulo);
     setText(document.querySelector('.hero-subtitle'), portada.heroTexto || portada.tagline);
@@ -60,7 +57,6 @@
       if (portada.ctaUrl) ctaCal.setAttribute('href', portada.ctaUrl);
     }
 
-    // Nombre del club: solo accesibilidad / pestaña (no añade UI)
     var nombre = String(portada.nombreClub || '').trim();
     if (nombre) {
       var logoImg = document.querySelector('.header-logo-image');
@@ -69,12 +65,9 @@
     }
   }
 
-  /**
-   * Hero slides: si hay datos, el primero actualiza el hero YA existente.
-   * No crea botones ni slides nuevos en el DOM.
-   */
   function applyHeroSlides(slides) {
     lastSlides = slides;
+    if (!lastPortada || lastPortada.aplicarEnWeb !== true) return;
     if (!slides || !slides.length) return;
     var first = slides[0];
     if (!first) return;
@@ -94,7 +87,7 @@
   function reapplyLocked() {
     if (lastPortada) applyPortada(lastPortada);
     if (lastSlides && lastSlides.length) applyHeroSlides(lastSlides);
-    if (lastSeo) applySeo(lastSeo);
+    if (lastSeo && lastPortada && lastPortada.aplicarEnWeb === true) applySeo(lastSeo);
   }
 
   window.CmsPlataforma = {
@@ -120,21 +113,19 @@
     .then(function (data) {
       window.CmsPlataforma.data = data || {};
       window.__CMS_SYNC_OK = true;
-      applySeo(data.seo);
       applyPortada(data.portada);
-      applyHeroSlides(data.heroSlides);
-      setTimeout(reapplyLocked, 400);
-      setTimeout(reapplyLocked, 1200);
-      document.dispatchEvent(new CustomEvent('cms:contenido-listo', { detail: data }));
-      if (typeof console !== 'undefined' && console.info) {
-        console.info('[CMS] Contenido aplicado sobre elementos existentes de la web.');
+      if (data.portada && data.portada.aplicarEnWeb === true) {
+        applySeo(data.seo);
+        applyHeroSlides(data.heroSlides);
       }
+      setTimeout(reapplyLocked, 400);
+      document.dispatchEvent(new CustomEvent('cms:contenido-listo', { detail: data }));
     })
     .catch(function (err) {
       window.__CMS_SYNC_OK = false;
-      if (typeof console !== 'undefined' && console.warn) {
-        console.warn('[CMS] No se pudo cargar contenido:', err && err.message ? err.message : err);
-      }
       document.dispatchEvent(new CustomEvent('cms:contenido-listo', { detail: null }));
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('[CMS]', err && err.message ? err.message : err);
+      }
     });
 })();
