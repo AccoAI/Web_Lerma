@@ -223,6 +223,44 @@
     renderGrupos(grupos, cont);
   }
 
+  function filasDesdeCms(rows) {
+    return (rows || []).map(function (r) {
+      return {
+        zona: (r.zona || '').trim() || '—',
+        campo: (r.club || r.campo || '').trim(),
+        ccaa: (r.ccaa || '').trim(),
+        laborables: (r.laborables || (r.greenFeeLerma != null ? r.greenFeeLerma + ' €' : '')).trim(),
+        sabFest: (r.sabFest || (r.greenFeeSaldana != null ? r.greenFeeSaldana + ' €' : '')).trim(),
+        dias: (r.dias || '').trim(),
+        tel: (r.tel || '').trim(),
+        observaciones: (r.observaciones || '').trim()
+      };
+    }).filter(function (f) { return f.campo; });
+  }
+
+  function slugify(s) {
+    return String(s || '')
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '') || ('club-' + Date.now());
+  }
+
+  function applyCmsClubsToGlobal(rows) {
+    if (!rows || !rows.length) return;
+    var clubs = rows.map(function (r) {
+      return {
+        id: r.id || slugify(r.club),
+        nombre: r.club || '',
+        greenFeeLerma: r.greenFeeLerma != null ? r.greenFeeLerma : null,
+        greenFeeSaldana: r.greenFeeSaldana != null ? r.greenFeeSaldana : null
+      };
+    });
+    if (typeof CORRESPONDENCIAS_DATA !== 'undefined') {
+      CORRESPONDENCIAS_DATA.clubs = clubs;
+    }
+  }
+
   function loadAndRenderCorrespondencias() {
     var cont = document.getElementById('correspondencias-tabla-grupos');
     var cargando = document.getElementById('correspondencias-cargando');
@@ -246,30 +284,62 @@
       inputBuscar.addEventListener('search', function () { aplicarBusqueda(inputBuscar.value); });
     }
 
-    var csvUrl = 'CORRESPONDENCIAS_GOLFLERMA_GOLFSALDAÑA - Hoja 1.csv';
-    if (cargando) cargando.style.display = 'block';
-    if (sinResultados) sinResultados.style.display = 'none';
-
-    fetch(csvUrl).then(function (res) {
-      if (!res.ok) throw new Error('CSV no disponible');
-      return res.text();
-    }).then(function (text) {
-      var rows = parseCSV(text);
-      var header = rows[0] || [];
-      var dataRows = rows.slice(1);
-      var filas = [];
-      dataRows.forEach(function (r) {
-        var campo = (r[1] || '').trim();
-        if (campo) filas.push(filaDesdeArray(r));
-      });
+    function usarFilas(filas) {
       cont._filas = filas;
       if (cargando) cargando.style.display = 'none';
       aplicarBusqueda('');
-    }).catch(function () {
-      if (cargando) cargando.style.display = 'none';
-      cont._filas = null;
-      fallbackDesdeClubs(cont, inputBuscar);
-    });
+    }
+
+    function loadCsvFallback() {
+      var csvUrl = 'CORRESPONDENCIAS_GOLFLERMA_GOLFSALDAÑA - Hoja 1.csv';
+      fetch(csvUrl).then(function (res) {
+        if (!res.ok) throw new Error('CSV no disponible');
+        return res.text();
+      }).then(function (text) {
+        var rows = parseCSV(text);
+        var dataRows = rows.slice(1);
+        var filas = [];
+        dataRows.forEach(function (r) {
+          var campo = (r[1] || '').trim();
+          if (campo) filas.push(filaDesdeArray(r));
+        });
+        usarFilas(filas);
+      }).catch(function () {
+        if (cargando) cargando.style.display = 'none';
+        cont._filas = null;
+        fallbackDesdeClubs(cont, inputBuscar);
+      });
+    }
+
+    if (cargando) cargando.style.display = 'block';
+    if (sinResultados) sinResultados.style.display = 'none';
+
+    function tryCms(data) {
+      var cmsRows = (data && data.correspondencias) || (window.CmsPlataforma && window.CmsPlataforma.getCorrespondencias()) || [];
+      if (cmsRows.length) {
+        applyCmsClubsToGlobal(cmsRows);
+        initSelects();
+        usarFilas(filasDesdeCms(cmsRows));
+        return true;
+      }
+      return false;
+    }
+
+    if (window.CmsPlataforma && window.CmsPlataforma.data && tryCms(window.CmsPlataforma.data)) {
+      return;
+    }
+
+    document.addEventListener('cms:contenido-listo', function (ev) {
+      if (tryCms(ev.detail)) return;
+      loadCsvFallback();
+    }, { once: true });
+
+    // Si cms-plataforma.js no está, o tarda demasiado, ir a CSV
+    setTimeout(function () {
+      if (cont._filas) return;
+      if (window.CmsPlataforma && window.CmsPlataforma.data && tryCms(window.CmsPlataforma.data)) return;
+      loadCsvFallback();
+    }, 2500);
   }
 
   document.addEventListener('DOMContentLoaded', function () {
