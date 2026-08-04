@@ -201,19 +201,31 @@
 
     function buildSlides(config) {
         if (config.popups && config.popups.length) {
-            return config.popups.map(function (p) {
-                return {
-                    titulo: p.titulo || '',
-                    fechas: p.subtitulo || '',
-                    texto: p.texto || '',
-                    foto: p.imagen || '',
-                    enlace: p.linkUrl || '',
-                    linkTexto: p.linkTexto || '',
-                    esPopup: true
-                };
+            var useful = config.popups.filter(function (p) {
+                var titulo = String(p.titulo || '').trim();
+                var esSoloCabecera = !titulo || titulo === 'Próximos torneos' || titulo === 'Avisos';
+                return !!(
+                    (p.imagen && String(p.imagen).trim()) ||
+                    (p.texto && String(p.texto).trim()) ||
+                    (p.subtitulo && String(p.subtitulo).trim()) ||
+                    (titulo && !esSoloCabecera)
+                );
             });
+            if (useful.length) {
+                return useful.map(function (p) {
+                    return {
+                        titulo: p.titulo || '',
+                        fechas: p.subtitulo || '',
+                        texto: p.texto || '',
+                        foto: p.imagen || '',
+                        enlace: p.linkUrl || '',
+                        linkTexto: p.linkTexto || '',
+                        esPopup: true
+                    };
+                });
+            }
         }
-        // Fallback: torneos publicados si aún no hay tarjetas popup
+        // Fallback: torneos publicados si aún no hay tarjetas popup con contenido
         return (config.torneos || []).slice(0, 5).map(function (t) {
             return {
                 titulo: t.titulo || 'Torneo',
