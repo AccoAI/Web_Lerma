@@ -199,6 +199,51 @@
         }
     }
 
+    function buildSlides(config) {
+        if (config.popups && config.popups.length) {
+            return config.popups.map(function (p) {
+                return {
+                    titulo: p.titulo || '',
+                    fechas: p.subtitulo || '',
+                    texto: p.texto || '',
+                    foto: p.imagen || '',
+                    enlace: p.linkUrl || '',
+                    linkTexto: p.linkTexto || '',
+                    esPopup: true
+                };
+            });
+        }
+        // Fallback: torneos publicados si aún no hay tarjetas popup
+        return (config.torneos || []).slice(0, 5).map(function (t) {
+            return {
+                titulo: t.titulo || 'Torneo',
+                fechas: t.fechas || '',
+                texto: '',
+                foto: t.foto || t.imagen || '',
+                enlace: 'torneo.html',
+                linkTexto: '',
+                torneo: t,
+                esPopup: false
+            };
+        });
+    }
+
+    function ensureSlideshowStyles() {
+        if (document.getElementById('popup-slideshow-styles')) return;
+        var s = document.createElement('style');
+        s.id = 'popup-slideshow-styles';
+        s.textContent =
+            '.torneos-popup-cards{position:relative;}' +
+            '.torneos-popup-cards.is-slideshow .torneos-popup{display:none;width:100%;}' +
+            '.torneos-popup-cards.is-slideshow .torneos-popup.is-active{display:flex;animation:popupSlideIn .45s ease;}' +
+            '@keyframes popupSlideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}' +
+            '.torneos-popup-dots{display:flex;gap:6px;justify-content:center;margin-top:8px;}' +
+            '.torneos-popup-dot{width:8px;height:8px;border-radius:50%;border:0;padding:0;background:rgba(255,255,255,.35);cursor:pointer;}' +
+            '.torneos-popup-dot.is-active{background:#fff;}' +
+            '.torneos-popup-item-texto{display:block;font-size:.8rem;opacity:.9;margin:.2rem 0 .35rem;line-height:1.3;}';
+        document.head.appendChild(s);
+    }
+
     function showPopup(config) {
         var overlay = document.getElementById('torneosPopup');
         var titulo = document.getElementById('torneosPopupTitulo');
@@ -208,45 +253,83 @@
 
         if (!overlay || !titulo) return;
 
-        titulo.textContent = config.titulo || 'Próximos torneos';
+        titulo.textContent = config.titulo || 'Avisos';
+        ensureSlideshowStyles();
+
+        var slides = buildSlides(config);
+        if (!slides.length) return;
 
         if (cardsContainer) {
             cardsContainer.innerHTML = '';
-            var torneos = (config.torneos || []).slice(0, 3);
-            torneos.forEach(function (t) {
+            cardsContainer.classList.toggle('is-slideshow', slides.length > 1);
+            slides.forEach(function (t, idx) {
                 var card = document.createElement('div');
-                card.className = 'torneos-popup';
+                card.className = 'torneos-popup' + (idx === 0 ? ' is-active' : '');
+                card.setAttribute('data-slide', String(idx));
                 var content = document.createElement('div');
                 content.className = 'torneos-popup-content';
                 var info = (t.fechas ? '<span class="torneos-popup-item-fecha">' + esc(t.fechas) + '</span>' : '') +
-                    '<strong class="torneos-popup-item-titulo">' + esc(t.titulo || 'Torneo') + '</strong>';
-                var btn = document.createElement('a');
-                btn.href = 'torneo.html';
-                btn.className = 'torneos-popup-item-btn';
-                btn.textContent = masInfoLabel(false);
-                btn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    try {
-                        sessionStorage.setItem('torneoSeleccionado', JSON.stringify(t));
-                    } catch (err) {}
-                    window.location.href = 'torneo.html';
-                });
+                    '<strong class="torneos-popup-item-titulo">' + esc(t.titulo || 'Aviso') + '</strong>' +
+                    (t.texto ? '<span class="torneos-popup-item-texto">' + esc(t.texto) + '</span>' : '');
                 content.innerHTML = info;
-                content.appendChild(btn);
+                if (t.enlace || t.linkTexto || t.torneo) {
+                    var btn = document.createElement('a');
+                    btn.href = safeHref(t.enlace || 'calendario-torneos.html');
+                    btn.className = 'torneos-popup-item-btn';
+                    btn.textContent = t.linkTexto || masInfoLabel(false);
+                    btn.addEventListener('click', function (e) {
+                        if (t.torneo) {
+                            e.preventDefault();
+                            try {
+                                sessionStorage.setItem('torneoSeleccionado', JSON.stringify(t.torneo));
+                            } catch (err) {}
+                            window.location.href = 'torneo.html';
+                        }
+                    });
+                    content.appendChild(btn);
+                }
                 card.appendChild(content);
-                var imgUrl = safeImgSrc(t.foto || t.imagen);
+                var imgUrl = safeImgSrc(t.foto);
                 if (imgUrl) {
                     var imgWrap = document.createElement('div');
                     imgWrap.className = 'torneos-popup-imagen-wrap';
                     var img = document.createElement('img');
                     img.src = imgUrl;
-                    img.alt = t.titulo || 'Torneo';
+                    img.alt = t.titulo || 'Aviso';
                     img.className = 'torneos-popup-imagen';
                     imgWrap.appendChild(img);
                     card.appendChild(imgWrap);
                 }
                 cardsContainer.appendChild(card);
             });
+
+            if (slides.length > 1) {
+                var dots = document.createElement('div');
+                dots.className = 'torneos-popup-dots';
+                var current = 0;
+                function go(n) {
+                    current = (n + slides.length) % slides.length;
+                    cardsContainer.querySelectorAll('.torneos-popup').forEach(function (el, i) {
+                        el.classList.toggle('is-active', i === current);
+                    });
+                    dots.querySelectorAll('.torneos-popup-dot').forEach(function (el, i) {
+                        el.classList.toggle('is-active', i === current);
+                    });
+                }
+                slides.forEach(function (_, i) {
+                    var d = document.createElement('button');
+                    d.type = 'button';
+                    d.className = 'torneos-popup-dot' + (i === 0 ? ' is-active' : '');
+                    d.setAttribute('aria-label', 'Diapositiva ' + (i + 1));
+                    d.addEventListener('click', function () { go(i); });
+                    dots.appendChild(d);
+                });
+                cardsContainer.appendChild(dots);
+                setInterval(function () {
+                    if (overlay.hasAttribute('hidden')) return;
+                    go(current + 1);
+                }, 5000);
+            }
         }
 
         overlay.removeAttribute('hidden');
@@ -359,12 +442,13 @@
         var overlay = document.getElementById('torneosPopup');
         if (!overlay) return;
 
-        fetch(DATA_URL)
+        var url = DATA_URL + (DATA_URL.indexOf('?') === -1 ? '?' : '&') + 't=' + Date.now();
+        fetch(url)
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (data) {
-                if (!data || !data.popupActivo) return;
-                var hasContent = (data.torneos && data.torneos.length) || (data.imagen && data.imagen.trim()) || (data.texto && data.texto.trim()) || (data.linkUrl && data.linkTexto);
-                if (!hasContent) return;
+                if (!data || data.popupActivo === false) return;
+                var slides = buildSlides(data);
+                if (!slides.length) return;
                 showPopup(data);
                 setupScrollHide();
             })
