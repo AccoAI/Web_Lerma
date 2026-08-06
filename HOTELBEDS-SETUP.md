@@ -103,6 +103,14 @@ Content-Type: application/json
 - `CANCELLATION` — cancela de verdad.
 - Requiere `HOTELBEDS_LOGS_SECRET` en Vercel (mismo que logs).
 
+### Prueba tasas excluidas (certificación)
+
+Burgos (BRG) no tiene tasa turística. Página aislada (no toca paquetes):
+
+`https://web-lerma.vercel.app/hotelbeds-tax-test.html`
+
+Consulta BCN/PMI y muestra el bloque «Impuestos / cargos no incluidos» junto a la tarifa (mismo formato que el funnel).
+
 ## Frontend: `hotelbeds-paquetes.js`
 
 ### Lista de hoteles paquetes (BRG + Lerma)

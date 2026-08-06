@@ -9,6 +9,7 @@
   var lastPortada = null;
   var lastSeo = null;
   var lastSlides = null;
+  var lastMenu = null;
 
   function getUrl() {
     if (window.CMS_CONTENIDO_URL) return window.CMS_CONTENIDO_URL;
@@ -80,24 +81,51 @@
     lastSlides = slides;
     if (!lastPortada || lastPortada.aplicarEnWeb !== true) return;
     if (!slides || !slides.length) return;
-    var first = slides[0];
-    if (!first) return;
-    setText(document.querySelector('.hero-title'), first.titulo);
-    setText(document.querySelector('.hero-subtitle'), first.pie);
+    var active = slides.filter(function (s) { return s && s.activo !== false; })
+      .sort(function (a, b) { return (Number(a.orden) || 0) - (Number(b.orden) || 0); });
+    if (!active.length) return;
+
+    var first = active[0];
+    if (first.titulo) setText(document.querySelector('.hero-title'), first.titulo);
+    if (first.pie) setText(document.querySelector('.hero-subtitle'), first.pie);
     var video = document.getElementById('heroVideo');
     if (video && first.imagen) video.setAttribute('poster', first.imagen);
-    if (first.linkTexto || first.linkUrl) {
-      var ctaCal = document.querySelector('.hero-buttons a[href*="calendario"]');
-      if (ctaCal) {
-        if (first.linkTexto) setText(ctaCal, first.linkTexto);
-        if (first.linkUrl) ctaCal.setAttribute('href', first.linkUrl);
-      }
-    }
+
+    var btns = document.querySelectorAll('.hero-buttons a.hero-btn');
+    active.forEach(function (s, i) {
+      var btn = btns[i];
+      if (!btn) return;
+      if (s.linkTexto) setText(btn, s.linkTexto);
+      if (s.linkUrl) btn.setAttribute('href', s.linkUrl);
+    });
+  }
+
+  function applyMenu(items) {
+    lastMenu = items;
+    var list = document.querySelector('#mainNav .nav-list') || document.querySelector('.nav-list');
+    if (!list) return;
+    var active = (items || []).filter(function (m) { return m && m.activo !== false && String(m.label || '').trim(); })
+      .sort(function (a, b) { return (Number(a.orden) || 0) - (Number(b.orden) || 0); });
+    if (!active.length) return;
+
+    list.innerHTML = '';
+    active.forEach(function (m) {
+      var li = document.createElement('li');
+      li.className = 'nav-item';
+      var a = document.createElement('a');
+      a.className = 'nav-link';
+      a.href = m.url || '#';
+      a.textContent = String(m.label).trim();
+      a.setAttribute('data-cms', '1');
+      li.appendChild(a);
+      list.appendChild(li);
+    });
   }
 
   function reapplyLocked() {
     if (lastPortada) applyPortada(lastPortada);
     if (lastSlides && lastSlides.length) applyHeroSlides(lastSlides);
+    if (lastMenu && lastMenu.length) applyMenu(lastMenu);
     if (lastSeo && lastPortada && lastPortada.aplicarEnWeb === true) applySeo(lastSeo);
   }
 
@@ -125,6 +153,7 @@
       window.CmsPlataforma.data = data || {};
       window.__CMS_SYNC_OK = true;
       applyPortada(data.portada);
+      applyMenu(data.menu);
       if (data.portada && data.portada.aplicarEnWeb === true) {
         applySeo(data.seo);
         applyHeroSlides(data.heroSlides);

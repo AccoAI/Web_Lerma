@@ -1,10 +1,13 @@
 /**
- * Ticker inferior (Banners del panel): franja fija abajo con texto desplazándose.
+ * Ticker inferior (Banners del panel): franja fija abajo con frases en bucle continuo.
+ * Si hay una sola frase, se repite; si hay varias, van separadas por un hueco fijo.
  */
 (function () {
   'use strict';
 
   var ROOT_ID = 'cmsBannersTicker';
+  var GAP_PX = 96; // distancia fija entre frases
+  var SPEED_PX_PER_S = 48; // velocidad constante
 
   function getUrl() {
     if (window.CMS_CONTENIDO_URL) return window.CMS_CONTENIDO_URL;
@@ -42,10 +45,14 @@
       '#' + ROOT_ID + '[hidden]{display:none!important;}' +
       '#' + ROOT_ID + ' .cms-ticker__viewport{height:100%;overflow:hidden;display:flex;align-items:center;}' +
       '#' + ROOT_ID + ' .cms-ticker__track{display:flex;align-items:center;width:max-content;white-space:nowrap;' +
-        'animation:cmsTickerScroll var(--cms-ticker-duration,45s) linear infinite;}' +
+        'will-change:transform;animation:cmsTickerScroll var(--cms-ticker-duration,40s) linear infinite;}' +
       '#' + ROOT_ID + ' .cms-ticker__track:hover{animation-play-state:paused;}' +
-      '#' + ROOT_ID + ' .cms-ticker__item{display:inline-flex;align-items:center;padding:0 2.25rem;gap:.65rem;}' +
-      '#' + ROOT_ID + ' .cms-ticker__sep{opacity:.45;font-weight:400;}' +
+      '#' + ROOT_ID + ' .cms-ticker__group{display:inline-flex;align-items:center;}' +
+      '#' + ROOT_ID + ' .cms-ticker__item{display:inline-flex;align-items:center;flex-shrink:0;' +
+        'padding:0;margin:0;gap:0;}' +
+      '#' + ROOT_ID + ' .cms-ticker__item + .cms-ticker__item{margin-left:var(--cms-ticker-gap,' + GAP_PX + 'px);}' +
+      '#' + ROOT_ID + ' .cms-ticker__dot{display:inline-block;width:5px;height:5px;margin:0 0 0 var(--cms-ticker-gap,' + GAP_PX + 'px);' +
+        'border-radius:50%;background:rgba(255,255,255,.45);flex-shrink:0;align-self:center;}' +
       '#' + ROOT_ID + ' .cms-ticker__item a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.35);}' +
       '#' + ROOT_ID + ' .cms-ticker__item a:hover{border-bottom-color:#fff;}' +
       '@keyframes cmsTickerScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}' +
@@ -60,7 +67,11 @@
     var inner = href
       ? '<a href="' + esc(href) + '">' + esc(label) + '</a>'
       : '<span>' + esc(label) + '</span>';
-    return '<span class="cms-ticker__item">' + inner + '<span class="cms-ticker__sep" aria-hidden="true">◆</span></span>';
+    return '<span class="cms-ticker__item">' + inner + '</span>';
+  }
+
+  function buildGroupHtml(list) {
+    return list.map(segmentHtml).filter(Boolean).join('<span class="cms-ticker__dot" aria-hidden="true"></span>');
   }
 
   function render(banners) {
@@ -89,23 +100,50 @@
       document.body.appendChild(root);
     }
 
-    var parts = list.map(segmentHtml).filter(Boolean).join('');
-    if (!parts) {
+    var groupHtml = buildGroupHtml(list);
+    if (!groupHtml) {
       root.setAttribute('hidden', '');
       document.body.classList.remove('cms-ticker-active');
       return;
     }
 
-    // Duplicar para bucle continuo; duración según cantidad de texto
-    var chars = list.reduce(function (n, b) { return n + bannerLabel(b).length; }, 0);
-    var duration = Math.max(28, Math.min(90, Math.round(chars * 0.55)));
-    root.style.setProperty('--cms-ticker-duration', duration + 's');
+    root.style.setProperty('--cms-ticker-gap', GAP_PX + 'px');
+    // Dos grupos idénticos → animación -50% = bucle perfecto
     root.innerHTML =
       '<div class="cms-ticker__viewport">' +
-        '<div class="cms-ticker__track">' + parts + parts + '</div>' +
+        '<div class="cms-ticker__track">' +
+          '<span class="cms-ticker__group">' + groupHtml + '</span>' +
+          '<span class="cms-ticker__dot" aria-hidden="true"></span>' +
+          '<span class="cms-ticker__group">' + groupHtml + '</span>' +
+        '</div>' +
       '</div>';
     root.removeAttribute('hidden');
     document.body.classList.add('cms-ticker-active');
+
+    // Si el contenido es más estrecho que la pantalla, repetir grupos hasta llenar
+    requestAnimationFrame(function () {
+      var track = root.querySelector('.cms-ticker__track');
+      var viewport = root.querySelector('.cms-ticker__viewport');
+      if (!track || !viewport) return;
+      var group = track.querySelector('.cms-ticker__group');
+      if (!group) return;
+
+      var need = Math.max(viewport.clientWidth * 2, 800);
+      var safety = 0;
+      while (group.offsetWidth < need && safety < 12) {
+        group.insertAdjacentHTML('beforeend',
+          '<span class="cms-ticker__dot" aria-hidden="true"></span>' + groupHtml);
+        safety++;
+      }
+
+      // Sincronizar el segundo grupo con el primero (mismo HTML interno)
+      var groups = track.querySelectorAll('.cms-ticker__group');
+      if (groups[1]) groups[1].innerHTML = groups[0].innerHTML;
+
+      var half = track.scrollWidth / 2;
+      var duration = Math.max(18, Math.round(half / SPEED_PX_PER_S));
+      root.style.setProperty('--cms-ticker-duration', duration + 's');
+    });
   }
 
   function fromData(data) {
@@ -121,7 +159,6 @@
       fromData(ev.detail);
     }, { once: true });
 
-    // Si no hay cms-plataforma en la página, cargar contenido aquí
     setTimeout(function () {
       if (document.getElementById(ROOT_ID) && !document.getElementById(ROOT_ID).hasAttribute('hidden')) return;
       if (window.CmsPlataforma && window.CmsPlataforma.data) {

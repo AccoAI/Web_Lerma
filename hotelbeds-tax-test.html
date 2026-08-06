@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Prueba tasas excluidas (Hotelbeds) — Cataluña / Baleares</title>
+  <style>
+    :root { --green: #1a6e3c; --text: #222; --muted: #666; }
+    body { font-family: system-ui, sans-serif; max-width: 920px; margin: 1.5rem auto; padding: 0 1rem 3rem; color: var(--text); }
+    h1 { font-size: 1.25rem; margin: 0 0 0.35rem; }
+    .warn { background: #fff8e6; border: 1px solid #e6c200; padding: 0.65rem 0.85rem; border-radius: 6px; font-size: 0.9rem; margin: 0.75rem 0 1.25rem; }
+    label { display: block; font-weight: 600; font-size: 0.85rem; margin-top: 0.65rem; }
+    input, select, button { padding: 0.5rem 0.65rem; font-size: 0.95rem; }
+    .row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end; margin-bottom: 1rem; }
+    .row > div { flex: 1; min-width: 140px; }
+    button { background: var(--green); color: #fff; border: 0; cursor: pointer; font-weight: 600; border-radius: 4px; }
+    button:disabled { opacity: 0.55; cursor: wait; }
+    .status { font-size: 0.9rem; color: var(--muted); margin: 0.5rem 0 1rem; }
+    .hotel { border: 1px solid #ddd; border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1rem; background: #fff; }
+    .hotel h2 { font-size: 1.05rem; margin: 0 0 0.5rem; }
+    .rate { border-top: 1px solid #eee; padding: 0.65rem 0; }
+    .rate-title { font-weight: 600; font-size: 0.92rem; }
+    .rate-meta { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; }
+    .hb-funnel-rate-taxes {
+      display: block; margin: 0.4rem 0 0.15rem; padding: 0.4rem 0.55rem;
+      font-size: 0.82rem; line-height: 1.4; background: #f7f4ef;
+      border-left: 3px solid #8a6d3b; border-radius: 0 4px 4px 0; color: #3d3428;
+    }
+    .hb-funnel-rate-taxes strong { display: block; margin-bottom: 0.2rem; }
+    .hb-funnel-rate-taxes ul { margin: 0; padding-left: 1.1rem; }
+    .ok-badge { display: inline-block; background: #e8f5e9; color: #1b5e20; font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 3px; }
+    .miss { color: #999; font-size: 0.8rem; font-style: italic; }
+  </style>
+</head>
+<body>
+  <h1>Prueba certificación — tasas excluidas (City Tax)</h1>
+  <p class="warn">
+    Página <strong>solo para certificación Hotelbeds</strong>. No forma parte del flujo comercial (Burgos/Lerma).
+    Consulta Availability en Cataluña/Baleares, donde sí hay tasas turísticas.
+  </p>
+
+  <div class="row">
+    <div>
+      <label for="dest">Destino</label>
+      <select id="dest">
+        <option value="BCN" selected>BCN — Barcelona / Cataluña</option>
+        <option value="PMI">PMI — Palma / Baleares</option>
+      </select>
+    </div>
+    <div>
+      <label for="checkIn">Check-in</label>
+      <input id="checkIn" type="date" value="2026-09-15" />
+    </div>
+    <div>
+      <label for="checkOut">Check-out</label>
+      <input id="checkOut" type="date" value="2026-09-17" />
+    </div>
+    <div>
+      <label for="mode">Modo</label>
+      <select id="mode">
+        <option value="hotels" selected>2 hoteles conocidos (rápido)</option>
+        <option value="dest">Todo el destino (lento, ~5 MB)</option>
+      </select>
+    </div>
+    <div>
+      <button type="button" id="btn">Buscar tarifas con tasas</button>
+    </div>
+  </div>
+
+  <p class="status" id="status">Pulsa «Buscar» para llamar a Availability (test).</p>
+  <div id="results"></div>
+
+  <script>
+    (function () {
+      // Hoteles BCN donde ya vimos City Tax en test (2026-09-15).
+      var SAMPLE_HOTELS = {
+        BCN: ['14915', '148027'],
+        PMI: [],
+      };
+
+      function escapeHtml(s) {
+        return String(s == null ? '' : s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function paidExtrasFromRate(rate) {
+        var lines = [];
+        if (!rate || typeof rate !== 'object') return lines;
+        var taxes = rate.taxes && (rate.taxes.taxes || rate.taxes);
+        if (!Array.isArray(taxes)) return lines;
+        taxes.forEach(function (tx) {
+          if (!tx || tx.included === true) return;
+          var amt = tx.clientAmount != null ? tx.clientAmount : tx.amount;
+          if (amt == null || amt === '' || Number(amt) === 0) return;
+          var subtype = (tx.subType || tx.subtype || '').toString().trim();
+          var type = (tx.type || '').toString().trim();
+          var cur = (tx.clientCurrency || tx.currency || 'EUR').toString().trim();
+          var label = subtype || type || 'Cargo adicional';
+          if (subtype && type && subtype !== type) lines.push(subtype + ' (' + type + ') — ' + amt + ' ' + cur);
+          else lines.push(label + ' — ' + amt + ' ' + cur);
+        });
+        return lines;
+      }
+
+      function taxesHtml(lines) {
+        if (!lines.length) return '<p class="miss">Sin tasas excluidas en esta tarifa</p>';
+        return (
+          '<div class="hb-funnel-rate-taxes" aria-label="Impuestos y cargos no incluidos">' +
+          '<strong>Impuestos / cargos no incluidos:</strong>' +
+          '<ul>' +
+          lines.map(function (x) { return '<li>' + escapeHtml(x) + '</li>'; }).join('') +
+          '</ul></div>'
+        );
+      }
+
+      function hotelName(h) {
+        if (typeof h.name === 'string') return h.name;
+        if (h.name && h.name.content) return String(h.name.content);
+        return 'Hotel ' + h.code;
+      }
+
+      function boardName(rate) {
+        return rate.boardName || rate.boardCode || 'Régimen';
+      }
+
+      function roomName(room) {
+        if (typeof room.name === 'string') return room.name;
+        if (room.name && room.name.content) return String(room.name.content);
+        return room.code || 'Habitación';
+      }
+
+      document.getElementById('btn').addEventListener('click', async function () {
+        var btn = document.getElementById('btn');
+        var status = document.getElementById('status');
+        var results = document.getElementById('results');
+        var dest = document.getElementById('dest').value;
+        var checkIn = document.getElementById('checkIn').value;
+        var checkOut = document.getElementById('checkOut').value;
+        var mode = document.getElementById('mode').value;
+
+        btn.disabled = true;
+        results.innerHTML = '';
+        status.textContent = 'Consultando Hotelbeds…';
+
+        var body = {
+          checkIn: checkIn,
+          checkOut: checkOut,
+          rooms: 1,
+          adults: 2,
+        };
+        if (mode === 'hotels' && SAMPLE_HOTELS[dest] && SAMPLE_HOTELS[dest].length) {
+          body.hotelCodes = SAMPLE_HOTELS[dest];
+        } else {
+          body.destinationCode = dest;
+        }
+
+        try {
+          var res = await fetch('/api/hotelbeds-availability', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          var data = await res.json();
+          if (data.error && !(data.hotels && data.hotels.hotels && data.hotels.hotels.length)) {
+            status.textContent = 'Error: ' + data.error;
+            btn.disabled = false;
+            return;
+          }
+
+          var list = (data.hotels && data.hotels.hotels) || [];
+          var withTax = 0;
+          var html = '';
+          var maxHotels = 8;
+          var shown = 0;
+
+          for (var i = 0; i < list.length && shown < maxHotels; i++) {
+            var h = list[i];
+            var rateBlocks = '';
+            var hotelHasTax = false;
+            var rooms = h.rooms || [];
+            var rateCount = 0;
+            for (var r = 0; r < rooms.length; r++) {
+              var room = rooms[r];
+              var rates = room.rates || [];
+              for (var k = 0; k < rates.length && rateCount < 6; k++) {
+                var rate = rates[k];
+                var lines = paidExtrasFromRate(rate);
+                if (lines.length) {
+                  hotelHasTax = true;
+                  withTax++;
+                }
+                // En modo destino: solo mostrar tarifas que tengan tasa (para no saturar)
+                if (mode === 'dest' && !lines.length) continue;
+                rateCount++;
+                rateBlocks +=
+                  '<div class="rate">' +
+                  '<div class="rate-title">' +
+                  escapeHtml(roomName(room)) +
+                  ' · ' +
+                  escapeHtml(boardName(rate)) +
+                  ' · ' +
+                  escapeHtml(rate.rateType || '') +
+                  (rate.rateClass ? ' · ' + escapeHtml(rate.rateClass) : '') +
+                  (lines.length ? ' <span class="ok-badge">TASA OK</span>' : '') +
+                  '</div>' +
+                  '<div class="rate-meta">net ' +
+                  escapeHtml(rate.net || rate.sellingRate || '—') +
+                  ' EUR</div>' +
+                  taxesHtml(lines) +
+                  '</div>';
+              }
+            }
+            if (!rateBlocks) continue;
+            if (mode === 'dest' && !hotelHasTax) continue;
+            shown++;
+            html +=
+              '<article class="hotel"><h2>' +
+              escapeHtml(hotelName(h)) +
+              ' <small>(código ' +
+              escapeHtml(String(h.code)) +
+              ')</small></h2>' +
+              rateBlocks +
+              '</article>';
+          }
+
+          status.textContent =
+            'Hoteles en respuesta: ' +
+            list.length +
+            ' · Tarifas con tasas excluidas (muestra): ' +
+            withTax +
+            (withTax ? ' — el bloque beige es el que ve Hotelbeds en certificación.' : ' — prueba otra fecha o destino PMI.');
+          results.innerHTML = html || '<p>No se encontraron tarifas con tasas en esta muestra.</p>';
+        } catch (e) {
+          status.textContent = 'Error de red: ' + (e && e.message ? e.message : e);
+        }
+        btn.disabled = false;
+      });
+    })();
+  </script>
+</body>
+</html>

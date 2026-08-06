@@ -1,6 +1,6 @@
 /**
  * Popups centrados (sección Popups del panel). Independientes de "Próximos torneos".
- * Diapositiva entre varias tarjetas si hay más de una.
+ * Tipos: general | aviso | horario | tarifa.
  */
 (function () {
   'use strict';
@@ -10,10 +10,10 @@
   function getUrl() {
     if (window.CMS_CONTENIDO_URL) return window.CMS_CONTENIDO_URL;
     if (window.TORNEOS_POPUP_DATA_URL) {
-      return window.TORNEOS_POPUP_DATA_URL.replace(/\/api\/torneos\.json.*/i, '/api/torneos.json');
+      return window.TORNEOS_POPUP_DATA_URL.replace(/\/api\/torneos\.json.*/i, '/api/contenido.json');
     }
     var base = (window.PLATAFORMA_CMS_URL || 'https://plataforma-torneos-lerma-salda-a.vercel.app').replace(/\/$/, '');
-    return base + '/api/torneos.json';
+    return base + '/api/contenido.json';
   }
 
   function todayStr() {
@@ -39,6 +39,14 @@
     var href = (url || '').trim();
     if (!href || /^\s*javascript\s*:/i.test(href) || /^\s*data\s*:/i.test(href)) return '#';
     return href;
+  }
+
+  function tipoLabel(tipo) {
+    var t = String(tipo || 'general').toLowerCase();
+    if (t === 'aviso') return 'Aviso';
+    if (t === 'horario') return 'Horario';
+    if (t === 'tarifa') return 'Tarifa';
+    return '';
   }
 
   function ensureDom() {
@@ -74,9 +82,13 @@
         '@keyframes cmsPopIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}' +
         '.cms-center-popup__img{width:100%;max-height:220px;object-fit:cover;display:block;background:#e8efe9;}' +
         '.cms-center-popup__body{padding:1.1rem 1.25rem 1.25rem;}' +
+        '.cms-center-popup__tipo{display:inline-block;margin:0 0 .5rem;padding:.2rem .55rem;border-radius:6px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:#e8efe9;color:#0f5c2c;}' +
+        '.cms-center-popup__tipo--aviso{background:#fff4e5;color:#9a5b00;}' +
+        '.cms-center-popup__tipo--horario{background:#e8f1ff;color:#1a4a8a;}' +
+        '.cms-center-popup__tipo--tarifa{background:#eef8e8;color:#2d6a1f;}' +
         '.cms-center-popup__sub{margin:0 0 .35rem;color:#5a5a5a;font-size:.85rem;}' +
         '.cms-center-popup__title{margin:0 0 .5rem;color:#0f5c2c;font-size:1.25rem;}' +
-        '.cms-center-popup__text{margin:0 0 1rem;color:#333;font-size:.95rem;line-height:1.45;}' +
+        '.cms-center-popup__text{margin:0 0 1rem;color:#333;font-size:.95rem;line-height:1.45;white-space:pre-line;}' +
         '.cms-center-popup__btn{display:inline-block;padding:.65rem 1.1rem;background:#0f5c2c;color:#fff;text-decoration:none;font-weight:600;border-radius:8px;}' +
         '.cms-center-popup__dots{display:flex;gap:6px;justify-content:center;padding:0 1rem .75rem;}' +
         '.cms-center-popup__dot{width:8px;height:8px;border-radius:50%;border:0;padding:0;background:#c5d4ca;cursor:pointer;}' +
@@ -102,6 +114,11 @@
       var html = '';
       if (p.imagen) html += '<img class="cms-center-popup__img" src="' + esc(p.imagen) + '" alt="">';
       html += '<div class="cms-center-popup__body">';
+      var tl = tipoLabel(p.tipo);
+      if (tl) {
+        html += '<span class="cms-center-popup__tipo cms-center-popup__tipo--' + esc(String(p.tipo || '').toLowerCase()) + '">' +
+          esc(tl) + '</span>';
+      }
       if (p.subtitulo) html += '<p class="cms-center-popup__sub">' + esc(p.subtitulo) + '</p>';
       if (p.titulo) html += '<h3 class="cms-center-popup__title">' + esc(p.titulo) + '</h3>';
       if (p.texto) html += '<p class="cms-center-popup__text">' + esc(p.texto) + '</p>';
@@ -159,6 +176,7 @@
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
         if (!data || data.popupActivo === false) return;
+        if (data.popup && data.popup.activo === false) return;
         var list = (data.popups || []).filter(function (p) {
           if (!p || p.activo === false) return false;
           var titulo = String(p.titulo || '').trim();
