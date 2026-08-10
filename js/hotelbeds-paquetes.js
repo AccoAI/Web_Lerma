@@ -1023,7 +1023,15 @@
     if (offer.occupancyLabel) parts.push('Ocupación: ' + offer.occupancyLabel);
     if (offer.allotment != null && offer.allotment !== '') parts.push('Cupo HB ' + offer.allotment);
     if (offer.rateRooms != null && offer.rateAdults != null) {
-      parts.push('Ocupación tarifa: ' + offer.rateRooms + ' hab., ' + offer.rateAdults + ' adultos');
+      var occTarifa =
+        'Ocupación tarifa: ' + offer.rateRooms + ' hab., ' + offer.rateAdults + ' adultos';
+      if (offer.rateChildren != null && offer.rateChildren > 0) {
+        occTarifa +=
+          ', ' +
+          offer.rateChildren +
+          (offer.rateChildren === 1 ? ' niño' : ' niños');
+      }
+      parts.push(occTarifa);
     }
     if (!rateHasSufficientAllotment(offer, { rooms: offer.rateRooms || 1 })) {
       parts.push('⚠ Cupo bajo para varias habitaciones');
@@ -1511,15 +1519,10 @@
     if (!form) return occ;
     var listOcc = window.__HB_LAST_AVAIL_OCC__;
     if (!listOcc) return occ;
-    var groupOcc = getListOccupancyForAvailability(new FormData(form));
-    if (
-      groupOcc.totalAdults === occ.totalAdults &&
-      groupOcc.rooms === occ.rooms &&
-      occCacheSignature(groupOcc) === occCacheSignature(occ)
-    ) {
-      return listOcc;
-    }
-    if (totalAdults === adultsDefault && rooms === roomsDefault) {
+    // Reutilizar la ocupación del listado solo si coincide de verdad (incl. niños/edades).
+    // Antes se devolvía listOcc al mantener Personas/Habit por defecto aunque Niños > 0,
+    // y la disponibilidad/booking iban sin menores.
+    if (occCacheSignature(listOcc) === occCacheSignature(occ)) {
       return listOcc;
     }
     return occ;
@@ -2084,13 +2087,31 @@
     if (!Array.isArray(occupancies) || !occupancies.length || !childAges || !childAges.length) {
       return occupancies;
     }
-    var occ0 = Object.assign({}, occupancies[0]);
-    occ0.children = childAges.length;
-    occ0.paxes = childAges.map(function (age) {
+    var occ0 = occupancies[0];
+    var roomCount = Math.max(1, parseInt(occ0.rooms, 10) || 1);
+    // rooms>1 en un solo nodo = misma ocupación por habitación. Si metemos children ahí,
+    // Hotelbeds los replica en cada hab. Repartimos niños en nodos rooms:1.
+    if (roomCount > 1 && occupancies.length === 1) {
+      var adultsPer = Math.max(1, parseInt(occ0.adults, 10) || 1);
+      var expanded = [];
+      for (var r = 0; r < roomCount; r++) {
+        expanded.push({ rooms: 1, adults: adultsPer, children: 0 });
+      }
+      for (var i = 0; i < childAges.length; i++) {
+        var target = expanded[i % roomCount];
+        target.children = (target.children || 0) + 1;
+        target.paxes = target.paxes || [];
+        target.paxes.push({ type: 'CH', age: childAges[i] });
+      }
+      return expanded;
+    }
+    var single = Object.assign({}, occ0);
+    single.children = childAges.length;
+    single.paxes = childAges.map(function (age) {
       return { type: 'CH', age: age };
     });
     var out = occupancies.slice();
-    out[0] = occ0;
+    out[0] = single;
     return out;
   }
 
@@ -2165,14 +2186,21 @@
     var norm = normalizeHbOccupancy(occ);
     if (!norm.occupancies || !norm.occupancies.length) return '';
     var parts = norm.occupancies.map(function (o) {
-      return o.rooms + ' hab. × ' + o.adults + ' adultos';
+      var s = o.rooms + ' hab. × ' + o.adults + ' adultos';
+      var ch = o.children || (o.paxes && o.paxes.length) || 0;
+      if (ch > 0) s += ' + ' + ch + (ch === 1 ? ' niño' : ' niños');
+      return s;
     });
+    var kids = norm.children || 0;
+    var kidsTxt = kids > 0 ? ' + ' + kids + (kids === 1 ? ' niño' : ' niños') : '';
     return (
       'Búsqueda Hotelbeds: ' +
       parts.join(' + ') +
       ' (' +
       norm.totalAdults +
-      ' personas en total · habitaciones de cama doble)'
+      ' adultos' +
+      kidsTxt +
+      ' · habitaciones de cama doble)'
     );
   }
 
@@ -2204,31 +2232,30 @@
     return null;
   }
 
-  /** Ocupación que exige la tarifa (rateKey > campos rate > formulario funnel). */
+  /** Ocupación de booking: formulario funnel (totales) manda; rateKey/offer rellenan huecos. */
   function resolveBookingOccupancy(offer, rateKey, fd) {
     var childAges = readChildAgesFromForm(fd);
-    var fromKey = parseOccupancyFromRateKey(rateKey);
-    if (fromKey) {
-      var childrenFromKey = Math.max(0, fromKey.children);
-      while (childAges.length < childrenFromKey) childAges.push(8);
-      if (childAges.length > childrenFromKey) childAges = childAges.slice(0, childrenFromKey);
-      return {
-        rooms: Math.max(1, fromKey.rooms),
-        adults: Math.max(1, fromKey.adults),
-        children: childrenFromKey,
-        childAges: childAges,
-      };
-    }
     var adults = Math.max(
       1,
       parseInt((fd.get('hb_occ_adults') || fd.get('tamanio_grupo') || '2'), 10) || 2
     );
     var rooms = Math.max(1, parseInt((fd.get('hb_occ_rooms') || defaultRoomsForAdults(adults)), 10) || 1);
     var children = clamp(getInt(fd.get('hb_occ_children'), childAges.length), 0, 6);
+
+    var fromKey = parseOccupancyFromRateKey(rateKey);
+    if (fromKey) {
+      if (fromKey.rooms > rooms) rooms = Math.max(1, fromKey.rooms);
+      // rateKey children es por nodo de ocupación; si rooms>1 y form no trae niños, escalar.
+      var keyChildren = Math.max(0, fromKey.children);
+      if (children === 0 && keyChildren > 0) {
+        children = fromKey.rooms > 1 ? keyChildren * fromKey.rooms : keyChildren;
+      }
+    }
     if (offer) {
-      if (offer.rateRooms != null && offer.rateRooms > 0) rooms = offer.rateRooms;
-      if (offer.rateAdults != null && offer.rateAdults > 0) adults = offer.rateAdults;
-      if (offer.rateChildren != null && offer.rateChildren >= 0) children = offer.rateChildren;
+      if (offer.rateRooms != null && offer.rateRooms > rooms) rooms = offer.rateRooms;
+      if (offer.rateChildren != null && offer.rateChildren > children) {
+        children = offer.rateChildren;
+      }
     }
     while (childAges.length < children) childAges.push(8);
     if (childAges.length > children) childAges = childAges.slice(0, children);
@@ -2280,9 +2307,13 @@
       );
     }
     if (children > 0) {
-      allPaxes = allPaxes.concat(
-        buildChildPaxesForRoom(1, children, nameParts.name, nameParts.surname, childAges)
-      );
+      for (var ci = 0; ci < children; ci++) {
+        var childRoomId = (ci % roomsCount) + 1;
+        var ageOne = childAges && childAges[ci] != null ? [childAges[ci]] : [8];
+        allPaxes = allPaxes.concat(
+          buildChildPaxesForRoom(childRoomId, 1, nameParts.name, nameParts.surname, ageOne)
+        );
+      }
     }
     return [{ rateKey: finalRateKey, paxes: allPaxes }];
   }
@@ -2750,14 +2781,22 @@
     return 'Hotel ' + code;
   }
 
-  function setSelectedHotelInHiddenInputs(form, hotelCode, rateKey, adults, rooms, rateType) {
+  function setSelectedHotelInHiddenInputs(form, hotelCode, rateKey, adults, rooms, rateType, children, childAgesCsv) {
     ensureHotelFunnelHiddenInputs(form);
     form.querySelector('input[name="hb_selected_hotel_code"]').value = String(hotelCode || '');
     form.querySelector('input[name="hb_selected_rate_key"]').value = String(rateKey || '');
     form.querySelector('input[name="hb_selected_rate_type"]').value = String(rateType || '');
     form.querySelector('input[name="hb_occ_adults"]').value = String(adults || '');
     form.querySelector('input[name="hb_occ_rooms"]').value = String(rooms || '');
-    form.querySelector('input[name="hb_occ_children"]').value = '0';
+    // No pisar niños/edades si el caller no los pasa (antes siempre forzaba 0).
+    if (children != null && String(children).trim() !== '') {
+      form.querySelector('input[name="hb_occ_children"]').value = String(
+        clamp(getInt(children, 0), 0, 6)
+      );
+    }
+    if (childAgesCsv != null) {
+      form.querySelector('input[name="hb_children_ages"]').value = String(childAgesCsv || '');
+    }
     form.querySelector('input[name="hb_rate_validated"]').value = '';
     form.querySelector('input[name="hb_funnel_ready"]').value = '';
     var refN = form.querySelector('input[name="hb_hotel_stay_ref_net"]');
@@ -3182,6 +3221,9 @@
 
     form.querySelector('input[name="hb_occ_adults"]').value = String(occConfirm.adults);
     form.querySelector('input[name="hb_occ_rooms"]').value = String(occConfirm.rooms);
+    form.querySelector('input[name="hb_occ_children"]').value = String(occConfirm.children || 0);
+    var agesConfirm = Array.isArray(occConfirm.childAges) ? occConfirm.childAges : [];
+    form.querySelector('input[name="hb_children_ages"]').value = agesConfirm.join(',');
     if (offerConfirm) syncHbResumenPriceHidden(form, offerConfirm);
     form.querySelector('input[name="hb_funnel_ready"]').value = '1';
     var nochesInput = form.querySelector('input[name="noches"]');
@@ -3590,20 +3632,35 @@
         resetFunnelValidation();
       });
       if (childrenInp) {
-        childrenInp.addEventListener('input', function () {
+        function onChildrenChanged() {
           renderChildAgeInputs(host, childrenInp.value);
           syncChildrenToHidden(form, host, childrenInp.value);
+          // Forzar nueva availability: tarifas del listado (sin niños) no sirven.
+          host.__hbRatesHotel = '';
+          var hc = getSelectedHotelCode();
+          if (hc) {
+            if (window.__HB_RATE_OFFERS_BY_CODE__) delete window.__HB_RATE_OFFERS_BY_CODE__[String(hc)];
+            if (window.__HB_FUNNEL_OFFERS_KEY_BY_HOTEL__) {
+              delete window.__HB_FUNNEL_OFFERS_KEY_BY_HOTEL__[String(hc)];
+            }
+          }
           resetFunnelValidation();
-        });
-        childrenInp.addEventListener('change', function () {
-          renderChildAgeInputs(host, childrenInp.value);
-          syncChildrenToHidden(form, host, childrenInp.value);
-          resetFunnelValidation();
-        });
+        }
+        childrenInp.addEventListener('input', onChildrenChanged);
+        childrenInp.addEventListener('change', onChildrenChanged);
       }
       host.addEventListener('input', function (ev) {
         if (!ev.target || !ev.target.classList || !ev.target.classList.contains('hb-funnel-child-age-inp')) return;
         syncChildrenToHidden(form, host, childrenInp ? childrenInp.value : 0);
+        host.__hbRatesHotel = '';
+        var hcAge = getSelectedHotelCode();
+        if (hcAge) {
+          if (window.__HB_RATE_OFFERS_BY_CODE__) delete window.__HB_RATE_OFFERS_BY_CODE__[String(hcAge)];
+          if (window.__HB_FUNNEL_OFFERS_KEY_BY_HOTEL__) {
+            delete window.__HB_FUNNEL_OFFERS_KEY_BY_HOTEL__[String(hcAge)];
+          }
+        }
+        resetFunnelValidation();
       });
 
       btnCheck.addEventListener('click', function () {
@@ -3620,7 +3677,16 @@
         if (childrenInp) childrenInp.value = String(occ.children || 0);
         syncChildrenToHidden(form, host, occ.children || 0);
         var previousRateKey = getSelectedRateKeyFromFunnel(host, form);
-        setSelectedHotelInHiddenInputs(form, hotelCode, '', occ.totalAdults, occ.rooms, '');
+        setSelectedHotelInHiddenInputs(
+          form,
+          hotelCode,
+          '',
+          occ.totalAdults,
+          occ.rooms,
+          '',
+          occ.children || 0,
+          (occ.childAges || []).join(',')
+        );
         refreshUiState();
 
         var offersReady =
