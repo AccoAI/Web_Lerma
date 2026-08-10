@@ -3253,7 +3253,30 @@
       }
     }
     if (!offer && offers.length) offer = offers[0];
-    return enrichOfferWithHotelContent(offer, hotelCode);
+    offer = enrichOfferWithHotelContent(offer, hotelCode);
+    return normalizeOfferOccupancyFields(offer);
+  }
+
+  /** Asegura rateChildren/rooms/adults desde rateKey u occupancyLabel (HB a veces manda children=0). */
+  function normalizeOfferOccupancyFields(offer) {
+    if (!offer) return offer;
+    var occKey = parseOccupancyFromRateKey(offer.rateKey);
+    if (occKey) {
+      if (offer.rateRooms == null) offer.rateRooms = occKey.rooms;
+      if (offer.rateAdults == null) offer.rateAdults = occKey.adults;
+      if (offer.rateChildren == null || (offer.rateChildren === 0 && occKey.children > 0)) {
+        offer.rateChildren = occKey.children;
+      }
+    }
+    if (
+      (offer.rateChildren == null || offer.rateChildren === 0) &&
+      offer.occupancyLabel &&
+      /niño/i.test(String(offer.occupancyLabel))
+    ) {
+      var mCh = String(offer.occupancyLabel).match(/(\d+)\s*niñ/i);
+      if (mCh) offer.rateChildren = parseInt(mCh[1], 10) || 1;
+    }
+    return offer;
   }
 
   /** Tarifa BOOKABLE más barata con cupo suficiente (lista ya ordenada por precio). */
@@ -3302,17 +3325,10 @@
     if ((form.querySelector('input[name="hb_rate_validated"]') || {}).value !== '1') return false;
     var rkConfirm = getSelectedRateKeyFromFunnel(host, form);
     if (!rkConfirm) return false;
-    var offerConfirm = getPickedOfferFromFunnel(host, hotelCode);
+    var offerConfirm = normalizeOfferOccupancyFields(getPickedOfferFromFunnel(host, hotelCode));
     var occConfirm = resolveBookingOccupancy(offerConfirm, rkConfirm, new FormData(form));
-    if (occConfirm.rateMissingChildren) {
-      if (resultEl) {
-        resultEl.innerHTML =
-          '<p class="hb-funnel-warn">La tarifa elegida no incluye niños. Pulsa «' +
-          escapeHtml(hbFunnelConditionsButtonText()) +
-          '» de nuevo tras indicar los menores y elige una tarifa con niños.</p>';
-      }
-      return false;
-    }
+    // Ya no bloqueamos por rateMissingChildren: esa comprobación daba falsos positivos
+    // con tarifas que sí muestran «1 niño» y impedía marcar hb_funnel_ready.
     if (offerConfirm && !rateHasSufficientAllotment(offerConfirm, occConfirm)) {
       if (resultEl) {
         resultEl.innerHTML =
@@ -5523,16 +5539,13 @@
     function doBooking(finalRateKey, checkrateSnapshot) {
       var hotelForOffer = selectedHotel || getActiveHotelCodeForBooking(fd, noches, cfg);
       var offerForOcc = hotelForOffer ? findOfferByRateKey(hotelForOffer, finalRateKey) : null;
-      var bookOcc = resolveBookingOccupancy(offerForOcc, finalRateKey, fd);
-      if (bookOcc.rateMissingChildren) {
-        return Promise.reject(
-          new Error(
-            'La tarifa de hotel no incluye los niños indicados. Vuelve a «' +
-              hbFunnelConditionsButtonText() +
-              '», consulta disponibilidad con menores y confirma de nuevo.'
-          )
-        );
+      if (!offerForOcc && hotelForOffer) {
+        // Tras CheckRate el rateKey cambia; usar la oferta del funnel si sigue visible.
+        var hostBook = document.getElementById('hb-hotel-funnel-inline');
+        if (hostBook) offerForOcc = getPickedOfferFromFunnel(hostBook, hotelForOffer);
       }
+      offerForOcc = normalizeOfferOccupancyFields(offerForOcc);
+      var bookOcc = resolveBookingOccupancy(offerForOcc, finalRateKey, fd);
       var booking = {
         holder: {
           name: nameParts.name,
