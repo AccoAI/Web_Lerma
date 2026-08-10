@@ -2083,54 +2083,64 @@
     return [{ rooms: doubles, adults: 2, children: 0 }];
   }
 
+  /**
+   * Añade menores a ocupaciones adultas.
+   * Hotelbeds: rooms:N + children:C = C niños en CADA habitación.
+   * Por eso, con 2 hab. y 2 niños totales usamos children:1 (uno por hab.), no children:2.
+   */
   function applyChildAgesToOccupancies(occupancies, childAges) {
     if (!Array.isArray(occupancies) || !occupancies.length || !childAges || !childAges.length) {
       return occupancies;
     }
-    var occ0 = occupancies[0];
-    var roomCount = Math.max(1, parseInt(occ0.rooms, 10) || 1);
-    // rooms>1 en un solo nodo = misma ocupación por habitación. Si metemos children ahí,
-    // Hotelbeds los replica en cada hab. Repartimos niños en nodos rooms:1.
-    if (roomCount > 1 && occupancies.length === 1) {
-      var adultsPer = Math.max(1, parseInt(occ0.adults, 10) || 1);
-      var expanded = [];
-      for (var r = 0; r < roomCount; r++) {
-        expanded.push({ rooms: 1, adults: adultsPer, children: 0 });
+    // Unidades rooms:1 (sin niños previos) para no acumular en dobles normalize().
+    var units = [];
+    for (var oi = 0; oi < occupancies.length; oi++) {
+      var o = occupancies[oi];
+      var rc = Math.max(1, parseInt(o.rooms, 10) || 1);
+      var ad = Math.max(1, parseInt(o.adults, 10) || 1);
+      for (var r = 0; r < rc; r++) {
+        units.push({ rooms: 1, adults: ad, children: 0 });
       }
-      for (var i = 0; i < childAges.length; i++) {
-        var target = expanded[i % roomCount];
-        target.children = (target.children || 0) + 1;
-        target.paxes = target.paxes || [];
-        target.paxes.push({ type: 'CH', age: childAges[i] });
-      }
-      return expanded;
     }
-    var single = Object.assign({}, occ0);
-    single.children = childAges.length;
-    single.paxes = childAges.map(function (age) {
-      return { type: 'CH', age: age };
+    if (!units.length) return occupancies;
+
+    var nKids = childAges.length;
+    var nRooms = units.length;
+    var agesUniform = childAges.every(function (a) {
+      return a === childAges[0];
     });
-    var out = occupancies.slice();
-    out[0] = single;
-    return out;
+    var sameAdults = units.every(function (u) {
+      return u.adults === units[0].adults;
+    });
+
+    // Misma ocupación en todas las hab. + niños repartibles + misma edad → un nodo HB.
+    if (sameAdults && agesUniform && nKids % nRooms === 0) {
+      var perRoom = nKids / nRooms;
+      var paxes = [];
+      for (var p = 0; p < perRoom; p++) {
+        paxes.push({ type: 'CH', age: childAges[0] });
+      }
+      return [
+        {
+          rooms: nRooms,
+          adults: units[0].adults,
+          children: perRoom,
+          paxes: paxes,
+        },
+      ];
+    }
+
+    for (var i = 0; i < nKids; i++) {
+      var target = units[i % nRooms];
+      target.children = (target.children || 0) + 1;
+      target.paxes = target.paxes || [];
+      target.paxes.push({ type: 'CH', age: childAges[i] });
+    }
+    return units;
   }
 
   /** totalAdults = personas del grupo; occupancies = petición real a Hotelbeds. */
   function normalizeHbOccupancy(occ) {
-    if (occ && occ.occupancies && occ.totalAdults != null) {
-      var childAges0 = Array.isArray(occ.childAges) ? occ.childAges : [];
-      var occs0 = childAges0.length
-        ? applyChildAgesToOccupancies(occ.occupancies, childAges0)
-        : occ.occupancies;
-      return {
-        totalAdults: clamp(getInt(occ.totalAdults, 2), 1, 54),
-        adults: clamp(getInt(occ.totalAdults, 2), 1, 54),
-        rooms: clamp(getInt(occ.rooms, 1), 1, HB_MAX_ROOMS),
-        children: clamp(getInt(occ.children, childAges0.length), 0, 6),
-        childAges: childAges0,
-        occupancies: occs0,
-      };
-    }
     var totalAdults = clamp(
       getInt(occ && (occ.totalAdults != null ? occ.totalAdults : occ.adults), 2),
       1,
@@ -2140,22 +2150,22 @@
       occ && occ.rooms != null && String(occ.rooms).trim() !== ''
         ? clamp(getInt(occ.rooms, 1), 1, HB_MAX_ROOMS)
         : defaultRoomsForAdults(totalAdults);
-    var occupancies = buildHbOccupanciesArray(totalAdults, preferredRooms);
     var childAges = Array.isArray(occ && occ.childAges) ? occ.childAges.slice(0, 6) : [];
     var childrenCount = clamp(
       getInt(occ && occ.children, childAges.length),
       childAges.length,
       6
     );
-    if (childAges.length) occupancies = applyChildAgesToOccupancies(occupancies, childAges);
-    else if (childrenCount > 0) {
-      var defaultAges = [];
-      for (var ci = 0; ci < childrenCount; ci++) defaultAges.push(8);
-      occupancies = applyChildAgesToOccupancies(occupancies, defaultAges);
-      childAges = defaultAges;
+    while (childAges.length < childrenCount) childAges.push(8);
+    if (childAges.length > childrenCount) childAges = childAges.slice(0, childrenCount);
+
+    // Siempre reconstruir desde adultos/hab. (evita reaplicar niños sobre ocupaciones ya expandidas).
+    var occupancies = buildHbOccupanciesArray(totalAdults, preferredRooms);
+    if (childAges.length) {
+      occupancies = applyChildAgesToOccupancies(occupancies, childAges);
     }
     var apiRooms = occupancies.reduce(function (sum, o) {
-      return sum + o.rooms;
+      return sum + (parseInt(o.rooms, 10) || 0);
     }, 0);
     return {
       totalAdults: totalAdults,
@@ -2187,8 +2197,13 @@
     if (!norm.occupancies || !norm.occupancies.length) return '';
     var parts = norm.occupancies.map(function (o) {
       var s = o.rooms + ' hab. × ' + o.adults + ' adultos';
-      var ch = o.children || (o.paxes && o.paxes.length) || 0;
-      if (ch > 0) s += ' + ' + ch + (ch === 1 ? ' niño' : ' niños');
+      var ch = Math.max(0, parseInt(o.children, 10) || 0);
+      if (ch > 0) {
+        var chTotal = ch * Math.max(1, parseInt(o.rooms, 10) || 1);
+        s += ' (+ ' + ch + (ch === 1 ? ' niño' : ' niños') + '/hab.';
+        if (o.rooms > 1) s += ' = ' + chTotal + ' niños';
+        s += ')';
+      }
       return s;
     });
     var kids = norm.children || 0;
@@ -2232,34 +2247,52 @@
     return null;
   }
 
-  /** Ocupación de booking: formulario funnel (totales) manda; rateKey/offer rellenan huecos. */
+  /**
+   * Ocupación de booking: debe coincidir con el rateKey (HB valida paxes vs tarifa).
+   * rooms~adults~children del rateKey = ocupación por habitación cuando rooms>1.
+   */
   function resolveBookingOccupancy(offer, rateKey, fd) {
     var childAges = readChildAgesFromForm(fd);
-    var adults = Math.max(
+    var formAdults = Math.max(
       1,
       parseInt((fd.get('hb_occ_adults') || fd.get('tamanio_grupo') || '2'), 10) || 2
     );
-    var rooms = Math.max(1, parseInt((fd.get('hb_occ_rooms') || defaultRoomsForAdults(adults)), 10) || 1);
-    var children = clamp(getInt(fd.get('hb_occ_children'), childAges.length), 0, 6);
+    var formRooms = Math.max(
+      1,
+      parseInt((fd.get('hb_occ_rooms') || defaultRoomsForAdults(formAdults)), 10) || 1
+    );
+    var formChildren = clamp(getInt(fd.get('hb_occ_children'), childAges.length), 0, 6);
 
+    var rooms = formRooms;
+    var adults = formAdults;
+    var children = formChildren;
     var fromKey = parseOccupancyFromRateKey(rateKey);
+
     if (fromKey) {
-      if (fromKey.rooms > rooms) rooms = Math.max(1, fromKey.rooms);
-      // rateKey children es por nodo de ocupación; si rooms>1 y form no trae niños, escalar.
-      var keyChildren = Math.max(0, fromKey.children);
-      if (children === 0 && keyChildren > 0) {
-        children = fromKey.rooms > 1 ? keyChildren * fromKey.rooms : keyChildren;
+      rooms = Math.max(1, fromKey.rooms);
+      adults = Math.max(1, fromKey.adults) * rooms;
+      children = Math.max(0, fromKey.children) * rooms;
+    } else if (offer) {
+      if (offer.rateRooms != null && offer.rateRooms > 0) rooms = offer.rateRooms;
+      if (offer.rateAdults != null && offer.rateAdults > 0) {
+        adults = offer.rateAdults * (rooms > 1 ? rooms : 1);
+      }
+      if (offer.rateChildren != null && offer.rateChildren >= 0) {
+        children = offer.rateChildren * (rooms > 1 ? rooms : 1);
       }
     }
-    if (offer) {
-      if (offer.rateRooms != null && offer.rateRooms > rooms) rooms = offer.rateRooms;
-      if (offer.rateChildren != null && offer.rateChildren > children) {
-        children = offer.rateChildren;
-      }
-    }
+
     while (childAges.length < children) childAges.push(8);
     if (childAges.length > children) childAges = childAges.slice(0, children);
-    return { rooms: rooms, adults: adults, children: children, childAges: childAges };
+
+    return {
+      rooms: rooms,
+      adults: adults,
+      children: children,
+      childAges: childAges,
+      formChildren: formChildren,
+      rateMissingChildren: formChildren > 0 && children === 0,
+    };
   }
 
   function splitAdultsIntoRooms(adults, rooms) {
@@ -3128,6 +3161,15 @@
     if (!rkConfirm) return false;
     var offerConfirm = getPickedOfferFromFunnel(host, hotelCode);
     var occConfirm = resolveBookingOccupancy(offerConfirm, rkConfirm, new FormData(form));
+    if (occConfirm.rateMissingChildren) {
+      if (resultEl) {
+        resultEl.innerHTML =
+          '<p class="hb-funnel-warn">La tarifa elegida no incluye niños. Pulsa «' +
+          escapeHtml(hbFunnelConditionsButtonText()) +
+          '» de nuevo tras indicar los menores y elige una tarifa con niños.</p>';
+      }
+      return false;
+    }
     if (offerConfirm && !rateHasSufficientAllotment(offerConfirm, occConfirm)) {
       if (resultEl) {
         resultEl.innerHTML =
@@ -5294,6 +5336,15 @@
       var hotelForOffer = selectedHotel || getActiveHotelCodeForBooking(fd, noches, cfg);
       var offerForOcc = hotelForOffer ? findOfferByRateKey(hotelForOffer, finalRateKey) : null;
       var bookOcc = resolveBookingOccupancy(offerForOcc, finalRateKey, fd);
+      if (bookOcc.rateMissingChildren) {
+        return Promise.reject(
+          new Error(
+            'La tarifa de hotel no incluye los niños indicados. Vuelve a «' +
+              hbFunnelConditionsButtonText() +
+              '», consulta disponibilidad con menores y confirma de nuevo.'
+          )
+        );
+      }
       var booking = {
         holder: {
           name: nameParts.name,
