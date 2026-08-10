@@ -1032,12 +1032,17 @@
     if (offer.allotment != null && offer.allotment !== '') parts.push('Cupo HB ' + offer.allotment);
     if (offer.rateRooms != null && offer.rateAdults != null) {
       var occTarifa =
-        'Ocupación tarifa: ' + offer.rateRooms + ' hab., ' + offer.rateAdults + ' adultos';
+        'Ocupación tarifa: ' +
+        offer.rateRooms +
+        ' hab., ' +
+        offer.rateAdults +
+        (offer.rateAdults === 1 ? ' adulto' : ' adultos');
       if (offer.rateChildren != null && offer.rateChildren > 0) {
         occTarifa +=
           ', ' +
           offer.rateChildren +
-          (offer.rateChildren === 1 ? ' niño' : ' niños');
+          (offer.rateChildren === 1 ? ' niño' : ' niños') +
+          (offer.rateRooms > 1 ? '/hab.' : '');
       }
       parts.push(occTarifa);
     }
@@ -1091,12 +1096,14 @@
       netValue: rateNetAmount(rate),
       rspValue: rateRspAmount(rate),
     };
-    if (offer.rateRooms == null || offer.rateAdults == null) {
-      var occKey = parseOccupancyFromRateKey(offer.rateKey);
-      if (occKey) {
-        if (offer.rateRooms == null) offer.rateRooms = occKey.rooms;
-        if (offer.rateAdults == null) offer.rateAdults = occKey.adults;
-        if (offer.rateChildren == null) offer.rateChildren = occKey.children;
+    // Completar siempre desde rateKey: a veces HB manda rooms/adults pero children=0/null
+    // y el label sí muestra niños (occupancyFromRate ya mezcla rateKey).
+    var occKey = parseOccupancyFromRateKey(offer.rateKey);
+    if (occKey) {
+      if (offer.rateRooms == null) offer.rateRooms = occKey.rooms;
+      if (offer.rateAdults == null) offer.rateAdults = occKey.adults;
+      if (offer.rateChildren == null || (offer.rateChildren === 0 && occKey.children > 0)) {
+        offer.rateChildren = occKey.children;
       }
     }
     offer.listHint = rateOfferListHint(offer);
@@ -2317,7 +2324,7 @@
 
   /**
    * Ocupación de booking: debe coincidir con la tarifa HB.
-   * Prioridad: campos de la oferta (lo que muestra la UI) > rateKey > formulario.
+   * Prioridad: oferta (rooms/adults/children) > rateKey > formulario.
    */
   function resolveBookingOccupancy(offer, rateKey, fd) {
     var childAges = readChildAgesFromForm(fd);
@@ -2331,7 +2338,6 @@
     );
     var formChildren = clamp(getInt(fd.get('hb_occ_children'), childAges.length), 0, 6);
 
-    // Contador/edades del funnel por si el hidden no está sincronizado.
     var host = document.getElementById('hb-hotel-funnel-inline');
     if (host) {
       var ci = host.querySelector('#hb-funnel-inline-children');
@@ -2341,44 +2347,57 @@
       if (agesUi.length) childAges = agesUi;
     }
 
+    var rk = rateKey || (offer && offer.rateKey) || '';
+    var fromKey = parseOccupancyFromRateKey(rk);
+    var offerRooms = offer && offer.rateRooms != null ? offer.rateRooms : null;
+    var offerAdults = offer && offer.rateAdults != null ? offer.rateAdults : null;
+    var offerChildren = offer && offer.rateChildren != null ? offer.rateChildren : null;
+    // Si la oferta no trae children pero el rateKey/label sí (caso HB frecuente).
+    if ((offerChildren == null || offerChildren === 0) && fromKey && fromKey.children > 0) {
+      offerChildren = fromKey.children;
+    }
+    if ((offerRooms == null || offerRooms === 0) && fromKey) offerRooms = fromKey.rooms;
+    if ((offerAdults == null || offerAdults === 0) && fromKey) offerAdults = fromKey.adults;
+    if (
+      (offerChildren == null || offerChildren === 0) &&
+      offer &&
+      offer.occupancyLabel &&
+      /niño/i.test(String(offer.occupancyLabel))
+    ) {
+      var mCh = String(offer.occupancyLabel).match(/(\d+)\s*niñ/i);
+      if (mCh) offerChildren = parseInt(mCh[1], 10) || 1;
+    }
+
     var rooms = formRooms;
     var adults = formAdults;
     var children = formChildren;
-    var fromKey = parseOccupancyFromRateKey(rateKey);
 
-    // La oferta refleja lo que devolvió HB (p.ej. «2 hab., 1 adulto, 1 niño»).
-    if (offer && offer.rateRooms != null && offer.rateRooms > 0 && offer.rateAdults != null && offer.rateAdults > 0) {
-      rooms = offer.rateRooms;
-      adults = offer.rateAdults * rooms;
-      children = Math.max(0, offer.rateChildren || 0) * rooms;
+    if (offerRooms != null && offerRooms > 0 && offerAdults != null && offerAdults > 0) {
+      rooms = offerRooms;
+      adults = offerAdults * rooms;
+      children = Math.max(0, offerChildren || 0) * rooms;
     } else if (fromKey) {
       rooms = Math.max(1, fromKey.rooms);
       adults = Math.max(1, fromKey.adults) * rooms;
       children = Math.max(0, fromKey.children) * rooms;
     }
 
-    // Si el rateKey se parseó mal (~0) pero la oferta sí tiene niños, confiar en la oferta.
-    if (offer && offer.rateChildren != null && offer.rateChildren > 0 && children === 0) {
-      rooms = offer.rateRooms > 0 ? offer.rateRooms : rooms;
-      children = offer.rateChildren * Math.max(1, rooms);
-      if (offer.rateAdults != null && offer.rateAdults > 0) {
-        adults = offer.rateAdults * Math.max(1, rooms);
-      }
-    }
-
     var agesNeeded = Math.max(0, children);
     while (childAges.length < agesNeeded) childAges.push(8);
     if (childAges.length > agesNeeded) childAges = childAges.slice(0, agesNeeded);
 
-    var offerHasKids = !!(offer && offer.rateChildren != null && offer.rateChildren > 0);
+    var hasKidsInRate =
+      children > 0 ||
+      (offerChildren != null && offerChildren > 0) ||
+      !!(fromKey && fromKey.children > 0);
+
     return {
       rooms: rooms,
       adults: adults,
       children: children,
       childAges: childAges,
       formChildren: formChildren,
-      // Solo bloquear si pedimos niños y ni la ocupación resuelta ni la oferta los tienen.
-      rateMissingChildren: formChildren > 0 && children === 0 && !offerHasKids,
+      rateMissingChildren: formChildren > 0 && !hasKidsInRate,
     };
   }
 
