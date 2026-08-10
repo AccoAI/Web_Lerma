@@ -1507,21 +1507,41 @@
     return want && map[k] === want;
   }
 
+  /**
+   * Personas/Grupo = tamaño total del grupo (adultos + niños).
+   * Niños se restan: grupo 4 + 2 niños ⇒ 2 adultos + 2 niños.
+   */
+  function splitPartyIntoAdultsAndChildren(partySize, childrenWanted) {
+    var party = clamp(getInt(partySize, 2), 1, 54);
+    var kids = clamp(getInt(childrenWanted, 0), 0, 6);
+    if (kids > party - 1) kids = Math.max(0, party - 1);
+    var adults = Math.max(1, party - kids);
+    return { partySize: party, adults: adults, children: kids };
+  }
+
   function getFunnelOccupancyForAvailability(form, adultsInp, roomsInp, childrenInp, adultsDefault, roomsDefault) {
-    var totalAdults = clamp(getInt(adultsInp && adultsInp.value, adultsDefault), 1, 54);
+    var partySize = clamp(getInt(adultsInp && adultsInp.value, adultsDefault), 1, 54);
     var rooms = clamp(getInt(roomsInp && roomsInp.value, roomsDefault), 1, 20);
-    var children = clamp(getInt(childrenInp && childrenInp.value, 0), 0, 6);
+    var childrenWanted = clamp(getInt(childrenInp && childrenInp.value, 0), 0, 6);
+    var split = splitPartyIntoAdultsAndChildren(partySize, childrenWanted);
     var host = document.getElementById('hb-hotel-funnel-inline');
     var childAges = host ? readChildAgesFromFunnel(host) : [];
-    while (childAges.length < children) childAges.push(8);
-    if (childAges.length > children) childAges = childAges.slice(0, children);
-    var occ = normalizeHbOccupancy({ totalAdults: totalAdults, rooms: rooms, children: children, childAges: childAges });
+    while (childAges.length < split.children) childAges.push(8);
+    if (childAges.length > split.children) childAges = childAges.slice(0, split.children);
+    // Habitaciones por defecto según adultos reales (no según tamaño de grupo con niños).
+    if (roomsInp && !roomsInp.__hbUserEdited) {
+      rooms = defaultRoomsForAdults(split.adults);
+    }
+    var occ = normalizeHbOccupancy({
+      totalAdults: split.adults,
+      rooms: rooms,
+      children: split.children,
+      childAges: childAges,
+    });
+    occ.partySize = split.partySize;
     if (!form) return occ;
     var listOcc = window.__HB_LAST_AVAIL_OCC__;
     if (!listOcc) return occ;
-    // Reutilizar la ocupación del listado solo si coincide de verdad (incl. niños/edades).
-    // Antes se devolvía listOcc al mantener Personas/Habit por defecto aunque Niños > 0,
-    // y la disponibilidad/booking iban sin menores.
     if (occCacheSignature(listOcc) === occCacheSignature(occ)) {
       return listOcc;
     }
@@ -2139,7 +2159,7 @@
     return units;
   }
 
-  /** totalAdults = personas del grupo; occupancies = petición real a Hotelbeds. */
+  /** totalAdults = adultos HB (no el tamaño de grupo con niños). */
   function normalizeHbOccupancy(occ) {
     var totalAdults = clamp(
       getInt(occ && (occ.totalAdults != null ? occ.totalAdults : occ.adults), 2),
@@ -2196,25 +2216,27 @@
     var norm = normalizeHbOccupancy(occ);
     if (!norm.occupancies || !norm.occupancies.length) return '';
     var parts = norm.occupancies.map(function (o) {
-      var s = o.rooms + ' hab. × ' + o.adults + ' adultos';
+      var s = o.rooms + ' hab. × ' + o.adults + ' adulto' + (o.adults === 1 ? '' : 's');
       var ch = Math.max(0, parseInt(o.children, 10) || 0);
       if (ch > 0) {
         var chTotal = ch * Math.max(1, parseInt(o.rooms, 10) || 1);
-        s += ' (+ ' + ch + (ch === 1 ? ' niño' : ' niños') + '/hab.';
-        if (o.rooms > 1) s += ' = ' + chTotal + ' niños';
-        s += ')';
+        s += ' + ' + ch + (ch === 1 ? ' niño' : ' niños');
+        if (o.rooms > 1) s += '/hab. (' + chTotal + ' niños)';
       }
       return s;
     });
     var kids = norm.children || 0;
-    var kidsTxt = kids > 0 ? ' + ' + kids + (kids === 1 ? ' niño' : ' niños') : '';
+    var party = (occ && occ.partySize) || norm.totalAdults + kids;
     return (
       'Búsqueda Hotelbeds: ' +
       parts.join(' + ') +
       ' (' +
       norm.totalAdults +
-      ' adultos' +
-      kidsTxt +
+      ' adulto' +
+      (norm.totalAdults === 1 ? '' : 's') +
+      (kids > 0 ? ' + ' + kids + (kids === 1 ? ' niño' : ' niños') : '') +
+      ' · grupo ' +
+      party +
       ' · habitaciones de cama doble)'
     );
   }
@@ -2733,6 +2755,13 @@
         grid.insertAdjacentHTML('beforeend', hbFunnelCounterFieldHtml('hb-funnel-inline-children', 0, 6, 'Niños'));
       }
     }
+    // Etiqueta: Grupo = tamaño total (adultos+niños), no solo adultos.
+    var adultsField = host.querySelector('#hb-funnel-inline-adults');
+    if (adultsField) {
+      var k = adultsField.closest('.hb-funnel-field');
+      var lab = k && k.querySelector('.hb-funnel-field__k');
+      if (lab && /personas/i.test(lab.textContent || '')) lab.textContent = 'Grupo';
+    }
     if (!host.querySelector('#hb-funnel-inline-child-ages')) {
       var controls = host.querySelector('.hb-hotel-funnel-inline__controls');
       if (controls) {
@@ -2780,7 +2809,7 @@
       '</div>' +
       '<div class="hb-hotel-funnel-inline__controls">' +
       '  <div class="hb-hotel-funnel-inline__grid">' +
-      hbFunnelCounterFieldHtml('hb-funnel-inline-adults', 1, 54, 'Personas') +
+      hbFunnelCounterFieldHtml('hb-funnel-inline-adults', 1, 54, 'Grupo') +
       hbFunnelCounterFieldHtml('hb-funnel-inline-rooms', 1, 20, 'Habit.') +
       hbFunnelCounterFieldHtml('hb-funnel-inline-children', 0, 6, 'Niños') +
       '  </div>' +
@@ -3555,8 +3584,9 @@
       var offers = (window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || [];
       if (!offers.length) return;
       var occ = getFunnelOccupancyForAvailability(form, adultsInp, roomsInp, childrenInp, adultsDefault, roomsDefault);
-      adultsInp.value = String(occ.totalAdults);
+      adultsInp.value = String(occ.partySize || occ.totalAdults + (occ.children || 0));
       roomsInp.value = String(occ.rooms);
+      if (childrenInp) childrenInp.value = String(occ.children || 0);
       var def = pickDefaultBookableOffer(offers, occ);
       if (!def) {
         result.innerHTML =
@@ -3659,6 +3689,21 @@
       }
       adultsInp.addEventListener('input', function () {
         adultsInp.__hbUserEdited = true;
+        if (childrenInp) {
+          var sp = splitPartyIntoAdultsAndChildren(adultsInp.value, childrenInp.value);
+          if (String(childrenInp.value) !== String(sp.children)) {
+            childrenInp.value = String(sp.children);
+            renderChildAgeInputs(host, sp.children);
+            syncChildrenToHidden(form, host, sp.children);
+          }
+        }
+        if (roomsInp && !roomsInp.__hbUserEdited) {
+          var sp2 = splitPartyIntoAdultsAndChildren(
+            adultsInp.value,
+            childrenInp ? childrenInp.value : 0
+          );
+          roomsInp.value = String(defaultRoomsForAdults(sp2.adults));
+        }
         resetFunnelValidation();
       });
       adultsInp.addEventListener('change', function () {
@@ -3675,8 +3720,16 @@
       });
       if (childrenInp) {
         function onChildrenChanged() {
-          renderChildAgeInputs(host, childrenInp.value);
-          syncChildrenToHidden(form, host, childrenInp.value);
+          var split = splitPartyIntoAdultsAndChildren(
+            adultsInp && adultsInp.value,
+            childrenInp.value
+          );
+          childrenInp.value = String(split.children);
+          renderChildAgeInputs(host, split.children);
+          syncChildrenToHidden(form, host, split.children);
+          if (roomsInp && !roomsInp.__hbUserEdited) {
+            roomsInp.value = String(defaultRoomsForAdults(split.adults));
+          }
           // Forzar nueva availability: tarifas del listado (sin niños) no sirven.
           host.__hbRatesHotel = '';
           var hc = getSelectedHotelCode();
@@ -3714,7 +3767,7 @@
           return;
         }
         var occ = getFunnelOccupancyForAvailability(form, adultsInp, roomsInp, childrenInp, adultsDefault, roomsDefault);
-        adultsInp.value = String(occ.totalAdults);
+        adultsInp.value = String(occ.partySize || occ.totalAdults + (occ.children || 0));
         roomsInp.value = String(occ.rooms);
         if (childrenInp) childrenInp.value = String(occ.children || 0);
         syncChildrenToHidden(form, host, occ.children || 0);
