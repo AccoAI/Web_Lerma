@@ -2289,10 +2289,12 @@
     return normalizeHbOccupancy(occ || { totalAdults: 2 });
   }
 
-  /** Fragmento típico en rateKey: …|1~2~0|…@ (habitaciones~adultos~niños). */
+  /** Fragmento típico en rateKey: …|2~1~1|8|N@… (habitaciones~adultos~niños). */
   function parseOccupancyFromRateKey(rateKey) {
     var rk = String(rateKey || '');
-    var m = rk.match(/(\d+)~(\d+)~(\d+)/);
+    // Preferir el segmento junto a edades/flags (|N~N~N|), no el primer \d~\d~\d del string.
+    var m = rk.match(/\|(\d+)~(\d+)~(\d+)\|/);
+    if (!m) m = rk.match(/(\d+)~(\d+)~(\d+)/);
     if (!m) return null;
     var rooms = parseInt(m[1], 10);
     var adults = parseInt(m[2], 10);
@@ -2314,8 +2316,8 @@
   }
 
   /**
-   * Ocupación de booking: debe coincidir con el rateKey (HB valida paxes vs tarifa).
-   * rooms~adults~children del rateKey = ocupación por habitación cuando rooms>1.
+   * Ocupación de booking: debe coincidir con la tarifa HB.
+   * Prioridad: campos de la oferta (lo que muestra la UI) > rateKey > formulario.
    */
   function resolveBookingOccupancy(offer, rateKey, fd) {
     var childAges = readChildAgesFromForm(fd);
@@ -2329,35 +2331,54 @@
     );
     var formChildren = clamp(getInt(fd.get('hb_occ_children'), childAges.length), 0, 6);
 
+    // Contador/edades del funnel por si el hidden no está sincronizado.
+    var host = document.getElementById('hb-hotel-funnel-inline');
+    if (host) {
+      var ci = host.querySelector('#hb-funnel-inline-children');
+      var uiKids = clamp(getInt(ci && ci.value, 0), 0, 6);
+      if (uiKids > formChildren) formChildren = uiKids;
+      var agesUi = readChildAgesFromFunnel(host);
+      if (agesUi.length) childAges = agesUi;
+    }
+
     var rooms = formRooms;
     var adults = formAdults;
     var children = formChildren;
     var fromKey = parseOccupancyFromRateKey(rateKey);
 
-    if (fromKey) {
+    // La oferta refleja lo que devolvió HB (p.ej. «2 hab., 1 adulto, 1 niño»).
+    if (offer && offer.rateRooms != null && offer.rateRooms > 0 && offer.rateAdults != null && offer.rateAdults > 0) {
+      rooms = offer.rateRooms;
+      adults = offer.rateAdults * rooms;
+      children = Math.max(0, offer.rateChildren || 0) * rooms;
+    } else if (fromKey) {
       rooms = Math.max(1, fromKey.rooms);
       adults = Math.max(1, fromKey.adults) * rooms;
       children = Math.max(0, fromKey.children) * rooms;
-    } else if (offer) {
-      if (offer.rateRooms != null && offer.rateRooms > 0) rooms = offer.rateRooms;
+    }
+
+    // Si el rateKey se parseó mal (~0) pero la oferta sí tiene niños, confiar en la oferta.
+    if (offer && offer.rateChildren != null && offer.rateChildren > 0 && children === 0) {
+      rooms = offer.rateRooms > 0 ? offer.rateRooms : rooms;
+      children = offer.rateChildren * Math.max(1, rooms);
       if (offer.rateAdults != null && offer.rateAdults > 0) {
-        adults = offer.rateAdults * (rooms > 1 ? rooms : 1);
-      }
-      if (offer.rateChildren != null && offer.rateChildren >= 0) {
-        children = offer.rateChildren * (rooms > 1 ? rooms : 1);
+        adults = offer.rateAdults * Math.max(1, rooms);
       }
     }
 
-    while (childAges.length < children) childAges.push(8);
-    if (childAges.length > children) childAges = childAges.slice(0, children);
+    var agesNeeded = Math.max(0, children);
+    while (childAges.length < agesNeeded) childAges.push(8);
+    if (childAges.length > agesNeeded) childAges = childAges.slice(0, agesNeeded);
 
+    var offerHasKids = !!(offer && offer.rateChildren != null && offer.rateChildren > 0);
     return {
       rooms: rooms,
       adults: adults,
       children: children,
       childAges: childAges,
       formChildren: formChildren,
-      rateMissingChildren: formChildren > 0 && children === 0,
+      // Solo bloquear si pedimos niños y ni la ocupación resuelta ni la oferta los tienen.
+      rateMissingChildren: formChildren > 0 && children === 0 && !offerHasKids,
     };
   }
 
@@ -2381,6 +2402,7 @@
   /**
    * Hotelbeds Booking: un único elemento en rooms[] por rateKey.
    * Los paxes llevan roomId 1..N según reparto (no N entradas rooms con el mismo rateKey).
+   * Con tarifa «2 hab. × 1 adulto + 1 niño», repartir 1 AD + 1 CH por habitación.
    */
   function buildBookingRooms(finalRateKey, occ, nameParts) {
     var roomsCount = Math.max(1, occ.rooms | 0);
@@ -2398,7 +2420,15 @@
       return [{ rateKey: finalRateKey, paxes: singlePaxes }];
     }
 
-    var alloc = splitAdultsIntoRooms(adults, roomsCount);
+    var alloc;
+    if (adults % roomsCount === 0) {
+      var per = adults / roomsCount;
+      alloc = [];
+      for (var a = 0; a < roomsCount; a++) alloc.push(per);
+    } else {
+      alloc = splitAdultsIntoRooms(adults, roomsCount);
+    }
+
     var allPaxes = [];
     for (var i = 0; i < roomsCount; i++) {
       allPaxes = allPaxes.concat(
@@ -2406,12 +2436,25 @@
       );
     }
     if (children > 0) {
-      for (var ci = 0; ci < children; ci++) {
-        var childRoomId = (ci % roomsCount) + 1;
-        var ageOne = childAges && childAges[ci] != null ? [childAges[ci]] : [8];
-        allPaxes = allPaxes.concat(
-          buildChildPaxesForRoom(childRoomId, 1, nameParts.name, nameParts.surname, ageOne)
-        );
+      if (children % roomsCount === 0) {
+        var kidsPer = children / roomsCount;
+        var ageIdx = 0;
+        for (var r = 0; r < roomsCount; r++) {
+          var agesForRoom = childAges.slice(ageIdx, ageIdx + kidsPer);
+          while (agesForRoom.length < kidsPer) agesForRoom.push(8);
+          ageIdx += kidsPer;
+          allPaxes = allPaxes.concat(
+            buildChildPaxesForRoom(r + 1, kidsPer, nameParts.name, nameParts.surname, agesForRoom)
+          );
+        }
+      } else {
+        for (var ci = 0; ci < children; ci++) {
+          var childRoomId = (ci % roomsCount) + 1;
+          var ageOne = childAges && childAges[ci] != null ? [childAges[ci]] : [8];
+          allPaxes = allPaxes.concat(
+            buildChildPaxesForRoom(childRoomId, 1, nameParts.name, nameParts.surname, ageOne)
+          );
+        }
       }
     }
     return [{ rateKey: finalRateKey, paxes: allPaxes }];
@@ -2759,8 +2802,16 @@
     var inputs = host.querySelectorAll('.hb-funnel-child-age-inp');
     var ages = [];
     inputs.forEach(function (inp) {
-      var n = parseInt(inp.value, 10);
-      ages.push(Number.isFinite(n) ? clamp(n, 0, 17) : 8);
+      var raw = String(inp.value || '').trim();
+      var n = parseInt(raw, 10);
+      if (!Number.isFinite(n)) {
+        n = 8;
+        inp.value = '8';
+      } else {
+        n = clamp(n, 0, 17);
+        if (raw === '') inp.value = String(n);
+      }
+      ages.push(n);
     });
     return ages;
   }
