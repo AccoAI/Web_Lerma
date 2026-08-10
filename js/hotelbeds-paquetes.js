@@ -649,11 +649,19 @@
     var rooms = rate.rooms != null ? parseInt(rate.rooms, 10) : 0;
     var adults = rate.adults != null ? parseInt(rate.adults, 10) : 0;
     var children = rate.children != null ? parseInt(rate.children, 10) : 0;
+    if ((!rooms || !adults || children === 0) && rate.rateKey) {
+      var fromKey = parseOccupancyFromRateKey(rate.rateKey);
+      if (fromKey) {
+        if (!rooms) rooms = fromKey.rooms;
+        if (!adults) adults = fromKey.adults;
+        if (!children) children = fromKey.children;
+      }
+    }
     if (!rooms && !adults) return '';
     var bits = [];
     if (rooms) bits.push(rooms + ' hab.');
-    if (adults) bits.push(adults + ' adultos');
-    if (children) bits.push(children + ' niños');
+    if (adults) bits.push(adults + (adults === 1 ? ' adulto' : ' adultos'));
+    if (children) bits.push(children + (children === 1 ? ' niño' : ' niños'));
     return bits.join(', ');
   }
 
@@ -1354,11 +1362,16 @@
     });
   }
 
-  function hydrateRateOffersFromLastAvailability(hotelCode) {
+  function hydrateRateOffersFromLastAvailability(hotelCode, funnelOcc) {
     var key = String(hotelCode || '');
     if (!key) return false;
     var offersBy = window.__HB_RATE_OFFERS_BY_CODE__ || {};
     if (offersBy[key] && offersBy[key].length) return true;
+    var listOcc = window.__HB_LAST_AVAIL_OCC__;
+    // No rellenar con tarifas del listado si la ocupación del funnel no coincide (p.ej. con niños).
+    if (funnelOcc && listOcc && occCacheSignature(funnelOcc) !== occCacheSignature(listOcc)) {
+      return false;
+    }
     var hotel = findHotelInAvailability(window.__HB_LAST_AVAIL__, key);
     if (!hotel) return false;
     var offers = collectRateOffersFromHotel(hotel);
@@ -1370,7 +1383,7 @@
       if (fdH) {
         var coH = getCheckInCheckOut(fdH);
         if (coH) {
-          var occH = window.__HB_LAST_AVAIL_OCC__ || getListOccupancyForAvailability(fdH);
+          var occH = listOcc || getListOccupancyForAvailability(fdH);
           markHbFunnelOffersCached(hotelCode, coH, occH);
         }
       }
@@ -1528,10 +1541,7 @@
     var childAges = host ? readChildAgesFromFunnel(host) : [];
     while (childAges.length < split.children) childAges.push(8);
     if (childAges.length > split.children) childAges = childAges.slice(0, split.children);
-    // Habitaciones por defecto según adultos reales (no según tamaño de grupo con niños).
-    if (roomsInp && !roomsInp.__hbUserEdited) {
-      rooms = defaultRoomsForAdults(split.adults);
-    }
+    // No recalcular habitaciones al añadir niños: se mantienen las del grupo / las que elija el usuario.
     var occ = normalizeHbOccupancy({
       totalAdults: split.adults,
       rooms: rooms,
@@ -1665,12 +1675,23 @@
 
     return avPromise.then(function (av) {
       var hotel = findHotelInAvailability(av, hotelCode);
-      if (!hotel) hotel = findHotelInAvailability(window.__HB_LAST_AVAIL__, hotelCode);
+      // Solo reutilizar el listado si la ocupación es la misma (si no, se colaban tarifas sin niños).
+      if (!hotel) {
+        var listOccFb = window.__HB_LAST_AVAIL_OCC__;
+        if (listOccFb && occCacheSignature(listOccFb) === occCacheSignature(occ)) {
+          hotel = findHotelInAvailability(window.__HB_LAST_AVAIL__, hotelCode);
+        }
+      }
       if (!hotel) {
         return tryWidenAvailabilityForHotel().then(function (h2) {
           if (h2) {
             var offersW = collectRateOffersFromHotel(h2);
             if (!offersW.length) throw new Error('No hay tarifas para esa ocupación.');
+            if (!offersMatchRequestedChildren(offersW, occ)) {
+              throw new Error(
+                'Hotelbeds no devolvió tarifas con niños para esta ocupación. Prueba 1 habitación o otras fechas.'
+              );
+            }
             window.__HB_RATE_OFFERS_BY_CODE__ = window.__HB_RATE_OFFERS_BY_CODE__ || {};
             window.__HB_RATE_OFFERS_BY_CODE__[String(hotelCode)] = offersW;
             markHbFunnelOffersCached(hotelCode, checkInOut, occ);
@@ -1694,11 +1715,34 @@
       }
       var offers = collectRateOffersFromHotel(hotel);
       if (!offers.length) throw new Error('No hay tarifas para esa ocupación.');
+      if (!offersMatchRequestedChildren(offers, occ)) {
+        throw new Error(
+          'Las tarifas recibidas no incluyen niños (' +
+            formatHbSearchOccHint(occ) +
+            '). Pulsa de nuevo «' +
+            hbFunnelConditionsButtonText() +
+            '» o prueba otra ocupación/fechas.'
+        );
+      }
       window.__HB_RATE_OFFERS_BY_CODE__ = window.__HB_RATE_OFFERS_BY_CODE__ || {};
       window.__HB_RATE_OFFERS_BY_CODE__[String(hotelCode)] = offers;
       markHbFunnelOffersCached(hotelCode, checkInOut, occ);
       return offers;
     });
+  }
+
+  /** True si, pidiendo niños, alguna tarifa del hotel los refleja (rate.children o rateKey). */
+  function offersMatchRequestedChildren(offers, occ) {
+    var wantKids = occ && (occ.children || 0) > 0;
+    if (!wantKids) return true;
+    if (!offers || !offers.length) return false;
+    for (var i = 0; i < offers.length; i++) {
+      var o = offers[i];
+      if (o.rateChildren != null && o.rateChildren > 0) return true;
+      var fromKey = parseOccupancyFromRateKey(o.rateKey);
+      if (fromKey && fromKey.children > 0) return true;
+    }
+    return false;
   }
 
   function getOccupancyFromFormData(fd) {
@@ -3529,10 +3573,31 @@
         splitStepsEl.hidden = true;
         splitStepsEl.innerHTML = '';
       }
-      hydrateRateOffersFromLastAvailability(hotelCode);
+      hydrateRateOffersFromLastAvailability(
+        hotelCode,
+        getFunnelOccupancyForAvailability(form, adultsInp, roomsInp, childrenInp, adultsDefault, roomsDefault)
+      );
       var ratesBox = host.querySelector('#hb-funnel-inline-rates');
       var hasList = ratesBox && ratesBox.querySelector('input[name="hb-funnel-rate-pick"]');
-      if (hasList && host.__hbRatesHotel === hotelCode) {
+      var funnelOccNow = getFunnelOccupancyForAvailability(
+        form,
+        adultsInp,
+        roomsInp,
+        childrenInp,
+        adultsDefault,
+        roomsDefault
+      );
+      var cachedOffers = (window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || [];
+      var ratesMatchOcc =
+        hasList &&
+        host.__hbRatesHotel === hotelCode &&
+        hbFunnelOffersCacheMatches(
+          hotelCode,
+          getCheckInCheckOut(new FormData(form)) || { checkIn: '', checkOut: '' },
+          funnelOccNow
+        ) &&
+        offersMatchRequestedChildren(cachedOffers, funnelOccNow);
+      if (ratesMatchOcc) {
         if (host.__hbAutoConfirmPending && typeof host.__hbRunAutoConfirm === 'function') {
           host.__hbAutoConfirmPending = false;
           setTimeout(function () {
@@ -3541,11 +3606,19 @@
         }
         return;
       }
+      // Ocupación cambió (p.ej. niños): limpiar tarifas adult-only y recargar.
+      if (hasList && host.__hbRatesHotel === hotelCode && !ratesMatchOcc) {
+        host.__hbRatesHotel = '';
+        if (window.__HB_RATE_OFFERS_BY_CODE__) delete window.__HB_RATE_OFFERS_BY_CODE__[String(hotelCode)];
+        if (window.__HB_FUNNEL_OFFERS_KEY_BY_HOTEL__) {
+          delete window.__HB_FUNNEL_OFFERS_KEY_BY_HOTEL__[String(hotelCode)];
+        }
+      }
       var priorKey = getSelectedRateKeyFromFunnel(host, form);
       host.__hbRatesHotel = hotelCode;
       renderFunnelRateChoices(host, hotelCode, priorKey);
       var offers = (window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || [];
-      if (!offers.length && !host.__hbAutoRatesPending) {
+      if ((!offers.length || !offersMatchRequestedChildren(offers, funnelOccNow)) && !host.__hbAutoRatesPending) {
         var checkInOut = getCheckInCheckOut(new FormData(form));
         if (checkInOut) {
           host.__hbAutoRatesPending = true;
@@ -3553,7 +3626,7 @@
           if (ratesBox) {
             ratesBox.innerHTML = '<p class="hb-funnel-small">Cargando tarifas para este hotel...</p>';
           }
-          var occ = getFunnelOccupancyForAvailability(form, adultsInp, roomsInp, childrenInp, adultsDefault, roomsDefault);
+          var occ = funnelOccNow;
           fetchFunnelAvailabilityOffers(hotelCode, checkInOut, occ)
             .then(function () {
               if (getSelectedHotelCode() !== hotelCode) return;
@@ -3697,13 +3770,6 @@
             syncChildrenToHidden(form, host, sp.children);
           }
         }
-        if (roomsInp && !roomsInp.__hbUserEdited) {
-          var sp2 = splitPartyIntoAdultsAndChildren(
-            adultsInp.value,
-            childrenInp ? childrenInp.value : 0
-          );
-          roomsInp.value = String(defaultRoomsForAdults(sp2.adults));
-        }
         resetFunnelValidation();
       });
       adultsInp.addEventListener('change', function () {
@@ -3727,10 +3793,7 @@
           childrenInp.value = String(split.children);
           renderChildAgeInputs(host, split.children);
           syncChildrenToHidden(form, host, split.children);
-          if (roomsInp && !roomsInp.__hbUserEdited) {
-            roomsInp.value = String(defaultRoomsForAdults(split.adults));
-          }
-          // Forzar nueva availability: tarifas del listado (sin niños) no sirven.
+          // Mantener habitaciones; solo invalidar tarifas adult-only.
           host.__hbRatesHotel = '';
           var hc = getSelectedHotelCode();
           if (hc) {
@@ -3784,9 +3847,11 @@
         );
         refreshUiState();
 
+        var cachedOffersBtn = (window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || [];
         var offersReady =
-          ((window.__HB_RATE_OFFERS_BY_CODE__ || {})[String(hotelCode)] || []).length > 0 &&
-          hbFunnelOffersCacheMatches(hotelCode, checkInOut, occ);
+          cachedOffersBtn.length > 0 &&
+          hbFunnelOffersCacheMatches(hotelCode, checkInOut, occ) &&
+          offersMatchRequestedChildren(cachedOffersBtn, occ);
         result.textContent = offersReady
           ? 'Preparando condiciones de la tarifa…'
           : 'Consultando disponibilidad...';
