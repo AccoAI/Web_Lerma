@@ -70,11 +70,7 @@
     }
 
     var nombre = String(portada.nombreClub || '').trim();
-    if (nombre) {
-      var logoImg = document.querySelector('.header-logo-image');
-      if (logoImg) logoImg.setAttribute('alt', nombre);
-      if (!(lastSeo && lastSeo.tituloHome)) document.title = nombre;
-    }
+    if (nombre && !(lastSeo && lastSeo.tituloHome)) document.title = nombre;
   }
 
   function applyHeroSlides(slides) {

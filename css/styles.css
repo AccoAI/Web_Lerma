@@ -1,7 +1,7 @@
 /* Reset y Variables – Estética elegante: Montserrat Light, mayúsculas, esquinas rectas */
 :root {
     /* Altura aproximada de la hero bar (header fijo) */
-    --header-height: clamp(88px, 14vw, 135px);
+    --header-height: clamp(64px, 8vw, 80px);
     /* El resumen empieza a quedarse sticky solo cuando queda 1px con la hero bar */
     --resumen-sticky-top: calc(var(--header-height) + 1px);
     --header-sticky-offset: var(--resumen-sticky-top);
@@ -216,7 +216,7 @@ img {
 .nav-list {
     display: flex;
     list-style: none;
-    gap: clamp(0.4rem, 1vw, 1.5rem);
+    gap: clamp(0.3rem, 0.8vw, 1.15rem);
     align-items: center;
     flex-wrap: nowrap;
     min-width: 0;
@@ -229,12 +229,12 @@ img {
 .nav-link {
     color: var(--color-white);
     text-decoration: none;
-    font-size: clamp(0.6rem, 1vw, 1.05rem);
+    font-size: clamp(0.55rem, 0.9vw, 0.95rem);
     font-weight: 300;
-    letter-spacing: clamp(0.5px, 0.15vw, 1.5px);
+    letter-spacing: clamp(0.4px, 0.12vw, 1.2px);
     text-transform: uppercase;
     transition: var(--transition);
-    padding: clamp(0.3rem, 0.4vw, 0.5rem) clamp(0.15rem, 0.35vw, 0.5rem);
+    padding: clamp(0.3rem, 0.4vw, 0.5rem) clamp(0.1rem, 0.3vw, 0.4rem);
     display: block;
     white-space: nowrap;
 }
@@ -440,7 +440,7 @@ img {
     transform: translateY(-1px);
 }
 
-/* Bloque lateral: Instagram + idiomas a la misma altura, luego Saldaña */
+/* Bloque lateral: Instagram + idiomas */
 .hero-side-block {
     position: absolute;
     top: calc(var(--header-height) + 1rem);
@@ -494,56 +494,20 @@ img {
     filter: brightness(1.15) contrast(1.05);
 }
 
-/* Cuadrante Saldaña Golf sobre la portada */
-.hero-saldaña-cuadrante {
-    position: static;
-    z-index: 10;
-    background: transparent;
-    padding: 0.6rem 1rem;
+.hero-anagramas {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 0.35rem;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
 }
 
-a.hero-saldaña-link {
-    text-decoration: none;
-    color: inherit;
-    cursor: pointer;
-    transition: opacity 0.2s ease, border-color 0.2s ease;
-    max-width: 140px;
-    border: 1px solid rgba(255, 255, 255, 0.8);
-}
-
-a.hero-saldaña-link:hover {
-    opacity: 0.95;
-    border-color: rgba(255, 255, 255, 1);
-}
-
-.hero-saldaña-logo {
-    height: 32px;
+.hero-anagrama {
+    height: clamp(48px, 7vw, 72px);
     width: auto;
-    max-width: 110px;
+    max-width: 160px;
     object-fit: contain;
-    filter: brightness(0) invert(1);
-}
-
-.hero-saldaña-texto {
-    margin: 0;
-    font-size: 0.65rem;
-    font-weight: 300;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--color-white);
-    text-align: center;
-    line-height: 1.2;
-}
-
-.hero-saldaña-sub {
-    margin: 0;
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.9);
-    text-align: center;
+    filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.55));
 }
 
 .hero-logo-large {
@@ -13087,12 +13051,13 @@ body.page-torneo .torneo-detalle-section {
 
 @media (max-width: 1280px) {
     :root {
-        --header-height: clamp(70px, 12vw, 95px);
+        --header-height: clamp(56px, 10vw, 72px);
     }
 
     .menu-toggle {
         display: flex;
         z-index: 10001;
+        margin-left: auto;
     }
 
     .header-actions {
@@ -13365,18 +13330,13 @@ body.page-torneo .torneo-detalle-section {
         gap: 0.5rem;
     }
 
-    .hero-saldaña-cuadrante {
-        padding: 0.5rem 0.75rem;
+    .hero-anagramas {
+        gap: 1.25rem;
+    }
+
+    .hero-anagrama {
+        height: 44px;
         max-width: 120px;
-    }
-
-    .hero-saldaña-logo {
-        height: 26px;
-        max-width: 90px;
-    }
-
-    .hero-saldaña-texto {
-        font-size: 0.55rem;
     }
 
     .hazte-socio-hero {
