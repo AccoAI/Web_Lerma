@@ -276,7 +276,7 @@ function initHeroVideo() {
     }
 }
 
-// Cámara del Tiempo - Temperatura, viento e icono desde Open-Meteo (Quintanilla de la Mata o Lerma)
+// Cámara del Tiempo - Temperatura, viento e icono desde Open-Meteo (Lerma y Saldaña)
 function weatherCodeToIcon(code) {
     if (code == null) return { emoji: '—', label: '—' };
     var c = parseInt(code, 10);
@@ -294,49 +294,51 @@ function weatherCodeToIcon(code) {
     return { emoji: '🌡️', label: '—' };
 }
 
-async function updateTiempoData() {
-    const temperatura = document.getElementById('temperatura');
-    const viento = document.getElementById('viento');
-    const icono = document.getElementById('tiempo-icono');
-    const estado = document.getElementById('tiempo-estado');
-    const origen = document.getElementById('tiempo-origen');
-    if (!temperatura || !viento) return;
+var TIEMPO_CAMPOS = {
+    lerma: { lat: 42.0263, lon: -3.755, origen: 'Golf Lerma' },
+    saldana: { lat: 42.3234, lon: -3.6819, origen: 'Saldaña Golf' }
+};
 
-    var lat, lon, placeName;
-    try {
-        var geo = await fetch('https://geocoding-api.open-meteo.com/v1/search?name=Quintanilla+de+la+Mata&count=5&countryCode=ES');
-        var geoData = await geo.json();
-        if (geoData.results && geoData.results.length > 0) {
-            lat = geoData.results[0].latitude;
-            lon = geoData.results[0].longitude;
-            placeName = 'Quintanilla de la Mata';
-        } else {
-            lat = 42.0263;
-            lon = -3.755;
-            placeName = 'Lerma';
-        }
-    } catch (e) {
-        lat = 42.0263;
-        lon = -3.755;
-        placeName = 'Lerma';
-    }
-
-    try {
-        var w = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&current=temperature_2m,wind_speed_10m,weather_code&timezone=Europe%2FMadrid');
-        var wData = await w.json();
-        if (wData.current) {
-            temperatura.textContent = Math.round(wData.current.temperature_2m) + '°C';
-            viento.textContent = Math.round(wData.current.wind_speed_10m) + ' km/h';
-            var wIcon = weatherCodeToIcon(wData.current.weather_code);
-            if (icono) icono.textContent = wIcon.emoji;
-            if (estado) estado.textContent = wIcon.label;
-        }
-        if (origen) origen.textContent = 'Datos: ' + placeName;
-    } catch (e) {
-        if (origen) origen.textContent = 'Datos: no disponibles';
+function fillTiempoCard(card, data, origen) {
+    var temperatura = card.querySelector('[data-tiempo="temperatura"]');
+    var viento = card.querySelector('[data-tiempo="viento"]');
+    var icono = card.querySelector('[data-tiempo="icono"]');
+    var estado = card.querySelector('[data-tiempo="estado"]');
+    var origenEl = card.querySelector('[data-tiempo="origen"]');
+    if (data && data.current) {
+        if (temperatura) temperatura.textContent = Math.round(data.current.temperature_2m) + '°C';
+        if (viento) viento.textContent = Math.round(data.current.wind_speed_10m) + ' km/h';
+        var wIcon = weatherCodeToIcon(data.current.weather_code);
+        if (icono) icono.textContent = wIcon.emoji;
+        if (estado) estado.textContent = wIcon.label;
+        if (origenEl) origenEl.textContent = 'Datos: ' + origen;
+    } else {
+        if (origenEl) origenEl.textContent = 'Datos: no disponibles';
         if (icono) icono.textContent = '—';
         if (estado) estado.textContent = '—';
     }
+}
+
+async function fetchTiempoCampo(cfg) {
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + cfg.lat + '&longitude=' + cfg.lon +
+        '&current=temperature_2m,wind_speed_10m,weather_code&timezone=Europe%2FMadrid';
+    var res = await fetch(url);
+    if (!res.ok) throw new Error('tiempo HTTP ' + res.status);
+    return res.json();
+}
+
+async function updateTiempoData() {
+    var cards = document.querySelectorAll('[data-tiempo-campo]');
+    if (!cards.length) return;
+
+    cards.forEach(function (card) {
+        var id = card.getAttribute('data-tiempo-campo');
+        var cfg = TIEMPO_CAMPOS[id];
+        if (!cfg) return;
+        fetchTiempoCampo(cfg)
+            .then(function (data) { fillTiempoCard(card, data, cfg.origen); })
+            .catch(function () { fillTiempoCard(card, null, cfg.origen); });
+    });
 }
 
 // Cargar cámara en vivo

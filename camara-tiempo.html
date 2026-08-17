@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Tiempo - Meteorología y cámara en vivo del campo de golf">
+    <meta name="description" content="Tiempo en Golf Lerma y Saldaña Golf - Meteorología y cámara en vivo">
     <title>Tiempo - Golf Lerma</title>
     <link rel="icon" href="FOTOS/Logo-Golf-Lerma-Footer-1.png" type="image/png">
     <link rel="apple-touch-icon" href="FOTOS/Logo-Golf-Lerma-Footer-1.png">
@@ -64,37 +64,68 @@
         </div>
         <div class="simulador-hero-content">
             <h1 class="section-title" data-i18n="tiempo_title">Tiempo</h1>
+            <p class="simulador-hero-intro" data-i18n="tiempo_intro">Consulta el tiempo en Golf Lerma y en Saldaña Golf.</p>
         </div>
     </section>
 
     <!-- Contenido Tiempo -->
     <section id="camara-tiempo" class="camara-tiempo">
         <div class="container">
-            <div class="tiempo-content">
-                <div class="tiempo-info">
-                    <div class="tiempo-datos">
-                        <div class="dato-tiempo dato-tiempo-estado">
-                            <span class="tiempo-icono" id="tiempo-icono" aria-hidden="true">—</span>
-                            <span class="tiempo-estado" id="tiempo-estado">—</span>
+            <div class="tiempo-campos">
+                <article class="tiempo-campo" data-tiempo-campo="lerma">
+                    <header class="tiempo-campo-header">
+                        <img src="FOTOS/Logo-Golf-Lerma-Footer-1.png" alt="" class="tiempo-campo-logo">
+                        <h2 class="tiempo-campo-titulo" data-i18n="tiempo_lerma">Golf Lerma</h2>
+                    </header>
+                    <div class="tiempo-info">
+                        <div class="tiempo-datos">
+                            <div class="dato-tiempo dato-tiempo-estado">
+                                <span class="tiempo-icono" data-tiempo="icono" aria-hidden="true">—</span>
+                                <span class="tiempo-estado" data-tiempo="estado">—</span>
+                            </div>
+                            <div class="dato-tiempo">
+                                <span class="tiempo-label" data-i18n="tiempo_temperatura">Temperatura</span>
+                                <span class="tiempo-valor" data-tiempo="temperatura">--°C</span>
+                            </div>
+                            <div class="dato-tiempo">
+                                <span class="tiempo-label" data-i18n="tiempo_viento">Viento</span>
+                                <span class="tiempo-valor" data-tiempo="viento">-- km/h</span>
+                            </div>
+                            <p class="tiempo-origen" data-tiempo="origen"></p>
                         </div>
-                        <div class="dato-tiempo">
-                            <span class="tiempo-label">Temperatura</span>
-                            <span class="tiempo-valor" id="temperatura">--°C</span>
+                        <div class="camara-live">
+                            <h3 data-i18n="camara_title">Cámara en Vivo</h3>
+                            <div class="camara-container">
+                                <iframe id="camara-frame" src="" frameborder="0" allowfullscreen></iframe>
+                                <p class="camara-nota" data-i18n="camara_nota">Cámara en tiempo real del campo de golf</p>
+                            </div>
                         </div>
-                        <div class="dato-tiempo">
-                            <span class="tiempo-label" data-i18n="tiempo_viento">Viento</span>
-                            <span class="tiempo-valor" id="viento">-- km/h</span>
-                        </div>
-                        <p class="tiempo-origen" id="tiempo-origen"></p>
                     </div>
-                    <div class="camara-live">
-                        <h3>Cámara en Vivo</h3>
-                        <div class="camara-container">
-                            <iframe id="camara-frame" src="" frameborder="0" allowfullscreen></iframe>
-                            <p class="camara-nota" data-i18n="camara_nota">Cámara en tiempo real del campo de golf</p>
+                </article>
+
+                <article class="tiempo-campo" data-tiempo-campo="saldana">
+                    <header class="tiempo-campo-header">
+                        <img src="FOTOS/Logo-Saldaña-Golf-Footer.png" alt="" class="tiempo-campo-logo">
+                        <h2 class="tiempo-campo-titulo" data-i18n="tiempo_saldana">Saldaña Golf</h2>
+                    </header>
+                    <div class="tiempo-info">
+                        <div class="tiempo-datos">
+                            <div class="dato-tiempo dato-tiempo-estado">
+                                <span class="tiempo-icono" data-tiempo="icono" aria-hidden="true">—</span>
+                                <span class="tiempo-estado" data-tiempo="estado">—</span>
+                            </div>
+                            <div class="dato-tiempo">
+                                <span class="tiempo-label" data-i18n="tiempo_temperatura">Temperatura</span>
+                                <span class="tiempo-valor" data-tiempo="temperatura">--°C</span>
+                            </div>
+                            <div class="dato-tiempo">
+                                <span class="tiempo-label" data-i18n="tiempo_viento">Viento</span>
+                                <span class="tiempo-valor" data-tiempo="viento">-- km/h</span>
+                            </div>
+                            <p class="tiempo-origen" data-tiempo="origen"></p>
                         </div>
                     </div>
-                </div>
+                </article>
             </div>
         </div>
     </section>

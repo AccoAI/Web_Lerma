@@ -11029,11 +11029,23 @@ a.btn-restaurante-paquete-reservar--secondary:hover {
     margin-bottom: 1rem;
 }
 
+.simulador-previsto-badge {
+    display: inline-block;
+    margin: 0 0 0.85rem;
+    padding: 0.35rem 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    color: var(--color-white);
+    font-size: 0.75rem;
+    font-weight: 300;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
 .simulador-hero-intro {
-    margin: 0;
-    font-size: 1.2rem;
-    max-width: 700px;
     margin: 0 auto;
+    font-size: 1.15rem;
+    max-width: 820px;
+    line-height: 1.55;
     text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
     opacity: 0.95;
 }
@@ -11449,11 +11461,54 @@ a.btn-restaurante-paquete-reservar--secondary:hover {
     margin: 0 auto;
 }
 
+.tiempo-campos {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.tiempo-campo {
+    background: transparent;
+    padding: 0;
+    box-shadow: none;
+}
+
+.tiempo-campo-header {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(26, 77, 58, 0.12);
+}
+
+.tiempo-campo-logo {
+    height: 42px;
+    width: auto;
+    max-width: 120px;
+    object-fit: contain;
+}
+
+.tiempo-campo-titulo {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-primary-dark);
+}
+
 .tiempo-info {
     display: grid;
     grid-template-columns: 1fr 2fr;
     gap: 3rem;
     align-items: start;
+}
+
+.tiempo-campo .tiempo-info:not(:has(.camara-live)) {
+    grid-template-columns: minmax(0, 420px);
 }
 
 .tiempo-datos {
