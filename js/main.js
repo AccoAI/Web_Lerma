@@ -343,12 +343,18 @@ async function updateTiempoData() {
 
 // Cargar cámara en vivo
 function loadCamaraLive() {
-    const camaraFrame = document.getElementById('camara-frame');
-    if (camaraFrame) {
-        // Aquí debes poner la URL real de la cámara en vivo
-        // camaraFrame.src = 'URL_DE_LA_CAMARA';
-        // Por ahora dejamos vacío para que el usuario configure la URL
-    }
+    document.querySelectorAll('.camara-frame').forEach(function (frame) {
+        var url = (frame.getAttribute('data-camara-url') || '').trim();
+        var placeholder = frame.parentElement && frame.parentElement.querySelector('.camara-placeholder');
+        if (url) {
+            frame.src = url;
+            frame.removeAttribute('hidden');
+            if (placeholder) placeholder.hidden = true;
+        } else {
+            frame.setAttribute('hidden', '');
+            if (placeholder) placeholder.hidden = false;
+        }
+    });
 }
 
 // Configurador de Paquete Fin de Semana - usa precios-data.js

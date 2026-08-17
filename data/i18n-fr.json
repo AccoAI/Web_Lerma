@@ -316,7 +316,10 @@
   "tiempo_temperatura": "Température",
   "tiempo_viento": "Vent",
   "camara_title": "Caméra en direct",
-  "camara_nota": "Caméra en temps réel du parcours de Golf Lerma",
+  "camara_nota": "Caméra en temps réel du parcours de golf",
+  "camara_nota_lerma": "Caméra en temps réel de Golf Lerma",
+  "camara_nota_saldana": "Caméra en temps réel de Saldaña Golf",
+  "camara_proxima": "Prochainement",
 
   "calendario_title": "Calendrier des Tournois",
   "calendario_intro": "Consultez les prochains tournois à Golf Lerma et Saldaña Golf. Vous voulez organiser le vôtre ? Configurez dates, hébergement, modalité et plus encore.",

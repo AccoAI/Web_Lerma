@@ -316,7 +316,10 @@
   "tiempo_temperatura": "Temperatura",
   "tiempo_viento": "Viento",
   "camara_title": "Cámara en Vivo",
-  "camara_nota": "Cámara en tiempo real del campo de Golf Lerma",
+  "camara_nota": "Cámara en tiempo real del campo de golf",
+  "camara_nota_lerma": "Cámara en tiempo real de Golf Lerma",
+  "camara_nota_saldana": "Cámara en tiempo real de Saldaña Golf",
+  "camara_proxima": "Próximamente",
 
   "calendario_title": "Calendario de Torneos",
   "calendario_intro": "Consulta los próximos torneos en Golf Lerma y Saldaña Golf. ¿Quieres organizar el tuyo? Configura fechas, alojamiento, modalidad y más.",

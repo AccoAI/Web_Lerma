@@ -11462,17 +11462,75 @@ a.btn-restaurante-paquete-reservar--secondary:hover {
 }
 
 .tiempo-campos {
-    display: flex;
-    flex-direction: column;
-    gap: 2.5rem;
-    max-width: 1000px;
-    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.75rem;
+    align-items: start;
+    max-width: none;
+    margin: 0;
 }
 
 .tiempo-campo {
     background: transparent;
     padding: 0;
     box-shadow: none;
+    min-width: 0;
+}
+
+.tiempo-campo .tiempo-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.tiempo-campo .tiempo-datos {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+}
+
+.tiempo-campo .tiempo-origen {
+    grid-column: 1 / -1;
+}
+
+.tiempo-campo .dato-tiempo {
+    padding: 1.1rem 1rem;
+}
+
+.tiempo-campo .tiempo-valor {
+    font-size: 1.85rem;
+}
+
+.tiempo-campo .camara-live {
+    margin: 0;
+}
+
+.tiempo-campo .camara-container {
+    min-height: 220px;
+    position: relative;
+}
+
+.camara-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    background: rgba(26, 77, 58, 0.08);
+    color: var(--color-primary-dark);
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.camara-frame[hidden] {
+    display: none;
+}
+
+.camara-placeholder[hidden] {
+    display: none;
 }
 
 .tiempo-campo-header {
@@ -11505,10 +11563,6 @@ a.btn-restaurante-paquete-reservar--secondary:hover {
     grid-template-columns: 1fr 2fr;
     gap: 3rem;
     align-items: start;
-}
-
-.tiempo-campo .tiempo-info:not(:has(.camara-live)) {
-    grid-template-columns: minmax(0, 420px);
 }
 
 .tiempo-datos {
@@ -13242,6 +13296,13 @@ body.page-torneo .torneo-detalle-section {
     .tiempo-info {
         grid-template-columns: 1fr;
         gap: 2rem;
+    }
+}
+
+@media (max-width: 799px) {
+    .tiempo-campos {
+        grid-template-columns: 1fr;
+        gap: 2.25rem;
     }
 }
 
