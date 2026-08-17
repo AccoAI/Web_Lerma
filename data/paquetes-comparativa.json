@@ -4,7 +4,7 @@
   "columnLabels": {
     "golfComida": { "i18n": "comp_col_golf_comida", "fallback": "Golf + Comida" },
     "golfBurgos": { "i18n": "comp_col_paquete_burgos", "fallback": "Paquete Burgos" },
-    "campeonatoBurgos": { "i18n": "comp_col_campeonato_burgos", "fallback": "Paquete Campeonato Burgos" }
+    "campeonatoBurgos": { "i18n": "comp_col_campeonato_burgos", "fallback": "Paquete Campeonato" }
   },
   "rows": [
     { "i18n": "comp_golf", "fallback": "Golf", "golfComida": true, "golfBurgos": true, "campeonatoBurgos": true },

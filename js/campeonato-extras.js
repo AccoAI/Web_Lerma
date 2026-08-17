@@ -1,5 +1,5 @@
 /**
- * Paquete Campeonato Burgos: secciones 6–8 con tarjetas ancillary-service-card.
+ * Paquete Campeonato: secciones 6–8 con tarjetas ancillary-service-card.
  */
 (function () {
     'use strict';

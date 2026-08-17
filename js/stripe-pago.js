@@ -9,7 +9,7 @@
   var NOMBRES_PAQUETE = {
     'golf-comida': 'Paquete Golf+Comida',
     'golf-burgos': 'Paquete Golf Burgos',
-    'campeonato-burgos': 'Paquete Campeonato Burgos',
+    'campeonato-burgos': 'Paquete Campeonato',
     'fin-semana': 'Paquete Golf Burgos',
     cochinillo: 'Paquete Golf + Cochinillo',
     'golf-vino': 'Golf Canalla',

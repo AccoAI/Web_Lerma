@@ -85,12 +85,6 @@
       .sort(function (a, b) { return (Number(a.orden) || 0) - (Number(b.orden) || 0); });
     if (!active.length) return;
 
-    var first = active[0];
-    if (first.titulo) setText(document.querySelector('.hero-title'), first.titulo);
-    if (first.pie) setText(document.querySelector('.hero-subtitle'), first.pie);
-    var video = document.getElementById('heroVideo');
-    if (video && first.imagen) video.setAttribute('poster', first.imagen);
-
     var btns = document.querySelectorAll('.hero-buttons a.hero-btn');
     active.forEach(function (s, i) {
       var btn = btns[i];
