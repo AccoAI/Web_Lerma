@@ -272,6 +272,13 @@
     softReapplyTimer = setTimeout(reapplyLocked, 350);
   }
 
+  function revealHeroVideo() {
+    var video = document.getElementById('heroVideo');
+    if (video && video.classList.contains('is-cms-pending')) {
+      video.classList.remove('is-cms-pending');
+    }
+  }
+
   function applyData(data) {
     data = data || {};
     window.CmsPlataforma.data = data;
@@ -288,6 +295,7 @@
       applySeo(data.seo);
       applyHeroSlides(data.heroSlides);
     }
+    revealHeroVideo();
     if (window.CMS_FORCE_EDIT || /[?&]cmsEdit=1/.test(location.search || '') || window.parent !== window) {
       scheduleSoftReapply();
     }
@@ -324,8 +332,12 @@
     }
   });
 
+  // Si el HTML llega con .is-cms-pending (caché/deploy viejo), revelar sí o sí.
+  setTimeout(revealHeroVideo, 1600);
+
   reload().catch(function (err) {
     window.__CMS_SYNC_OK = false;
+    revealHeroVideo();
     document.dispatchEvent(new CustomEvent('cms:contenido-listo', { detail: null }));
     if (typeof console !== 'undefined' && console.warn) {
       console.warn('[CMS]', err && err.message ? err.message : err);

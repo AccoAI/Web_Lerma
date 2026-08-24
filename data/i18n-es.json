@@ -30,7 +30,6 @@
   "lang_es": "ES",
   "lang_fr": "FR",
   "lang_en": "EN",
-
   "hero_title": "LA GRANDEZA DE LA NATURALEZA CASTELLANA",
   "hero_subtitle": "Dos campos de golf excepcionales en el corazón de Burgos",
   "hero_btn_reservar": "Reservar Partida",
@@ -39,7 +38,6 @@
   "paquetes_section_title": "Paquetes de Golf",
   "paquetes_section_subtitle": "Los mejores descuentos en todos nuestros productos y servicios si reservas nuestros paquetes",
   "hero_saldana_texto": "Complete su partida en",
-
   "paquete_fin_semana_title": "Paquete Golf Burgos",
   "paquete_fin_semana_desc": "Configura noches, hotel, comidas y green fees en Lerma y Burgos",
   "paquete_golf_burgos_title": "Paquete Golf Burgos",
@@ -175,33 +173,27 @@
   "btn_enviar_solicitud": "Enviar solicitud",
   "reserva_solicitud_ok": "Solicitud enviada correctamente. Tramitaremos su petición y nos pondremos en contacto con usted lo antes posible.",
   "reserva_error_personas": "Indique al menos una persona.",
-
   "sostenibilidad_title": "Sostenibilidad y Compromiso Ambiental",
   "sostenibilidad_quote": "\"Delante de cada golpe hay una idea. Detrás, una justificación\"",
   "sostenibilidad_text": "El Campo de Golf de Lerma refuerza su compromiso con la sostenibilidad mediante una nueva instalación solar ejecutada por Norsol. Este proyecto reduce nuestro gasto energético y huella de carbono, y cuenta con el respaldo de los Fondos Next Generation de la UE dentro del Plan de Recuperación, Transformación y Resiliencia.",
   "sostenibilidad_colaboracion": "Con la colaboración de:",
-
   "newsletter_title": "¿DESEAS SUSCRIBIRTE A NUESTRO NEWSLETTER?",
   "newsletter_placeholder": "Tu correo electrónico (requerido)",
   "newsletter_privacy": "He leído y acepto la política de privacidad",
   "newsletter_privacy_html": "He leído y acepto la <a href=\"#politica-privacidad\">política de privacidad</a>",
   "newsletter_submit": "Suscribirse",
-
   "footer_bottom": "Copyright © Golf Lerma 2024 · Política de privacidad · Advertencia legal · Protección de Datos",
-
   "cookie_title": "Consentimiento de Cookies",
   "cookie_text": "Utilizamos cookies propias y de terceros para analizar nuestros servicios y mostrarte publicidad relacionada con tus preferencias en base a un perfil elaborado a partir de tus hábitos de navegación (por ejemplo, páginas visitadas). Puedes obtener más información y configurar tus preferencias <a href=\"#politica-cookies\">aquí</a>.",
   "cookie_accept": "Aceptar",
   "cookie_reject": "Rechazar",
   "cookie_configure": "Configurar",
-
   "popup_close": "Cerrar",
   "popup_no_hoy": "No volver a mostrar hoy",
   "popup_mas_info": "Más información",
   "popup_mas_info_short": "Más info",
   "popup_torneos_titulo": "Próximos torneos",
-
-  "el_campo_title": "El Campo",
+  "el_campo_title": "Los Campos",
   "tab_instalaciones": "Instalaciones",
   "tab_restaurante": "Restaurante",
   "tab_guia": "Guía del campo",
@@ -226,7 +218,6 @@
   "recorrido_text1": "El campo de Golf Lerma dispone de 18 hoyos distribuidos en 5.900 metros de recorrido. Diseñado por Pepe Gancedo sobre el paraje natural de La Andaya, combina calles amplias con retos técnicos en los greenes.",
   "recorrido_text2": "Ocho lagos y dos riachuelos acompañan el juego, añadiendo emoción a varios hoyos. El viento, habitual en la meseta castellana, convierte cada partida en un desafío distinto.",
   "recorrido_par": "Par 72 · 5.900 m · Campo de amplios horizontes con encinas, sabinas y robles.",
-
   "bodas_title": "Bodas & Eventos",
   "bodas_intro": "Celebra tu evento especial en un entorno único. Golf Lerma ofrece instalaciones excepcionales para bodas y eventos inolvidables.",
   "btn_celebrar_boda": "Celebrar mi boda/evento",
@@ -244,7 +235,6 @@
   "placeholder_mensaje": "Tipo de evento, fechas aproximadas, número de invitados...",
   "btn_abrir_correo": "Abrir correo para enviar",
   "contacto_directo": "O contacte directamente:",
-
   "empresa_title": "Eventos de empresa",
   "empresa_intro": "Torneos, reuniones, incentivos, bautismos de golf. Déjenos su email corporativo y su mensaje, o contacte directamente por correo o teléfono.",
   "empresa_bautismos_titulo": "Bautismos de golf:",
@@ -256,7 +246,6 @@
   "label_empresa": "Empresa",
   "placeholder_empresa": "Nombre de la empresa",
   "placeholder_mensaje_empresa": "Cuéntenos qué tipo de evento o actividad le interesa (torneo, reunión, incentivo, fechas aproximadas...).",
-
   "simulador_title": "Simulador de Golf",
   "simulador_badge": "Previsto 2026",
   "simulador_intro": "Está previsto en la casa club de Saldaña Golf, cuya construcción comenzará en 2026. Contará con las últimas tecnologías para gamificar el golf en Burgos: aprender a jugar, divertirse y resguardarse de las inclemencias climáticas de la ciudad mientras disfrutas del bar.",
@@ -285,7 +274,6 @@
   "ubicacion_text": "Urbanización Golf Saldaña · Saldaña de Burgos. La construcción de la casa club comenzará en 2026. El simulador formará parte de este nuevo espacio, con las últimas tecnologías, junto al bar y las instalaciones del club.",
   "simulador_bautismos_intro": "Para jóvenes y adultos. Cuando abra el simulador, podrá descubrir el golf con una sesión de iniciación.",
   "simulador_bautismos_cta": "Déjenos sus datos en el formulario inferior y le avisaremos.",
-
   "hazte_socio_badge": "Sin cuota de inscripción",
   "hazte_socio_title": "Dos campos. Una sola cuota.",
   "hazte_socio_sub": "Con la cuota de mantenimiento mensual disfruta de Golf Lerma y Saldaña Golf, y de precio especial en el simulador de Burgos (Lain Calvo 12). Derecho de uso familiar desde el primer día.",
@@ -300,7 +288,6 @@
   "agenda_otros": "Otros",
   "agenda_mes_anterior": "Mes anterior",
   "agenda_mes_siguiente": "Mes siguiente",
-
   "correspondencias_title": "Correspondencias",
   "correspondencias_intro": "Los socios de los clubs con los que tenemos acuerdo de correspondencia pueden jugar en Golf Lerma y Saldaña Golf a la tarifa indicada. En reservas y paquetes, al seleccionar su club en el desplegable se aplicará automáticamente el precio de correspondencia.",
   "correspondencias_greenfee": "Green fee correspondencia · Lerma y Saldaña",
@@ -308,7 +295,6 @@
   "correspondencias_cargando": "Cargando correspondencias…",
   "correspondencias_sin_resultados": "No hay coincidencias con tu búsqueda.",
   "correspondencias_nota": "Para incorporar o actualizar clubs en la lista de correspondencias, contacte en",
-
   "tiempo_title": "Tiempo",
   "tiempo_intro": "Consulta el tiempo en Golf Lerma y en Saldaña Golf.",
   "tiempo_lerma": "Golf Lerma",
@@ -320,7 +306,6 @@
   "camara_nota_lerma": "Cámara en tiempo real de Golf Lerma",
   "camara_nota_saldana": "Cámara en tiempo real de Saldaña Golf",
   "camara_proxima": "Próximamente",
-
   "calendario_title": "Calendario de Torneos",
   "calendario_intro": "Consulta los próximos torneos en Golf Lerma y Saldaña Golf. ¿Quieres organizar el tuyo? Configura fechas, alojamiento, modalidad y más.",
   "crear_torneo_titulo": "Crear tu propio torneo",
@@ -328,7 +313,6 @@
   "crear_torneo_link": "Configurar torneo ›",
   "proximos_torneos": "Próximos torneos",
   "calendario_cargando": "Cargando torneos…",
-
   "paquete_finsemana_title": "Paquete Golf Burgos",
   "paquete_finsemana_intro": "Configura tu paquete personalizado: elige las noches, el hotel y las opciones de comida.",
   "paquete_golf_burgos_intro": "Configura tu paquete personalizado: elige las noches, el hotel y las opciones de comida.",
@@ -453,6 +437,6 @@
   "recibir_pdf": "📧 Recibirás por correo: Un PDF con todas nuestras recomendaciones de la capital para disfrutar de un fin de semana perfecto en Burgos.",
   "sin_correspondencia": "Sin correspondencia",
   "lugar_sin_reserva": "Sin reserva",
-
-  "leer_mas": "LEER MÁS >"
+  "leer_mas": "LEER MÁS >",
+  "campo_saldana_placeholder": "Contenido de Saldaña Golf en preparación. Pronto encontrarás aquí instalaciones, restaurante, guía y recorrido."
 }

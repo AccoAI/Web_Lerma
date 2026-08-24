@@ -30,7 +30,6 @@
   "lang_es": "ES",
   "lang_fr": "FR",
   "lang_en": "EN",
-
   "hero_title": "LA GRANDEUR DE LA NATURE CASTILLANE",
   "hero_subtitle": "Deux parcours de golf exceptionnels au cœur de Burgos",
   "hero_btn_reservar": "Réserver une partie",
@@ -39,7 +38,6 @@
   "paquetes_section_title": "Forfaits Golf",
   "paquetes_section_subtitle": "Les meilleures remises sur tous nos produits et services si vous réservez nos forfaits",
   "hero_saldana_texto": "Complétez votre partie à",
-
   "paquete_fin_semana_title": "Forfait Golf Burgos",
   "paquete_fin_semana_desc": "Nuits, hôtel, repas et green fees à Lerma et Burgos",
   "paquete_golf_burgos_title": "Forfait Golf Burgos",
@@ -175,33 +173,27 @@
   "btn_enviar_solicitud": "Envoyer la demande",
   "reserva_solicitud_ok": "Demande envoyée avec succès. Nous la traiterons et vous contacterons dès que possible.",
   "reserva_error_personas": "Indiquez au moins une personne.",
-
   "sostenibilidad_title": "Durabilité et engagement environnemental",
   "sostenibilidad_quote": "\"Devant chaque coup il y a une idée. Derrière, une justification\"",
   "sostenibilidad_text": "Le Club de Golf de Lerma renforce son engagement en faveur de la durabilité grâce à une nouvelle installation solaire réalisée par Norsol. Ce projet réduit notre consommation énergétique et notre empreinte carbone, et bénéficie du soutien des fonds Next Generation de l'UE dans le cadre du Plan de relance, de transformation et de résilience.",
   "sostenibilidad_colaboracion": "Avec la collaboration de :",
-
   "newsletter_title": "SOUHAITEZ-VOUS VOUS ABONNER À NOTRE NEWSLETTER ?",
   "newsletter_placeholder": "Votre adresse e-mail (requise)",
   "newsletter_privacy": "J'ai lu et j'accepte la politique de confidentialité",
   "newsletter_privacy_html": "J'ai lu et j'accepte la <a href=\"#politica-privacidad\">politique de confidentialité</a>",
   "newsletter_submit": "S'abonner",
-
   "footer_bottom": "Copyright © Golf Lerma 2024 · Politique de confidentialité · Avertissement légal · Protection des données",
-
   "cookie_title": "Consentement aux cookies",
   "cookie_text": "Nous utilisons des cookies propres et tiers pour analyser nos services et vous montrer de la publicité liée à vos préférences en fonction d'un profil élaboré à partir de vos habitudes de navigation (par exemple, les pages visitées). Vous pouvez obtenir plus d'informations et configurer vos préférences <a href=\"#politica-cookies\">ici</a>.",
   "cookie_accept": "Accepter",
   "cookie_reject": "Refuser",
   "cookie_configure": "Configurer",
-
   "popup_close": "Fermer",
   "popup_no_hoy": "Ne plus afficher aujourd'hui",
   "popup_mas_info": "Plus d'informations",
   "popup_mas_info_short": "Plus d'infos",
   "popup_torneos_titulo": "Prochains tournois",
-
-  "el_campo_title": "Le Terrain",
+  "el_campo_title": "Les Parcours",
   "tab_instalaciones": "Installations",
   "tab_restaurante": "Restaurant",
   "tab_guia": "Guide du parcours",
@@ -226,7 +218,6 @@
   "recorrido_text1": "Le parcours de Golf Lerma dispose de 18 trous répartis sur 5 900 mètres. Conçu par Pepe Gancedo sur le site naturel de La Andaya, il combine des fairways larges avec des défis techniques sur les greens.",
   "recorrido_text2": "Huit lacs et deux ruisseaux accompagnent le jeu, ajoutant de l'émotion à plusieurs trous. Le vent, habituel sur le plateau castillan, transforme chaque partie en un défi différent.",
   "recorrido_par": "Par 72 · 5 900 m · Parcours aux horizons larges avec chênes verts, genévriers et chênes.",
-
   "bodas_title": "Mariages & Événements",
   "bodas_intro": "Célébrez votre événement spécial dans un cadre unique. Golf Lerma propose des installations exceptionnelles pour des mariages et événements inoubliables.",
   "btn_celebrar_boda": "Célébrer mon mariage/événement",
@@ -244,7 +235,6 @@
   "placeholder_mensaje": "Type d'événement, dates approximatives, nombre d'invités...",
   "btn_abrir_correo": "Ouvrir l'email pour envoyer",
   "contacto_directo": "Ou contactez-nous directement :",
-
   "empresa_title": "Événements d'entreprise",
   "empresa_intro": "Tournois, réunions, incitatifs, baptêmes de golf. Laissez-nous votre email professionnel et votre message, ou contactez-nous directement par email ou téléphone.",
   "empresa_bautismos_titulo": "Baptêmes de golf :",
@@ -256,7 +246,6 @@
   "label_empresa": "Entreprise",
   "placeholder_empresa": "Nom de l'entreprise",
   "placeholder_mensaje_empresa": "Dites-nous quel type d'événement ou d'activité vous intéresse (tournoi, réunion, incitatif, dates approximatives...).",
-
   "simulador_title": "Simulateur de Golf",
   "simulador_badge": "Prévu 2026",
   "simulador_intro": "Il est prévu dans le club-house de Saldaña Golf, dont la construction commencera en 2026. Il disposera des dernières technologies pour gamifier le golf à Burgos : apprendre à jouer, s’amuser et se protéger des intempéries de la ville tout en profitant du bar.",
@@ -285,7 +274,6 @@
   "ubicacion_text": "Urbanización Golf Saldaña · Saldaña de Burgos. La construction du club-house commencera en 2026. Le simulateur fera partie de cet nouvel espace, avec les dernières technologies, aux côtés du bar et des installations du club.",
   "simulador_bautismos_intro": "Pour les jeunes et les adultes. Lorsque le simulateur ouvrira, vous pourrez découvrir le golf lors d’une séance d’initiation.",
   "simulador_bautismos_cta": "Laissez vos coordonnées dans le formulaire ci-dessous et nous vous préviendrons.",
-
   "hazte_socio_badge": "Sans frais d'inscription",
   "hazte_socio_title": "Deux parcours. Une seule cotisation.",
   "hazte_socio_sub": "Avec la cotisation mensuelle d'entretien, profitez de Golf Lerma et Saldaña Golf, et d'un tarif spécial au simulateur de Burgos (Lain Calvo 12). Droit d'usage familial dès le premier jour.",
@@ -300,7 +288,6 @@
   "agenda_otros": "Autres",
   "agenda_mes_anterior": "Mois précédent",
   "agenda_mes_siguiente": "Mois suivant",
-
   "correspondencias_title": "Correspondances",
   "correspondencias_intro": "Les membres des clubs avec lesquels nous avons un accord de correspondance peuvent jouer à Golf Lerma et Saldaña Golf au tarif indiqué. Pour les réservations et forfaits, en sélectionnant votre club dans le menu déroulant, le prix de correspondance sera automatiquement appliqué.",
   "correspondencias_greenfee": "Green fee correspondance · Lerma et Saldaña",
@@ -308,7 +295,6 @@
   "correspondencias_cargando": "Chargement des correspondances…",
   "correspondencias_sin_resultados": "Aucun résultat pour votre recherche.",
   "correspondencias_nota": "Pour ajouter ou mettre à jour des clubs dans la liste des correspondances, contactez-nous au",
-
   "tiempo_title": "Météo",
   "tiempo_intro": "Consultez la météo à Golf Lerma et à Saldaña Golf.",
   "tiempo_lerma": "Golf Lerma",
@@ -320,7 +306,6 @@
   "camara_nota_lerma": "Caméra en temps réel de Golf Lerma",
   "camara_nota_saldana": "Caméra en temps réel de Saldaña Golf",
   "camara_proxima": "Prochainement",
-
   "calendario_title": "Calendrier des Tournois",
   "calendario_intro": "Consultez les prochains tournois à Golf Lerma et Saldaña Golf. Vous voulez organiser le vôtre ? Configurez dates, hébergement, modalité et plus encore.",
   "crear_torneo_titulo": "Créer votre propre tournoi",
@@ -328,7 +313,6 @@
   "crear_torneo_link": "Configurer le tournoi ›",
   "proximos_torneos": "Prochains tournois",
   "calendario_cargando": "Chargement des tournois…",
-
   "paquete_finsemana_title": "Forfait Golf Burgos",
   "paquete_golf_burgos_intro": "Configurez votre forfait personnalisé : choisissez les nuits, l'hôtel et les options de repas.",
   "paquete_golf_ilimitado_intro": "Jouez au golf sans limite : open bar sur Golf Lerma et Saldaña Golf, deux parcours de 18 trous.",
@@ -453,6 +437,6 @@
   "recibir_pdf": "📧 Vous recevrez par email : un PDF avec toutes nos recommandations de la capitale pour profiter d'un week-end parfait à Burgos.",
   "sin_correspondencia": "Sans correspondance",
   "lugar_sin_reserva": "Sans réservation",
-
-  "leer_mas": "LIRE LA SUITE >"
+  "leer_mas": "LIRE LA SUITE >",
+  "campo_saldana_placeholder": "Contenu de Saldaña Golf en préparation. Installations, restaurant, guide et parcours arriveront bientôt."
 }

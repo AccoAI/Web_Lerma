@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="El Campo - Golf Lerma - Naturaleza castellana, restaurante, instalaciones y tienda">
-    <title>El Campo - Golf Lerma</title>
+    <meta name="description" content="Los Campos - Golf Lerma y Saldaña Golf: instalaciones, restaurante, guía y recorrido">
+    <title>Los Campos - Golf Lerma y Saldaña Golf</title>
     <link rel="icon" href="FOTOS/Logo-Golf-Lerma-Footer-1.png" type="image/png">
     <link rel="apple-touch-icon" href="FOTOS/Logo-Golf-Lerma-Footer-1.png">
     <link rel="stylesheet" href="css/styles.css">
@@ -76,9 +76,15 @@
     <!-- El Campo -->
     <section id="campo" class="el-campo el-campo--hero-video" style="margin-top: 0; padding-top: calc(var(--header-height) + 1.5rem);">
         <div class="container">
-            <h2 class="section-title" data-i18n="el_campo_title">El Campo</h2>
-            
-            <nav class="campo-tabs" role="tablist" aria-label="Secciones del campo">
+            <h2 class="section-title" data-i18n="el_campo_title">Los Campos</h2>
+
+            <nav class="campo-club-switch" role="tablist" aria-label="Elegir campo">
+                <button type="button" class="campo-club-btn activo" role="tab" aria-selected="true" aria-controls="campo-club-lerma" id="club-lerma" data-campo-club="lerma" data-i18n="campo_lerma">Golf Lerma</button>
+                <button type="button" class="campo-club-btn" role="tab" aria-selected="false" aria-controls="campo-club-saldana" id="club-saldana" data-campo-club="saldana" data-i18n="campo_saldana">Saldaña Golf</button>
+            </nav>
+
+            <div id="campo-club-lerma" class="campo-club-panel activo" role="tabpanel" aria-labelledby="club-lerma" data-campo-club-panel="lerma">
+            <nav class="campo-tabs" role="tablist" aria-label="Secciones Golf Lerma">
                 <button type="button" class="campo-tab-btn activo" role="tab" aria-selected="true" aria-controls="panel-instalaciones" id="tab-instalaciones" data-i18n="tab_instalaciones">Instalaciones</button>
                 <button type="button" class="campo-tab-btn" role="tab" aria-selected="false" aria-controls="panel-restaurante" id="tab-restaurante" data-i18n="tab_restaurante">Restaurante</button>
                 <button type="button" class="campo-tab-btn" role="tab" aria-selected="false" aria-controls="panel-guia" id="tab-guia" data-i18n="tab_guia">Guía del campo</button>
@@ -331,6 +337,37 @@
                     </div>
                 </div>
             </div>
+            </div><!-- /campo-club-lerma -->
+
+            <div id="campo-club-saldana" class="campo-club-panel" role="tabpanel" aria-labelledby="club-saldana" data-campo-club-panel="saldana" hidden>
+                <nav class="campo-tabs" role="tablist" aria-label="Secciones Saldaña Golf">
+                    <button type="button" class="campo-tab-btn activo" role="tab" aria-selected="true" aria-controls="panel-saldana-instalaciones" id="tab-saldana-instalaciones" data-i18n="tab_instalaciones">Instalaciones</button>
+                    <button type="button" class="campo-tab-btn" role="tab" aria-selected="false" aria-controls="panel-saldana-restaurante" id="tab-saldana-restaurante" data-i18n="tab_restaurante">Restaurante</button>
+                    <button type="button" class="campo-tab-btn" role="tab" aria-selected="false" aria-controls="panel-saldana-guia" id="tab-saldana-guia" data-i18n="tab_guia">Guía del campo</button>
+                    <button type="button" class="campo-tab-btn" role="tab" aria-selected="false" aria-controls="panel-saldana-recorrido" id="tab-saldana-recorrido" data-i18n="tab_recorrido">Recorrido</button>
+                </nav>
+
+                <div id="panel-saldana-instalaciones" class="campo-tab-panel activo" role="tabpanel" aria-labelledby="tab-saldana-instalaciones">
+                    <div class="campo-seccion campo-seccion--placeholder">
+                        <p class="campo-placeholder" data-i18n="campo_saldana_placeholder">Contenido de Saldaña Golf en preparación. Pronto encontrarás aquí instalaciones, restaurante, guía y recorrido.</p>
+                    </div>
+                </div>
+                <div id="panel-saldana-restaurante" class="campo-tab-panel" role="tabpanel" aria-labelledby="tab-saldana-restaurante" hidden>
+                    <div class="campo-seccion campo-seccion--placeholder">
+                        <p class="campo-placeholder" data-i18n="campo_saldana_placeholder">Contenido de Saldaña Golf en preparación. Pronto encontrarás aquí instalaciones, restaurante, guía y recorrido.</p>
+                    </div>
+                </div>
+                <div id="panel-saldana-guia" class="campo-tab-panel" role="tabpanel" aria-labelledby="tab-saldana-guia" hidden>
+                    <div class="campo-seccion campo-seccion--placeholder">
+                        <p class="campo-placeholder" data-i18n="campo_saldana_placeholder">Contenido de Saldaña Golf en preparación. Pronto encontrarás aquí instalaciones, restaurante, guía y recorrido.</p>
+                    </div>
+                </div>
+                <div id="panel-saldana-recorrido" class="campo-tab-panel" role="tabpanel" aria-labelledby="tab-saldana-recorrido" hidden>
+                    <div class="campo-seccion campo-seccion--placeholder">
+                        <p class="campo-placeholder" data-i18n="campo_saldana_placeholder">Contenido de Saldaña Golf en preparación. Pronto encontrarás aquí instalaciones, restaurante, guía y recorrido.</p>
+                    </div>
+                </div>
+            </div><!-- /campo-club-saldana -->
         </div>
     </section>
 
@@ -402,12 +439,17 @@
     <script src="js/slope-guia.js"></script>
     <script>
     (function () {
-        var tabs = document.querySelectorAll('.campo-tab-btn');
-        var panels = document.querySelectorAll('.campo-tab-panel');
+        var clubBtns = document.querySelectorAll('.campo-club-btn');
+        var clubPanels = document.querySelectorAll('.campo-club-panel');
         var HERO_VIDEOS = {
             instalaciones: '/FOTOS/CasaClub.mp4'
         };
         var campoHeroVideoUnlocked = false;
+        var activeClub = 'lerma';
+
+        function getActiveClubPanel() {
+            return document.querySelector('.campo-club-panel.activo') || document.getElementById('campo-club-lerma');
+        }
 
         function getCampoHeroEls() {
             return {
@@ -487,6 +529,7 @@
         function unlockCampoHeroVideo() {
             if (campoHeroVideoUnlocked) return;
             campoHeroVideoUnlocked = true;
+            if (activeClub !== 'lerma') return;
             var instalacionesTab = document.getElementById('tab-instalaciones');
             if (instalacionesTab && instalacionesTab.getAttribute('aria-selected') === 'true') {
                 playCampoHeroVideo(HERO_VIDEOS.instalaciones, true, true);
@@ -496,7 +539,7 @@
         document.addEventListener('pointerdown', unlockCampoHeroVideo, { once: true, passive: true });
 
         function syncCampoHeroMedia(panelId) {
-            if (panelId === 'panel-instalaciones') {
+            if (activeClub === 'lerma' && panelId === 'panel-instalaciones') {
                 playCampoHeroVideo(HERO_VIDEOS.instalaciones, true, false);
                 return;
             }
@@ -505,7 +548,11 @@
 
         function activarTabCampo(btn, fromUserGesture) {
             if (!btn) return;
+            var clubPanel = btn.closest('.campo-club-panel');
+            if (!clubPanel) return;
             var targetId = btn.getAttribute('aria-controls');
+            var tabs = clubPanel.querySelectorAll('.campo-tab-btn');
+            var panels = clubPanel.querySelectorAll('.campo-tab-panel');
             tabs.forEach(function (b) { b.classList.remove('activo'); b.setAttribute('aria-selected', 'false'); });
             panels.forEach(function (p) { p.classList.remove('activo'); p.setAttribute('hidden', ''); });
             btn.classList.add('activo');
@@ -519,20 +566,62 @@
                 campoHeroVideoUnlocked = true;
             }
             syncCampoHeroMedia(targetId);
-            if (fromUserGesture && targetId === 'panel-instalaciones') {
+            if (fromUserGesture && activeClub === 'lerma' && targetId === 'panel-instalaciones') {
                 playCampoHeroVideo(HERO_VIDEOS.instalaciones, true, true);
             }
         }
-        tabs.forEach(function (btn) {
+
+        function activarClub(clubId, fromUserGesture) {
+            var id = clubId === 'saldana' ? 'saldana' : 'lerma';
+            activeClub = id;
+            clubBtns.forEach(function (b) {
+                var on = b.getAttribute('data-campo-club') === id;
+                b.classList.toggle('activo', on);
+                b.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            clubPanels.forEach(function (p) {
+                var on = p.getAttribute('data-campo-club-panel') === id;
+                p.classList.toggle('activo', on);
+                if (on) p.removeAttribute('hidden');
+                else p.setAttribute('hidden', '');
+            });
+            var panel = getActiveClubPanel();
+            var activeTab = panel && panel.querySelector('.campo-tab-btn.activo');
+            var panelId = activeTab ? activeTab.getAttribute('aria-controls') : (id === 'lerma' ? 'panel-instalaciones' : 'panel-saldana-instalaciones');
+            if (fromUserGesture) campoHeroVideoUnlocked = true;
+            syncCampoHeroMedia(panelId);
+            if (fromUserGesture && id === 'lerma' && panelId === 'panel-instalaciones') {
+                playCampoHeroVideo(HERO_VIDEOS.instalaciones, true, true);
+            }
+            try {
+                if (history && history.replaceState) {
+                    history.replaceState(null, '', id === 'saldana' ? '#saldana' : '#lerma');
+                }
+            } catch (e) {}
+        }
+
+        clubBtns.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                activarClub(btn.getAttribute('data-campo-club'), true);
+            });
+        });
+
+        document.querySelectorAll('.campo-tab-btn').forEach(function (btn) {
             btn.addEventListener('click', function () { activarTabCampo(btn, true); });
         });
-        (function abrirTabSegunHash() {
-            var h = (location.hash || '').replace(/^#/, '');
-            if (h === 'restaurante' || h === 'panel-restaurante' || h === 'tab-restaurante') {
-                var b = document.getElementById('tab-restaurante');
-                activarTabCampo(b);
+
+        (function abrirSegunHash() {
+            var h = (location.hash || '').replace(/^#/, '').toLowerCase();
+            if (h === 'saldana' || h === 'saldaña' || h.indexOf('saldana') === 0) {
+                activarClub('saldana', false);
                 return;
             }
+            if (h === 'restaurante' || h === 'panel-restaurante' || h === 'tab-restaurante') {
+                activarClub('lerma', false);
+                activarTabCampo(document.getElementById('tab-restaurante'), false);
+                return;
+            }
+            activarClub('lerma', false);
             syncCampoHeroMedia('panel-instalaciones');
             tryPlayCampoHeroVideo(document.getElementById('campoHeroVideo'));
         })();
@@ -548,53 +637,55 @@
             var HOYO13_VIDEO = '/FOTOS/Hoyo13.mp4';
 
             function abrirLightbox(src, alt) {
-                if (!lightbox || !lightboxImg || !lightboxVideo) return;
-                lightboxVideo.pause();
-                lightboxVideo.removeAttribute('src');
-                lightboxVideo.classList.remove('recorrido-lightbox-video--visible');
+                if (!lightbox || !lightboxImg) return;
+                if (lightboxVideo) {
+                    lightboxVideo.pause();
+                    lightboxVideo.removeAttribute('src');
+                    lightboxVideo.load();
+                    lightboxVideo.style.display = 'none';
+                }
+                lightboxImg.style.display = '';
                 lightboxImg.src = src;
-                lightboxImg.alt = alt || 'Foto del hoyo';
-                lightboxImg.classList.add('recorrido-lightbox-img--visible');
-                lightbox.classList.remove('recorrido-lightbox--video');
-                lightbox.setAttribute('aria-label', 'Foto del hoyo ampliada');
+                lightboxImg.alt = alt || '';
                 lightbox.classList.add('activo');
                 lightbox.setAttribute('aria-hidden', 'false');
                 document.body.style.overflow = 'hidden';
             }
 
-            function abrirLightboxVideo(src, alt) {
-                if (!lightbox || !lightboxImg || !lightboxVideo) return;
-                lightboxImg.classList.remove('recorrido-lightbox-img--visible');
-                lightboxImg.removeAttribute('src');
+            function abrirLightboxVideo(src, label) {
+                if (!lightbox || !lightboxVideo) return;
+                if (lightboxImg) {
+                    lightboxImg.removeAttribute('src');
+                    lightboxImg.style.display = 'none';
+                }
+                lightboxVideo.style.display = '';
                 lightboxVideo.src = src;
-                lightboxVideo.classList.add('recorrido-lightbox-video--visible');
-                lightbox.classList.add('recorrido-lightbox--video');
-                lightbox.setAttribute('aria-label', alt || 'Vídeo del hoyo');
+                lightboxVideo.setAttribute('aria-label', label || 'Vídeo del hoyo');
                 lightbox.classList.add('activo');
                 lightbox.setAttribute('aria-hidden', 'false');
                 document.body.style.overflow = 'hidden';
-                lightboxVideo.load();
-                var playPromise = lightboxVideo.play();
-                if (playPromise && typeof playPromise.catch === 'function') {
-                    playPromise.catch(function () {});
-                }
+                tryPlayCampoHeroVideo(lightboxVideo);
+                lightboxVideo.muted = false;
+                lightboxVideo.removeAttribute('muted');
+                var p = lightboxVideo.play();
+                if (p && typeof p.catch === 'function') p.catch(function () {});
             }
 
             function cerrarLightbox() {
                 if (!lightbox) return;
+                lightbox.classList.remove('activo');
+                lightbox.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+                if (lightboxImg) {
+                    lightboxImg.removeAttribute('src');
+                    lightboxImg.style.display = '';
+                }
                 if (lightboxVideo) {
                     lightboxVideo.pause();
                     lightboxVideo.removeAttribute('src');
-                    lightboxVideo.classList.remove('recorrido-lightbox-video--visible');
+                    lightboxVideo.load();
+                    lightboxVideo.style.display = 'none';
                 }
-                if (lightboxImg) {
-                    lightboxImg.classList.remove('recorrido-lightbox-img--visible');
-                    lightboxImg.removeAttribute('src');
-                }
-                lightbox.classList.remove('activo', 'recorrido-lightbox--video');
-                lightbox.setAttribute('aria-hidden', 'true');
-                lightbox.setAttribute('aria-label', 'Foto del hoyo ampliada');
-                document.body.style.overflow = '';
             }
 
             if (hoyo13Card) {

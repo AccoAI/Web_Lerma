@@ -362,7 +362,7 @@ img {
     transition: opacity 0.45s ease;
 }
 
-/* Hasta que el CMS confirma media: fondo del hero, sin flash poster↔vídeo */
+/* Solo si HTML viejo en caché aún trae la clase; el JS la quita al cargar */
 .hero-video.is-cms-pending {
     opacity: 0;
 }
@@ -932,6 +932,14 @@ body.fondo-golf-lerma-estandar .el-campo.el-campo--hero-video .section-title {
     z-index: 1;
     margin-bottom: 1.75rem;
     text-shadow: 0 2px 14px rgba(255, 255, 255, 0.95), 0 1px 6px rgba(0, 0, 0, 0.25);
+}
+
+body.fondo-golf-lerma-estandar .el-campo.el-campo--hero-video .campo-club-switch {
+    position: relative;
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.78);
+    border-color: rgba(26, 77, 58, 0.2);
+    backdrop-filter: blur(6px);
 }
 
 body.fondo-golf-lerma-estandar .el-campo.el-campo--hero-video .campo-tabs {
@@ -8293,6 +8301,63 @@ a.btn-restaurante-paquete-reservar--secondary:hover {
 }
 
 /* Tabs El Campo */
+.campo-club-switch {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    margin: 0 auto 1.75rem;
+    max-width: 420px;
+    padding: 0.3rem;
+    border: 1px solid rgba(26, 77, 58, 0.18);
+    background: rgba(255, 255, 255, 0.55);
+}
+
+.campo-club-btn {
+    flex: 1 1 auto;
+    min-width: 140px;
+    padding: 0.75rem 1.1rem;
+    border: none;
+    background: transparent;
+    font-family: var(--font-primary);
+    font-size: 0.82rem;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-light);
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s;
+}
+
+.campo-club-btn:hover {
+    color: var(--color-primary);
+}
+
+.campo-club-btn.activo {
+    background: var(--color-primary);
+    color: #fff;
+    font-weight: 500;
+}
+
+.campo-club-panel {
+    display: none;
+}
+
+.campo-club-panel.activo {
+    display: block;
+}
+
+.campo-placeholder {
+    margin: 0;
+    padding: 2.5rem 1.25rem;
+    text-align: center;
+    color: var(--color-text-light);
+    font-size: 1rem;
+    line-height: 1.6;
+    border: 1px dashed rgba(26, 77, 58, 0.22);
+    background: rgba(255, 255, 255, 0.45);
+}
+
 .campo-tabs {
     display: flex;
     flex-wrap: wrap;
@@ -11457,199 +11522,218 @@ a.btn-restaurante-paquete-reservar--secondary:hover {
     font-weight: 600;
 }
 
-/* Tiempo */
+/* Tiempo — layout comparativo Lerma | Saldaña */
 .camara-tiempo {
-    padding: 4rem 0;
-    background: var(--color-bg-light);
+    padding: clamp(1.75rem, 3.5vw, 2.75rem) 0 clamp(2.75rem, 5vw, 4rem);
+    background:
+        linear-gradient(180deg, #f3f4f2 0%, #f7f7f5 100%);
 }
 
-.tiempo-content {
-    max-width: 1000px;
-    margin: 0 auto;
+.camara-tiempo__container {
+    max-width: min(1280px, 94vw);
+    padding-left: clamp(0.75rem, 2vw, 1.25rem);
+    padding-right: clamp(0.75rem, 2vw, 1.25rem);
+}
+
+/* Hero más contenido en esta página */
+body:has(#camara-tiempo) .simulador-hero-imagen {
+    height: clamp(200px, 28vw, 300px);
+}
+
+body:has(#camara-tiempo) .simulador-hero-content {
+    padding: clamp(1.25rem, 3vw, 2rem) 1.25rem;
+}
+
+body:has(#camara-tiempo) .simulador-hero-content .section-title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    margin-bottom: 0.5rem;
+}
+
+body:has(#camara-tiempo) .simulador-hero-intro {
+    font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+    max-width: 36rem;
 }
 
 .tiempo-campos {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1.75rem;
-    align-items: start;
-    max-width: none;
+    gap: 0;
+    align-items: stretch;
     margin: 0;
+    background: #fff;
+    border: 1px solid rgba(26, 77, 58, 0.1);
 }
 
 .tiempo-campo {
-    background: transparent;
-    padding: 0;
-    box-shadow: none;
     min-width: 0;
-}
-
-.tiempo-campo .tiempo-info {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 1.1rem;
+    padding: clamp(1.25rem, 2.2vw, 1.75rem);
+    background: transparent;
+    border: none;
+    box-shadow: none;
 }
 
-.tiempo-campo .tiempo-datos {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-}
-
-.tiempo-campo .tiempo-origen {
-    grid-column: 1 / -1;
-}
-
-.tiempo-campo .dato-tiempo {
-    padding: 1.1rem 1rem;
-}
-
-.tiempo-campo .tiempo-valor {
-    font-size: 1.85rem;
-}
-
-.tiempo-campo .camara-live {
-    margin: 0;
-}
-
-.tiempo-campo .camara-container {
-    min-height: 220px;
-    position: relative;
-}
-
-.camara-placeholder {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0;
-    background: rgba(26, 77, 58, 0.08);
-    color: var(--color-primary-dark);
-    font-size: 0.85rem;
-    font-weight: 500;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-}
-
-.camara-frame[hidden] {
-    display: none;
-}
-
-.camara-placeholder[hidden] {
-    display: none;
+.tiempo-campo + .tiempo-campo {
+    border-left: 1px solid rgba(26, 77, 58, 0.1);
 }
 
 .tiempo-campo-header {
     display: flex;
     align-items: center;
     gap: 0.85rem;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(26, 77, 58, 0.12);
+    margin: 0;
+    padding: 0;
+    border-bottom: none;
 }
 
 .tiempo-campo-logo {
-    height: 42px;
+    height: 38px;
     width: auto;
-    max-width: 120px;
+    max-width: 100px;
     object-fit: contain;
+    flex-shrink: 0;
+}
+
+.tiempo-campo-heading {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
 }
 
 .tiempo-campo-titulo {
     margin: 0;
-    font-size: 1.35rem;
+    font-size: clamp(0.95rem, 1.5vw, 1.1rem);
     font-weight: 500;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--color-primary-dark);
+    line-height: 1.2;
 }
 
-.tiempo-info {
+.tiempo-origen {
+    margin: 0;
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    color: var(--color-text-light);
+    min-height: 1em;
+}
+
+.tiempo-meteo {
     display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 3rem;
-    align-items: start;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 0;
+    align-items: stretch;
+    border-top: 1px solid rgba(26, 77, 58, 0.1);
+    border-bottom: 1px solid rgba(26, 77, 58, 0.1);
+    background: transparent;
 }
 
-.tiempo-datos {
+.tiempo-meteo__estado,
+.tiempo-meteo__metric {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 0.3rem;
+    padding: 0.95rem 0.9rem;
+    min-width: 0;
 }
 
-.dato-tiempo {
-    background: var(--color-white);
-    padding: 2rem;
-    border-radius: 0;
-    box-shadow: var(--shadow);
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.dato-tiempo-estado {
+.tiempo-meteo__estado {
     flex-direction: row;
     align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
+    gap: 0.6rem;
+    padding-left: 0;
+    background: transparent;
+}
+
+.tiempo-meteo__metric:last-child {
+    padding-right: 0;
+}
+
+.tiempo-meteo__metric + .tiempo-meteo__metric,
+.tiempo-meteo__estado + .tiempo-meteo__metric {
+    border-left: 1px solid rgba(26, 77, 58, 0.1);
+    padding-left: 1rem;
 }
 
 .tiempo-icono {
-    font-size: 2.5rem;
+    font-size: 1.65rem;
     line-height: 1;
+    flex-shrink: 0;
 }
 
 .tiempo-estado {
-    font-size: 1.1rem;
-    font-weight: 600;
+    font-size: 0.88rem;
+    font-weight: 500;
     color: var(--color-primary-dark);
+    line-height: 1.25;
 }
 
 .tiempo-label {
-    font-size: 0.9rem;
+    font-size: 0.65rem;
     color: var(--color-text-light);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.14em;
     font-weight: 500;
 }
 
 .tiempo-valor {
-    font-size: 2.5rem;
-    font-weight: 700;
+    font-size: clamp(1.4rem, 2.2vw, 1.75rem);
+    font-weight: 500;
     color: var(--color-primary);
     font-family: var(--font-primary);
-}
-
-.tiempo-origen {
-    font-size: 0.8rem;
-    color: var(--color-text-light);
-    margin: 0;
-    margin-top: 0.25rem;
+    line-height: 1.1;
+    letter-spacing: 0.02em;
 }
 
 .camara-live {
-    background: var(--color-white);
-    padding: 2rem;
-    border-radius: 0;
-    box-shadow: var(--shadow);
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    flex: 1 1 auto;
+}
+
+.camara-live__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
 .camara-live h3 {
+    margin: 0;
     font-family: var(--font-primary);
-    font-size: 1.5rem;
-    color: var(--color-primary);
-    margin-bottom: 1.5rem;
-    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-primary-dark);
+    text-align: left;
+}
+
+.camara-nota {
+    margin: 0;
+    text-align: right;
+    color: var(--color-text-light);
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
 }
 
 .camara-container {
     position: relative;
     width: 100%;
-    padding-bottom: 56.25%; /* 16:9 aspect ratio */
-    background: var(--color-bg-dark);
-    border-radius: 0;
+    padding-bottom: 42%;
+    background: linear-gradient(160deg, #1a2e24 0%, #0f1a14 100%);
+    border: none;
     overflow: hidden;
 }
 
@@ -11661,11 +11745,90 @@ a.btn-restaurante-paquete-reservar--secondary:hover {
     height: 100%;
 }
 
-.camara-nota {
-    margin-top: 1rem;
-    text-align: center;
-    color: var(--color-text-light);
-    font-size: 0.9rem;
+.camara-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.38);
+    font-size: 0.68rem;
+    font-weight: 400;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+}
+
+.camara-frame[hidden] {
+    display: none;
+}
+
+.camara-placeholder[hidden] {
+    display: none;
+}
+
+/* Legacy hooks */
+.tiempo-content { max-width: 1280px; margin: 0 auto; }
+.tiempo-info { display: block; }
+.tiempo-datos { display: contents; }
+.dato-tiempo { display: contents; }
+.dato-tiempo-estado { display: flex; }
+
+@media (max-width: 900px) {
+    .tiempo-meteo {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .tiempo-meteo__estado {
+        grid-column: 1 / -1;
+        border-bottom: 1px solid rgba(26, 77, 58, 0.1);
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .tiempo-meteo__estado + .tiempo-meteo__metric {
+        border-left: none;
+        padding-left: 0;
+    }
+}
+
+@media (max-width: 799px) {
+    .tiempo-campos {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .tiempo-campo + .tiempo-campo {
+        border-left: none;
+        border-top: 1px solid rgba(26, 77, 58, 0.1);
+    }
+
+    .camara-nota {
+        text-align: left;
+    }
+
+    body:has(#camara-tiempo) .simulador-hero-imagen {
+        height: clamp(180px, 42vw, 240px);
+    }
+}
+
+@media (max-width: 520px) {
+    .tiempo-meteo {
+        grid-template-columns: 1fr;
+    }
+
+    .tiempo-meteo__metric + .tiempo-meteo__metric,
+    .tiempo-meteo__estado + .tiempo-meteo__metric {
+        border-left: none;
+        border-top: 1px solid rgba(26, 77, 58, 0.1);
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .camara-container {
+        padding-bottom: 52%;
+    }
 }
 
 /* Newsletter */
@@ -13306,12 +13469,6 @@ body.page-torneo .torneo-detalle-section {
     }
 }
 
-@media (max-width: 799px) {
-    .tiempo-campos {
-        grid-template-columns: 1fr;
-        gap: 2.25rem;
-    }
-}
 
 @media (max-width: 640px) {
     .header-container {
