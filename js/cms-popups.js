@@ -170,29 +170,57 @@
     }
   }
 
+  function filterList(data) {
+    if (!data || data.popupActivo === false) return [];
+    if (data.popup && data.popup.activo === false) return [];
+    return (data.popups || []).filter(function (p) {
+      if (!p || p.activo === false) return false;
+      var titulo = String(p.titulo || '').trim();
+      var esSoloCabecera = !titulo || titulo === 'Próximos torneos' || titulo === 'Avisos';
+      return !!(
+        (p.imagen && String(p.imagen).trim()) ||
+        (p.texto && String(p.texto).trim()) ||
+        (p.subtitulo && String(p.subtitulo).trim()) ||
+        (titulo && !esSoloCabecera)
+      );
+    });
+  }
+
+  var shown = false;
+  function maybeShow(data) {
+    if (shown || cerradoHoy() || window.CMS_FORCE_EDIT) return;
+    var list = filterList(data);
+    if (!list.length) return;
+    shown = true;
+    // Tras el hero/CMS, para no pelear con vídeo ni con la barra de torneos.
+    setTimeout(function () { show(list); }, 1800);
+  }
+
   function init() {
-    if (cerradoHoy()) return;
-    var url = getUrl() + (getUrl().indexOf('?') === -1 ? '?' : '&') + 't=' + Date.now();
-    fetch(url)
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (data) {
-        if (!data || data.popupActivo === false) return;
-        if (data.popup && data.popup.activo === false) return;
-        var list = (data.popups || []).filter(function (p) {
-          if (!p || p.activo === false) return false;
-          var titulo = String(p.titulo || '').trim();
-          var esSoloCabecera = !titulo || titulo === 'Próximos torneos' || titulo === 'Avisos';
-          return !!(
-            (p.imagen && String(p.imagen).trim()) ||
-            (p.texto && String(p.texto).trim()) ||
-            (p.subtitulo && String(p.subtitulo).trim()) ||
-            (titulo && !esSoloCabecera)
-          );
-        });
-        if (!list.length) return;
-        show(list);
-      })
-      .catch(function () {});
+    if (cerradoHoy() || window.CMS_FORCE_EDIT) return;
+
+    if (window.CmsPlataforma && window.CmsPlataforma.data) {
+      maybeShow(window.CmsPlataforma.data);
+      return;
+    }
+
+    document.addEventListener('cms:contenido-listo', function (ev) {
+      maybeShow(ev.detail);
+    }, { once: true });
+
+    setTimeout(function () {
+      if (shown) return;
+      if (window.CmsPlataforma && window.CmsPlataforma.data) {
+        maybeShow(window.CmsPlataforma.data);
+        return;
+      }
+      var base = getUrl();
+      var url = base + (base.indexOf('?') === -1 ? '?' : '&') + 't=' + Date.now();
+      fetch(url)
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(maybeShow)
+        .catch(function () {});
+    }, 2500);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

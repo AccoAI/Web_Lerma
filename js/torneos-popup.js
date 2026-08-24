@@ -268,15 +268,18 @@
     }
 
     function init() {
-        if (!isPortada() || cerradoHoy()) return;
+        if (!isPortada() || cerradoHoy() || window.CMS_FORCE_EDIT) return;
         if (!document.getElementById('torneosPopup')) return;
         var url = DATA_URL + (DATA_URL.indexOf('?') === -1 ? '?' : '&') + 't=' + Date.now();
         fetch(url)
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (data) {
                 if (!data || !data.torneos || !data.torneos.length) return;
-                showPopup(data);
-                setupScrollHide();
+                // Después del popup central (~1.8s) para no solaparse al cargar.
+                setTimeout(function () {
+                    showPopup(data);
+                    setupScrollHide();
+                }, 2600);
             })
             .catch(function () {});
     }

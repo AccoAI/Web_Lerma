@@ -2,6 +2,7 @@
  * Puente CMS → web real.
  * Solo actualiza nodos que YA existen. No cambia el diseño.
  * Si portada.aplicarEnWeb !== true, no toca la home (queda el HTML/i18n original).
+ * Evita reaplicar media/menú si no hay cambios (sin parpadeos).
  */
 (function () {
   'use strict';
@@ -10,7 +11,8 @@
   var lastSeo = null;
   var lastSlides = null;
   var lastMenu = null;
-  var reapplyTimers = [];
+  var lastMenuSig = '';
+  var softReapplyTimer = null;
 
   function getUrl() {
     if (window.CMS_CONTENIDO_URL) return window.CMS_CONTENIDO_URL;
@@ -27,51 +29,82 @@
 
   function setText(el, value) {
     if (!el || value == null || String(value).trim() === '') return;
-    el.textContent = String(value).trim();
+    var next = String(value).trim();
+    if ((el.textContent || '').trim() === next) {
+      lockFromI18n(el);
+      return;
+    }
+    el.textContent = next;
     lockFromI18n(el);
   }
 
   function applySeo(seo) {
     lastSeo = seo;
     if (!seo) return;
-    if (seo.tituloHome) document.title = seo.tituloHome;
+    if (seo.tituloHome && document.title !== seo.tituloHome) document.title = seo.tituloHome;
     if (seo.descripcionHome) {
       var meta = document.querySelector('meta[name="description"]');
-      if (meta) meta.setAttribute('content', seo.descripcionHome);
+      if (meta && meta.getAttribute('content') !== seo.descripcionHome) {
+        meta.setAttribute('content', seo.descripcionHome);
+      }
     }
   }
 
-  function applyPortada(portada) {
+  function currentVideoSrc(video) {
+    if (!video) return '';
+    var source = video.querySelector('source');
+    return String((source && source.getAttribute('src')) || video.getAttribute('src') || '').trim();
+  }
+
+  function applyPortadaMedia(portada) {
+    if (!portada || portada.aplicarEnWeb !== true) return;
+    var video = document.getElementById('heroVideo');
+    if (!video) return;
+
+    if (portada.heroImagen) {
+      var poster = String(portada.heroImagen).trim();
+      if (poster && video.getAttribute('poster') !== poster) {
+        video.setAttribute('poster', poster);
+      }
+    }
+
+    if (portada.heroVideo) {
+      var vurl = String(portada.heroVideo).trim();
+      if (vurl && currentVideoSrc(video) !== vurl) {
+        var source = video.querySelector('source');
+        if (source) source.setAttribute('src', vurl);
+        else video.setAttribute('src', vurl);
+        try { video.load(); } catch (e) {}
+      }
+    }
+  }
+
+  function applyPortadaText(portada) {
     lastPortada = portada;
     if (!portada || portada.aplicarEnWeb !== true) return;
 
     setText(document.querySelector('.hero-title'), portada.heroTitulo);
     setText(document.querySelector('.hero-subtitle'), portada.heroTexto || portada.tagline);
 
-    var video = document.getElementById('heroVideo');
-    if (video) {
-      if (portada.heroImagen) {
-        video.setAttribute('poster', portada.heroImagen);
-      }
-      if (portada.heroVideo) {
-        var source = video.querySelector('source');
-        if (source) {
-          source.setAttribute('src', portada.heroVideo);
-        } else {
-          video.setAttribute('src', portada.heroVideo);
-        }
-        try { video.load(); } catch (e) {}
-      }
-    }
-
     var ctaCal = document.querySelector('.hero-buttons a[href*="calendario"]');
     if (ctaCal) {
       if (portada.ctaTexto) setText(ctaCal, portada.ctaTexto);
-      if (portada.ctaUrl) ctaCal.setAttribute('href', portada.ctaUrl);
+      if (portada.ctaUrl) {
+        var href = String(portada.ctaUrl).trim();
+        if (href && ctaCal.getAttribute('href') !== href) ctaCal.setAttribute('href', href);
+      }
     }
 
     var nombre = String(portada.nombreClub || '').trim();
-    if (nombre && !(lastSeo && lastSeo.tituloHome)) document.title = nombre;
+    if (nombre && !(lastSeo && lastSeo.tituloHome) && document.title !== nombre) {
+      document.title = nombre;
+    }
+  }
+
+  function applyPortada(portada, opts) {
+    opts = opts || {};
+    applyPortadaText(portada);
+    if (!opts.skipMedia) applyPortadaMedia(portada);
   }
 
   function applyHeroSlides(slides) {
@@ -87,8 +120,19 @@
       var btn = btns[i];
       if (!btn) return;
       if (s.linkTexto) setText(btn, s.linkTexto);
-      if (s.linkUrl) btn.setAttribute('href', s.linkUrl);
+      if (s.linkUrl) {
+        var href = String(s.linkUrl).trim();
+        if (href && btn.getAttribute('href') !== href) btn.setAttribute('href', href);
+      }
     });
+  }
+
+  function menuSignature(items) {
+    var active = (items || []).filter(function (m) { return m && m.activo !== false && String(m.label || '').trim(); })
+      .sort(function (a, b) { return (Number(a.orden) || 0) - (Number(b.orden) || 0); });
+    return active.map(function (m) {
+      return String(m.label || '').trim() + '\n' + String(m.url || '').trim();
+    }).join('|');
   }
 
   function applyMenu(items) {
@@ -98,6 +142,12 @@
     var active = (items || []).filter(function (m) { return m && m.activo !== false && String(m.label || '').trim(); })
       .sort(function (a, b) { return (Number(a.orden) || 0) - (Number(b.orden) || 0); });
     if (!active.length) return;
+
+    var sig = menuSignature(active);
+    if (sig === lastMenuSig && list.querySelectorAll('.nav-link').length === active.length) {
+      return;
+    }
+    lastMenuSig = sig;
 
     list.innerHTML = '';
     active.forEach(function (m) {
@@ -142,7 +192,8 @@
     return null;
   }
 
-  function applyOverrides(list) {
+  function applyOverrides(list, opts) {
+    opts = opts || {};
     if (!list || !list.length) return;
     var page = pageKey();
     list.forEach(function (o) {
@@ -155,37 +206,51 @@
         return;
       }
       if (o.text) {
-        if (el.tagName === 'IMG') el.setAttribute('alt', o.text);
-        else setText(el, o.text);
+        if (el.tagName === 'IMG') {
+          if (el.getAttribute('alt') !== o.text) el.setAttribute('alt', o.text);
+        } else setText(el, o.text);
       }
-      if (o.href && (el.tagName === 'A' || el.hasAttribute('href'))) el.setAttribute('href', o.href);
+      if (o.href && (el.tagName === 'A' || el.hasAttribute('href'))) {
+        var href = String(o.href).trim();
+        if (href && el.getAttribute('href') !== href) el.setAttribute('href', href);
+      }
+      if (opts.skipMedia) return;
       if (o.src) {
+        if (el.id === 'heroVideo' || (el.closest && el.closest('#heroVideo'))) {
+          // Si hay vídeo CMS, no forzar poster de override (flash foto↔vídeo).
+          if (lastPortada && lastPortada.aplicarEnWeb === true && lastPortada.heroVideo) return;
+          var poster = String(o.src).trim();
+          if (poster && el.getAttribute && el.getAttribute('poster') !== poster) {
+            el.setAttribute('poster', poster);
+          }
+          return;
+        }
         if (el.tagName === 'IMG' || el.tagName === 'VIDEO' || el.tagName === 'SOURCE') {
-          el.setAttribute('src', o.src);
-        } else if (el.id === 'heroVideo') {
-          el.setAttribute('poster', o.src);
+          if (el.getAttribute('src') !== o.src) el.setAttribute('src', o.src);
         }
       }
-      if (o.bg) el.style.backgroundImage = 'url("' + String(o.bg).replace(/"/g, '\\"') + '")';
+      if (o.bg) {
+        var nextBg = 'url("' + String(o.bg).replace(/"/g, '\\"') + '")';
+        if (el.style.backgroundImage !== nextBg) el.style.backgroundImage = nextBg;
+      }
     });
   }
 
+  /** Reaplica solo texto / menú / overrides no-media (carrera con i18n). Nunca reinicia el vídeo. */
   function reapplyLocked() {
-    if (lastPortada) applyPortada(lastPortada);
+    if (lastPortada) applyPortada(lastPortada, { skipMedia: true });
     if (lastSlides && lastSlides.length) applyHeroSlides(lastSlides);
     if (lastMenu && lastMenu.length) applyMenu(lastMenu);
     if (lastSeo && lastPortada && lastPortada.aplicarEnWeb === true) applySeo(lastSeo);
     if (window.CmsPlataforma && window.CmsPlataforma.data) {
-      applyOverrides(window.CmsPlataforma.data.webOverrides);
+      applyOverrides(window.CmsPlataforma.data.webOverrides, { skipMedia: true });
     }
   }
 
-  function scheduleReapply() {
-    reapplyTimers.forEach(function (id) { clearTimeout(id); });
-    reapplyTimers = [
-      setTimeout(reapplyLocked, 400),
-      setTimeout(reapplyLocked, 1200)
-    ];
+  function scheduleSoftReapply() {
+    if (softReapplyTimer) clearTimeout(softReapplyTimer);
+    // Una sola pasada suave (solo texto). Nunca a 400+1200 ni video.load().
+    softReapplyTimer = setTimeout(reapplyLocked, 350);
   }
 
   function applyData(data) {
@@ -196,14 +261,19 @@
     lastSeo = data.seo || null;
     lastSlides = data.heroSlides || null;
     lastMenu = data.menu || null;
-    applyPortada(data.portada);
+
+    applyPortada(data.portada, { skipMedia: false });
     applyMenu(data.menu);
-    applyOverrides(data.webOverrides);
+    // Overrides de media DESPUÉS de portada, pero sin pisar el vídeo activo.
+    applyOverrides(data.webOverrides, { skipMedia: false });
     if (data.portada && data.portada.aplicarEnWeb === true) {
       applySeo(data.seo);
       applyHeroSlides(data.heroSlides);
     }
-    scheduleReapply();
+    // En público no hace falta reaplicar por timer; i18n:changed ya lo hace.
+    if (window.parent !== window || window.CMS_FORCE_EDIT || /[?&]cmsEdit=1/.test(location.search || '')) {
+      scheduleSoftReapply();
+    }
     document.dispatchEvent(new CustomEvent('cms:contenido-listo', { detail: data }));
     return data;
   }
@@ -230,7 +300,7 @@
   };
 
   document.addEventListener('i18n:changed', function () {
-    setTimeout(reapplyLocked, 0);
+    scheduleSoftReapply();
   });
 
   reload().catch(function (err) {
