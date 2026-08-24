@@ -111,6 +111,7 @@
     popups.forEach(function (p, i) {
       var slide = document.createElement('article');
       slide.className = 'cms-center-popup__slide' + (i === 0 ? ' is-active' : '');
+      slide.setAttribute('data-cms-popup-i', String(i));
       var html = '';
       if (p.imagen) html += '<img class="cms-center-popup__img" src="' + esc(p.imagen) + '" alt="">';
       html += '<div class="cms-center-popup__body">';

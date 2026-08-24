@@ -34,6 +34,7 @@
     function applyTranslations(t) {
         currentTranslations = t;
         document.querySelectorAll('[data-i18n]').forEach(function (el) {
+            if (el.getAttribute('data-cms') === '1') return;
             var key = el.getAttribute('data-i18n');
             var useHtml = el.hasAttribute('data-i18n-html');
             if (t[key] != null) {

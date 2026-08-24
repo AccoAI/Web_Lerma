@@ -60,14 +60,14 @@
     document.head.appendChild(style);
   }
 
-  function segmentHtml(b) {
+  function segmentHtml(b, i) {
     var label = bannerLabel(b);
     if (!label) return '';
     var href = safeHref(b.linkUrl);
     var inner = href
       ? '<a href="' + esc(href) + '">' + esc(label) + '</a>'
       : '<span>' + esc(label) + '</span>';
-    return '<span class="cms-ticker__item">' + inner + '</span>';
+    return '<span class="cms-ticker__item" data-cms-i="' + i + '">' + inner + '</span>';
   }
 
   function buildGroupHtml(list) {
