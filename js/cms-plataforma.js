@@ -84,14 +84,19 @@
     var poster = portada.heroImagen ? String(portada.heroImagen).trim() : '';
     var vurl = portada.heroVideo ? String(portada.heroVideo).trim() : '';
     var cur = currentVideoSrc(video);
+    var curPoster = video.getAttribute('poster') || '';
     var videoChanged = !!(vurl && !sameMediaUrl(cur, vurl));
-    var posterChanged = !!(poster && !sameMediaUrl(video.getAttribute('poster') || '', poster));
+    var posterChanged = poster
+      ? !sameMediaUrl(curPoster, poster)
+      : !!curPoster;
 
-    // Mismo Portada.mp4 / Portada_1.png que el HTML → no tocar (cero flash).
+    // Mismo vídeo/poster que el HTML → no tocar (cero flash).
     if (!videoChanged && !posterChanged) return;
 
-    if (poster && posterChanged) {
-      video.setAttribute('poster', poster);
+    if (poster) {
+      if (posterChanged) video.setAttribute('poster', poster);
+    } else if (curPoster) {
+      video.removeAttribute('poster');
     }
 
     if (videoChanged) {
