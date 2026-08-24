@@ -15703,3 +15703,57 @@ body.page-torneo .torneo-detalle-section {
         flex-direction: column;
     }
 }
+
+/* Páginas CMS (pagina.html?slug=…) */
+.cms-pagina-body {
+    padding: 3.5rem 0 4.5rem;
+    background: var(--color-bg-light);
+    min-height: 40vh;
+}
+.cms-pagina-container {
+    max-width: 820px;
+}
+.cms-pagina-title {
+    margin-bottom: 1.25rem;
+}
+.cms-pagina-intro,
+.cms-pagina-block-text,
+.cms-pagina-block-pie {
+    font-family: var(--font-primary);
+    color: #333;
+    line-height: 1.55;
+    white-space: pre-line;
+    margin: 0 0 1.25rem;
+}
+.cms-pagina-blocks {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+}
+.cms-pagina-block-title {
+    font-family: var(--font-primary);
+    color: var(--color-primary);
+    font-weight: 500;
+    font-size: 1.35rem;
+    margin: 0 0 0.65rem;
+}
+.cms-pagina-block-img {
+    display: block;
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    margin-bottom: 0.75rem;
+}
+.cms-pagina-block-btn {
+    display: inline-block;
+    padding: 0.75rem 1.25rem;
+    background: var(--color-primary);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    font-family: var(--font-primary);
+}
+.cms-pagina-status {
+    color: #666;
+    font-family: var(--font-primary);
+}
