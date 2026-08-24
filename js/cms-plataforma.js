@@ -2,7 +2,9 @@
  * Puente CMS → web real.
  * Solo actualiza nodos que YA existen. No cambia el diseño.
  * Si portada.aplicarEnWeb !== true, no toca la home (queda el HTML/i18n original).
- * Evita reaplicar media/menú si no hay cambios (sin parpadeos).
+ *
+ * No oculta el hero ni reinicia el vídeo si el CMS apunta al mismo fichero
+ * (ruta relativa HTML vs URL absoluta del panel).
  */
 (function () {
   'use strict';
@@ -50,6 +52,24 @@
     }
   }
 
+  function sameMediaUrl(a, b) {
+    a = String(a || '').trim();
+    b = String(b || '').trim();
+    if (!a || !b) return false;
+    if (a === b) return true;
+    try {
+      var ua = new URL(a, window.location.href);
+      var ub = new URL(b, window.location.href);
+      var pa = decodeURIComponent(ua.pathname).replace(/\/+$/, '').toLowerCase();
+      var pb = decodeURIComponent(ub.pathname).replace(/\/+$/, '').toLowerCase();
+      return pa === pb;
+    } catch (e) {
+      var fa = a.split('?')[0].replace(/^.*\//, '').toLowerCase();
+      var fb = b.split('?')[0].replace(/^.*\//, '').toLowerCase();
+      return !!fa && fa === fb;
+    }
+  }
+
   function currentVideoSrc(video) {
     if (!video) return '';
     var source = video.querySelector('source');
@@ -61,21 +81,28 @@
     var video = document.getElementById('heroVideo');
     if (!video) return;
 
-    if (portada.heroImagen) {
-      var poster = String(portada.heroImagen).trim();
-      if (poster && video.getAttribute('poster') !== poster) {
-        video.setAttribute('poster', poster);
-      }
+    var poster = portada.heroImagen ? String(portada.heroImagen).trim() : '';
+    var vurl = portada.heroVideo ? String(portada.heroVideo).trim() : '';
+    var cur = currentVideoSrc(video);
+    var videoChanged = !!(vurl && !sameMediaUrl(cur, vurl));
+    var posterChanged = !!(poster && !sameMediaUrl(video.getAttribute('poster') || '', poster));
+
+    // Mismo Portada.mp4 / Portada_1.png que el HTML → no tocar (cero flash).
+    if (!videoChanged && !posterChanged) return;
+
+    if (poster && posterChanged) {
+      video.setAttribute('poster', poster);
     }
 
-    if (portada.heroVideo) {
-      var vurl = String(portada.heroVideo).trim();
-      if (vurl && currentVideoSrc(video) !== vurl) {
-        var source = video.querySelector('source');
-        if (source) source.setAttribute('src', vurl);
-        else video.setAttribute('src', vurl);
-        try { video.load(); } catch (e) {}
-      }
+    if (videoChanged) {
+      var source = video.querySelector('source');
+      if (source) source.setAttribute('src', vurl);
+      else video.setAttribute('src', vurl);
+      try { video.load(); } catch (e) {}
+      try {
+        var p = video.play();
+        if (p && typeof p.catch === 'function') p.catch(function () {});
+      } catch (e2) {}
     }
   }
 
@@ -216,27 +243,20 @@
       }
       if (opts.skipMedia) return;
       if (o.src) {
-        if (el.id === 'heroVideo' || (el.closest && el.closest('#heroVideo'))) {
-          // Si hay vídeo CMS, no forzar poster de override (flash foto↔vídeo).
-          if (lastPortada && lastPortada.aplicarEnWeb === true && lastPortada.heroVideo) return;
-          var poster = String(o.src).trim();
-          if (poster && el.getAttribute && el.getAttribute('poster') !== poster) {
-            el.setAttribute('poster', poster);
-          }
-          return;
-        }
+        if (el.id === 'heroVideo' || (el.closest && el.closest('#heroVideo'))) return;
+        if (el.closest && el.closest('.hero-background')) return;
         if (el.tagName === 'IMG' || el.tagName === 'VIDEO' || el.tagName === 'SOURCE') {
           if (el.getAttribute('src') !== o.src) el.setAttribute('src', o.src);
         }
       }
       if (o.bg) {
+        if (el.closest && (el.closest('.hero') || el.closest('.hero-background'))) return;
         var nextBg = 'url("' + String(o.bg).replace(/"/g, '\\"') + '")';
         if (el.style.backgroundImage !== nextBg) el.style.backgroundImage = nextBg;
       }
     });
   }
 
-  /** Reaplica solo texto / menú / overrides no-media (carrera con i18n). Nunca reinicia el vídeo. */
   function reapplyLocked() {
     if (lastPortada) applyPortada(lastPortada, { skipMedia: true });
     if (lastSlides && lastSlides.length) applyHeroSlides(lastSlides);
@@ -249,7 +269,6 @@
 
   function scheduleSoftReapply() {
     if (softReapplyTimer) clearTimeout(softReapplyTimer);
-    // Una sola pasada suave (solo texto). Nunca a 400+1200 ni video.load().
     softReapplyTimer = setTimeout(reapplyLocked, 350);
   }
 
@@ -264,14 +283,12 @@
 
     applyPortada(data.portada, { skipMedia: false });
     applyMenu(data.menu);
-    // Overrides de media DESPUÉS de portada, pero sin pisar el vídeo activo.
     applyOverrides(data.webOverrides, { skipMedia: false });
     if (data.portada && data.portada.aplicarEnWeb === true) {
       applySeo(data.seo);
       applyHeroSlides(data.heroSlides);
     }
-    // En público no hace falta reaplicar por timer; i18n:changed ya lo hace.
-    if (window.parent !== window || window.CMS_FORCE_EDIT || /[?&]cmsEdit=1/.test(location.search || '')) {
+    if (window.CMS_FORCE_EDIT || /[?&]cmsEdit=1/.test(location.search || '') || window.parent !== window) {
       scheduleSoftReapply();
     }
     document.dispatchEvent(new CustomEvent('cms:contenido-listo', { detail: data }));
@@ -300,7 +317,11 @@
   };
 
   document.addEventListener('i18n:changed', function () {
-    scheduleSoftReapply();
+    if (window.CMS_FORCE_EDIT || /[?&]cmsEdit=1/.test(location.search || '')) {
+      scheduleSoftReapply();
+    } else {
+      reapplyLocked();
+    }
   });
 
   reload().catch(function (err) {

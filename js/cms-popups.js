@@ -192,22 +192,22 @@
     var list = filterList(data);
     if (!list.length) return;
     shown = true;
-    // Tras el hero/CMS, para no pelear con vídeo ni con la barra de torneos.
-    setTimeout(function () { show(list); }, 1800);
+    show(list);
   }
 
   function init() {
     if (cerradoHoy() || window.CMS_FORCE_EDIT) return;
 
-    if (window.CmsPlataforma && window.CmsPlataforma.data) {
-      maybeShow(window.CmsPlataforma.data);
-      return;
-    }
-
+    // Registrar listener ANTES de mirar data (evita perder el evento).
     document.addEventListener('cms:contenido-listo', function (ev) {
       maybeShow(ev.detail);
     }, { once: true });
 
+    if (window.CmsPlataforma && window.CmsPlataforma.data) {
+      maybeShow(window.CmsPlataforma.data);
+    }
+
+    // Fallback si el puente CMS no responde.
     setTimeout(function () {
       if (shown) return;
       if (window.CmsPlataforma && window.CmsPlataforma.data) {
@@ -220,7 +220,7 @@
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(maybeShow)
         .catch(function () {});
-    }, 2500);
+    }, 2000);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

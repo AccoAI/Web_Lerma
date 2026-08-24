@@ -358,6 +358,13 @@ img {
     object-fit: cover;
     object-position: center;
     z-index: 1;
+    opacity: 1;
+    transition: opacity 0.45s ease;
+}
+
+/* Hasta que el CMS confirma media: fondo del hero, sin flash poster↔vídeo */
+.hero-video.is-cms-pending {
+    opacity: 0;
 }
 
 .hero-overlay {

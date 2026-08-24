@@ -275,11 +275,8 @@
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (data) {
                 if (!data || !data.torneos || !data.torneos.length) return;
-                // Después del popup central (~1.8s) para no solaparse al cargar.
-                setTimeout(function () {
-                    showPopup(data);
-                    setupScrollHide();
-                }, 2600);
+                showPopup(data);
+                setupScrollHide();
             })
             .catch(function () {});
     }

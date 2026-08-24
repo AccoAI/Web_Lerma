@@ -254,7 +254,7 @@ function highlightNavigation() {
 
 window.addEventListener('scroll', highlightNavigation);
 
-// Hero: vídeo de portada en bucle
+// Hero: vídeo de portada en bucle (espera a que el CMS quite .is-cms-pending)
 function initHeroVideo() {
     const video = document.getElementById('heroVideo');
     if (!video) return;
@@ -263,6 +263,7 @@ function initHeroVideo() {
     if (prefersReducedMotion) return;
 
     function tryPlay() {
+        if (video.classList.contains('is-cms-pending')) return;
         const playPromise = video.play();
         if (playPromise && typeof playPromise.catch === 'function') {
             playPromise.catch(() => {});
@@ -274,6 +275,14 @@ function initHeroVideo() {
     } else {
         video.addEventListener('canplay', tryPlay, { once: true });
     }
+    // Cuando el CMS revela el hero
+    var obs = new MutationObserver(function () {
+        if (!video.classList.contains('is-cms-pending')) {
+            tryPlay();
+            obs.disconnect();
+        }
+    });
+    obs.observe(video, { attributes: true, attributeFilter: ['class'] });
 }
 
 // Cámara del Tiempo - Temperatura, viento e icono desde Open-Meteo (Lerma y Saldaña)
