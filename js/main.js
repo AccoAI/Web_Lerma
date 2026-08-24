@@ -108,23 +108,42 @@ navLinks.forEach(link => {
     });
 });
 
-// Smooth scroll for anchor links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        const href = this.getAttribute('href');
-        if (href !== '#' && href !== '#login') {
-            e.preventDefault();
-            const target = document.querySelector(href);
-            if (target) {
-                const headerHeight = document.querySelector('.header').offsetHeight;
-                const targetPosition = target.offsetTop - headerHeight - 20; // Extra offset for better visibility
-                window.scrollTo({
-                    top: targetPosition,
-                    behavior: 'smooth'
-                });
-            }
-        }
-    });
+// Smooth scroll for in-page anchors (#paquetes, etc.) — also same-page absolute URLs from CMS
+document.addEventListener('click', function (e) {
+    var anchor = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!anchor) return;
+    if (anchor.target && anchor.target !== '' && anchor.target !== '_self') return;
+
+    var href = anchor.getAttribute('href');
+    if (!href || href === '#' || href === '#login') return;
+
+    var hash = '';
+    try {
+        var url = new URL(href, window.location.href);
+        var herePath = window.location.pathname.replace(/\/index\.html$/i, '/').replace(/\/$/, '') || '/';
+        var therePath = url.pathname.replace(/\/index\.html$/i, '/').replace(/\/$/, '') || '/';
+        if (url.origin !== window.location.origin || herePath !== therePath) return;
+        hash = url.hash || '';
+    } catch (err) {
+        if (href.charAt(0) === '#') hash = href;
+        else return;
+    }
+
+    if (!hash || hash === '#') return;
+    var target = null;
+    try { target = document.querySelector(hash); } catch (err2) { return; }
+    if (!target) return;
+
+    e.preventDefault();
+    var header = document.querySelector('.header');
+    var headerHeight = header ? header.offsetHeight : 0;
+    var top = Math.max(0, window.pageYOffset + target.getBoundingClientRect().top - headerHeight - 20);
+    window.scrollTo({ top: top, behavior: 'smooth' });
+    if (history && history.pushState) {
+        try { history.pushState(null, '', hash); } catch (err3) {}
+    } else {
+        window.location.hash = hash;
+    }
 });
 
 // Cookie Consent
