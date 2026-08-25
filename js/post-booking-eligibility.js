@@ -1,6 +1,7 @@
 /**
  * Paquetes con extras post-pago: alquiler coche (Rentcars) y restaurantes externos (CoverManager / TheFork).
  * Golf+Comida y el resto de configuradores sin hotel Burgos no los incluyen.
+ * Guía PDF «Golf en Burgos»: mismos paquetes Burgos / Campeonato.
  */
 (function () {
   'use strict';
@@ -12,6 +13,10 @@
   };
 
   window.paqueteIncluyePostbookingViajeYRestaurantes = function (paqueteId) {
+    return !!(paqueteId && CON_POSTBOOKING_VIAJE_RESTAURANTES[paqueteId]);
+  };
+
+  window.paqueteIncluyeGuiaBurgos = function (paqueteId) {
     return !!(paqueteId && CON_POSTBOOKING_VIAJE_RESTAURANTES[paqueteId]);
   };
 })();

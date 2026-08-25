@@ -33,6 +33,13 @@ import {
 } from '../lib/travel-affiliates-html.js';
 import { confirmacionReservaUrl } from '../lib/site-base-url.js';
 import { buildAllInvoicesFromMeta } from '../lib/invoice-html.js';
+import {
+  paqueteIncluyeGuiaBurgos,
+  guiaBurgosPublicUrl,
+  buildGuiaBurgosEmailHtml,
+  buildGuiaBurgosEmailText,
+} from '../lib/guia-burgos.js';
+import { sendWhatsAppTwilio, normalizeWhatsAppAddress } from '../lib/twilio-whatsapp.js';
 
 function loadLocalWebhookSecret() {
   if (process.env.STRIPE_WEBHOOK_SECRET_LOCAL) return process.env.STRIPE_WEBHOOK_SECRET_LOCAL;
@@ -51,6 +58,7 @@ function loadLocalWebhookSecret() {
 const nombresPaquete = {
   'fin-semana': 'Paquete Golf Burgos',
   'golf-burgos': 'Paquete Golf Burgos',
+  'campeonato-burgos': 'Paquete Campeonato',
   cochinillo: 'Paquete Golf + Cochinillo',
   'golf-vino': 'Golf Canalla',
   'golf-canalla': 'Golf Canalla',
@@ -68,40 +76,6 @@ function jsonResponse(obj, status = 200) {
     status,
     headers: { 'Content-Type': 'application/json' },
   });
-}
-
-async function sendWhatsAppTwilio(body) {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const from = process.env.TWILIO_WHATSAPP_FROM;
-  const to = process.env.WHATSAPP_NOTIFY_TO;
-
-  if (!accountSid || !authToken || !from || !to) {
-    console.warn('WhatsApp (Twilio) no configurado: faltan variables de entorno');
-    return;
-  }
-
-  const params = new URLSearchParams();
-  params.set('To', to);
-  params.set('From', from);
-  params.set('Body', body);
-
-  const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
-  const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64');
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: `Basic ${auth}`,
-    },
-    body: params.toString(),
-  });
-
-  if (!res.ok) {
-    const errText = await res.text();
-    console.error('Twilio WhatsApp error', res.status, errText);
-  }
 }
 
 export async function GET() {
@@ -212,6 +186,13 @@ export async function POST(request) {
     textConfirmacion += `\n\nPágina de confirmación (coche, restaurantes, bono):\n${confirmUrl}\n`;
   }
 
+  const conGuia = paqueteIncluyeGuiaBurgos(paquete);
+  const guiaUrl = conGuia ? guiaBurgosPublicUrl(request) : '';
+  if (guiaUrl) {
+    htmlConfirmacion += buildGuiaBurgosEmailHtml(guiaUrl);
+    textConfirmacion += buildGuiaBurgosEmailText(guiaUrl);
+  }
+
   const invoices = buildAllInvoicesFromMeta({
     golfCents: metadata.inv_golf_cents,
     comidaCents: metadata.inv_comida_cents,
@@ -288,9 +269,36 @@ export async function POST(request) {
     `*Paquete:* ${nombreProducto}\n` +
     `*Importe:* ${amountTotal.toFixed(2)} €\n` +
     `*Participantes:* ${numPart}\n` +
-    `*Pago:* ${modo === 'por_persona' ? 'Por persona' : 'Único'}\n`;
+    `*Pago:* ${modo === 'por_persona' ? 'Por persona' : 'Único'}\n` +
+    (customerEmail ? `*Cliente:* ${customerEmail}\n` : '') +
+    (guiaUrl ? `\n📎 *Guía Golf en Burgos* (adjunto PDF / enlace):\n${guiaUrl}\n` : '');
 
-  await sendWhatsAppTwilio(mensaje);
+  await sendWhatsAppTwilio({
+    body: mensaje,
+    mediaUrl: guiaUrl || undefined,
+  });
+
+  // Envío opcional al móvil del cliente (requiere plantilla Meta/Twilio en producción).
+  // Activar con WHATSAPP_SEND_GUIDE_TO_CUSTOMER=1 cuando la plantilla esté aprobada.
+  if (
+    guiaUrl &&
+    process.env.WHATSAPP_SEND_GUIDE_TO_CUSTOMER === '1'
+  ) {
+    const customerPhone =
+      (session.customer_details && session.customer_details.phone) ||
+      metadata.pkg_holder_phone ||
+      '';
+    const toCustomer = normalizeWhatsAppAddress(customerPhone);
+    if (toCustomer) {
+      await sendWhatsAppTwilio({
+        to: toCustomer,
+        body:
+          `Golf Lerma — Guía Golf en Burgos\n` +
+          `Gracias por tu reserva (${nombreProducto}). Aquí tienes tu guía PDF.`,
+        mediaUrl: guiaUrl,
+      });
+    }
+  }
 
   return jsonResponse({ received: true });
 }

@@ -50,6 +50,7 @@ Añade estas variables (además de `STRIPE_SECRET_KEY`):
 | `TWILIO_AUTH_TOKEN` | Auth Token de Twilio |
 | `TWILIO_WHATSAPP_FROM` | Número origen WhatsApp: `whatsapp:+34XXXXXXXXX` (producción) o `whatsapp:+14155238886` (sandbox Twilio) |
 | `WHATSAPP_NOTIFY_TO` | Número al que enviar la notificación: `whatsapp:+34947564630` (ej. teléfono del club) |
+| `WHATSAPP_SEND_GUIDE_TO_CUSTOMER` | (Opcional) `1` para enviar la guía PDF al cliente (Paquete Burgos/Campeonato). Suele requerir plantilla Meta aprobada. |
 | `RESEND_API_KEY` | API key de Resend (para enviar correo de confirmación al cliente) |
 | `RESEND_EMAIL_FROM` | Remitente del correo (ej: `Golf Lerma <reservas@tudominio.com>`) |
 | `RESEND_EMAIL_TO` | **(Opcional)** Copia de cada reserva a este correo (ej. del club). La confirmación va al email del cliente (el que introduce en Stripe). |
