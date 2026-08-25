@@ -56,3 +56,15 @@ if (email) {
 ```
 
 El `from` por defecto es `RESEND_EMAIL_FROM`; si no está definido, se usa `Golf Lerma <onboarding@resend.dev>` (solo válido en pruebas).
+
+## 5. Si no llega el correo de confirmación
+
+1. **Stripe → Developers → Webhooks** → tu endpoint `…/api/webhook-stripe` → ¿el último `checkout.session.completed` es **200**? Si es 400 (firma) o no aparece, el email **no se intenta**.
+2. **Vercel → Logs** de la función `webhook-stripe` tras un pago. Busca:
+   - `Fallo email cliente:` → Resend rechazó el envío (dominio, API key, etc.)
+   - `Sin email de cliente` → en Stripe no se recogió email
+   - `Email cliente OK` → salió de Resend; mira spam
+3. **`RESEND_EMAIL_FROM` en Vercel** debe ser un email de un **dominio verificado** en [resend.com/domains](https://resend.com/domains), p. ej. `Golf Lerma <noreply@golflerma.com>`.
+   - Si pones `victor@montesanmillan.com` (u otro dominio sin verificar), Resend **falla** y antes el webhook lo tragaba en silencio.
+4. Pruebas rápidas: `RESEND_EMAIL_FROM=Golf Lerma <onboarding@resend.dev>` solo envía al email de la cuenta Resend.
+5. Opcional: define `RESEND_EMAIL_TO` con tu correo para recibir **copia al club** de cada reserva.

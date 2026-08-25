@@ -254,7 +254,9 @@
       }
 
       if (typeof window.renderPostBookingGuiaBurgos === 'function') {
-        window.renderPostBookingGuiaBurgos('confirmGuiaBurgos', paqueteId);
+        window.renderPostBookingGuiaBurgos('confirmGuiaBurgos', paqueteId, {
+          sessionId: sessionId,
+        });
       }
 
       if (data.voucher_available && data.voucher_download_url && data.voucher_url) {

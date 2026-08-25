@@ -5409,6 +5409,12 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     margin: 0;
 }
 
+.post-booking-guia-status {
+    margin: 0.65rem 0 0;
+    font-size: 0.9rem;
+    color: var(--color-text-light, #555);
+}
+
 .post-travel-box {
     margin-top: 1.25rem;
     padding: 1.25rem 1.35rem;

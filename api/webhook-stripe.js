@@ -218,13 +218,23 @@ export async function POST(request) {
   }
 
   // 1) Correo al cliente (destinatario dinámico: quien pagó)
-  if (customerEmail) {
-    await sendEmail({
+  if (!customerEmail) {
+    console.warn(
+      '[webhook-stripe] Sin email de cliente en la sesión Stripe; no se envía confirmación. session=',
+      session.id
+    );
+  } else {
+    const emailResult = await sendEmail({
       to: customerEmail,
       subject: subjectConfirmacion,
       html: htmlConfirmacion,
       text: textConfirmacion,
     });
+    if (emailResult && emailResult.error) {
+      console.error('[webhook-stripe] Fallo email cliente:', emailResult.error, 'to=', customerEmail);
+    } else {
+      console.log('[webhook-stripe] Email cliente OK', emailResult && emailResult.id, 'to=', customerEmail);
+    }
   }
 
   // 2) Copia opcional al club (variable de entorno fija)
@@ -256,12 +266,17 @@ export async function POST(request) {
         invoices.html;
       textClub += `\n\n--- FACTURAS ---\n` + invoices.text;
     }
-    await sendEmail({
+    const clubResult = await sendEmail({
       to: emailCopiaClub,
       subject: `[Club] Nueva reserva: ${nombreProducto}`,
       html: htmlClub,
       text: textClub,
     });
+    if (clubResult && clubResult.error) {
+      console.error('[webhook-stripe] Fallo email club:', clubResult.error, 'to=', emailCopiaClub);
+    }
+  } else {
+    console.warn('[webhook-stripe] RESEND_EMAIL_TO no definida; no hay copia al club');
   }
 
   const mensaje =
@@ -271,20 +286,24 @@ export async function POST(request) {
     `*Participantes:* ${numPart}\n` +
     `*Pago:* ${modo === 'por_persona' ? 'Por persona' : 'Único'}\n` +
     (customerEmail ? `*Cliente:* ${customerEmail}\n` : '') +
-    (guiaUrl ? `\n📎 *Guía Golf en Burgos* (adjunto PDF / enlace):\n${guiaUrl}\n` : '');
+    (guiaUrl ? `\n📎 *Guía Golf en Burgos*:\n${guiaUrl}\n` : '');
 
-  await sendWhatsAppTwilio({
+  // PDF ~21MB: por defecto solo enlace en el texto. Adjuntar PDF con WHATSAPP_ATTACH_GUIDE_PDF=1.
+  const attachGuidePdf =
+    !!guiaUrl && process.env.WHATSAPP_ATTACH_GUIDE_PDF === '1';
+
+  const waClub = await sendWhatsAppTwilio({
     body: mensaje,
-    mediaUrl: guiaUrl || undefined,
+    mediaUrl: attachGuidePdf ? guiaUrl : undefined,
   });
+  if (!waClub.ok) {
+    console.error('[webhook-stripe] WhatsApp club falló', waClub);
+  } else {
+    console.log('[webhook-stripe] WhatsApp club OK', waClub);
+  }
 
-  // Envío opcional al móvil del cliente.
-  // Producción: plantilla Meta/Twilio (TWILIO_GUIDE_CONTENT_SID) + WHATSAPP_SEND_GUIDE_TO_CUSTOMER=1.
-  // Sandbox: puede funcionar con Body+MediaUrl si el número está unido al sandbox.
-  if (
-    guiaUrl &&
-    process.env.WHATSAPP_SEND_GUIDE_TO_CUSTOMER === '1'
-  ) {
+  // Guía al móvil del pagador si hay teléfono (salvo WHATSAPP_SEND_GUIDE_TO_CUSTOMER=0).
+  if (guiaUrl && process.env.WHATSAPP_SEND_GUIDE_TO_CUSTOMER !== '0') {
     const customerPhone =
       (session.customer_details && session.customer_details.phone) ||
       metadata.pkg_holder_phone ||
@@ -292,31 +311,30 @@ export async function POST(request) {
     const toCustomer = normalizeWhatsAppAddress(customerPhone);
     const guideContentSid = (process.env.TWILIO_GUIDE_CONTENT_SID || '').trim();
     if (toCustomer) {
+      let waCust;
       if (guideContentSid) {
-        await sendWhatsAppTwilio({
+        waCust = await sendWhatsAppTwilio({
           to: toCustomer,
           contentSid: guideContentSid,
-          // Variables típicas de plantilla media: 1=nombre paquete, 2=URL PDF (ajusta a tu plantilla)
-          contentVariables: {
-            '1': nombreProducto,
-            '2': guiaUrl,
-          },
+          contentVariables: { '1': nombreProducto, '2': guiaUrl },
         });
       } else {
-        console.warn(
-          'WhatsApp guía al cliente: WHATSAPP_SEND_GUIDE_TO_CUSTOMER=1 sin TWILIO_GUIDE_CONTENT_SID; ' +
-            'intento freeform (solo válido en sandbox / ventana 24h).'
-        );
-        await sendWhatsAppTwilio({
+        waCust = await sendWhatsAppTwilio({
           to: toCustomer,
           body:
-            `Golf Lerma — Guía Golf en Burgos\n` +
-            `Gracias por tu reserva (${nombreProducto}). Aquí tienes tu guía PDF.`,
-          mediaUrl: guiaUrl,
+            `Golf Lerma — *Guía Golf en Burgos*\n\n` +
+            `Gracias por tu reserva (${nombreProducto}).\n` +
+            `Descarga tu guía:\n${guiaUrl}\n`,
+          mediaUrl: attachGuidePdf ? guiaUrl : undefined,
         });
       }
+      if (!waCust.ok) {
+        console.error('[webhook-stripe] WhatsApp cliente falló', waCust);
+      } else {
+        console.log('[webhook-stripe] WhatsApp cliente OK');
+      }
     } else {
-      console.warn('WhatsApp guía al cliente: sin teléfono en Stripe ni pkg_holder_phone');
+      console.warn('[webhook-stripe] Guía: sin teléfono de cliente; solo aviso al club');
     }
   }
 

@@ -53,9 +53,11 @@ API REST de Twilio vía `fetch`. Módulo: `lib/twilio-whatsapp.js` (soporta `Bod
 
 ## Guía Golf en Burgos (PDF)
 
-- Archivo: `/pdf/guia-golf-burgos.pdf`
+- Archivo: `/pdf/guia-golf-burgos.pdf` (~21 MB: **no** se adjunta por defecto a Twilio; va el enlace)
 - Paquetes: `golf-burgos`, `campeonato-burgos`, `fin-semana`
-- Tras el pago: email + página de confirmación + WhatsApp al club (MediaUrl)
+- Tras el pago (webhook): WhatsApp al club con resumen + enlace; si hay teléfono en Stripe, también al cliente
+- Página de confirmación: **Descargar PDF** + **Reenviar por WhatsApp** (API `/api/enviar-guia-whatsapp`, Twilio real — ya no usa `wa.me` / borrador)
+- Adjuntar PDF en el mensaje: `WHATSAPP_ATTACH_GUIDE_PDF=1` (solo si comprimís el archivo)
 
 ## Flujo
 
