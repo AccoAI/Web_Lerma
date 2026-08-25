@@ -159,6 +159,8 @@ export async function POST(request) {
         },
       ],
       ...(afterCompletion ? { after_completion: afterCompletion } : {}),
+      // Teléfono útil para WhatsApp post-pago (guía Burgos, etc.)
+      phone_number_collection: { enabled: true },
       metadata: {
         paquete: String(paquete || ''),
         modo: modoPago,

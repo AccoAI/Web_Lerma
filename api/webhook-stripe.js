@@ -278,8 +278,9 @@ export async function POST(request) {
     mediaUrl: guiaUrl || undefined,
   });
 
-  // Envío opcional al móvil del cliente (requiere plantilla Meta/Twilio en producción).
-  // Activar con WHATSAPP_SEND_GUIDE_TO_CUSTOMER=1 cuando la plantilla esté aprobada.
+  // Envío opcional al móvil del cliente.
+  // Producción: plantilla Meta/Twilio (TWILIO_GUIDE_CONTENT_SID) + WHATSAPP_SEND_GUIDE_TO_CUSTOMER=1.
+  // Sandbox: puede funcionar con Body+MediaUrl si el número está unido al sandbox.
   if (
     guiaUrl &&
     process.env.WHATSAPP_SEND_GUIDE_TO_CUSTOMER === '1'
@@ -289,14 +290,33 @@ export async function POST(request) {
       metadata.pkg_holder_phone ||
       '';
     const toCustomer = normalizeWhatsAppAddress(customerPhone);
+    const guideContentSid = (process.env.TWILIO_GUIDE_CONTENT_SID || '').trim();
     if (toCustomer) {
-      await sendWhatsAppTwilio({
-        to: toCustomer,
-        body:
-          `Golf Lerma — Guía Golf en Burgos\n` +
-          `Gracias por tu reserva (${nombreProducto}). Aquí tienes tu guía PDF.`,
-        mediaUrl: guiaUrl,
-      });
+      if (guideContentSid) {
+        await sendWhatsAppTwilio({
+          to: toCustomer,
+          contentSid: guideContentSid,
+          // Variables típicas de plantilla media: 1=nombre paquete, 2=URL PDF (ajusta a tu plantilla)
+          contentVariables: {
+            '1': nombreProducto,
+            '2': guiaUrl,
+          },
+        });
+      } else {
+        console.warn(
+          'WhatsApp guía al cliente: WHATSAPP_SEND_GUIDE_TO_CUSTOMER=1 sin TWILIO_GUIDE_CONTENT_SID; ' +
+            'intento freeform (solo válido en sandbox / ventana 24h).'
+        );
+        await sendWhatsAppTwilio({
+          to: toCustomer,
+          body:
+            `Golf Lerma — Guía Golf en Burgos\n` +
+            `Gracias por tu reserva (${nombreProducto}). Aquí tienes tu guía PDF.`,
+          mediaUrl: guiaUrl,
+        });
+      }
+    } else {
+      console.warn('WhatsApp guía al cliente: sin teléfono en Stripe ni pkg_holder_phone');
     }
   }
 

@@ -7,8 +7,8 @@
 
     var API_CHAT = '/api/chat-assistente';
     var FALLBACK_MSG = 'No he podido conectar con el asistente en este momento. Puedes llamarnos al (+34) 947 56 46 30 o usar los formularios de la web. ¿Quieres intentar de nuevo?';
-    /** Teléfono atención al cliente para WhatsApp (sin +, con código país). */
-    var WHATSAPP_NUMBER = '34947564630';
+    /** Móvil WhatsApp del club (E.164 sin +). El 947 fijo no tiene WhatsApp. */
+    var WHATSAPP_NUMBER = '34638722973';
 
     function crearElemento(tag, className, contenido) {
         var el = document.createElement(tag);

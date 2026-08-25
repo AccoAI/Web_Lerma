@@ -35,7 +35,7 @@
       '<a class="btn-reservar-paquete" href="' +
       GUIA_PATH +
       '" download="Guia-Golf-en-Burgos.pdf" target="_blank" rel="noopener noreferrer">Descargar guía PDF</a>' +
-      '<a class="btn-reservar-paquete confirmacion-btn-secondary" href="https://wa.me/34947564630?text=' +
+      '<a class="btn-reservar-paquete confirmacion-btn-secondary" href="https://wa.me/34638722973?text=' +
       encodeURIComponent(
         'Hola, he reservado un paquete con guía Golf en Burgos. ¿Me la podéis enviar por WhatsApp? ' + abs
       ) +
