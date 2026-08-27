@@ -342,10 +342,73 @@ function formatTiempoDiaLabel(isoDate, index) {
     return weekday + ' ' + dayNum + '/' + month;
 }
 
+function todayIsoMadrid() {
+    try {
+        return new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Europe/Madrid',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).format(new Date());
+    } catch (e) {
+        var d = new Date();
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+}
+
+function currentHourMadrid() {
+    try {
+        return Number(new Intl.DateTimeFormat('en-GB', {
+            timeZone: 'Europe/Madrid',
+            hour: '2-digit',
+            hour12: false
+        }).format(new Date()));
+    } catch (e) {
+        return new Date().getHours();
+    }
+}
+
+function buildHourlyTodayHtml(hourly) {
+    if (!hourly || !hourly.time || !hourly.time.length) return '';
+
+    var today = todayIsoMadrid();
+    var nowHour = currentHourMadrid();
+    var items = [];
+
+    for (var i = 0; i < hourly.time.length; i++) {
+        var t = String(hourly.time[i] || '');
+        if (t.slice(0, 10) !== today) continue;
+        var hour = Number(t.slice(11, 13));
+        if (isNaN(hour) || hour < nowHour) continue;
+
+        var wIcon = weatherCodeToIcon(hourly.weather_code && hourly.weather_code[i]);
+        var temp = hourly.temperature_2m && hourly.temperature_2m[i];
+        var wind = hourly.wind_speed_10m && hourly.wind_speed_10m[i];
+        items.push(
+            '<li class="tiempo-hourly__item' + (hour === nowHour ? ' is-now' : '') + '">' +
+              '<span class="tiempo-hourly__hour">' + String(hour).padStart(2, '0') + 'h</span>' +
+              '<span class="tiempo-hourly__icon" aria-hidden="true" title="' + wIcon.label + '">' + wIcon.emoji + '</span>' +
+              '<span class="tiempo-hourly__temp">' + (temp != null ? Math.round(temp) + '°' : '—') + '</span>' +
+              '<span class="tiempo-hourly__wind">' + (wind != null ? Math.round(wind) + ' km/h' : '—') + '</span>' +
+            '</li>'
+        );
+    }
+
+    if (!items.length) return '';
+
+    return (
+        '<div class="tiempo-hourly">' +
+          '<p class="tiempo-hourly__label">Hoy por horas</p>' +
+          '<ul class="tiempo-hourly__list">' + items.join('') + '</ul>' +
+        '</div>'
+    );
+}
+
 function fillTiempoCard(card, data, origen) {
     var forecastEl = card.querySelector('[data-tiempo="forecast"]');
     var origenEl = card.querySelector('[data-tiempo="origen"]');
     var daily = data && data.daily;
+    var hourly = data && data.hourly;
 
     if (!forecastEl) return;
 
@@ -355,8 +418,10 @@ function fillTiempoCard(card, data, origen) {
         return;
     }
 
+    var html = buildHourlyTodayHtml(hourly);
+
     var days = Math.min(7, daily.time.length);
-    var html = '<ul class="tiempo-forecast__list">';
+    html += '<ul class="tiempo-forecast__list">';
     for (var i = 0; i < days; i++) {
         var wIcon = weatherCodeToIcon(daily.weather_code && daily.weather_code[i]);
         var tmax = daily.temperature_2m_max && daily.temperature_2m_max[i];
@@ -377,11 +442,12 @@ function fillTiempoCard(card, data, origen) {
     }
     html += '</ul>';
     forecastEl.innerHTML = html;
-    if (origenEl) origenEl.textContent = 'Previsión 7 días · ' + origen;
+    if (origenEl) origenEl.textContent = 'Hoy por horas + 7 días · ' + origen;
 }
 
 async function fetchTiempoCampo(cfg) {
     var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + cfg.lat + '&longitude=' + cfg.lon +
+        '&hourly=temperature_2m,weather_code,wind_speed_10m' +
         '&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max' +
         '&forecast_days=7&timezone=Europe%2FMadrid';
     var res = await fetch(url);

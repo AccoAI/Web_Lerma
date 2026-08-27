@@ -11652,6 +11652,75 @@ body:has(#camara-tiempo) .simulador-hero-intro {
     color: var(--color-text-light);
 }
 
+.tiempo-hourly {
+    padding: 0.75rem 0 0.85rem;
+    border-bottom: 1px solid rgba(26, 77, 58, 0.1);
+}
+
+.tiempo-hourly__label {
+    margin: 0 0 0.55rem;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-text-light);
+}
+
+.tiempo-hourly__list {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0.15rem;
+    display: flex;
+    gap: 0.35rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+.tiempo-hourly__item {
+    flex: 0 0 auto;
+    min-width: 3.35rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.22rem;
+    padding: 0.45rem 0.35rem;
+    border: 1px solid rgba(26, 77, 58, 0.1);
+    background: #f7f8f6;
+    text-align: center;
+}
+
+.tiempo-hourly__item.is-now {
+    border-color: rgba(15, 92, 44, 0.45);
+    background: #eef5f0;
+}
+
+.tiempo-hourly__hour {
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    color: var(--color-text-light);
+    font-variant-numeric: tabular-nums;
+}
+
+.tiempo-hourly__icon {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.tiempo-hourly__temp {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--color-primary-dark);
+    font-variant-numeric: tabular-nums;
+}
+
+.tiempo-hourly__wind {
+    font-size: 0.62rem;
+    color: var(--color-text-light);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
 .tiempo-forecast__list {
     list-style: none;
     margin: 0;
@@ -11669,7 +11738,7 @@ body:has(#camara-tiempo) .simulador-hero-intro {
     color: var(--color-text, #333);
 }
 
-.tiempo-forecast__day:first-child {
+.tiempo-forecast__list .tiempo-forecast__day:first-child {
     border-top: none;
 }
 
