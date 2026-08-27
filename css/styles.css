@@ -11786,6 +11786,32 @@ body:has(#camara-tiempo) .simulador-hero-intro {
     display: none;
 }
 
+.tiempo-reserva-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    width: 100%;
+    margin-top: 0.15rem;
+    padding: 0.85rem 1.1rem;
+    background: var(--color-primary-dark, #0f5c2c);
+    color: #fff;
+    text-decoration: none;
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 0;
+    border: none;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.tiempo-reserva-btn:hover {
+    background: #0a3d1c;
+    color: #fff;
+}
+
 /* Legacy hooks */
 .tiempo-content { max-width: 1280px; margin: 0 auto; }
 .tiempo-info { display: block; }
