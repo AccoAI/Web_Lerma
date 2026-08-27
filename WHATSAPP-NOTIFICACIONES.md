@@ -34,7 +34,9 @@ Cuando un cliente **paga una reserva** (Stripe checkout completado), se envía u
 4. Ajusta las variables de plantilla en el código si tu plantilla no usa `1` = nombre paquete y `2` = URL PDF (ver `api/webhook-stripe.js`).
 5. Redeploy. El teléfono sale de Stripe (`customer_details.phone`) o de `pkg_holder_phone`.
 
-> En producción, Meta **no** deja enviar freeform+`MediaUrl` a clientes fríos: hace falta plantilla. El sandbox sí permite pruebas freeform a números unidos.
+> **Sandbox Twilio:** fuera de la ventana de 24h tras `join`, el freeform falla con error **63016**. El código reintenta con la plantilla sandbox *Appointment Reminders* (`ContentSid` por defecto) poniendo el enlace de la guía en la variable `{{2}}`. Opcional: `TWILIO_GUIDE_CONTENT_SID` / `TWILIO_WHATSAPP_CONTENT_SID`.
+>
+> En producción con número Business, Meta **no** deja freeform a clientes fríos: hace falta plantilla aprobada.
 
 ## Servicio usado: Twilio
 

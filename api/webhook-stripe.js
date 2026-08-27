@@ -295,6 +295,12 @@ export async function POST(request) {
   const waClub = await sendWhatsAppTwilio({
     body: mensaje,
     mediaUrl: attachGuidePdf ? guiaUrl : undefined,
+    templateFallbackVars: guiaUrl
+      ? {
+          '1': `reserva ${nombreProducto}`,
+          '2': guiaUrl.slice(0, 200),
+        }
+      : undefined,
   });
   if (!waClub.ok) {
     console.error('[webhook-stripe] WhatsApp club falló', waClub);
@@ -302,8 +308,8 @@ export async function POST(request) {
     console.log('[webhook-stripe] WhatsApp club OK', waClub);
   }
 
-  // Guía al móvil del pagador si hay teléfono (salvo WHATSAPP_SEND_GUIDE_TO_CUSTOMER=0).
-  if (guiaUrl && process.env.WHATSAPP_SEND_GUIDE_TO_CUSTOMER !== '0') {
+  // Guía al móvil del pagador solo si está activado (requiere sandbox unido o plantilla Meta).
+  if (guiaUrl && process.env.WHATSAPP_SEND_GUIDE_TO_CUSTOMER === '1') {
     const customerPhone =
       (session.customer_details && session.customer_details.phone) ||
       metadata.pkg_holder_phone ||
@@ -322,10 +328,14 @@ export async function POST(request) {
         waCust = await sendWhatsAppTwilio({
           to: toCustomer,
           body:
-            `Golf Lerma — *Guía Golf en Burgos*\n\n` +
+            `Golf Lerma — Guía Golf en Burgos\n\n` +
             `Gracias por tu reserva (${nombreProducto}).\n` +
             `Descarga tu guía:\n${guiaUrl}\n`,
           mediaUrl: attachGuidePdf ? guiaUrl : undefined,
+          templateFallbackVars: {
+            '1': `guía Golf Burgos (${nombreProducto})`,
+            '2': guiaUrl.slice(0, 200),
+          },
         });
       }
       if (!waCust.ok) {

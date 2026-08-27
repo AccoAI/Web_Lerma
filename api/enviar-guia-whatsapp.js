@@ -78,11 +78,10 @@ export async function POST(request) {
 
   const nombre = paquete || 'tu paquete';
   const mensaje =
-    `Golf Lerma — *Guía Golf en Burgos*\n\n` +
+    `Golf Lerma — Guía Golf en Burgos\n\n` +
     `Gracias por tu reserva (${nombre}).\n` +
     `Descarga tu guía aquí:\n${guiaUrl}\n`;
 
-  // Por defecto solo enlace: el PDF (~21 MB) suele romper MediaUrl en Twilio.
   const attach =
     process.env.WHATSAPP_ATTACH_GUIDE_PDF === '1' || body.attach_pdf === true;
 
@@ -90,21 +89,57 @@ export async function POST(request) {
     to,
     body: mensaje,
     mediaUrl: attach ? guiaUrl : undefined,
+    // Plantilla sandbox Appointment: "Your appointment is coming up on {{1}} at {{2}}"
+    templateFallbackVars: {
+      '1': `guía Golf Burgos (${nombre})`,
+      '2': guiaUrl.slice(0, 200),
+    },
   });
 
   if (!result.ok) {
-    return json({
-      ok: false,
-      error: result.skipped
-        ? 'WhatsApp (Twilio) no configurado en el servidor'
-        : 'Twilio no pudo enviar el mensaje',
-      detail: result.error || null,
-    }, 502);
+    let twilioMsg = result.message || '';
+    let twilioCode = result.code != null ? result.code : null;
+    if (!twilioMsg && result.error) {
+      try {
+        const parsed = JSON.parse(result.error);
+        twilioMsg = parsed.message || '';
+        twilioCode = parsed.code != null ? parsed.code : twilioCode;
+      } catch {
+        twilioMsg = String(result.error).slice(0, 280);
+      }
+    }
+    console.error('[enviar-guia-whatsapp] Twilio fail', {
+      status: result.status,
+      code: twilioCode,
+      message: twilioMsg,
+      to,
+    });
+    let hint = '';
+    if (twilioCode === 63016) {
+      hint =
+        ' (Fuera de ventana 24h: escribe "join …" al sandbox de Twilio y reintenta, o usa plantilla.)';
+    } else if (twilioCode === 63015) {
+      hint = ' (Tu móvil no está unido al sandbox: envía join … a +1 415 523 8886.)';
+    }
+    return json(
+      {
+        ok: false,
+        error: result.skipped
+          ? 'WhatsApp (Twilio) no configurado en el servidor'
+          : twilioMsg
+            ? `Twilio: ${twilioMsg}${hint}`
+            : `Twilio no pudo enviar el mensaje${hint}`,
+        code: twilioCode,
+        detail: result.error || null,
+      },
+      502
+    );
   }
 
   return json({
     ok: true,
     toMasked: to.replace(/\d(?=\d{4})/g, '•'),
     withMedia: !!result.withMedia,
+    viaTemplate: !!result.viaTemplate,
   });
 }

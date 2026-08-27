@@ -64,9 +64,12 @@
           var ok = _ref.ok;
           var j = _ref.j || {};
           if (statusEl) {
-            statusEl.textContent = ok
-              ? 'Guía enviada por WhatsApp. Revisa el chat de Twilio / el club.'
-              : j.error || 'No se pudo enviar. Prueba la descarga o contacta con el club.';
+            if (ok) {
+              statusEl.textContent =
+                'Enviado. Mira el chat «Twilio Sandbox» (no un chat contigo mismo).';
+            } else {
+              statusEl.textContent = j.error || 'No se pudo enviar.';
+            }
           }
         })
         .catch(function () {
