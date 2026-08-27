@@ -304,7 +304,7 @@ function initHeroVideo() {
     setTimeout(tryPlay, 1800);
 }
 
-// Cámara del Tiempo - Temperatura, viento e icono desde Open-Meteo (Lerma y Saldaña)
+// Cámara del Tiempo - Previsión 7 días desde Open-Meteo (Lerma y Saldaña)
 function weatherCodeToIcon(code) {
     if (code == null) return { emoji: '—', label: '—' };
     var c = parseInt(code, 10);
@@ -327,29 +327,63 @@ var TIEMPO_CAMPOS = {
     saldana: { lat: 42.3234, lon: -3.6819, origen: 'Saldaña Golf' }
 };
 
+var TIEMPO_DIAS_ES = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+
+function formatTiempoDiaLabel(isoDate, index) {
+    if (index === 0) return 'Hoy';
+    if (index === 1) return 'Mañana';
+    var parts = String(isoDate || '').split('-');
+    if (parts.length !== 3) return '—';
+    var d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    if (isNaN(d.getTime())) return '—';
+    var weekday = TIEMPO_DIAS_ES[d.getDay()] || '—';
+    var dayNum = String(d.getDate()).padStart(2, '0');
+    var month = String(d.getMonth() + 1).padStart(2, '0');
+    return weekday + ' ' + dayNum + '/' + month;
+}
+
 function fillTiempoCard(card, data, origen) {
-    var temperatura = card.querySelector('[data-tiempo="temperatura"]');
-    var viento = card.querySelector('[data-tiempo="viento"]');
-    var icono = card.querySelector('[data-tiempo="icono"]');
-    var estado = card.querySelector('[data-tiempo="estado"]');
+    var forecastEl = card.querySelector('[data-tiempo="forecast"]');
     var origenEl = card.querySelector('[data-tiempo="origen"]');
-    if (data && data.current) {
-        if (temperatura) temperatura.textContent = Math.round(data.current.temperature_2m) + '°C';
-        if (viento) viento.textContent = Math.round(data.current.wind_speed_10m) + ' km/h';
-        var wIcon = weatherCodeToIcon(data.current.weather_code);
-        if (icono) icono.textContent = wIcon.emoji;
-        if (estado) estado.textContent = wIcon.label;
-        if (origenEl) origenEl.textContent = 'Datos: ' + origen;
-    } else {
+    var daily = data && data.daily;
+
+    if (!forecastEl) return;
+
+    if (!daily || !daily.time || !daily.time.length) {
+        forecastEl.innerHTML = '<p class="tiempo-forecast__loading">Previsión no disponible</p>';
         if (origenEl) origenEl.textContent = 'Datos: no disponibles';
-        if (icono) icono.textContent = '—';
-        if (estado) estado.textContent = '—';
+        return;
     }
+
+    var days = Math.min(7, daily.time.length);
+    var html = '<ul class="tiempo-forecast__list">';
+    for (var i = 0; i < days; i++) {
+        var wIcon = weatherCodeToIcon(daily.weather_code && daily.weather_code[i]);
+        var tmax = daily.temperature_2m_max && daily.temperature_2m_max[i];
+        var tmin = daily.temperature_2m_min && daily.temperature_2m_min[i];
+        var wind = daily.wind_speed_10m_max && daily.wind_speed_10m_max[i];
+        var tempText =
+            (tmax != null ? Math.round(tmax) + '°' : '—') +
+            ' / ' +
+            (tmin != null ? Math.round(tmin) + '°' : '—');
+        var windText = wind != null ? Math.round(wind) + ' km/h' : '—';
+        html +=
+            '<li class="tiempo-forecast__day' + (i === 0 ? ' is-today' : '') + '">' +
+              '<span class="tiempo-forecast__name">' + formatTiempoDiaLabel(daily.time[i], i) + '</span>' +
+              '<span class="tiempo-forecast__icon" aria-hidden="true" title="' + wIcon.label + '">' + wIcon.emoji + '</span>' +
+              '<span class="tiempo-forecast__temps">' + tempText + '</span>' +
+              '<span class="tiempo-forecast__wind">' + windText + '</span>' +
+            '</li>';
+    }
+    html += '</ul>';
+    forecastEl.innerHTML = html;
+    if (origenEl) origenEl.textContent = 'Previsión 7 días · ' + origen;
 }
 
 async function fetchTiempoCampo(cfg) {
     var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + cfg.lat + '&longitude=' + cfg.lon +
-        '&current=temperature_2m,wind_speed_10m,weather_code&timezone=Europe%2FMadrid';
+        '&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max' +
+        '&forecast_days=7&timezone=Europe%2FMadrid';
     var res = await fetch(url);
     if (!res.ok) throw new Error('tiempo HTTP ' + res.status);
     return res.json();

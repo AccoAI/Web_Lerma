@@ -11639,73 +11639,67 @@ body:has(#camara-tiempo) .simulador-hero-intro {
     min-height: 1em;
 }
 
-.tiempo-meteo {
-    display: grid;
-    grid-template-columns: 1.4fr 1fr 1fr;
-    gap: 0;
-    align-items: stretch;
+.tiempo-forecast {
+    margin: 0;
     border-top: 1px solid rgba(26, 77, 58, 0.1);
     border-bottom: 1px solid rgba(26, 77, 58, 0.1);
-    background: transparent;
 }
 
-.tiempo-meteo__estado,
-.tiempo-meteo__metric {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 0.3rem;
-    padding: 0.95rem 0.9rem;
-    min-width: 0;
-}
-
-.tiempo-meteo__estado {
-    flex-direction: row;
-    align-items: center;
-    gap: 0.6rem;
-    padding-left: 0;
-    background: transparent;
-}
-
-.tiempo-meteo__metric:last-child {
-    padding-right: 0;
-}
-
-.tiempo-meteo__metric + .tiempo-meteo__metric,
-.tiempo-meteo__estado + .tiempo-meteo__metric {
-    border-left: 1px solid rgba(26, 77, 58, 0.1);
-    padding-left: 1rem;
-}
-
-.tiempo-icono {
-    font-size: 1.65rem;
-    line-height: 1;
-    flex-shrink: 0;
-}
-
-.tiempo-estado {
-    font-size: 0.88rem;
-    font-weight: 500;
-    color: var(--color-primary-dark);
-    line-height: 1.25;
-}
-
-.tiempo-label {
-    font-size: 0.65rem;
+.tiempo-forecast__loading {
+    margin: 0;
+    padding: 0.95rem 0;
+    font-size: 0.82rem;
     color: var(--color-text-light);
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    font-weight: 500;
 }
 
-.tiempo-valor {
-    font-size: clamp(1.4rem, 2.2vw, 1.75rem);
-    font-weight: 500;
-    color: var(--color-primary);
-    font-family: var(--font-primary);
-    line-height: 1.1;
+.tiempo-forecast__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.tiempo-forecast__day {
+    display: grid;
+    grid-template-columns: minmax(4.5rem, 5.5rem) 1.6rem minmax(4.5rem, 1fr) auto;
+    align-items: center;
+    gap: 0.55rem 0.75rem;
+    padding: 0.55rem 0;
+    border-top: 1px solid rgba(26, 77, 58, 0.08);
+    font-size: 0.84rem;
+    color: var(--color-text, #333);
+}
+
+.tiempo-forecast__day:first-child {
+    border-top: none;
+}
+
+.tiempo-forecast__day.is-today {
+    font-weight: 600;
+    color: var(--color-primary-dark);
+}
+
+.tiempo-forecast__name {
+    text-transform: capitalize;
     letter-spacing: 0.02em;
+}
+
+.tiempo-forecast__icon {
+    font-size: 1.05rem;
+    line-height: 1;
+    text-align: center;
+}
+
+.tiempo-forecast__temps {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+}
+
+.tiempo-forecast__wind {
+    font-size: 0.72rem;
+    color: var(--color-text-light);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    justify-self: end;
 }
 
 .camara-live {
@@ -11819,24 +11813,6 @@ body:has(#camara-tiempo) .simulador-hero-intro {
 .dato-tiempo { display: contents; }
 .dato-tiempo-estado { display: flex; }
 
-@media (max-width: 900px) {
-    .tiempo-meteo {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .tiempo-meteo__estado {
-        grid-column: 1 / -1;
-        border-bottom: 1px solid rgba(26, 77, 58, 0.1);
-        padding-left: 0;
-        padding-right: 0;
-    }
-
-    .tiempo-meteo__estado + .tiempo-meteo__metric {
-        border-left: none;
-        padding-left: 0;
-    }
-}
-
 @media (max-width: 799px) {
     .tiempo-campos {
         grid-template-columns: 1fr;
@@ -11858,16 +11834,10 @@ body:has(#camara-tiempo) .simulador-hero-intro {
 }
 
 @media (max-width: 520px) {
-    .tiempo-meteo {
-        grid-template-columns: 1fr;
-    }
-
-    .tiempo-meteo__metric + .tiempo-meteo__metric,
-    .tiempo-meteo__estado + .tiempo-meteo__metric {
-        border-left: none;
-        border-top: 1px solid rgba(26, 77, 58, 0.1);
-        padding-left: 0;
-        padding-right: 0;
+    .tiempo-forecast__day {
+        grid-template-columns: minmax(4.2rem, 5rem) 1.4rem 1fr auto;
+        gap: 0.4rem 0.55rem;
+        font-size: 0.8rem;
     }
 
     .camara-container {

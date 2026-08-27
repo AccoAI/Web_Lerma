@@ -64,7 +64,7 @@
         </div>
         <div class="simulador-hero-content">
             <h1 class="section-title" data-i18n="tiempo_title">Tiempo</h1>
-            <p class="simulador-hero-intro" data-i18n="tiempo_intro">Consulta el tiempo en Golf Lerma y en Saldaña Golf.</p>
+            <p class="simulador-hero-intro" data-i18n="tiempo_intro">Consulta la previsión de 7 días en Golf Lerma y en Saldaña Golf.</p>
         </div>
     </section>
 
@@ -80,19 +80,8 @@
                             <p class="tiempo-origen" data-tiempo="origen"></p>
                         </div>
                     </header>
-                    <div class="tiempo-meteo" aria-live="polite">
-                        <div class="tiempo-meteo__estado dato-tiempo-estado">
-                            <span class="tiempo-icono" data-tiempo="icono" aria-hidden="true">—</span>
-                            <span class="tiempo-estado" data-tiempo="estado">—</span>
-                        </div>
-                        <div class="tiempo-meteo__metric">
-                            <span class="tiempo-label" data-i18n="tiempo_temperatura">Temperatura</span>
-                            <span class="tiempo-valor" data-tiempo="temperatura">--°C</span>
-                        </div>
-                        <div class="tiempo-meteo__metric">
-                            <span class="tiempo-label" data-i18n="tiempo_viento">Viento</span>
-                            <span class="tiempo-valor" data-tiempo="viento">-- km/h</span>
-                        </div>
+                    <div class="tiempo-forecast" data-tiempo="forecast" aria-live="polite">
+                        <p class="tiempo-forecast__loading">Cargando previsión…</p>
                     </div>
                     <div class="camara-live">
                         <div class="camara-live__head">
@@ -107,7 +96,7 @@
                            href="https://open.teeone.golf/es/lerma/disponibilidad"
                            target="_blank"
                            rel="noopener noreferrer"
-                           data-i18n="tiempo_reserva_hoy">Reserva salida para hoy</a>
+                           data-i18n="tiempo_reserva">Reservar salida</a>
                     </div>
                 </article>
 
@@ -119,19 +108,8 @@
                             <p class="tiempo-origen" data-tiempo="origen"></p>
                         </div>
                     </header>
-                    <div class="tiempo-meteo" aria-live="polite">
-                        <div class="tiempo-meteo__estado dato-tiempo-estado">
-                            <span class="tiempo-icono" data-tiempo="icono" aria-hidden="true">—</span>
-                            <span class="tiempo-estado" data-tiempo="estado">—</span>
-                        </div>
-                        <div class="tiempo-meteo__metric">
-                            <span class="tiempo-label" data-i18n="tiempo_temperatura">Temperatura</span>
-                            <span class="tiempo-valor" data-tiempo="temperatura">--°C</span>
-                        </div>
-                        <div class="tiempo-meteo__metric">
-                            <span class="tiempo-label" data-i18n="tiempo_viento">Viento</span>
-                            <span class="tiempo-valor" data-tiempo="viento">-- km/h</span>
-                        </div>
+                    <div class="tiempo-forecast" data-tiempo="forecast" aria-live="polite">
+                        <p class="tiempo-forecast__loading">Cargando previsión…</p>
                     </div>
                     <div class="camara-live">
                         <div class="camara-live__head">
@@ -146,7 +124,7 @@
                            href="https://open.teeone.golf/es/lerma/disponibilidad"
                            target="_blank"
                            rel="noopener noreferrer"
-                           data-i18n="tiempo_reserva_hoy">Reserva salida para hoy</a>
+                           data-i18n="tiempo_reserva">Reservar salida</a>
                     </div>
                 </article>
             </div>
