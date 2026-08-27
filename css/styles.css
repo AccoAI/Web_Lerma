@@ -5415,6 +5415,103 @@ body.fondo-golf-lerma-estandar .confirmacion-post-pago.paquete-detalle {
     color: var(--color-text-light, #555);
 }
 
+.post-regalo-form {
+    margin-top: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.post-regalo-formats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.post-regalo-format {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0.75rem 0.7rem;
+    border: 1px solid rgba(44, 85, 48, 0.18);
+    background: #fafbfa;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.post-regalo-format input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.post-regalo-format.is-selected,
+.post-regalo-format:has(input:checked) {
+    border-color: #0f5c2c;
+    background: #eef5f0;
+}
+
+.post-regalo-format__name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--color-primary-dark, #0f5c2c);
+}
+
+.post-regalo-format__desc {
+    font-size: 0.75rem;
+    color: var(--color-text-light, #666);
+    line-height: 1.35;
+}
+
+.post-regalo-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin: 0;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--color-primary-dark, #0f5c2c);
+}
+
+.post-regalo-field input,
+.post-regalo-field textarea {
+    font: inherit;
+    font-weight: 400;
+    color: #222;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid rgba(44, 85, 48, 0.22);
+    border-radius: 0;
+    background: #fff;
+    resize: vertical;
+}
+
+.post-regalo-field input:focus,
+.post-regalo-field textarea:focus {
+    outline: 2px solid rgba(15, 92, 44, 0.35);
+    outline-offset: 1px;
+}
+
+.post-regalo-actions {
+    margin: 0.15rem 0 0;
+}
+
+.post-regalo-actions .btn-reservar-paquete {
+    margin: 0;
+}
+
+.post-regalo-status {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--color-text-light, #555);
+}
+
+@media (max-width: 640px) {
+    .post-regalo-formats {
+        grid-template-columns: 1fr;
+    }
+}
+
 .post-travel-box {
     margin-top: 1.25rem;
     padding: 1.25rem 1.35rem;

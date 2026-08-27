@@ -68,6 +68,7 @@
                 <div id="confirmRestaurants" class="confirmacion-seccion-card post-travel-box post-restaurants-box" hidden aria-live="polite"></div>
                 <div id="confirmTravel" class="confirmacion-seccion-card post-travel-box" hidden aria-live="polite"></div>
                 <div id="confirmGuiaBurgos" class="confirmacion-seccion-card post-travel-box post-guia-box" hidden aria-live="polite"></div>
+                <div id="confirmPaqueteRegalo" class="confirmacion-seccion-card post-travel-box post-regalo-box" hidden aria-live="polite"></div>
 
                 <div id="confirmActions" class="confirmacion-voucher-actions" hidden>
                     <h3 class="configurador-titulo">Bono de alojamiento</h3>
@@ -123,6 +124,7 @@
     <script src="js/post-booking-travel.js"></script>
     <script src="js/post-booking-restaurants.js"></script>
     <script src="js/post-booking-guia.js"></script>
+    <script src="js/post-booking-regalo.js"></script>
     <script src="js/stripe-pago.js"></script>
     <script>
 (function () {
@@ -257,6 +259,10 @@
         window.renderPostBookingGuiaBurgos('confirmGuiaBurgos', paqueteId, {
           sessionId: sessionId,
         });
+      }
+
+      if (typeof window.renderPostBookingPaqueteRegalo === 'function') {
+        window.renderPostBookingPaqueteRegalo('confirmPaqueteRegalo', paqueteId);
       }
 
       if (data.voucher_available && data.voucher_download_url && data.voucher_url) {
