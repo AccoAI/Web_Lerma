@@ -28,7 +28,7 @@
       '<div class="post-booking-embed-head">' +
       '<h3 class="post-booking-embed-title">Guía Golf en Burgos</h3>' +
       '</div>' +
-      '<p class="post-booking-embed-intro">Regalo de tu paquete. Al confirmar el pago te la enviamos automáticamente por WhatsApp (y por correo). También puedes descargarla aquí.</p>' +
+      '<p class="post-booking-embed-intro">Regalo de tu paquete, sin coste. Al confirmar el pago te la enviamos automáticamente por WhatsApp (y por correo). También puedes descargarla aquí.</p>' +
       '<p class="post-booking-guia-actions">' +
       '<a class="btn-reservar-paquete" href="' +
       GUIA_PATH +

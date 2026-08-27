@@ -37,7 +37,7 @@
 
     return (
       '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">' +
-      '<title>Paquete de regalo — Golf Lerma</title>' +
+      '<title>Tarjeta regalo — Golf Lerma</title>' +
       '<link rel="preconnect" href="https://fonts.googleapis.com">' +
       '<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">' +
       '<style>' +
@@ -76,7 +76,7 @@
       esc(formato) +
       '"><div class="sheet"><div class="card">' +
       '<p class="eyebrow">Golf Lerma · Saldaña Golf</p>' +
-      '<h1 class="title">Paquete de regalo</h1>' +
+      '<h1 class="title">Tarjeta regalo</h1>' +
       '<p class="to">Para</p>' +
       '<p class="name">' +
       safeName +
@@ -156,9 +156,9 @@
     el.innerHTML =
       '<div class="post-booking-embed post-booking-regalo-block">' +
       '<div class="post-booking-embed-head">' +
-      '<h3 class="post-booking-embed-title">Paquete de regalo</h3>' +
+      '<h3 class="post-booking-embed-title">Tarjeta regalo</h3>' +
       '</div>' +
-      '<p class="post-booking-embed-intro">Personaliza un PDF para regalar tu experiencia. Elige formato, escribe el nombre y un mensaje, e imprímelo o guárdalo como PDF.</p>' +
+      '<p class="post-booking-embed-intro">Opcional y sin coste. Personaliza una tarjeta PDF para regalar tu experiencia: elige formato, nombre y mensaje, e imprímela o guárdala como PDF.</p>' +
       '<form class="post-regalo-form" id="postRegaloForm" novalidate>' +
       '<div class="post-regalo-formats" role="radiogroup" aria-label="Formato del PDF">' +
       formatosHtml +
