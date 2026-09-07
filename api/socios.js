@@ -58,18 +58,31 @@ async function handleMarcadorGet(request) {
     );
   }
 
-  const { data, error } = await supabase
-    .from('live_marcadores')
-    .select('payload')
-    .eq('code', code)
-    .maybeSingle();
+  try {
+    const { data, error } = await supabase
+      .from('live_marcadores')
+      .select('payload')
+      .eq('code', code)
+      .maybeSingle();
 
-  if (error) {
-    console.error('marcador GET', error);
-    return jsonResponse({ error: 'No se ha podido leer el marcador' }, 500);
+    if (error) {
+      console.error('marcador GET', error);
+      return jsonResponse({
+        error: 'No se ha podido leer el marcador',
+        hint: 'Ejecuta supabase/schema-live-marcadores.sql en Supabase',
+        detail: error.message || String(error),
+      }, 500);
+    }
+    if (!data?.payload) return jsonResponse({ error: 'No hay partida con ese codigo' }, 404);
+    return jsonResponse(data.payload);
+  } catch (e) {
+    console.error('marcador GET throw', e);
+    return jsonResponse({
+      error: 'No se ha podido leer el marcador',
+      hint: 'Revisa SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY y la tabla live_marcadores',
+      detail: e?.message || String(e),
+    }, 500);
   }
-  if (!data?.payload) return jsonResponse({ error: 'No hay partida con ese codigo' }, 404);
-  return jsonResponse(data.payload);
 }
 
 async function handleMarcadorPost(request) {
