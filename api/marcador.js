@@ -2,9 +2,14 @@
  * Marcador en vivo: la app publica el snapshot; la pagina /marcador.html lo lee.
  * GET  /api/marcador?code=ABC123
  * POST /api/marcador  { code, ...snapshot }
+ *
+ * Requiere SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY y la tabla live_marcadores
+ * (ver supabase/schema-live-marcadores.sql).
  */
 import { createClient } from '@supabase/supabase-js';
-import fs from 'fs';
+
+export const runtime = 'nodejs';
+export const maxDuration = 10;
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -26,26 +31,6 @@ function getSupabase() {
   return createClient(url, key);
 }
 
-function tmpPath(code) {
-  return `/tmp/marcador-${code}.json`;
-}
-
-function readTmp(code) {
-  try {
-    return JSON.parse(fs.readFileSync(tmpPath(code), 'utf8'));
-  } catch {
-    return null;
-  }
-}
-
-function writeTmp(code, payload) {
-  try {
-    fs.writeFileSync(tmpPath(code), JSON.stringify(payload));
-  } catch {
-    /* ignore */
-  }
-}
-
 function normalizeCode(raw) {
   return String(raw || '')
     .trim()
@@ -63,25 +48,25 @@ export async function GET(request) {
   if (!code) return jsonResponse({ error: 'Falta el codigo' }, 400);
 
   const supabase = getSupabase();
-  if (supabase) {
-    const { data, error } = await supabase
-      .from('live_marcadores')
-      .select('payload')
-      .eq('code', code)
-      .maybeSingle();
-    if (error) {
-      console.error('marcador GET', error);
-      const tmp = readTmp(code);
-      if (tmp) return jsonResponse(tmp);
-      return jsonResponse({ error: 'No se ha podido leer el marcador' }, 500);
-    }
-    if (!data?.payload) return jsonResponse({ error: 'No hay partida con ese codigo' }, 404);
-    return jsonResponse(data.payload);
+  if (!supabase) {
+    return jsonResponse(
+      { error: 'Marcador no configurado (falta Supabase en el servidor)' },
+      503,
+    );
   }
 
-  const tmp = readTmp(code);
-  if (!tmp) return jsonResponse({ error: 'No hay partida con ese codigo' }, 404);
-  return jsonResponse(tmp);
+  const { data, error } = await supabase
+    .from('live_marcadores')
+    .select('payload')
+    .eq('code', code)
+    .maybeSingle();
+
+  if (error) {
+    console.error('marcador GET', error);
+    return jsonResponse({ error: 'No se ha podido leer el marcador' }, 500);
+  }
+  if (!data?.payload) return jsonResponse({ error: 'No hay partida con ese codigo' }, 404);
+  return jsonResponse(data.payload);
 }
 
 export async function POST(request) {
@@ -93,19 +78,29 @@ export async function POST(request) {
   if (!code) return jsonResponse({ error: 'Falta el codigo' }, 400);
 
   const payload = { ...body, code };
-  writeTmp(code, payload);
-
   const supabase = getSupabase();
-  if (supabase) {
-    const { error } = await supabase.from('live_marcadores').upsert({
-      code,
-      payload,
-      updated_at: new Date().toISOString(),
-    });
-    if (error) {
-      console.error('marcador POST', error);
-      return jsonResponse({ ok: true, stored: 'tmp', warning: error.message });
-    }
+  if (!supabase) {
+    return jsonResponse(
+      { error: 'Marcador no configurado (falta Supabase en el servidor)' },
+      503,
+    );
+  }
+
+  const { error } = await supabase.from('live_marcadores').upsert({
+    code,
+    payload,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) {
+    console.error('marcador POST', error);
+    return jsonResponse(
+      {
+        error: 'No se ha podido guardar el marcador',
+        hint: 'Ejecuta supabase/schema-live-marcadores.sql en Supabase',
+        detail: error.message,
+      },
+      500,
+    );
   }
 
   return jsonResponse({ ok: true, code });
