@@ -38,6 +38,7 @@
     "api/promociona-torneo.js": { "maxDuration": 15 },
     "api/reserva-solicitud.js": { "maxDuration": 10 },
     "api/socios.js": { "maxDuration": 10 },
+    "api/marcador.js": { "maxDuration": 10 },
     "api/booking-voucher.js": { "maxDuration": 15 }
   }
 }
