@@ -1,16 +1,25 @@
 /**
- * API unificada de socios (login, listado, amigos).
- * Rutas legacy vía rewrites en vercel.json:
+ * API unificada de socios (login, listado, amigos) + marcador en vivo
+ * (reescrito desde /api/marcador para no superar el limite de funciones Vercel).
+ *
+ * Rutas legacy via rewrites en vercel.json:
  *   POST /api/socios-login   -> ?action=login
  *   GET  /api/socios-list    -> ?action=list
  *   GET/POST /api/socios-amigos -> ?action=amigos
+ *   GET/POST /api/marcador  -> ?action=marcador
  */
 import { createClient } from '@supabase/supabase-js';
+
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, X-Socio-Id',
+};
 
 function jsonResponse(obj, status = 200) {
   return new Response(JSON.stringify(obj), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...CORS },
   });
 }
 
@@ -27,6 +36,76 @@ function getSupabase() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return null;
   return createClient(url, key);
+}
+
+function normalizeCode(raw) {
+  return String(raw || '')
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(0, 12);
+}
+
+async function handleMarcadorGet(request) {
+  const code = normalizeCode(new URL(request.url).searchParams.get('code'));
+  if (!code) return jsonResponse({ error: 'Falta el codigo' }, 400);
+
+  const supabase = getSupabase();
+  if (!supabase) {
+    return jsonResponse(
+      { error: 'Marcador no configurado (falta Supabase en el servidor)' },
+      503,
+    );
+  }
+
+  const { data, error } = await supabase
+    .from('live_marcadores')
+    .select('payload')
+    .eq('code', code)
+    .maybeSingle();
+
+  if (error) {
+    console.error('marcador GET', error);
+    return jsonResponse({ error: 'No se ha podido leer el marcador' }, 500);
+  }
+  if (!data?.payload) return jsonResponse({ error: 'No hay partida con ese codigo' }, 404);
+  return jsonResponse(data.payload);
+}
+
+async function handleMarcadorPost(request) {
+  const body = await request.json().catch(() => null);
+  if (!body || typeof body !== 'object') {
+    return jsonResponse({ error: 'JSON invalido' }, 400);
+  }
+  const code = normalizeCode(body.code);
+  if (!code) return jsonResponse({ error: 'Falta el codigo' }, 400);
+
+  const payload = { ...body, code };
+  const supabase = getSupabase();
+  if (!supabase) {
+    return jsonResponse(
+      { error: 'Marcador no configurado (falta Supabase en el servidor)' },
+      503,
+    );
+  }
+
+  const { error } = await supabase.from('live_marcadores').upsert({
+    code,
+    payload,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) {
+    console.error('marcador POST', error);
+    return jsonResponse(
+      {
+        error: 'No se ha podido guardar el marcador',
+        hint: 'Ejecuta supabase/schema-live-marcadores.sql en Supabase',
+        detail: error.message,
+      },
+      500,
+    );
+  }
+  return jsonResponse({ ok: true, code });
 }
 
 async function handleLogin(request) {
@@ -164,16 +243,22 @@ async function handleAmigosPost(request) {
   }
 }
 
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: CORS });
+}
+
 export async function GET(request) {
   const action = getAction(request);
+  if (action === 'marcador') return handleMarcadorGet(request);
   if (action === 'list') return handleList(request);
   if (action === 'amigos') return handleAmigosGet(request);
-  return jsonResponse({ error: 'Use action=list o action=amigos' }, 405);
+  return jsonResponse({ error: 'Use action=list, action=amigos o action=marcador' }, 405);
 }
 
 export async function POST(request) {
   const action = getAction(request);
+  if (action === 'marcador') return handleMarcadorPost(request);
   if (action === 'login') return handleLogin(request);
   if (action === 'amigos') return handleAmigosPost(request);
-  return jsonResponse({ error: 'Use action=login o action=amigos' }, 405);
+  return jsonResponse({ error: 'Use action=login, action=amigos o action=marcador' }, 405);
 }
