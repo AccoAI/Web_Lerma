@@ -60,6 +60,15 @@
         }
     }
 
+    function getSocioSession() {
+        try {
+            var raw = sessionStorage.getItem('areaSocioSocio');
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
     function init() {
         var contenedor = document.getElementById('torneoDetalleContenido');
         var cargando = document.getElementById('torneoDetalleCargando');
@@ -209,25 +218,41 @@
         }
 
         if (torneoId) {
+            var socioSesion = esSocio ? getSocioSession() : null;
             html += '<div class="torneo-detalle-bloque" id="torneoInscritosBlock">';
             html += '<h3 class="torneo-detalle-bloque-titulo">Inscritos</h3>';
             html += '<p class="torneo-detalle-campo" id="torneoInscritosStatus">Cargando lista…</p>';
             html += '<ul id="torneoInscritosLista" style="list-style:none;padding:0;margin:0.5rem 0 1rem"></ul>';
-            html += '<form id="torneoInscripcionForm" style="display:grid;gap:0.5rem;max-width:28rem">';
-            html += '<label>Nombre <input required name="nombre" type="text" placeholder="Tu nombre" style="width:100%;padding:0.5rem"></label>';
-            html += '<label>Email <input required name="email" type="email" placeholder="tu@email.com" style="width:100%;padding:0.5rem"></label>';
-            html += '<label>Hándicap <input name="hcp" type="number" step="0.1" placeholder="opcional" style="width:100%;padding:0.5rem"></label>';
-            html += '<button type="submit" class="torneo-detalle-btn">Inscribirme (web)</button>';
-            html += '<p id="torneoInscripcionMsg" class="torneo-detalle-campo" style="margin:0"></p>';
-            html += '</form></div>';
+            html += '<div id="torneoInscripcionPanel" style="max-width:28rem">';
+            if (esSocio && socioSesion) {
+                html += '<p class="torneo-detalle-campo" style="margin:0 0 0.5rem">Como socio: un clic con tus datos de área socio.</p>';
+                html += '<button type="button" class="torneo-detalle-btn" id="torneoInscripcionSocioBtn">Inscribirme</button>';
+            } else {
+                html += '<p class="torneo-detalle-campo" style="margin:0 0 0.5rem">No socio: rellena tus datos para apuntarte.</p>';
+                html += '<form id="torneoInscripcionForm" style="display:grid;gap:0.5rem">';
+                html += '<label>Nombre <input required name="nombre" type="text" placeholder="Tu nombre" style="width:100%;padding:0.5rem"></label>';
+                html += '<label>Email <input required name="email" type="email" placeholder="tu@email.com" style="width:100%;padding:0.5rem"></label>';
+                html += '<label>Hándicap <input name="hcp" type="number" step="0.1" placeholder="opcional" style="width:100%;padding:0.5rem"></label>';
+                html += '<button type="submit" class="torneo-detalle-btn">Inscribirme</button>';
+                html += '</form>';
+            }
+            html += '<p id="torneoInscripcionMsg" class="torneo-detalle-campo" style="margin:0.5rem 0 0"></p>';
+            html += '</div></div>';
         }
 
         contenedor.innerHTML = html;
 
         if (torneoId) {
+            var socioSesion = esSocio ? getSocioSession() : null;
+            var maxPlayers = t.numeroMaxJugadores != null && t.numeroMaxJugadores !== ''
+                ? Number(t.numeroMaxJugadores)
+                : null;
+
             function renderInscritos(data) {
                 var status = document.getElementById('torneoInscritosStatus');
                 var ul = document.getElementById('torneoInscritosLista');
+                var panel = document.getElementById('torneoInscripcionPanel');
+                var msg = document.getElementById('torneoInscripcionMsg');
                 if (!status || !ul) return;
                 var items = (data && data.items) || [];
                 status.textContent = (data && data.count != null ? data.count : items.length) + ' inscrito(s)';
@@ -238,7 +263,50 @@
                         (e.playingHandicap != null ? ' · HCP juego ' + esc(String(e.playingHandicap)) : '') +
                         '</li>';
                 }).join('') || '<li style="opacity:0.7">Aún no hay inscritos.</li>';
+
+                var yaInscrito = false;
+                if (socioSesion) {
+                    var myId = String(socioSesion.id || '').trim();
+                    var myEmail = String(socioSesion.email || '').trim().toLowerCase();
+                    yaInscrito = items.some(function (e) {
+                        return (myId && String(e.memberId || '') === myId) ||
+                            (myEmail && String(e.email || '').toLowerCase() === myEmail);
+                    });
+                }
+                if (yaInscrito && panel) {
+                    panel.innerHTML = '<p class="torneo-detalle-campo" style="margin:0">Ya estás inscrito en este torneo.</p>';
+                }
             }
+
+            function postInscripcion(body) {
+                var msg = document.getElementById('torneoInscripcionMsg');
+                if (msg) msg.textContent = 'Enviando…';
+                return fetch(plataformaBase + '/api/inscritos/' + encodeURIComponent(torneoId), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+                    body: JSON.stringify(body)
+                })
+                    .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+                    .then(function (res) {
+                        if (!res.j || !res.j.ok) {
+                            if (res.j && res.j.code === 'INSCRITO_DUP') {
+                                if (msg) msg.textContent = 'Ya estabas inscrito.';
+                                return fetch(plataformaBase + '/api/inscritos/' + encodeURIComponent(torneoId))
+                                    .then(function (r) { return r.json(); })
+                                    .then(renderInscritos);
+                            }
+                            throw new Error((res.j && res.j.error) || 'No se pudo inscribir');
+                        }
+                        if (msg) msg.textContent = 'Inscripción confirmada.';
+                        return fetch(plataformaBase + '/api/inscritos/' + encodeURIComponent(torneoId))
+                            .then(function (r) { return r.json(); })
+                            .then(renderInscritos);
+                    })
+                    .catch(function (err) {
+                        if (msg) msg.textContent = 'Error: ' + (err.message || err);
+                    });
+            }
+
             fetch(plataformaBase + '/api/inscritos/' + encodeURIComponent(torneoId))
                 .then(function (r) { return r.json(); })
                 .then(renderInscritos)
@@ -247,11 +315,32 @@
                     if (status) status.textContent = 'No se pudo cargar la lista de inscritos.';
                 });
 
+            var btnSocio = document.getElementById('torneoInscripcionSocioBtn');
+            if (btnSocio && socioSesion) {
+                btnSocio.addEventListener('click', function () {
+                    var nombre = String(socioSesion.nombre_completo || socioSesion.usuario || '').trim();
+                    var email = String(socioSesion.email || '').trim();
+                    var body = {
+                        memberId: String(socioSesion.id || '').trim(),
+                        memberName: nombre || 'Socio',
+                        email: email,
+                        playerType: 'socio',
+                        source: 'web',
+                        maxPlayers: maxPlayers
+                    };
+                    if (socioSesion.handicap != null && !isNaN(Number(socioSesion.handicap))) {
+                        body.handicapIndex = Number(socioSesion.handicap);
+                        body.playingHandicap = Math.round(Number(socioSesion.handicap));
+                    }
+                    btnSocio.disabled = true;
+                    postInscripcion(body).then(function () { btnSocio.disabled = false; });
+                });
+            }
+
             var form = document.getElementById('torneoInscripcionForm');
             if (form) {
                 form.addEventListener('submit', function (ev) {
                     ev.preventDefault();
-                    var msg = document.getElementById('torneoInscripcionMsg');
                     var fd = new FormData(form);
                     var nombre = String(fd.get('nombre') || '').trim();
                     var email = String(fd.get('email') || '').trim();
@@ -259,36 +348,15 @@
                     var body = {
                         memberName: nombre,
                         email: email,
-                        playerType: esSocio ? 'socio' : 'no_socio',
+                        playerType: 'no_socio',
                         source: 'web',
-                        maxPlayers: t.numeroMaxJugadores != null && t.numeroMaxJugadores !== ''
-                            ? Number(t.numeroMaxJugadores)
-                            : null
+                        maxPlayers: maxPlayers
                     };
                     if (hcpRaw !== '' && !isNaN(Number(hcpRaw))) {
                         body.handicapIndex = Number(hcpRaw);
                         body.playingHandicap = Math.round(Number(hcpRaw));
                     }
-                    if (msg) msg.textContent = 'Enviando…';
-                    fetch(plataformaBase + '/api/inscritos/' + encodeURIComponent(torneoId), {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-                        body: JSON.stringify(body)
-                    })
-                        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
-                        .then(function (res) {
-                            if (!res.j || !res.j.ok) {
-                                throw new Error((res.j && res.j.error) || 'No se pudo inscribir');
-                            }
-                            if (msg) msg.textContent = 'Inscripción confirmada.';
-                            form.reset();
-                            return fetch(plataformaBase + '/api/inscritos/' + encodeURIComponent(torneoId))
-                                .then(function (r) { return r.json(); })
-                                .then(renderInscritos);
-                        })
-                        .catch(function (err) {
-                            if (msg) msg.textContent = 'Error: ' + (err.message || err);
-                        });
+                    postInscripcion(body).then(function () { form.reset(); });
                 });
             }
         }
