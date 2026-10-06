@@ -7,8 +7,12 @@
  *   GET  /api/socios-list    -> ?action=list
  *   GET/POST /api/socios-amigos -> ?action=amigos
  *   GET/POST /api/marcador  -> ?action=marcador
+ *
+ * Marcador: Supabase `live_marcadores` con fallback a Vercel Blob
+ * (`live-marcadores/{CODE}.json`) si Supabase no responde.
  */
 import { createClient } from '@supabase/supabase-js';
+import { list, put } from '@vercel/blob';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -46,43 +50,73 @@ function normalizeCode(raw) {
     .slice(0, 12);
 }
 
+function blobPath(code) {
+  return `live-marcadores/${code}.json`;
+}
+
+async function blobReadMarcador(code) {
+  if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
+  const { blobs } = await list({ prefix: `live-marcadores/${code}` });
+  const hit =
+    (blobs || []).find((b) => b.pathname === blobPath(code)) ||
+    (blobs || [])[0];
+  if (!hit?.url) return null;
+  const res = await fetch(hit.url);
+  if (!res.ok) return null;
+  return res.json();
+}
+
+async function blobWriteMarcador(code, payload) {
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    const err = new Error('BLOB_READ_WRITE_TOKEN no configurado');
+    err.code = 'BLOB_MISSING';
+    throw err;
+  }
+  await put(blobPath(code), JSON.stringify(payload), {
+    access: 'public',
+    addRandomSuffix: false,
+    contentType: 'application/json',
+  });
+}
+
 async function handleMarcadorGet(request) {
   const code = normalizeCode(new URL(request.url).searchParams.get('code'));
   if (!code) return jsonResponse({ error: 'Falta el codigo' }, 400);
 
   const supabase = getSupabase();
-  if (!supabase) {
-    return jsonResponse(
-      { error: 'Marcador no configurado (falta Supabase en el servidor)' },
-      503,
-    );
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('live_marcadores')
+        .select('payload')
+        .eq('code', code)
+        .maybeSingle();
+
+      if (!error && data?.payload) {
+        return jsonResponse(data.payload);
+      }
+      if (error) {
+        console.error('marcador GET supabase', error);
+      }
+    } catch (e) {
+      console.error('marcador GET supabase throw', e?.message || e);
+    }
   }
 
   try {
-    const { data, error } = await supabase
-      .from('live_marcadores')
-      .select('payload')
-      .eq('code', code)
-      .maybeSingle();
-
-    if (error) {
-      console.error('marcador GET', error);
-      return jsonResponse({
-        error: 'No se ha podido leer el marcador',
-        hint: 'Ejecuta supabase/schema-live-marcadores.sql en Supabase',
-        detail: error.message || String(error),
-      }, 500);
-    }
-    if (!data?.payload) return jsonResponse({ error: 'No hay partida con ese codigo' }, 404);
-    return jsonResponse(data.payload);
+    const fromBlob = await blobReadMarcador(code);
+    if (fromBlob) return jsonResponse(fromBlob);
   } catch (e) {
-    console.error('marcador GET throw', e);
-    return jsonResponse({
-      error: 'No se ha podido leer el marcador',
-      hint: 'Revisa SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY y la tabla live_marcadores',
-      detail: e?.message || String(e),
-    }, 500);
+    console.error('marcador GET blob', e?.message || e);
   }
+
+  if (!supabase && !process.env.BLOB_READ_WRITE_TOKEN) {
+    return jsonResponse(
+      { error: 'Marcador no configurado (falta Supabase o Blob en el servidor)' },
+      503,
+    );
+  }
+  return jsonResponse({ error: 'No hay partida con ese codigo' }, 404);
 }
 
 async function handleMarcadorPost(request) {
@@ -94,26 +128,47 @@ async function handleMarcadorPost(request) {
   if (!code) return jsonResponse({ error: 'Falta el codigo' }, 400);
 
   const payload = { ...body, code };
+  let stored = false;
+  let lastError = '';
+
   const supabase = getSupabase();
-  if (!supabase) {
-    return jsonResponse(
-      { error: 'Marcador no configurado (falta Supabase en el servidor)' },
-      503,
-    );
+  if (supabase) {
+    try {
+      const { error } = await supabase.from('live_marcadores').upsert({
+        code,
+        payload,
+        updated_at: new Date().toISOString(),
+      });
+      if (!error) {
+        stored = true;
+      } else {
+        lastError = error.message || String(error);
+        console.error('marcador POST supabase', error);
+      }
+    } catch (e) {
+      lastError = e?.message || String(e);
+      console.error('marcador POST supabase throw', lastError);
+    }
   }
 
-  const { error } = await supabase.from('live_marcadores').upsert({
-    code,
-    payload,
-    updated_at: new Date().toISOString(),
-  });
-  if (error) {
-    console.error('marcador POST', error);
+  if (!stored) {
+    try {
+      await blobWriteMarcador(code, payload);
+      stored = true;
+    } catch (e) {
+      lastError = e?.message || String(e);
+      console.error('marcador POST blob', lastError);
+    }
+  }
+
+  if (!stored) {
     return jsonResponse(
       {
         error: 'No se ha podido guardar el marcador',
-        hint: 'Ejecuta supabase/schema-live-marcadores.sql en Supabase',
-        detail: error.message,
+        hint:
+          'Revisa SUPABASE_URL / SERVICE_ROLE o BLOB_READ_WRITE_TOKEN. ' +
+          'Si usas Supabase, ejecuta supabase/schema-live-marcadores.sql',
+        detail: lastError,
       },
       500,
     );

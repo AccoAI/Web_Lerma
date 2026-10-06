@@ -1,45 +1,20 @@
 /**
- * Webhook Stripe: al completarse un pago, envía notificación por WhatsApp (Twilio) y correo (Resend).
- * Si la sesión incluye metadata Hotelbeds (hb_*), el correo incluye el bono/voucher de alojamiento (certificación §4).
+ * Webhook Stripe: al completar el pago, dispara reserva.confirmada en el midend (Brevo),
+ * mismo contrato que la app Android.
  *
- * Configurar en Stripe: Developers > Webhooks > Add endpoint
- *   URL: https://tu-dominio.vercel.app/api/webhook-stripe
- *   Eventos: checkout.session.completed
+ * No toca Hotelbeds. No usa Resend/Twilio.
  *
- * Variables de entorno en Vercel:
- *   STRIPE_SECRET_KEY      - ya usada en crear-pago
- *   STRIPE_WEBHOOK_SECRET  - Signing secret del webhook (whsec_...)
- *   STRIPE_WEBHOOK_SECRET_LOCAL - (opcional) Para desarrollo: secret del CLI (stripe listen). Si está definida, se usa en lugar de STRIPE_WEBHOOK_SECRET.
- *   TWILIO_* / WHATSAPP_*  - Para WhatsApp (ver STRIPE-SETUP.md)
- *   RESEND_API_KEY         - API key de Resend
- *   RESEND_EMAIL_FROM      - Remitente (ej: Golf Lerma <reservas@tudominio.com>)
- *   RESEND_EMAIL_TO        - (Opcional) Copia de cada reserva a este correo (ej. del club)
- *   El correo de confirmación se envía al email del cliente (el que introduce en Stripe al pagar).
+ * Env: STRIPE_*, MIDEND_EVENTS_URL (opcional), MIDEND_API_KEY o MIDEND_EVENTS_SECRET
  */
 
 import Stripe from 'stripe';
 import { readFileSync, existsSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { sendEmail } from '../lib/resend.js';
-import {
-  buildHotelbedsVoucherHtml,
-  buildHotelbedsVoucherPlainText,
-  voucherDataFromStripeMetadata,
-} from '../lib/hotelbeds-voucher-html.js';
-import {
-  buildTravelLogisticsHtml,
-  buildTravelLogisticsPlainText,
-} from '../lib/travel-affiliates-html.js';
+import { voucherDataFromStripeMetadata } from '../lib/hotelbeds-voucher-html.js';
 import { confirmacionReservaUrl } from '../lib/site-base-url.js';
-import { buildAllInvoicesFromMeta } from '../lib/invoice-html.js';
-import {
-  paqueteIncluyeGuiaBurgos,
-  guiaBurgosPublicUrl,
-  buildGuiaBurgosEmailHtml,
-  buildGuiaBurgosEmailText,
-} from '../lib/guia-burgos.js';
-import { sendWhatsAppTwilio, normalizeWhatsAppAddress } from '../lib/twilio-whatsapp.js';
+import { paqueteIncluyeGuiaBurgos, guiaBurgosPublicUrl } from '../lib/guia-burgos.js';
+import { emitMidendEvent, splitPersonName } from '../lib/midend-events.js';
 
 function loadLocalWebhookSecret() {
   if (process.env.STRIPE_WEBHOOK_SECRET_LOCAL) return process.env.STRIPE_WEBHOOK_SECRET_LOCAL;
@@ -70,6 +45,13 @@ const nombresPaquete = {
   ryder: 'Ryder Cup',
   torneos: 'Configurador Torneos',
 };
+
+function formatFechaEs(iso) {
+  const s = String(iso || '').trim().slice(0, 10);
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (!m) return s;
+  return `${m[3]}/${m[2]}/${m[1]}`;
+}
 
 function jsonResponse(obj, status = 200) {
   return new Response(JSON.stringify(obj), {
@@ -126,227 +108,83 @@ export async function POST(request) {
   const session = event.data.object;
   const metadata = session.metadata || {};
   const paquete = metadata.paquete || 'paquete';
-  const numPart = metadata.numParticipantes || '1';
-  const modo = metadata.modo || 'unico';
+  const numPart = metadata.numParticipantes || metadata.pkg_party_size || '1';
   const amountTotal = session.amount_total != null ? session.amount_total / 100 : 0;
   const nombreProducto = nombresPaquete[paquete] || paquete;
 
-  // Email del cliente (el que pagó): Stripe lo recoge en el checkout
   const customerEmail =
-    session.customer_details?.email || session.customer_email || null;
+    (session.customer_details && session.customer_details.email) ||
+    session.customer_email ||
+    metadata.pkg_holder_email ||
+    null;
+  const customerName =
+    (session.customer_details && session.customer_details.name) ||
+    metadata.pkg_holder_name ||
+    '';
+  const customerPhone =
+    (session.customer_details && session.customer_details.phone) ||
+    metadata.pkg_holder_phone ||
+    '';
 
-  const pagoTipo = modo === 'por_persona' ? 'Por persona' : 'Único';
-  const subjectConfirmacion = `Confirmación de tu reserva - ${nombreProducto}`;
+  const { firstName, lastName } = splitPersonName(customerName);
 
-  const htmlBase =
-    `<div style="font-family: system-ui, sans-serif; line-height: 1.5; color: #222;">` +
-    `<h2 style="margin-top:0;">Confirmación de reserva</h2>` +
-    `<p>Gracias por tu reserva en Golf Lerma.</p>` +
-    `<p><strong>Paquete:</strong> ${nombreProducto}</p>` +
-    `<p><strong>Importe abonado:</strong> ${amountTotal.toFixed(2)} €</p>` +
-    `<p><strong>Participantes:</strong> ${numPart}</p>` +
-    `<p><strong>Forma de pago:</strong> ${pagoTipo}</p>` +
-    `<p>Para cualquier consulta: (+34) 947 56 46 30.</p>` +
-    `</div>`;
-
-  const textBase =
-    `Confirmación de reserva — Golf Lerma\n\n` +
-    `Paquete: ${nombreProducto}\n` +
-    `Importe abonado: ${amountTotal.toFixed(2)} €\n` +
-    `Participantes: ${numPart}\n` +
-    `Forma de pago: ${pagoTipo}\n\n` +
-    `Consultas: (+34) 947 56 46 30\n`;
+  const fechaIso =
+    metadata.pkg_fecha_inicio ||
+    metadata.pkg_embed_date ||
+    metadata.fecha ||
+    '';
+  const fecha = formatFechaEs(fechaIso) || fechaIso;
+  const hora = String(metadata.pkg_hora || metadata.hora || '').trim();
+  const campo = String(
+    metadata.campo ||
+      metadata.pkg_campo ||
+      'Golf Lerma y Saldaña'
+  ).trim();
 
   const voucherData = voucherDataFromStripeMetadata(metadata);
   if (voucherData && !voucherData.packageName) voucherData.packageName = nombreProducto;
 
-  let htmlConfirmacion = htmlBase;
-  let textConfirmacion = textBase;
-  if (voucherData) {
-    htmlConfirmacion +=
-      `<hr style="margin: 28px 0; border: none; border-top: 1px solid #ccc;" />` +
-      buildHotelbedsVoucherHtml(voucherData);
-    textConfirmacion += `\n\n---\n\n` + buildHotelbedsVoucherPlainText(voucherData);
-  }
-
-  const travelHtml = buildTravelLogisticsHtml();
-  const travelText = buildTravelLogisticsPlainText();
-  if (travelHtml) {
-    htmlConfirmacion += travelHtml;
-    textConfirmacion += travelText;
-  }
-
   const confirmUrl = confirmacionReservaUrl(request, session.id);
-  if (confirmUrl) {
-    htmlConfirmacion +=
-      `<div style="margin-top:20px;padding:14px;background:#fafafa;border-radius:8px;border:1px solid #ddd;">` +
-      `<p style="margin:0 0 10px;"><strong>Tras el pago</strong> — alquiler de coche, vuelos y reserva de restaurantes:</p>` +
-      `<p style="margin:0;"><a href="${confirmUrl.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" style="color:#2c5530;font-weight:600;">Abrir tu página de confirmación</a></p>` +
-      `</div>`;
-    textConfirmacion += `\n\nPágina de confirmación (coche, restaurantes, bono):\n${confirmUrl}\n`;
-  }
-
   const conGuia = paqueteIncluyeGuiaBurgos(paquete);
   const guiaUrl = conGuia ? guiaBurgosPublicUrl(request) : '';
-  if (guiaUrl) {
-    htmlConfirmacion += buildGuiaBurgosEmailHtml(guiaUrl);
-    textConfirmacion += buildGuiaBurgosEmailText(guiaUrl);
-  }
 
-  const invoices = buildAllInvoicesFromMeta({
-    golfCents: metadata.inv_golf_cents,
-    comidaCents: metadata.inv_comida_cents,
-    hotelCents: metadata.inv_hotel_cents,
-    sessionId: session.id,
-    customerName:
-      (session.customer_details && session.customer_details.name) ||
-      metadata.pkg_holder_name ||
-      '',
-    customerEmail,
-    packageName: nombreProducto,
-    paidAtIso: session.created
-      ? new Date(session.created * 1000).toISOString()
-      : new Date().toISOString(),
+  // Misma plantilla Brevo que la app: "Tu salida está confirmada"
+  const midend = await emitMidendEvent('reserva.confirmada', {
+    contact: {
+      email: customerEmail || undefined,
+      phone: customerPhone || undefined,
+      firstName: firstName || undefined,
+      lastName: lastName || undefined,
+      tipo: 'invitado',
+      extId: session.id,
+    },
+    payload: {
+      fecha: fecha || undefined,
+      hora: hora || undefined,
+      campo,
+      jugadores: String(numPart),
+      referencia: String(session.id || '').slice(0, 24),
+      concepto:
+        amountTotal > 0
+          ? `${nombreProducto} (${amountTotal.toFixed(2)} €)`
+          : nombreProducto,
+      // extras útiles para plantillas/web (Brevo ignora params no usados)
+      paquete,
+      packageName: nombreProducto,
+      confirmUrl: confirmUrl || undefined,
+      guiaBurgosUrl: guiaUrl || undefined,
+      amountTotal: amountTotal > 0 ? String(amountTotal.toFixed(2)) : undefined,
+      hasHotelbedsVoucher: voucherData ? '1' : '0',
+    },
+    channels: ['email'],
   });
-  if (invoices.html) {
-    htmlConfirmacion +=
-      `<hr style="margin: 28px 0; border: none; border-top: 1px solid #ccc;" />` +
-      `<h2 style="font-family:system-ui,sans-serif;font-size:18px;">Facturas del paquete</h2>` +
-      `<p style="font-family:system-ui,sans-serif;font-size:13px;color:#444;">Un solo cobro realizado por Club de Golf Lerma SA. A continuación, el desglose en facturas por emisor e IVA.</p>` +
-      invoices.html;
-    textConfirmacion += `\n\n--- FACTURAS ---\n` + invoices.text;
+
+  if (!midend.ok) {
+    console.error('[webhook-stripe] midend reserva.confirmada falló', midend);
   }
 
-  // 1) Correo al cliente (destinatario dinámico: quien pagó)
-  if (!customerEmail) {
-    console.warn(
-      '[webhook-stripe] Sin email de cliente en la sesión Stripe; no se envía confirmación. session=',
-      session.id
-    );
-  } else {
-    const emailResult = await sendEmail({
-      to: customerEmail,
-      subject: subjectConfirmacion,
-      html: htmlConfirmacion,
-      text: textConfirmacion,
-    });
-    if (emailResult && emailResult.error) {
-      console.error('[webhook-stripe] Fallo email cliente:', emailResult.error, 'to=', customerEmail);
-    } else {
-      console.log('[webhook-stripe] Email cliente OK', emailResult && emailResult.id, 'to=', customerEmail);
-    }
-  }
-
-  // 2) Copia opcional al club (variable de entorno fija)
-  const emailCopiaClub = process.env.RESEND_EMAIL_TO;
-  if (emailCopiaClub) {
-    const htmlClubHead =
-      `<div style="font-family: system-ui, sans-serif;">` +
-      `<h2 style="margin-top:0;">Nueva reserva pagada</h2>` +
-      `<p><strong>Paquete:</strong> ${nombreProducto}</p>` +
-      `<p><strong>Importe:</strong> ${amountTotal.toFixed(2)} €</p>` +
-      `<p><strong>Participantes:</strong> ${numPart}</p>` +
-      `<p><strong>Pago:</strong> ${pagoTipo}</p>` +
-      (customerEmail ? `<p><strong>Cliente:</strong> ${customerEmail}</p>` : '') +
-      `</div>`;
-    let htmlClub = htmlClubHead;
-    let textClub =
-      `[Club] Nueva reserva\nPaquete: ${nombreProducto}\nImporte: ${amountTotal.toFixed(2)} €\n` +
-      `Participantes: ${numPart}\nPago: ${pagoTipo}` +
-      (customerEmail ? `\nCliente: ${customerEmail}` : '');
-    if (voucherData) {
-      htmlClub +=
-        `<hr style="margin: 28px 0; border: none; border-top: 1px solid #ccc;" />` +
-        buildHotelbedsVoucherHtml(voucherData);
-      textClub += `\n\n---\n\n` + buildHotelbedsVoucherPlainText(voucherData);
-    }
-    if (invoices.html) {
-      htmlClub +=
-        `<hr style="margin: 28px 0; border: none; border-top: 1px solid #ccc;" />` +
-        invoices.html;
-      textClub += `\n\n--- FACTURAS ---\n` + invoices.text;
-    }
-    const clubResult = await sendEmail({
-      to: emailCopiaClub,
-      subject: `[Club] Nueva reserva: ${nombreProducto}`,
-      html: htmlClub,
-      text: textClub,
-    });
-    if (clubResult && clubResult.error) {
-      console.error('[webhook-stripe] Fallo email club:', clubResult.error, 'to=', emailCopiaClub);
-    }
-  } else {
-    console.warn('[webhook-stripe] RESEND_EMAIL_TO no definida; no hay copia al club');
-  }
-
-  const mensaje =
-    `✅ *Nueva reserva pagada*\n\n` +
-    `*Paquete:* ${nombreProducto}\n` +
-    `*Importe:* ${amountTotal.toFixed(2)} €\n` +
-    `*Participantes:* ${numPart}\n` +
-    `*Pago:* ${modo === 'por_persona' ? 'Por persona' : 'Único'}\n` +
-    (customerEmail ? `*Cliente:* ${customerEmail}\n` : '') +
-    (guiaUrl ? `\n📎 *Guía Golf en Burgos*:\n${guiaUrl}\n` : '');
-
-  // PDF ~21MB: por defecto solo enlace en el texto. Adjuntar PDF con WHATSAPP_ATTACH_GUIDE_PDF=1.
-  const attachGuidePdf =
-    !!guiaUrl && process.env.WHATSAPP_ATTACH_GUIDE_PDF === '1';
-
-  const waClub = await sendWhatsAppTwilio({
-    body: mensaje,
-    mediaUrl: attachGuidePdf ? guiaUrl : undefined,
-    templateFallbackVars: guiaUrl
-      ? {
-          '1': `reserva ${nombreProducto}`,
-          '2': guiaUrl.slice(0, 200),
-        }
-      : undefined,
+  return jsonResponse({
+    received: true,
+    midend: midend.ok ? 'ok' : 'error',
   });
-  if (!waClub.ok) {
-    console.error('[webhook-stripe] WhatsApp club falló', waClub);
-  } else {
-    console.log('[webhook-stripe] WhatsApp club OK', waClub);
-  }
-
-  // Guía al móvil del pagador solo si está activado (requiere sandbox unido o plantilla Meta).
-  if (guiaUrl && process.env.WHATSAPP_SEND_GUIDE_TO_CUSTOMER === '1') {
-    const customerPhone =
-      (session.customer_details && session.customer_details.phone) ||
-      metadata.pkg_holder_phone ||
-      '';
-    const toCustomer = normalizeWhatsAppAddress(customerPhone);
-    const guideContentSid = (process.env.TWILIO_GUIDE_CONTENT_SID || '').trim();
-    if (toCustomer) {
-      let waCust;
-      if (guideContentSid) {
-        waCust = await sendWhatsAppTwilio({
-          to: toCustomer,
-          contentSid: guideContentSid,
-          contentVariables: { '1': nombreProducto, '2': guiaUrl },
-        });
-      } else {
-        waCust = await sendWhatsAppTwilio({
-          to: toCustomer,
-          body:
-            `Golf Lerma — Guía Golf en Burgos\n\n` +
-            `Gracias por tu reserva (${nombreProducto}).\n` +
-            `Descarga tu guía:\n${guiaUrl}\n`,
-          mediaUrl: attachGuidePdf ? guiaUrl : undefined,
-          templateFallbackVars: {
-            '1': `guía Golf Burgos (${nombreProducto})`,
-            '2': guiaUrl.slice(0, 200),
-          },
-        });
-      }
-      if (!waCust.ok) {
-        console.error('[webhook-stripe] WhatsApp cliente falló', waCust);
-      } else {
-        console.log('[webhook-stripe] WhatsApp cliente OK');
-      }
-    } else {
-      console.warn('[webhook-stripe] Guía: sin teléfono de cliente; solo aviso al club');
-    }
-  }
-
-  return jsonResponse({ received: true });
 }

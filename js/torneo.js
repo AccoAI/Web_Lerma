@@ -163,7 +163,7 @@
             }
         }
 
-        var keysMostrados = { titulo: 1, foto: 1, imagen: 1, fechas: 1, fechaInicio: 1, fechaFin: 1, modalidad: 1, premios: 1, jornadas: 1, tipoEvento: 1, descripcion: 1, tipoSalida: 1, handicapLimitado: 1, handicapLimite: 1, categoriasJuego: 1, comiteCompeticion: 1, welcomePack: 1, picnicCarpa: 1, coctelEntregaPremios: 1, precioSocio: 1, precioNoSocio: 1, precioCorrespondencia: 1, patrocinadorPrincipal: 1, patrocinadorPrincipalLogo: 1, colaboradores: 1, galeriaImagenes: 1, fechaLimiteInscripcion: 1, linkPago: 1, politicaCancelacion: 1, sede: 1, ofertaAlojamiento: 1, urlReglamentoPdf: 1, enlace: 1, numeroMaxJugadores: 1 };
+        var keysMostrados = { titulo: 1, foto: 1, imagen: 1, fechas: 1, fechaInicio: 1, fechaFin: 1, modalidad: 1, premios: 1, jornadas: 1, tipoEvento: 1, descripcion: 1, tipoSalida: 1, handicapLimitado: 1, handicapLimite: 1, categoriasJuego: 1, comiteCompeticion: 1, welcomePack: 1, picnicCarpa: 1, coctelEntregaPremios: 1, precioSocio: 1, precioNoSocio: 1, precioCorrespondencia: 1, patrocinadorPrincipal: 1, patrocinadorPrincipalLogo: 1, colaboradores: 1, galeriaImagenes: 1, fechaLimiteInscripcion: 1, linkPago: 1, politicaCancelacion: 1, sede: 1, ofertaAlojamiento: 1, urlReglamentoPdf: 1, enlace: 1, numeroMaxJugadores: 1, liveCode: 1, liveActivo: 1, liveUrl: 1, inscritosCount: 1, id: 1 };
         var resto = '';
         Object.keys(t).forEach(function (key) {
             if (keysMostrados[key]) return;
@@ -194,7 +194,104 @@
             html += '<p class="torneo-detalle-cta"><a href="' + esc(ctaHref) + '" class="torneo-detalle-btn">Reservar tu plaza – Contactar</a></p>';
         }
 
+        // Live + inscripción compartida (plataforma)
+        var plataformaBase = (typeof window.PLATAFORMA_CMS_URL === 'string' && window.PLATAFORMA_CMS_URL)
+            ? window.PLATAFORMA_CMS_URL.replace(/\/$/, '')
+            : 'https://plataforma-torneos-lerma-salda-a.vercel.app';
+        var torneoId = String(t.id || '').trim();
+        var liveCode = String(t.liveCode || '').trim().toUpperCase();
+        var liveActivo = t.liveActivo === true || t.liveActivo === 'true' || !!liveCode;
+        if (liveActivo && liveCode) {
+            var liveHref = (t.liveUrl && String(t.liveUrl).trim())
+                ? String(t.liveUrl).trim()
+                : 'marcador.html?c=' + encodeURIComponent(liveCode);
+            html += '<p class="torneo-detalle-cta"><a class="torneo-detalle-btn" href="' + esc(safeHref(liveHref)) + '" target="_blank" rel="noopener noreferrer">Ver en vivo · ' + esc(liveCode) + '</a></p>';
+        }
+
+        if (torneoId) {
+            html += '<div class="torneo-detalle-bloque" id="torneoInscritosBlock">';
+            html += '<h3 class="torneo-detalle-bloque-titulo">Inscritos</h3>';
+            html += '<p class="torneo-detalle-campo" id="torneoInscritosStatus">Cargando lista…</p>';
+            html += '<ul id="torneoInscritosLista" style="list-style:none;padding:0;margin:0.5rem 0 1rem"></ul>';
+            html += '<form id="torneoInscripcionForm" style="display:grid;gap:0.5rem;max-width:28rem">';
+            html += '<label>Nombre <input required name="nombre" type="text" placeholder="Tu nombre" style="width:100%;padding:0.5rem"></label>';
+            html += '<label>Email <input required name="email" type="email" placeholder="tu@email.com" style="width:100%;padding:0.5rem"></label>';
+            html += '<label>Hándicap <input name="hcp" type="number" step="0.1" placeholder="opcional" style="width:100%;padding:0.5rem"></label>';
+            html += '<button type="submit" class="torneo-detalle-btn">Inscribirme (web)</button>';
+            html += '<p id="torneoInscripcionMsg" class="torneo-detalle-campo" style="margin:0"></p>';
+            html += '</form></div>';
+        }
+
         contenedor.innerHTML = html;
+
+        if (torneoId) {
+            function renderInscritos(data) {
+                var status = document.getElementById('torneoInscritosStatus');
+                var ul = document.getElementById('torneoInscritosLista');
+                if (!status || !ul) return;
+                var items = (data && data.items) || [];
+                status.textContent = (data && data.count != null ? data.count : items.length) + ' inscrito(s)';
+                ul.innerHTML = items.map(function (e) {
+                    return '<li style="padding:0.35rem 0;border-bottom:1px solid rgba(0,0,0,0.08)">' +
+                        esc(e.memberName || 'Jugador') +
+                        (e.category ? ' · ' + esc(e.category) : '') +
+                        (e.playingHandicap != null ? ' · HCP juego ' + esc(String(e.playingHandicap)) : '') +
+                        '</li>';
+                }).join('') || '<li style="opacity:0.7">Aún no hay inscritos.</li>';
+            }
+            fetch(plataformaBase + '/api/inscritos/' + encodeURIComponent(torneoId))
+                .then(function (r) { return r.json(); })
+                .then(renderInscritos)
+                .catch(function () {
+                    var status = document.getElementById('torneoInscritosStatus');
+                    if (status) status.textContent = 'No se pudo cargar la lista de inscritos.';
+                });
+
+            var form = document.getElementById('torneoInscripcionForm');
+            if (form) {
+                form.addEventListener('submit', function (ev) {
+                    ev.preventDefault();
+                    var msg = document.getElementById('torneoInscripcionMsg');
+                    var fd = new FormData(form);
+                    var nombre = String(fd.get('nombre') || '').trim();
+                    var email = String(fd.get('email') || '').trim();
+                    var hcpRaw = String(fd.get('hcp') || '').trim();
+                    var body = {
+                        memberName: nombre,
+                        email: email,
+                        playerType: esSocio ? 'socio' : 'no_socio',
+                        source: 'web',
+                        maxPlayers: t.numeroMaxJugadores != null && t.numeroMaxJugadores !== ''
+                            ? Number(t.numeroMaxJugadores)
+                            : null
+                    };
+                    if (hcpRaw !== '' && !isNaN(Number(hcpRaw))) {
+                        body.handicapIndex = Number(hcpRaw);
+                        body.playingHandicap = Math.round(Number(hcpRaw));
+                    }
+                    if (msg) msg.textContent = 'Enviando…';
+                    fetch(plataformaBase + '/api/inscritos/' + encodeURIComponent(torneoId), {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+                        body: JSON.stringify(body)
+                    })
+                        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+                        .then(function (res) {
+                            if (!res.j || !res.j.ok) {
+                                throw new Error((res.j && res.j.error) || 'No se pudo inscribir');
+                            }
+                            if (msg) msg.textContent = 'Inscripción confirmada.';
+                            form.reset();
+                            return fetch(plataformaBase + '/api/inscritos/' + encodeURIComponent(torneoId))
+                                .then(function (r) { return r.json(); })
+                                .then(renderInscritos);
+                        })
+                        .catch(function (err) {
+                            if (msg) msg.textContent = 'Error: ' + (err.message || err);
+                        });
+                });
+            }
+        }
 
         var btnPago = contenedor.querySelector('.torneo-detalle-btn-pago');
         if (btnPago) {

@@ -1,14 +1,8 @@
 /**
- * API: solicitud de reserva (bautismos, clases de golf). Pago posterior fuera de la web.
- * POST /api/reserva-solicitud
+ * API: solicitud de reserva (bautismos, clases) → midend Brevo.
  */
 
-import { sendEmail } from '../lib/resend.js';
-
-const EMAIL_DESTINO =
-  process.env.RESEND_EMAIL_RESERVAS ||
-  process.env.RESEND_EMAIL_EMPRESA ||
-  'eventos@golflerma.com';
+import { emitMidendEvent, splitPersonName } from '../lib/midend-events.js';
 
 const TIPO_LABELS = {
   bautismos: 'Bautismos de golf',
@@ -25,12 +19,6 @@ function jsonResponse(obj, status = 200) {
     status,
     headers: { 'Content-Type': 'application/json' },
   });
-}
-
-function escapeHtml(s) {
-  if (s == null) return '';
-  const d = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-  return String(s).replace(/[&<>"']/g, (c) => d[c]);
 }
 
 function str(v) {
@@ -68,52 +56,40 @@ export async function POST(request) {
     if (!email) return jsonResponse({ error: 'El email es obligatorio' }, 400);
     if (!telefono) return jsonResponse({ error: 'El teléfono es obligatorio' }, 400);
 
+    const { firstName, lastName } = splitPersonName(nombre);
     const tipoLabel = TIPO_LABELS[tipo];
     const campoLabel = CAMPO_LABELS[campo];
-    const subject = 'Solicitud ' + tipoLabel + ' – ' + fecha + ' (' + nombre + ')';
 
-    const rows = [
-      ['Servicio', tipoLabel],
-      ['Fecha', fecha],
-      ['Hora', hora],
-      ['Nº personas', String(numPersonas)],
-      ['Campo', campoLabel],
-      ['Nombre', nombre],
-      ['Email', email],
-      ['Teléfono', telefono],
-    ];
-
-    const text = rows.map(([k, v]) => k + ': ' + v).join('\n');
-    const htmlRows = rows
-      .map(
-        ([k, v]) =>
-          '<tr><td style="padding:4px 12px 4px 0;font-weight:600;">' +
-          escapeHtml(k) +
-          '</td><td style="padding:4px 0;">' +
-          escapeHtml(v) +
-          '</td></tr>'
-      )
-      .join('');
-
-    const result = await sendEmail({
-      to: EMAIL_DESTINO,
-      subject,
-      html:
-        '<p><strong>Nueva solicitud de reserva (bautismos / clases).</strong></p>' +
-        '<p>Tramitar la solicitud y contactar al cliente. El pago, si procede, se gestionará después.</p>' +
-        '<p>Responder a: <a href="mailto:' +
-        escapeHtml(email) +
-        '">' +
-        escapeHtml(email) +
-        '</a></p>' +
-        '<table style="border-collapse:collapse;margin-top:0.75rem;">' +
-        htmlRows +
-        '</table>',
-      text: 'Nueva solicitud de reserva (bautismos / clases). Pago posterior si procede.\nResponder a: ' + email + '\n\n' + text,
+    // Misma plantilla de confirmación que la app (solicitud tratada como reserva a confirmar).
+    const midend = await emitMidendEvent('reserva.confirmada', {
+      contact: {
+        email,
+        phone: telefono,
+        firstName: firstName || nombre,
+        lastName: lastName || undefined,
+        tipo: 'lead',
+      },
+      payload: {
+        fecha,
+        hora,
+        campo: campoLabel,
+        jugadores: String(numPersonas),
+        referencia: `SOL-${tipo}-${fecha}`.slice(0, 40),
+        concepto: `Solicitud ${tipoLabel} (pago posterior)`,
+      },
+      channels: ['email'],
     });
 
-    if (result.error) {
-      return jsonResponse({ error: result.error }, 500);
+    if (!midend.ok) {
+      return jsonResponse(
+        {
+          error:
+            midend.status === 401
+              ? 'Midend no autorizado (revisa MIDEND_API_KEY en Vercel).'
+              : 'No se pudo registrar la solicitud. Inténtalo de nuevo.',
+        },
+        midend.status === 401 ? 503 : 502
+      );
     }
 
     return jsonResponse({ ok: true });

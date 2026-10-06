@@ -1,17 +1,8 @@
 /**
- * API: envío de consulta Eventos de Empresa (Resend).
- * POST /api/contacto-empresa
- * Body: { email, empresa?, mensaje? }
- *
- * Variables de entorno en Vercel:
- *   RESEND_API_KEY       - API key de Resend
- *   RESEND_EMAIL_FROM    - Remitente (ej: Golf Lerma <noreply@tudominio.com>)
- *   RESEND_EMAIL_EMPRESA - (Opcional) Destino consultas empresa (default: eventos@golflerma.com)
+ * API: consulta Eventos de Empresa → midend (lead.capturado).
  */
 
-import { sendEmail } from '../lib/resend.js';
-
-const EMAIL_DESTINO = process.env.RESEND_EMAIL_EMPRESA || 'eventos@golflerma.com';
+import { emitMidendEvent } from '../lib/midend-events.js';
 
 function jsonResponse(obj, status = 200) {
   return new Response(JSON.stringify(obj), {
@@ -35,28 +26,31 @@ export async function POST(request) {
       return jsonResponse({ error: 'El email corporativo es obligatorio' }, 400);
     }
 
-    const subject = 'Consulta evento empresa' + (empresa ? ` - ${empresa}` : '');
-    const text = [
-      `Email corporativo: ${email}`,
-      empresa ? `Empresa: ${empresa}` : '',
-      mensaje ? `Mensaje:\n${mensaje}` : '',
-    ].filter(Boolean).join('\n');
-
-    const html = [
-      '<p><strong>Email corporativo:</strong> ' + escapeHtml(email) + '</p>',
-      empresa ? '<p><strong>Empresa:</strong> ' + escapeHtml(empresa) + '</p>' : '',
-      mensaje ? '<p><strong>Mensaje:</strong></p><pre style="white-space:pre-wrap;font-family:inherit;">' + escapeHtml(mensaje) + '</pre>' : '',
-    ].filter(Boolean).join('');
-
-    const result = await sendEmail({
-      to: EMAIL_DESTINO,
-      subject,
-      html,
-      text,
+    const midend = await emitMidendEvent('lead.capturado', {
+      contact: {
+        email,
+        firstName: empresa || email.split('@')[0],
+        tipo: 'lead',
+        consentMarketing: false,
+      },
+      payload: {
+        empresa: empresa || undefined,
+        mensaje: mensaje || undefined,
+        origen: 'web-contacto-empresa',
+      },
+      channels: ['email'],
     });
 
-    if (result.error) {
-      return jsonResponse({ error: result.error }, 500);
+    if (!midend.ok) {
+      return jsonResponse(
+        {
+          error:
+            midend.status === 401
+              ? 'Midend no autorizado (revisa MIDEND_API_KEY en Vercel).'
+              : 'No se pudo enviar la consulta. Inténtalo de nuevo.',
+        },
+        midend.status === 401 ? 503 : 502
+      );
     }
 
     return jsonResponse({ ok: true });
@@ -64,10 +58,4 @@ export async function POST(request) {
     console.error('contacto-empresa:', err);
     return jsonResponse({ error: 'Error al enviar la consulta' }, 500);
   }
-}
-
-function escapeHtml(s) {
-  if (s == null) return '';
-  const d = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-  return String(s).replace(/[&<>"']/g, (c) => d[c]);
 }

@@ -8,7 +8,7 @@ import {
 import { mapHotelbedsBookingToVoucherData, voucherMapFailureReason, enrichVoucherFromCheckrate, enrichVoucherFromContent, extractHotelCodeFromBookingRaw } from '../lib/hotelbeds-booking-map.js';
 import { fetchHotelContentContact } from '../lib/hotelbeds-content-contact.js';
 import { hotelbedsBaseUrl, hotelbedsFetch, getMtlsCreds } from '../lib/hotelbeds-mtls.js';
-import { sendEmail } from '../lib/resend.js';
+import { emitMidendEvent } from '../lib/midend-events.js';
 
 /**
  * Proxy para Hotelbeds Availability API
@@ -464,20 +464,23 @@ async function handleReconfirmation(request) {
     JSON.stringify(payload).slice(0, 500)
   );
 
-  // Notificación por email al equipo (no-bloqueante; ignoramos fallos)
-  const adminEmail = process.env.RESEND_EMAIL_EMPRESA || 'eventos@golflerma.com';
-  sendEmail({
-    to: adminEmail,
-    subject: `[Hotelbeds] Reconfirmación reserva ${ref} — código proveedor: ${supplierCode}`,
-    html: `
-      <h2>Reconfirmación de reserva Hotelbeds</h2>
-      <p><strong>Referencia:</strong> ${ref}</p>
-      <p><strong>Código proveedor:</strong> ${supplierCode}</p>
-      <p><strong>Tipo:</strong> ${type}</p>
-      <details><summary>Payload completo</summary>
-        <pre style="font-size:12px;background:#f5f5f5;padding:8px">${JSON.stringify(payload, null, 2)}</pre>
-      </details>`,
-  }).catch((e) => console.warn('[Hotelbeds Reconfirmation] sendEmail failed:', e?.message));
+  // Notificación al midend (no-bloqueante)
+  emitMidendEvent('hotelbeds.reconfirmation', {
+    contact: {
+      email: process.env.BREVO_CLUB_NOTIFY_EMAIL || undefined,
+      firstName: 'Club',
+      tipo: 'lead',
+    },
+    payload: {
+      type,
+      referencia: ref,
+      supplierConfirmationCode: supplierCode,
+      concepto: `Reconfirmación Hotelbeds (${type})`,
+      campo: 'Hotelbeds',
+    },
+    channels: ['email'],
+    skipContactSync: true,
+  }).catch((e) => console.warn('[Hotelbeds Reconfirmation] midend failed:', e?.message));
 
   return new Response(JSON.stringify({ received: true, ref, supplierCode }), {
     status: 200,

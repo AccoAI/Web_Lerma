@@ -28,9 +28,11 @@ Para probar el API localmente con `vercel dev`:
 - **Pago único**: el usuario es redirigido a Stripe Checkout para pagar el total.
 - **Pago por persona**: se muestra un modal con un enlace para compartir; cada participante usa el mismo enlace para pagar su parte.
 
-## 5. Webhook + notificación WhatsApp
+## 5. Webhook + midend (comunicaciones)
 
-Cuando un cliente **completa el pago** (checkout.session.completed), el webhook envía un mensaje de WhatsApp al número que configures (por ejemplo el del club) con: paquete, importe, participantes y forma de pago.
+Cuando un cliente **completa el pago** (`checkout.session.completed`), el webhook **emite un evento JSON al midend**. Email/WhatsApp los gestiona el midend con Brevo — no Resend ni Twilio desde esta web.
+
+Ver **MIDEND-COMUNICACIONES.md**.
 
 ### 5.1 Webhook en Stripe
 
@@ -45,22 +47,11 @@ Añade estas variables (además de `STRIPE_SECRET_KEY`):
 
 | Nombre | Descripción |
 |--------|-------------|
-| `STRIPE_WEBHOOK_SECRET` | El Signing secret del webhook (whsec_...) |
-| `TWILIO_ACCOUNT_SID` | Account SID de Twilio (Console) |
-| `TWILIO_AUTH_TOKEN` | Auth Token de Twilio |
-| `TWILIO_WHATSAPP_FROM` | Número origen WhatsApp: `whatsapp:+34XXXXXXXXX` (producción) o `whatsapp:+14155238886` (sandbox Twilio) |
-| `WHATSAPP_NOTIFY_TO` | Número al que enviar la notificación: `whatsapp:+34947564630` (ej. teléfono del club) |
-| `WHATSAPP_SEND_GUIDE_TO_CUSTOMER` | (Opcional) `1` para enviar la guía PDF al cliente (Paquete Burgos/Campeonato). Requiere plantilla. |
-| `TWILIO_GUIDE_CONTENT_SID` | (Opcional) Content SID `HX…` de la plantilla Meta/Twilio de la guía. |
-| `RESEND_API_KEY` | API key de Resend (para enviar correo de confirmación al cliente) |
-| `RESEND_EMAIL_FROM` | Remitente del correo (ej: `Golf Lerma <reservas@tudominio.com>`) |
-| `RESEND_EMAIL_TO` | **(Opcional)** Copia de cada reserva a este correo (ej. del club). La confirmación va al email del cliente (el que introduce en Stripe). |
+| `STRIPE_WEBHOOK_SECRET` | El Signing secret del webhook (`whsec_...`) |
+| `MIDEND_API_KEY` | Misma clave que en plataforma (`X-Midend-Key`) |
+| `MIDEND_EVENTS_URL` | (Opcional) Default: plataforma `/api/comms/events` |
 
-Después de guardar, haz **Redeploy**. Ver **RESEND-SETUP.md** para configurar Resend.
+Después de guardar, haz **Redeploy**.
 
-### 5.3 Configurar WhatsApp (Twilio)
+El botón WhatsApp de atención al cliente (`wa.me` en el chatbot) **no** depende de este webhook.
 
-- **Pruebas**: en [Twilio Console](https://console.twilio.com) > **Messaging** > **Try it out** > **Send a WhatsApp message** puedes activar el **Sandbox**. Sigues las instrucciones para unir tu número de prueba al sandbox. Usa como `TWILIO_WHATSAPP_FROM` el número del sandbox (ej. `whatsapp:+14155238886`).
-- **Producción**: contrata un número de WhatsApp Business a través de Twilio y úsalo en `TWILIO_WHATSAPP_FROM`. `WHATSAPP_NOTIFY_TO` es el móvil del club (con prefijo país, ej. `whatsapp:+34947564630`).
-
-Ver también **WHATSAPP-NOTIFICACIONES.md** para más detalle.

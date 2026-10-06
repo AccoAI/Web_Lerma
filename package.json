@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.95.3",
+    "@vercel/blob": "^0.24.0",
     "stripe": "^14.0.0"
   }
 }
